@@ -508,8 +508,7 @@ add_attestation_cont (struct GNUNET_REST_RequestHandle *con_handle,
                  handle->rest_handle->data,
                  handle->rest_handle->data_size);
   data_json = json_loads (term_data, JSON_DECODE_ANY, &err);
-  GNUNET_assert (GNUNET_OK ==
-                 GNUNET_JSON_parse (data_json, attrspec, NULL, NULL));
+  GNUNET_JSON_parse (data_json, attrspec, NULL, NULL);
   json_decref (data_json);
   if (NULL == attribute)
   {

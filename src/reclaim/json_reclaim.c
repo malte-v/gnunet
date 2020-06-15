@@ -332,7 +332,7 @@ parse_attest (void *cls, json_t *root, struct GNUNET_JSON_Specification *spec)
                                                    (void **) &data,
                                                    &data_size)))
   {
-    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Attestation value invalid!\n");
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR, "Attestation value invalid!\n");
     return GNUNET_SYSERR;
   }
   attr = GNUNET_RECLAIM_attestation_new (name_str, type, data, data_size);
