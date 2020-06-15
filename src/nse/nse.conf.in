@@ -35,4 +35,4 @@ INTERVAL = 1 h
 # for SCRYPT; with 2ms/op and 5ms workdelay, we can expect
 # the POW calculation to be done by a high-end peer in about 6h
 # DO NOT CHANGE THIS VALUE, doing so will break the protocol!
-WORKBITS = 22
+WORKBITS = 15
