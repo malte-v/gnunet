@@ -2172,7 +2172,8 @@ GNUNET_CRYPTO_rsa_signature_cmp (const struct GNUNET_CRYPTO_RsaSignature *s1,
  */
 int
 GNUNET_CRYPTO_rsa_private_key_cmp (const struct GNUNET_CRYPTO_RsaPrivateKey *p1,
-                                   const struct GNUNET_CRYPTO_RsaPrivateKey *p2);
+                                   const struct
+                                   GNUNET_CRYPTO_RsaPrivateKey *p2);
 
 
 /**

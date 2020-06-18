@@ -173,7 +173,9 @@ GNUNET_JSON_spec_mark_optional (struct GNUNET_JSON_Specification spec);
  * @param size number of bytes expected in @a obj
  */
 struct GNUNET_JSON_Specification
-GNUNET_JSON_spec_fixed (const char *name, void *obj, size_t size);
+GNUNET_JSON_spec_fixed (const char *name,
+                        void *obj,
+                        size_t size);
 
 
 /**
@@ -196,7 +198,9 @@ GNUNET_JSON_spec_fixed (const char *name, void *obj, size_t size);
  * @param[out] size where to store the number of bytes allocated for @a obj
  */
 struct GNUNET_JSON_Specification
-GNUNET_JSON_spec_varsize (const char *name, void **obj, size_t *size);
+GNUNET_JSON_spec_varsize (const char *name,
+                          void **obj,
+                          size_t *size);
 
 
 /**
@@ -206,7 +210,9 @@ GNUNET_JSON_spec_varsize (const char *name, void **obj, size_t *size);
  * @param strptr where to store a pointer to the field
  */
 struct GNUNET_JSON_Specification
-GNUNET_JSON_spec_string (const char *name, const char **strptr);
+GNUNET_JSON_spec_string (const char *name,
+                         const char **strptr);
+
 
 /**
  * JSON object.
@@ -215,7 +221,8 @@ GNUNET_JSON_spec_string (const char *name, const char **strptr);
  * @param[out] jsonp where to store the JSON found under @a name
  */
 struct GNUNET_JSON_Specification
-GNUNET_JSON_spec_json (const char *name, json_t **jsonp);
+GNUNET_JSON_spec_json (const char *name,
+                       json_t **jsonp);
 
 
 /**
@@ -291,7 +298,8 @@ GNUNET_JSON_spec_int64 (const char *name,
  * @param[out] boolean where to store the boolean found under @a name
  */
 struct GNUNET_JSON_Specification
-GNUNET_JSON_spec_boolean (const char *name, int *boolean);
+GNUNET_JSON_spec_boolean (const char *name,
+                          int *boolean);
 
 
 /* ************ GNUnet-specific parser specifications ******************* */
