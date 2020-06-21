@@ -120,7 +120,8 @@ GNUNET_STRINGS_byte_size_fancy (unsigned long long size);
  *  string is returned.
  */
 char *
-GNUNET_STRINGS_conv (const char *input, size_t len,
+GNUNET_STRINGS_conv (const char *input,
+                     size_t len,
                      const char *input_charset,
                      const char *output_charset);
 
