@@ -208,8 +208,6 @@ shuffle_answers (struct Request *request)
     r_idx = GNUNET_CRYPTO_random_u32 (GNUNET_CRYPTO_QUALITY_WEAK,
                                       request->packet->num_answers);
     idx--;
-    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                "Swapping %u with %u\n", idx, r_idx);
     tmp_answer = request->packet->answers[idx];
     memcpy (&request->packet->answers[idx], &request->packet->answers[r_idx],
             sizeof (struct GNUNET_DNSPARSER_Record));
