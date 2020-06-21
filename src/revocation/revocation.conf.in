@@ -14,6 +14,6 @@ UNIX_MATCH_GID = YES
 # (using only a single-core) with SCRYPT.
 # DO NOT CHANGE THIS VALUE, doing so will break the protocol!
 WORKBITS = 22
-EPOCH_DURATION = 356 d
+EPOCH_DURATION = 365 d
 
 DATABASE = $GNUNET_DATA_HOME/revocation.dat
