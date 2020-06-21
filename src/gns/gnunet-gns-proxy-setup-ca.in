@@ -119,9 +119,9 @@ generate_ca()
     infomsg "Generating CA"
     TMPDIR=${TMPDIR:-/tmp}
     if test -e "$TMPDIR"; then
-        GNSCERT=`mktemp -t certXXXXXXXX.pem` || exit 1
-        GNSCAKY=`mktemp -t cakyXXXXXXXX.pem` || exit 1
-        GNSCANO=`mktemp -t canoXXXXXXXX.pem` || exit 1
+        GNSCERT=`mktemp -t cert.pem.XXXXXXXX` || exit 1
+        GNSCAKY=`mktemp -t caky.pem.XXXXXXXX` || exit 1
+        GNSCANO=`mktemp -t cano.pem.XXXXXXXX` || exit 1
     else
         # This warning is mostly pointless.
         warningmsg "You need to export the TMPDIR variable"
