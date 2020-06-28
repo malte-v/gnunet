@@ -1094,6 +1094,7 @@ run_with_zone_pkey (const struct GNUNET_CONFIGURATION_Handle *cfg)
       fprintf (stderr,
                _ ("For DNS record types `SRV', `TLSA' and `OPENPGPKEY'"));
       fprintf (stderr, ", please use a `BOX' record instead\n");
+      GNUNET_SCHEDULER_shutdown ();
       ret = 1;
       return;
     }
