@@ -345,7 +345,9 @@ struct GNUNET_AsyncScopeSave
  *  #GNUNET_NO to stop iteration with no error,
  *  #GNUNET_SYSERR to abort iteration with error!
  */
-typedef int (*GNUNET_FileNameCallback) (void *cls, const char *filename);
+typedef int
+(*GNUNET_FileNameCallback) (void *cls,
+                            const char *filename);
 
 
 /**
@@ -353,7 +355,8 @@ typedef int (*GNUNET_FileNameCallback) (void *cls, const char *filename);
  *
  * @param cls  Closure.
  */
-typedef void (*GNUNET_ContinuationCallback) (void *cls);
+typedef void
+(*GNUNET_ContinuationCallback) (void *cls);
 
 
 /**
@@ -368,10 +371,11 @@ typedef void (*GNUNET_ContinuationCallback) (void *cls);
  * @param data_size
  *        Size of @a data.
  */
-typedef void (*GNUNET_ResultCallback) (void *cls,
-                                       int64_t result_code,
-                                       const void *data,
-                                       uint16_t data_size);
+typedef void
+(*GNUNET_ResultCallback) (void *cls,
+                          int64_t result_code,
+                          const void *data,
+                          uint16_t data_size);
 
 
 /* ****************************** logging ***************************** */
