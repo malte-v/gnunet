@@ -190,6 +190,31 @@ do_shutdown (void *cls)
   }
 }
 
+/**
+ * Shuffle answers
+ * Fisher-Yates (aka Knuth) Shuffle
+ *
+ * @param request context for the request (with answers)
+ */
+static void
+shuffle_answers (struct Request *request)
+{
+  unsigned int idx = request->packet->num_answers;
+  unsigned int r_idx;
+  struct GNUNET_DNSPARSER_Record tmp_answer;
+
+  while (0 != idx)
+  {
+    r_idx = GNUNET_CRYPTO_random_u32 (GNUNET_CRYPTO_QUALITY_WEAK,
+                                      request->packet->num_answers);
+    idx--;
+    tmp_answer = request->packet->answers[idx];
+    memcpy (&request->packet->answers[idx], &request->packet->answers[r_idx],
+            sizeof (struct GNUNET_DNSPARSER_Record));
+    memcpy (&request->packet->answers[r_idx], &tmp_answer,
+            sizeof (struct GNUNET_DNSPARSER_Record));
+  }
+}
 
 /**
  * Send the response for the given request and clean up.
@@ -203,6 +228,7 @@ send_response (struct Request *request)
   size_t size;
   ssize_t sret;
 
+  shuffle_answers (request);
   if (GNUNET_SYSERR ==
       GNUNET_DNSPARSER_pack (request->packet,
                              UINT16_MAX /* is this not too much? */,
@@ -334,8 +360,6 @@ result_processor (void *cls,
   // packet->flags.opcode = GNUNET_TUN_DNS_OPCODE_STATUS; // ???
   for (uint32_t i = 0; i < rd_count; i++)
   {
-    // FIXME: do we need to hanlde #GNUNET_GNSRECORD_RF_SHADOW_RECORD
-    // here? Or should we do this in libgnunetgns?
     rec.expiration_time.abs_value_us = rd[i].expiration_time;
     switch (rd[i].record_type)
     {
