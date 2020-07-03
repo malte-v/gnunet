@@ -1810,4 +1810,44 @@ GNUNET_CONFIGURATION_load_from (struct GNUNET_CONFIGURATION_Handle *cfg,
 }
 
 
+/**
+ * Return GNUnet's default configuration.  A new configuration is allocated
+ * each time and it's up to the caller to destroy it when done.  This function
+ * returns GNUnet's configuration even when #GNUNET_OS_init has been called
+ * with a value different from #GNUNET_OS_project_data_default.
+ *
+ * @return a freshly allocated configuration
+ */
+struct GNUNET_CONFIGURATION_Handle *
+GNUNET_CONFIGURATION_default(void)
+{
+  const struct GNUNET_OS_ProjectData *pd = GNUNET_OS_project_data_get ();
+  const struct GNUNET_OS_ProjectData *dpd = GNUNET_OS_project_data_default ();
+
+  GNUNET_OS_init(dpd);
+
+  struct GNUNET_CONFIGURATION_Handle *cfg = GNUNET_CONFIGURATION_create ();
+  const char *xdg = getenv ("XDG_CONFIG_HOME");
+  char *cfgname = NULL;
+
+  if (NULL != xdg)
+    GNUNET_asprintf (&cfgname, "%s/%s", xdg, pd->config_file);
+  else
+    cfgname = GNUNET_strdup (pd->user_config_file);
+
+  if (GNUNET_OK != GNUNET_CONFIGURATION_load (cfg, cfgname)) {
+    GNUNET_OS_init (pd);
+    GNUNET_CONFIGURATION_destroy (cfg);
+    GNUNET_free (cfgname);
+    return NULL;
+  }
+
+  GNUNET_free (cfgname);
+
+  GNUNET_OS_init (pd);
+
+  return cfg;
+}
+
+
 /* end of configuration.c */

@@ -101,6 +101,18 @@ GNUNET_CONFIGURATION_load_from (struct GNUNET_CONFIGURATION_Handle *cfg,
 
 
 /**
+ * Return GNUnet's default configuration.  A new configuration is allocated
+ * each time and it's up to the caller to destroy it when done.  This function
+ * returns GNUnet's configuration even when #GNUNET_OS_init has been called
+ * with a value different from #GNUNET_OS_project_data_default.
+ *
+ * @return a freshly allocated configuration
+ */
+struct GNUNET_CONFIGURATION_Handle *
+GNUNET_CONFIGURATION_default(void);
+
+
+/**
  * Parse a configuration file, add all of the options in the
  * file to the configuration environment.
  *
