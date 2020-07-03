@@ -416,7 +416,7 @@ gnugettext_check()
 
 gettext_check()
 {
-    if test -z "`type getext | awk '/not found/'`"; then
+    if test -z "`type gettext | awk '/not found/'`"; then
         infomsg "gettext        : Found"
     else
         infomsg "gettext        : Not Found"
