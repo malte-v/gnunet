@@ -27,6 +27,10 @@ libgnunetjson_la_LIBADD = \
   $(MHD_LIBS) \
   $(XLIB) \
   $(Z_LIBS)
+libgnunetjson_la_DEPENDENCIES = \
+  $(top_builddir)/src/util/libgnunetutil.la \
+  $(top_builddir)/src/gnsrecord/libgnunetgnsrecord.la
+
 
 check_PROGRAMS = \
   test_json \

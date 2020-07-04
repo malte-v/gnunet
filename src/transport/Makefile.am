@@ -155,7 +155,15 @@ libgnunettransporttesting_la_LIBADD = \
   $(top_builddir)/src/ats/libgnunetats.la \
   $(top_builddir)/src/util/libgnunetutil.la \
   $(top_builddir)/src/testing/libgnunettesting.la \
+  $(top_builddir)/src/arm/libgnunetarm.la \
   $(GN_LIBINTL)
+libgnunettransporttesting_la_DEPENDENCIES = \
+  libgnunettransport.la \
+  $(top_builddir)/src/hello/libgnunethello.la \
+  $(top_builddir)/src/ats/libgnunetats.la \
+  $(top_builddir)/src/util/libgnunetutil.la \
+  $(top_builddir)/src/testing/libgnunettesting.la \
+  $(top_builddir)/src/arm/libgnunetarm.la
 libgnunettransporttesting_la_LDFLAGS = \
  $(GN_LIB_LDFLAGS)
 
@@ -185,6 +193,10 @@ libgnunettransport_la_LIBADD = \
   $(top_builddir)/src/ats/libgnunetats.la \
   $(top_builddir)/src/util/libgnunetutil.la \
   $(GN_LIBINTL)
+libgnunettransport_la_DEPENDENCIES = \
+  $(top_builddir)/src/hello/libgnunethello.la \
+  $(top_builddir)/src/ats/libgnunetats.la \
+  $(top_builddir)/src/util/libgnunetutil.la
 libgnunettransport_la_LDFLAGS = \
   $(GN_LIB_LDFLAGS)  \
   -version-info 4:0:2
