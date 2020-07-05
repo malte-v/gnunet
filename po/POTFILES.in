@@ -42,6 +42,7 @@ src/block/block.c
 src/block/plugin_block_template.c
 src/block/plugin_block_test.c
 src/cadet/cadet_api.c
+src/cadet/cadet_api_drop_message.c
 src/cadet/cadet_api_get_channel.c
 src/cadet/cadet_api_get_path.c
 src/cadet/cadet_api_helper.c

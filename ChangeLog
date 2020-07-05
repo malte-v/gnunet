@@ -1,3 +1,54 @@
+Sun, 28 Jun 2020 22:38:45 +0200 (8c2243f05)
+Prevent user from storing records which belong in a BOX - Martin Schanzenbach
+
+Sun, 21 Jun 2020 22:06:35 +0200 (612704d69)
+GNS: dns2gns now randomizes answers from GNS record set - Martin Schanzenbach
+
+Tue, 16 Jun 2020 01:48:00 +0200 (e500e9ec3)
+Set workbits for PoWs to more realistic values - Martin Schanzenbach
+
+Sun, 14 Jun 2020 16:36:08 +0200 (a3a89edc0)
+doc->preface: rewrite 'GNUnet may also' sentence, remove 2 TODO items. - nikita
+
+Fri, 12 Jun 2020 12:51:46 +0200 (726ac3ef2)
+Fixed 5528: TCP *communicator* bindto option should support DNS names, and 6013: TCP communicator should bind to IPv6 and IPv4 if only port given - t3sserakt
+
+Fri, 5 Jun 2020 16:37:10 +0200 (d22eacb13)
+Fixed bug #5822 by adding a monotonic time to the connection create message of a peer that want to start a KX, and the corresponding test #5823. Credits to dvn, lurchi and xrs for helpful discussions and coding. - t3sserakt
+
+Mon, 1 Jun 2020 19:08:32 +0200 (59f616a3c)
+tng: do not handle message send more than once - Martin Schanzenbach
+
+Mon, 1 Jun 2020 18:45:46 +0200 (d11bffdc2)
+tng: fix for macos unix socket handling - Martin Schanzenbach
+
+Mon, 1 Jun 2020 18:43:32 +0200 (583bc67ba)
+tng: MTU fix for other UNIXes, log message - Martin Schanzenbach
+
+Mon, 1 Jun 2020 18:18:00 +0200 (d20be8a91)
+tng: UNIX communicator fixes. Test fixes - Martin Schanzenbach
+
+Mon, 1 Jun 2020 16:39:35 +0200 (198c09654)
+tng: more UDP communicator backchannels - Martin Schanzenbach
+
+Sat, 30 May 2020 17:45:38 +0200 (a325c3eaa)
+towards UDP backchannels - Martin Schanzenbach
+
+Fri, 29 May 2020 22:31:37 -0400 (63109da3e)
+rsa crypto compare functions take const parameters - Jonathan Buchanan
+
+Wed, 27 May 2020 15:01:30 +0200 (cf4608196)
+Make REQUEST_AGPL messages configurable and add handler by default - Christian Grothoff
+
+Wed, 27 May 2020 09:32:06 +0200 (f2127cd6a)
+add lastlog script - Martin Schanzenbach
+
+Wed, 27 May 2020 09:25:44 +0200 (eec3fd03c)
+changelog from git log - Martin Schanzenbach
+
+Wed, 27 May 2020 08:23:47 +0200 (b89c1f2a8)
+update changelog, new format - Martin Schanzenbach
+
 Tue, 26 May 2020 11:49:50 +0200 (755cb5c76)
 remove argon2 dependency. Use limited libsodium argon2id function for GNS and NSE - Martin Schanzenbach
 
