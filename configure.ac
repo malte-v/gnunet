@@ -1160,8 +1160,12 @@ AS_IF([test x_$withval = x_yes],
                                          my_with_libidn2=0]))],
       [AS_IF([test x_$withval != x_no],
              [CFLAGS="$CFLAGS -I$withval/include"
-              LDFLAGS="$LDFLAGS -L$withval/lib"],
-	          [my_with_libidn2=0])])
+              LDFLAGS="$LDFLAGS -L$withval/lib"
+              AC_CHECK_HEADERS([idn2/idn2.h],
+                               AC_MSG_NOTICE([Found idn2/idn2.h]),
+                               [AC_MSG_NOTICE([Failed to find idn2.h])
+                               my_with_libidn2=0])],
+             [my_with_libidn2=0])])
 
 AC_MSG_CHECKING([if libidn can be used])
 # Check for LIBIDNs
