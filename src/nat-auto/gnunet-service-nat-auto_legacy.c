@@ -791,7 +791,7 @@ test_icmp_server (struct GNUNET_NAT_AutoHandle *ah)
                 _ ("No working gnunet-helper-nat-server found\n"));
   }
 err:
-  GNUNET_free_non_null (tmp);
+  GNUNET_free (tmp);
   GNUNET_free (helper);
 
   if ((GNUNET_OK == ext_ip) &&
@@ -853,7 +853,7 @@ test_icmp_client (struct GNUNET_NAT_AutoHandle *ah)
                 _ ("No working gnunet-helper-nat-server found\n"));
   }
 err:
-  GNUNET_free_non_null (tmp);
+  GNUNET_free (tmp);
   GNUNET_free (helper);
 
   next_phase (ah);

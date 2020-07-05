@@ -649,7 +649,7 @@ GST_stats_destroy ()
     proc_stat = NULL;
   }
 #elif OSX
-  GNUNET_free_non_null (prev_cpu_load);
+  GNUNET_free (prev_cpu_load);
 #endif
   if (NULL != sample_load_task_id)
   {

@@ -952,7 +952,7 @@ oprelease_manage_service (void *cls)
   case OPC_STATE_FINISHED:
     break;
   }
-  GNUNET_free_non_null (data);
+  GNUNET_free (data);
   GNUNET_free (opc);
 }
 

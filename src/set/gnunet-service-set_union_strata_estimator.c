@@ -120,7 +120,7 @@ strata_estimator_read (const void *buf,
   if (buf_len != se->strata_count * se->ibf_size * IBF_BUCKET_SIZE)
   {
     GNUNET_break (0);  /* very odd error */
-    GNUNET_free_non_null (dbuf);
+    GNUNET_free (dbuf);
     return GNUNET_SYSERR;
   }
 
@@ -129,7 +129,7 @@ strata_estimator_read (const void *buf,
     ibf_read_slice (buf, 0, se->ibf_size, se->strata[i]);
     buf += se->ibf_size * IBF_BUCKET_SIZE;
   }
-  GNUNET_free_non_null (dbuf);
+  GNUNET_free (dbuf);
   return GNUNET_OK;
 }
 

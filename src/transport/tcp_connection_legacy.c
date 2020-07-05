@@ -1088,8 +1088,8 @@ GNUNET_CONNECTION_destroy (struct GNUNET_CONNECTION_Handle *connection)
                                 * leak the socket in this special case) ... */
     }
   }
-  GNUNET_free_non_null (connection->addr);
-  GNUNET_free_non_null (connection->hostname);
+  GNUNET_free (connection->addr);
+  GNUNET_free (connection->hostname);
   GNUNET_free (connection->write_buffer);
   GNUNET_free (connection);
 }

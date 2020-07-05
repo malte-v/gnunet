@@ -676,7 +676,7 @@ GNUNET_PEERSTORE_iterate_cancel (struct GNUNET_PEERSTORE_IterateContext *ic)
   {
     GNUNET_CONTAINER_DLL_remove (ic->h->iterate_head, ic->h->iterate_tail, ic);
     GNUNET_free (ic->sub_system);
-    GNUNET_free_non_null (ic->key);
+    GNUNET_free (ic->key);
     GNUNET_free (ic);
   }
   else

@@ -665,7 +665,7 @@ GNUNET_SOCKS_do_connect (const char *service_name,
                                                   (host0 != NULL) ? host0
                                                   : "127.0.0.1",
                                                   port0);
-  GNUNET_free_non_null (host0);
+  GNUNET_free (host0);
 
   /* Sets to NULL if they do not exist */
   (void) GNUNET_CONFIGURATION_get_value_string (cfg,
@@ -677,8 +677,8 @@ GNUNET_SOCKS_do_connect (const char *service_name,
                                                 "SOCKSPASS",
                                                 &pass);
   ih = GNUNET_SOCKS_init_handshake (user, pass);
-  GNUNET_free_non_null (user);
-  GNUNET_free_non_null (pass);
+  GNUNET_free (user);
+  GNUNET_free (pass);
 
   GNUNET_SOCKS_set_handshake_destination (ih, host1, port1);
   GNUNET_free (host1);

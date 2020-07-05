@@ -229,7 +229,7 @@ host_processor (void *cls,
   {
     GNUNET_assert (NULL == peer);
     builder->pitr = NULL;
-    GNUNET_free_non_null (builder->data);
+    GNUNET_free (builder->data);
     GNUNET_free (builder);
     builder = NULL;
     GNUNET_log (GNUNET_ERROR_TYPE_INFO,
@@ -534,7 +534,7 @@ process_notify (void *cls,
       GNUNET_PEERINFO_iterate_cancel (builder->pitr);
       builder->pitr = NULL;
     }
-    GNUNET_free_non_null (builder->data);
+    GNUNET_free (builder->data);
     builder->size = 0;
     builder->data = NULL;
   }
@@ -886,7 +886,7 @@ GNUNET_HOSTLIST_server_stop ()
       GNUNET_PEERINFO_iterate_cancel (builder->pitr);
       builder->pitr = NULL;
     }
-    GNUNET_free_non_null (builder->data);
+    GNUNET_free (builder->data);
     GNUNET_free (builder);
     builder = NULL;
   }

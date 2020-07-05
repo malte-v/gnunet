@@ -233,7 +233,7 @@ display_record (const struct GNUNET_DNSPARSER_Record *record)
            (unsigned int) (GNUNET_TIME_absolute_get_remaining (
                              record->expiration_time).rel_value_us / 1000LL
                            / 1000LL));
-  GNUNET_free_non_null (tmp);
+  GNUNET_free (tmp);
 }
 
 

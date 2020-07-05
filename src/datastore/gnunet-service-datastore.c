@@ -1355,7 +1355,7 @@ cleaning_task (void *cls)
     GNUNET_SCHEDULER_cancel (stat_timeout_task);
     stat_timeout_task = NULL;
   }
-  GNUNET_free_non_null (plugin_name);
+  GNUNET_free (plugin_name);
   plugin_name = NULL;
   if (last_sync > 0)
     sync_stats ();
@@ -1490,7 +1490,7 @@ run (void *cls,
     GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
                 _ ("Could not use specified filename `%s' for bloomfilter.\n"),
                 NULL != fn ? fn : "");
-    GNUNET_free_non_null (fn);
+    GNUNET_free (fn);
     fn = NULL;
   }
   if (NULL != fn)
@@ -1566,7 +1566,7 @@ run (void *cls,
                                          5);  /* approx. 3% false positives at max use */
     refresh_bf = GNUNET_YES;
   }
-  GNUNET_free_non_null (fn);
+  GNUNET_free (fn);
   if (NULL == filter)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,

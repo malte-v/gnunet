@@ -339,7 +339,7 @@ destroy_it (void *cls, const struct GNUNET_PeerIdentity *key, void *value)
   GNUNET_assert (
     GNUNET_OK ==
     GNUNET_CONTAINER_multipeermap_remove (monitored_peers, key, value));
-  GNUNET_free_non_null (m->address);
+  GNUNET_free (m->address);
   GNUNET_free (value);
   return GNUNET_OK;
 }
@@ -1037,7 +1037,7 @@ plugin_monitoring_cb (void *cls,
         GNUNET_TRANSPORT_address_to_string_cancel (addr->asc);
         addr->asc = NULL;
       }
-      GNUNET_free_non_null (addr->str);
+      GNUNET_free (addr->str);
       GNUNET_free (addr);
       *session_ctx = NULL;
     }
@@ -1069,7 +1069,7 @@ plugin_monitoring_cb (void *cls,
       GNUNET_TRANSPORT_address_to_string_cancel (addr->asc);
       addr->asc = NULL;
     }
-    GNUNET_free_non_null (addr->str);
+    GNUNET_free (addr->str);
     GNUNET_free (addr);
     *session_ctx = NULL;
   }

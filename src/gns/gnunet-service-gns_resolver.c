@@ -1675,7 +1675,7 @@ recursive_cname_resolution (struct GNS_ResolverHandle *rh,
       (off != rd->data_size))
   {
     GNUNET_break_op (0);  /* record not well-formed */
-    GNUNET_free_non_null (cname);
+    GNUNET_free (cname);
     fail_resolution (rh);
     return;
   }
@@ -1777,8 +1777,8 @@ recursive_gns2dns_resolution (struct GNS_ResolverHandle *rh,
         (off != rd[i].data_size))
     {
       GNUNET_break_op (0);
-      GNUNET_free_non_null (n);
-      GNUNET_free_non_null (ip);
+      GNUNET_free (n);
+      GNUNET_free (ip);
       continue;
     }
     /* resolve 'ip' to determine the IP(s) of the DNS
@@ -1983,7 +1983,7 @@ handle_gns_resolution_result (void *cls,
           (off != rd[0].data_size))
       {
         GNUNET_break_op (0);
-        GNUNET_free_non_null (cname);
+        GNUNET_free (cname);
         fail_resolution (rh);
         return;
       }
@@ -2137,7 +2137,7 @@ handle_gns_resolution_result (void *cls,
               rd_off++;
             }
           }
-          GNUNET_free_non_null (cname);
+          GNUNET_free (cname);
         }
         break;
 
@@ -2993,7 +2993,7 @@ GNS_resolver_lookup_cancel (struct GNS_ResolverHandle *rh)
                                  dr);
     GNUNET_free (dr);
   }
-  GNUNET_free_non_null (rh->leho);
+  GNUNET_free (rh->leho);
   GNUNET_free (rh->name);
   GNUNET_free (rh);
 }

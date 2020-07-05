@@ -960,7 +960,7 @@ trigger_recursive_download (void *cls,
                   "Failed to create directory for recursive download of `%s'\n"),
                 full_name);
     GNUNET_free (full_name);
-    GNUNET_free_non_null (fn);
+    GNUNET_free (fn);
     return;
   }
 
@@ -981,9 +981,9 @@ trigger_recursive_download (void *cls,
                             dc->options,
                             NULL,
                             dc);
-  GNUNET_free_non_null (full_name);
-  GNUNET_free_non_null (temp_name);
-  GNUNET_free_non_null (fn);
+  GNUNET_free (full_name);
+  GNUNET_free (temp_name);
+  GNUNET_free (fn);
 }
 
 
@@ -999,7 +999,7 @@ GNUNET_FS_free_download_request_ (struct DownloadRequest *dr)
     return;
   for (unsigned int i = 0; i < dr->num_children; i++)
     GNUNET_FS_free_download_request_ (dr->children[i]);
-  GNUNET_free_non_null (dr->children);
+  GNUNET_free (dr->children);
   GNUNET_free (dr);
 }
 
@@ -2011,11 +2011,11 @@ GNUNET_FS_download_signal_suspend_ (void *cls)
     GNUNET_CONTAINER_multihashmap_destroy (dc->active);
     dc->active = NULL;
   }
-  GNUNET_free_non_null (dc->filename);
+  GNUNET_free (dc->filename);
   GNUNET_CONTAINER_meta_data_destroy (dc->meta);
   GNUNET_FS_uri_destroy (dc->uri);
-  GNUNET_free_non_null (dc->temp_filename);
-  GNUNET_free_non_null (dc->serialization);
+  GNUNET_free (dc->temp_filename);
+  GNUNET_free (dc->serialization);
   GNUNET_assert (NULL == dc->job_queue);
   GNUNET_free (dc);
 }
@@ -2409,7 +2409,7 @@ GNUNET_FS_download_stop (struct GNUNET_FS_DownloadContext *dc, int do_delete)
                                 dc->temp_filename);
     GNUNET_free (dc->temp_filename);
   }
-  GNUNET_free_non_null (dc->serialization);
+  GNUNET_free (dc->serialization);
   GNUNET_assert (NULL == dc->job_queue);
   GNUNET_free (dc);
 }

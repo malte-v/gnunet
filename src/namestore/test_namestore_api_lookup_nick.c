@@ -58,7 +58,7 @@ static const char *name = "d";
 static void
 cleanup ()
 {
-  GNUNET_free_non_null ((void *) rd_orig.data);
+  GNUNET_free ((void *) rd_orig.data);
   if (NULL != nsh)
   {
     GNUNET_NAMESTORE_disconnect (nsh);

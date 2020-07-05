@@ -129,8 +129,8 @@ run (void *cls, char *const *args, const char *cfgfile,
   GNUNET_FS_file_information_destroy (fidir, &mycleaner, NULL);
   GNUNET_DISK_directory_remove (fn1);
   GNUNET_DISK_directory_remove (fn2);
-  GNUNET_free_non_null (fn1);
-  GNUNET_free_non_null (fn2);
+  GNUNET_free (fn1);
+  GNUNET_free (fn2);
   GNUNET_FS_stop (fs);
 }
 

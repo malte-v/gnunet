@@ -131,7 +131,7 @@ check_success (void *cls, int success, struct GNUNET_TIME_Absolute
   if (GNUNET_OK != success)
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR, "%s\n", msg);
   GNUNET_assert (GNUNET_OK == success);
-  GNUNET_free_non_null (crc->data);
+  GNUNET_free (crc->data);
   crc->data = NULL;
   GNUNET_SCHEDULER_add_now (&run_continuation, crc);
 }

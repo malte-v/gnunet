@@ -346,9 +346,9 @@ get_ego (void *cls,
 static void
 shutdown_task (void *cls)
 {
-  GNUNET_free_non_null (master_zone_pkey);
+  GNUNET_free (master_zone_pkey);
   master_zone_pkey = NULL;
-  GNUNET_free_non_null (private_zone_pkey);
+  GNUNET_free (private_zone_pkey);
   private_zone_pkey = NULL;
   if (NULL != list_it)
   {

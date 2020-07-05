@@ -1347,7 +1347,7 @@ not_evil:
   evil->type = EVILNESS_NONE;
 cleanup:
   GNUNET_free (evil_spec);
-  /* no GNUNET_free_non_null since it wasn't
+  /* no GNUNET_free since it wasn't
    * allocated with GNUNET_malloc */
   if (NULL != evil_type_str)
     free (evil_type_str);

@@ -783,7 +783,7 @@ bi_destroy (struct BroadcastInterface *bi)
   GNUNET_CONTAINER_DLL_remove (bi_head, bi_tail, bi);
   GNUNET_SCHEDULER_cancel (bi->broadcast_task);
   GNUNET_free (bi->sa);
-  GNUNET_free_non_null (bi->ba);
+  GNUNET_free (bi->ba);
   GNUNET_free (bi);
 }
 

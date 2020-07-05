@@ -878,7 +878,7 @@ del_monitor (void *cls,
                                                       rd[i].data_size)))) ||
             (0 == strcmp (vs, value)))))
       rdx[rd_left++] = rd[i];
-    GNUNET_free_non_null (vs);
+    GNUNET_free (vs);
   }
   if (rd_count == rd_left)
   {
@@ -1307,7 +1307,7 @@ identity_cb (void *cls, struct GNUNET_IDENTITY_Ego *ego)
     return;
   }
   zone_pkey = *GNUNET_IDENTITY_ego_get_private_key (ego);
-  GNUNET_free_non_null (ego_name);
+  GNUNET_free (ego_name);
   ego_name = NULL;
   run_with_zone_pkey (cfg);
 }

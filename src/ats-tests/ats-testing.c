@@ -110,7 +110,7 @@ do_shutdown (void *cls)
       GNUNET_TESTBED_operation_done (p->comm_op);
       p->comm_op = NULL;
     }
-    GNUNET_free_non_null (p->core_connect_ops);
+    GNUNET_free (p->core_connect_ops);
     GNUNET_free (p->partners);
     p->partners = NULL;
   }

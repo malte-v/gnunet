@@ -1144,7 +1144,7 @@ get_server_addresses (const char *service_name,
           (EACCES == errno))
       {
         LOG_STRERROR (GNUNET_ERROR_TYPE_ERROR, "socket");
-        GNUNET_free_non_null (hostname);
+        GNUNET_free (hostname);
         GNUNET_free (unixpath);
         return GNUNET_SYSERR;
       }
@@ -1170,7 +1170,7 @@ get_server_addresses (const char *service_name,
          _ (
            "Have neither PORT nor UNIXPATH for service `%s', but one is required\n"),
          service_name);
-    GNUNET_free_non_null (hostname);
+    GNUNET_free (hostname);
     return GNUNET_SYSERR;
   }
   if (0 == port)
@@ -1178,8 +1178,8 @@ get_server_addresses (const char *service_name,
     saddrs = GNUNET_new_array (2, struct sockaddr *);
     saddrlens = GNUNET_new_array (2, socklen_t);
     add_unixpath (saddrs, saddrlens, unixpath);
-    GNUNET_free_non_null (unixpath);
-    GNUNET_free_non_null (hostname);
+    GNUNET_free (unixpath);
+    GNUNET_free (hostname);
     *addrs = saddrs;
     *addr_lens = saddrlens;
     return 1;
@@ -1203,7 +1203,7 @@ get_server_addresses (const char *service_name,
            hostname,
            gai_strerror (ret));
       GNUNET_free (hostname);
-      GNUNET_free_non_null (unixpath);
+      GNUNET_free (unixpath);
       return GNUNET_SYSERR;
     }
     next = res;
@@ -1223,7 +1223,7 @@ get_server_addresses (const char *service_name,
            hostname);
       freeaddrinfo (res);
       GNUNET_free (hostname);
-      GNUNET_free_non_null (unixpath);
+      GNUNET_free (unixpath);
       return GNUNET_SYSERR;
     }
     resi = i;
@@ -1330,7 +1330,7 @@ get_server_addresses (const char *service_name,
       ((struct sockaddr_in *) saddrs[i])->sin_port = htons (port);
     }
   }
-  GNUNET_free_non_null (unixpath);
+  GNUNET_free (unixpath);
   *addrs = saddrs;
   *addr_lens = saddrlens;
   return resi;
@@ -1557,8 +1557,8 @@ setup_service (struct GNUNET_SERVICE_Handle *sh)
       }
       GNUNET_CONTAINER_DLL_insert (sh->slc_head, sh->slc_tail, slc);
     }
-    GNUNET_free_non_null (addrlens);
-    GNUNET_free_non_null (addrs);
+    GNUNET_free (addrlens);
+    GNUNET_free (addrs);
     if ((0 != num) && (NULL == sh->slc_head))
     {
       /* All attempts to bind failed, hard failure */
@@ -1566,7 +1566,7 @@ setup_service (struct GNUNET_SERVICE_Handle *sh)
         GNUNET_ERROR_TYPE_ERROR,
         _ (
           "Could not bind to any of the ports I was supposed to, refusing to run!\n"));
-      GNUNET_free_non_null (csocks);
+      GNUNET_free (csocks);
       return GNUNET_SYSERR;
     }
   }
@@ -1793,10 +1793,10 @@ teardown_service (struct GNUNET_SERVICE_Handle *sh)
 {
   struct ServiceListenContext *slc;
 
-  GNUNET_free_non_null (sh->v4_denied);
-  GNUNET_free_non_null (sh->v6_denied);
-  GNUNET_free_non_null (sh->v4_allowed);
-  GNUNET_free_non_null (sh->v6_allowed);
+  GNUNET_free (sh->v4_denied);
+  GNUNET_free (sh->v6_denied);
+  GNUNET_free (sh->v4_allowed);
+  GNUNET_free (sh->v6_allowed);
   while (NULL != (slc = sh->slc_head))
   {
     GNUNET_CONTAINER_DLL_remove (sh->slc_head, sh->slc_tail, slc);
@@ -1890,7 +1890,7 @@ GNUNET_SERVICE_start (const char *service_name,
   sh->handlers = GNUNET_MQ_copy_handlers2 (handlers, &return_agpl, NULL);
   if (GNUNET_OK != setup_service (sh))
   {
-    GNUNET_free_non_null (sh->handlers);
+    GNUNET_free (sh->handlers);
     GNUNET_free (sh);
     return NULL;
   }
@@ -1913,7 +1913,7 @@ GNUNET_SERVICE_stop (struct GNUNET_SERVICE_Handle *srv)
   while (NULL != (client = srv->clients_head))
     GNUNET_SERVICE_client_drop (client);
   teardown_service (srv);
-  GNUNET_free_non_null (srv->handlers);
+  GNUNET_free (srv->handlers);
   GNUNET_free (srv);
 }
 
@@ -2159,13 +2159,13 @@ shutdown:
   }
 #endif
   teardown_service (&sh);
-  GNUNET_free_non_null (sh.handlers);
+  GNUNET_free (sh.handlers);
   GNUNET_SPEEDUP_stop_ ();
   GNUNET_CONFIGURATION_destroy (cfg);
-  GNUNET_free_non_null (logfile);
-  GNUNET_free_non_null (loglev);
+  GNUNET_free (logfile);
+  GNUNET_free (loglev);
   GNUNET_free (cfg_filename);
-  GNUNET_free_non_null (opt_cfg_filename);
+  GNUNET_free (opt_cfg_filename);
 
   return err ? GNUNET_SYSERR : sh.ret;
 }

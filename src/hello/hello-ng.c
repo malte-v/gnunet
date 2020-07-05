@@ -153,7 +153,7 @@ GNUNET_HELLO_extract_address (const void *raw,
       GNUNET_STRINGS_base64_decode (raws, sc - raws, (void **) &sig))
   {
     GNUNET_break_op (0);
-    GNUNET_free_non_null (sig);
+    GNUNET_free (sig);
     return NULL;
   }
   raw_addr = sc3 + 1;

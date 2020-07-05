@@ -124,7 +124,7 @@ GNSRECORD_fini ()
     GNUNET_free (plugin->library_name);
     GNUNET_free (plugin);
   }
-  GNUNET_free_non_null (gns_plugins);
+  GNUNET_free (gns_plugins);
   gns_plugins = NULL;
   once = 0;
   num_plugins = 0;

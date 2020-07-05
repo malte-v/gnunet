@@ -729,7 +729,7 @@ identity_continuation (const char *args0)
              _ ("Failed to access `%s': %s\n"),
              args0,
              strerror (errno));
-    GNUNET_free_non_null (ex);
+    GNUNET_free (ex);
     return;
   }
   ds = GNUNET_FS_directory_scan_start (args0,
@@ -744,10 +744,10 @@ identity_continuation (const char *args0)
       "%s",
       _ (
         "Failed to start meta directory scanner.  Is gnunet-helper-publish-fs installed?\n"));
-    GNUNET_free_non_null (ex);
+    GNUNET_free (ex);
     return;
   }
-  GNUNET_free_non_null (ex);
+  GNUNET_free (ex);
 }
 
 

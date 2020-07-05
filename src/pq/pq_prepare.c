@@ -83,7 +83,7 @@ GNUNET_PQ_prepare_statements (struct GNUNET_PQ_Context *db,
     memcpy (&rps[olen],
             ps,
             nlen * sizeof (struct GNUNET_PQ_PreparedStatement));
-    GNUNET_free_non_null (db->ps);
+    GNUNET_free (db->ps);
     db->ps = rps;
   }
 

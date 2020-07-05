@@ -770,6 +770,12 @@ GNUNET_e2s2 (const struct GNUNET_CRYPTO_EcdhePublicKey *p);
 
 
 /**
+ * Forward declaration to make compiler happy depending on include order.
+ */
+struct GNUNET_PeerIdentity;
+
+
+/**
  * @ingroup logging
  * Convert a peer identity to a string (for printing debug messages).
  * This is one of the very few calls in the entire API that is
@@ -1275,6 +1281,7 @@ GNUNET_is_zero_ (const void *a,
 #define GNUNET_malloc_large(size) \
   GNUNET_xmalloc_unchecked_ (size, __FILE__, __LINE__)
 
+
 /**
  * @ingroup memory
  * Wrapper around realloc. Reallocates size bytes of memory.
@@ -1287,6 +1294,7 @@ GNUNET_is_zero_ (const void *a,
 #define GNUNET_realloc(ptr, size) \
   GNUNET_xrealloc_ (ptr, size, __FILE__, __LINE__)
 
+
 /**
  * @ingroup memory
  * Wrapper around free. Frees the memory referred to by ptr.
@@ -1294,9 +1302,10 @@ GNUNET_is_zero_ (const void *a,
  * allocated with #GNUNET_array_grow using #GNUNET_array_grow(mem, size, 0) instead of #GNUNET_free_nz.
  *
  * @param ptr location where to free the memory. ptr must have
- *     been returned by #GNUNET_strdup, #GNUNET_strndup, #GNUNET_malloc or #GNUNET_array_grow earlier.
+ *     been returned by #GNUNET_strdup, #GNUNET_strndup, #GNUNET_malloc or #GNUNET_array_grow earlier.  NULL is allowed.
  */
 #define GNUNET_free_nz(ptr) GNUNET_xfree_ (ptr, __FILE__, __LINE__)
+
 
 /**
  * @ingroup memory
@@ -1304,30 +1313,16 @@ GNUNET_is_zero_ (const void *a,
  * Note that it is generally better to free memory that was
  * allocated with #GNUNET_array_grow using #GNUNET_array_grow(mem, size, 0) instead of #GNUNET_free.
  *
+ * @a ptr will be set to NULL. Use #GNUNET_free_nz() if @a ptr is not an L-value.
+ *
  * @param ptr location where to free the memory. ptr must have
- *     been returned by #GNUNET_strdup, #GNUNET_strndup, #GNUNET_malloc or #GNUNET_array_grow earlier.
+ *     been returned by #GNUNET_strdup, #GNUNET_strndup, #GNUNET_malloc or #GNUNET_array_grow earlier.  NULL is allowed.
  */
 #define GNUNET_free(ptr) do { \
     GNUNET_xfree_ (ptr, __FILE__, __LINE__); \
     ptr = NULL; \
 } while (0)
 
-/**
- * @ingroup memory
- * Free the memory pointed to by ptr if ptr is not NULL.
- * Equivalent to `if (NULL != ptr) GNUNET_free(ptr)`.
- *
- * @param ptr the location in memory to free
- */
-#define GNUNET_free_non_null(ptr) \
-  do                              \
-  {                               \
-    void *__x__ = ptr;            \
-    if (NULL != __x__)            \
-    {                             \
-      GNUNET_free (__x__);        \
-    }                             \
-  } while (0)
 
 /**
  * @ingroup memory

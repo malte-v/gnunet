@@ -723,7 +723,7 @@ sign_cb (void *cls, struct GNUNET_IDENTITY_Ego *ego)
   GNUNET_free (dele);
   printf ("%s\n", res);
 
-  GNUNET_free_non_null (ego_name);
+  GNUNET_free (ego_name);
   ego_name = NULL;
 
   GNUNET_SCHEDULER_shutdown ();

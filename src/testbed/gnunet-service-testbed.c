@@ -550,8 +550,8 @@ handle_add_host (void *cls,
   GNUNET_strlcpy (hostname, ptr, hostname_length + 1);
   if (NULL == (host_cfg = GNUNET_TESTBED_extract_config_ (&msg->header)))
   {
-    GNUNET_free_non_null (username);
-    GNUNET_free_non_null (hostname);
+    GNUNET_free (username);
+    GNUNET_free (hostname);
     GNUNET_break_op (0);
     GNUNET_SERVICE_client_drop (client);
     return;
@@ -570,7 +570,7 @@ handle_add_host (void *cls,
                                              username,
                                              host_cfg,
                                              ntohs (msg->ssh_port));
-  GNUNET_free_non_null (username);
+  GNUNET_free (username);
   GNUNET_free (hostname);
   GNUNET_CONFIGURATION_destroy (host_cfg);
   if (NULL == host)
@@ -757,17 +757,17 @@ shutdown_task (void *cls)
   for (id = 0; id < GST_host_list_size; id++)
     if (NULL != GST_host_list[id])
       GNUNET_TESTBED_host_destroy (GST_host_list[id]);
-  GNUNET_free_non_null (GST_host_list);
+  GNUNET_free (GST_host_list);
   if (NULL != GST_context)
   {
-    GNUNET_free_non_null (GST_context->master_ip);
+    GNUNET_free (GST_context->master_ip);
     if (NULL != GST_context->system)
       GNUNET_TESTING_system_destroy (GST_context->system,
                                      GNUNET_YES);
     GNUNET_free (GST_context);
     GST_context = NULL;
   }
-  GNUNET_free_non_null (hostname);
+  GNUNET_free (hostname);
   /* Free hello cache */
   GST_cache_clear ();
   GST_connection_pool_destroy ();

@@ -2882,7 +2882,7 @@ cleanup (void *cls)
     stats = NULL;
   }
   for (i = 0; i < 5; i++)
-    GNUNET_free_non_null (vpn_argv[i]);
+    GNUNET_free (vpn_argv[i]);
 }
 
 
@@ -3008,7 +3008,7 @@ run (void *cls,
                                  _ ("Must specify valid IPv6 address"));
       GNUNET_free (binary);
       GNUNET_SCHEDULER_shutdown ();
-      GNUNET_free_non_null (ipv6addr);
+      GNUNET_free (ipv6addr);
       return;
     }
     vpn_argv[2] = ipv6addr;
@@ -3020,7 +3020,7 @@ run (void *cls,
     {
       GNUNET_log_config_missing (GNUNET_ERROR_TYPE_ERROR, "VPN", "IPV6PREFIX");
       GNUNET_SCHEDULER_shutdown ();
-      GNUNET_free_non_null (ipv6prefix_s);
+      GNUNET_free (ipv6prefix_s);
       return;
     }
     vpn_argv[3] = ipv6prefix_s;
@@ -3062,7 +3062,7 @@ run (void *cls,
                                  _ ("Must specify valid IPv4 address"));
       GNUNET_free (binary);
       GNUNET_SCHEDULER_shutdown ();
-      GNUNET_free_non_null (ipv4addr);
+      GNUNET_free (ipv4addr);
       return;
     }
     vpn_argv[4] = ipv4addr;
@@ -3079,7 +3079,7 @@ run (void *cls,
                                  _ ("Must specify valid IPv4 mask"));
       GNUNET_free (binary);
       GNUNET_SCHEDULER_shutdown ();
-      GNUNET_free_non_null (ipv4mask);
+      GNUNET_free (ipv4mask);
       return;
     }
     vpn_argv[5] = ipv4mask;

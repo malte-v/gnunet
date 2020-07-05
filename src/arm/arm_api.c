@@ -774,7 +774,7 @@ start_arm_service (struct GNUNET_ARM_Handle *h,
   }
   GNUNET_free (binary);
   GNUNET_free (quotedbinary);
-  GNUNET_free_non_null (config);
+  GNUNET_free (config);
   GNUNET_free (loprefix);
   GNUNET_free (lopostfix);
   if (NULL == proc)

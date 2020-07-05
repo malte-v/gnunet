@@ -107,9 +107,9 @@ do_disconnect (void *cls)
     GNUNET_VPN_disconnect (handle);
     handle = NULL;
   }
-  GNUNET_free_non_null (peer_id);
-  GNUNET_free_non_null (service_name);
-  GNUNET_free_non_null (target_ip);
+  GNUNET_free (peer_id);
+  GNUNET_free (service_name);
+  GNUNET_free (target_ip);
 }
 
 

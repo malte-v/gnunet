@@ -171,7 +171,7 @@ GNUNET_BIO_read_close (struct GNUNET_BIO_ReadHandle *h, char **emsg)
   if (NULL != emsg)
     *emsg = h->emsg;
   else
-    GNUNET_free_non_null (h->emsg);
+    GNUNET_free (h->emsg);
   switch (h->type)
   {
   case IO_FILE:
@@ -345,7 +345,7 @@ GNUNET_BIO_read_string (struct GNUNET_BIO_ReadHandle *h,
       GNUNET_asprintf (&h->emsg,
                        _ ("Error reading length of string `%s'"),
                        what);
-    GNUNET_free_non_null (tmp);
+    GNUNET_free (tmp);
     return GNUNET_SYSERR;
   }
   if (0 == big)
@@ -612,7 +612,7 @@ GNUNET_BIO_write_close (struct GNUNET_BIO_WriteHandle *h, char **emsg)
   if (NULL != emsg)
     *emsg = h->emsg;
   else
-    GNUNET_free_non_null (h->emsg);
+    GNUNET_free (h->emsg);
   switch (h->type)
   {
   case IO_FILE:
@@ -623,7 +623,7 @@ GNUNET_BIO_write_close (struct GNUNET_BIO_WriteHandle *h, char **emsg)
       if (NULL != emsg)
         *emsg = h->emsg;
       else
-        GNUNET_free_non_null (h->emsg);
+        GNUNET_free (h->emsg);
       err = GNUNET_SYSERR;
     }
     else
@@ -663,7 +663,7 @@ GNUNET_BIO_flush (struct GNUNET_BIO_WriteHandle *h)
   {
     GNUNET_DISK_file_close (h->fd);
     h->fd = NULL;
-    GNUNET_free_non_null (h->emsg);
+    GNUNET_free (h->emsg);
     GNUNET_asprintf (&h->emsg, _ ("Unable to flush buffer to file"));
     return GNUNET_SYSERR;
   }
@@ -698,7 +698,7 @@ GNUNET_BIO_get_buffer_contents (struct GNUNET_BIO_WriteHandle *h,
   if (NULL != emsg)
     *emsg = h->emsg;
   else
-    GNUNET_free_non_null (h->emsg);
+    GNUNET_free (h->emsg);
   *contents = GNUNET_buffer_reap ((struct GNUNET_Buffer *) h->buffer, size);
   return ret;
 }
@@ -750,7 +750,7 @@ write_to_file (struct GNUNET_BIO_WriteHandle *h,
                        _ ("Error while writing `%s' to file: %s"),
                        what,
                        tmp);
-      GNUNET_free_non_null (tmp);
+      GNUNET_free (tmp);
       return GNUNET_SYSERR;
     }
   }
@@ -870,7 +870,7 @@ GNUNET_BIO_write_meta_data (struct GNUNET_BIO_WriteHandle *h,
   if (-1 == size)
   {
     GNUNET_free (buf);
-    GNUNET_free_non_null (h->emsg);
+    GNUNET_free (h->emsg);
     GNUNET_asprintf (&h->emsg,
                      _ ("Failed to serialize metadata `%s'"),
                      what);

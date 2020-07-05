@@ -415,7 +415,7 @@ shutdown_rest ()
   }
   GCD_shutdown ();
   GCH_shutdown ();
-  GNUNET_free_non_null (my_private_key);
+  GNUNET_free (my_private_key);
   my_private_key = NULL;
 }
 

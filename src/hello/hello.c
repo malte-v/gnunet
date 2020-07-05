@@ -300,7 +300,7 @@ GNUNET_HELLO_iterate_addresses (const struct GNUNET_HELLO_Message *msg,
     if (0 == esize)
     {
       GNUNET_break (0);
-      GNUNET_free_non_null (ret);
+      GNUNET_free (ret);
       return NULL;
     }
     /* need GNUNET_memcpy() due to possibility of misalignment */

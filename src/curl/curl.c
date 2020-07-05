@@ -529,7 +529,7 @@ GNUNET_CURL_job_cancel (struct GNUNET_CURL_Job *job)
   GNUNET_break (CURLM_OK ==
                 curl_multi_remove_handle (ctx->multi, job->easy_handle));
   curl_easy_cleanup (job->easy_handle);
-  GNUNET_free_non_null (job->db.buf);
+  GNUNET_free (job->db.buf);
   curl_slist_free_all (job->job_headers);
   ctx->cb (ctx->cb_cls);
   GNUNET_free (job);
@@ -642,7 +642,7 @@ GNUNET_CURL_download_get_result_ (struct GNUNET_CURL_DownloadBuffer *db,
       *response_code = 0;
     }
   }
-  GNUNET_free_non_null (db->buf);
+  GNUNET_free (db->buf);
   db->buf = NULL;
   db->buf_size = 0;
   if (NULL != json)

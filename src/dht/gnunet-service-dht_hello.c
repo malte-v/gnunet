@@ -86,7 +86,7 @@ process_hello (void *cls,
                             gettext_noop ("# HELLOs obtained from peerinfo"), 1,
                             GNUNET_NO);
   hm = GNUNET_CONTAINER_multipeermap_get (peer_to_hello, peer);
-  GNUNET_free_non_null (hm);
+  GNUNET_free (hm);
   hm = GNUNET_malloc (GNUNET_HELLO_size (hello));
   GNUNET_memcpy (hm, hello, GNUNET_HELLO_size (hello));
   GNUNET_assert (GNUNET_SYSERR !=

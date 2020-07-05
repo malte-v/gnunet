@@ -257,7 +257,7 @@ static struct GNUNET_DNSSTUB_Context *dnsstub;
 static void
 cleanup_rr (struct RequestRecord *rr)
 {
-  GNUNET_free_non_null (rr->payload);
+  GNUNET_free (rr->payload);
   rr->payload = NULL;
   rr->payload_length = 0;
   GNUNET_array_grow (rr->client_wait_list,
@@ -280,7 +280,7 @@ cleanup_task (void *cls GNUNET_UNUSED)
     hijacker = NULL;
   }
   for (unsigned int i = 0; i < 8; i++)
-    GNUNET_free_non_null (helper_argv[i]);
+    GNUNET_free (helper_argv[i]);
   for (unsigned int i = 0; i <= UINT16_MAX; i++)
     cleanup_rr (&requests[i]);
   if (NULL != stats)
@@ -762,7 +762,7 @@ process_dns_result (void *cls,
   LOG (GNUNET_ERROR_TYPE_DEBUG,
        "Got a response from the stub resolver for DNS request %llu intercepted locally!\n",
        (unsigned long long) rr->request_id);
-  GNUNET_free_non_null (rr->payload);
+  GNUNET_free (rr->payload);
   rr->payload = GNUNET_malloc (r);
   GNUNET_memcpy (rr->payload,
                  dns,
@@ -862,7 +862,7 @@ handle_client_response (void *cls,
         next_phase (rr);
         return;
       }
-      GNUNET_free_non_null (rr->payload);
+      GNUNET_free (rr->payload);
       GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                   "Changing DNS reply according to client specifications\n");
       rr->payload = GNUNET_malloc (msize);
@@ -1005,7 +1005,7 @@ process_helper_messages (void *cls,
   rr = &requests[dns->id];
 
   /* clean up from previous request */
-  GNUNET_free_non_null (rr->payload);
+  GNUNET_free (rr->payload);
   rr->payload = NULL;
   GNUNET_array_grow (rr->client_wait_list,
                      rr->client_wait_list_length,
@@ -1115,7 +1115,7 @@ run (void *cls,
                                "dns",
                                "DNS_EXIT",
                                _ ("need a valid IPv4 or IPv6 address\n"));
-    GNUNET_free_non_null (dns_exit);
+    GNUNET_free (dns_exit);
   }
   binary = GNUNET_OS_get_suid_binary_path (cfg, "gnunet-helper-dns");
 

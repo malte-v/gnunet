@@ -275,7 +275,7 @@ free_peer (void *cls, const struct GNUNET_PeerIdentity *pid, void *value)
   }
   if (NULL != pos->hello)
   {
-    GNUNET_free_non_null (pos->hello);
+    GNUNET_free (pos->hello);
     pos->hello = NULL;
   }
   if (NULL != pos->filter)
@@ -812,7 +812,7 @@ process_peer (void *cls,
     pos = GNUNET_CONTAINER_multipeermap_get (peers, peer);
     if (NULL != pos)
     {
-      GNUNET_free_non_null (pos->hello);
+      GNUNET_free (pos->hello);
       pos->hello = NULL;
       if (NULL != pos->filter)
       {

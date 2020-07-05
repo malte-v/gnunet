@@ -392,15 +392,15 @@ run (void *cls,
                                            &stun_read_task,
                                            NULL);
   }
-  GNUNET_free_non_null (remote_sa);
-  GNUNET_free_non_null (local_sa);
+  GNUNET_free (remote_sa);
+  GNUNET_free (local_sa);
   test_finished ();
   return;
 fail_and_shutdown:
   global_ret = 1;
   GNUNET_SCHEDULER_shutdown ();
-  GNUNET_free_non_null (remote_sa);
-  GNUNET_free_non_null (local_sa);
+  GNUNET_free (remote_sa);
+  GNUNET_free (local_sa);
 }
 
 

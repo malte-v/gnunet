@@ -563,11 +563,11 @@ GNUNET_OS_installation_get_path (enum GNUNET_OS_InstallationPathKind dirkind)
           (GNUNET_YES == GNUNET_DISK_directory_test (tmp, GNUNET_YES)))
       {
         GNUNET_free (execpath);
-        GNUNET_free_non_null (dirname);
+        GNUNET_free (dirname);
         return tmp;
       }
       GNUNET_free (tmp);
-      GNUNET_free_non_null (dirname);
+      GNUNET_free (dirname);
     }
     GNUNET_asprintf (&dirname,
                      DIR_SEPARATOR_STR "%s" DIR_SEPARATOR_STR,
@@ -643,11 +643,11 @@ GNUNET_OS_installation_get_path (enum GNUNET_OS_InstallationPathKind dirkind)
           (GNUNET_YES == GNUNET_DISK_directory_test (tmp, GNUNET_YES)))
       {
         GNUNET_free (execpath);
-        GNUNET_free_non_null (dirname);
+        GNUNET_free (dirname);
         return tmp;
       }
       GNUNET_free (tmp);
-      GNUNET_free_non_null (dirname);
+      GNUNET_free (dirname);
     }
     GNUNET_asprintf (&dirname,
                      DIR_SEPARATOR_STR "%s" DIR_SEPARATOR_STR

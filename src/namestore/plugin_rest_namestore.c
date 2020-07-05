@@ -491,7 +491,7 @@ namestore_list_finished (void *cls)
   resp = GNUNET_REST_create_response (result_str);
   MHD_add_response_header (resp, "Content-Type", "application/json");
   handle->proc (handle->proc_cls, resp, MHD_HTTP_OK);
-  GNUNET_free_non_null (result_str);
+  GNUNET_free (result_str);
   GNUNET_SCHEDULER_add_now (&cleanup_handle, handle);
 }
 
@@ -1109,7 +1109,7 @@ libgnunet_plugin_rest_namestore_done (void *cls)
 
   plugin->cfg = NULL;
 
-  GNUNET_free_non_null (allow_methods);
+  GNUNET_free (allow_methods);
   GNUNET_free (api);
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Namestore REST plugin is finished\n");
   return NULL;

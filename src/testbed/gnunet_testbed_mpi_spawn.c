@@ -321,7 +321,7 @@ main (int argc, char *argv[])
   GNUNET_SIGNAL_handler_uninstall (shc_chld);
   shc_chld = NULL;
   GNUNET_DISK_pipe_close (sigpipe);
-  GNUNET_free_non_null (fn);
+  GNUNET_free (fn);
   if (GNUNET_OK != ret)
     return ret;
   return 0;

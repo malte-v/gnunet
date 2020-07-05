@@ -190,7 +190,7 @@ publish_cont (void *cls, const struct GNUNET_FS_Uri *ksk_uri, const char *emsg)
     fprintf (stderr, "failed to parse URI `%s': %s\n", sbuf, msg);
     err = 1;
     GNUNET_FS_stop (fs);
-    GNUNET_free_non_null (msg);
+    GNUNET_free (msg);
     return;
   }
   ksk_search =

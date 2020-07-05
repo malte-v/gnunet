@@ -227,13 +227,13 @@ load_state ()
     return;
   rh = NULL;
 error:
-  GNUNET_free_non_null (fn);
+  GNUNET_free (fn);
   if (NULL != rh)
     (void) GNUNET_BIO_read_close (rh, &emsg);
   GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
               _ ("Failed to load state: %s\n"),
               emsg);
-  GNUNET_free_non_null (emsg);
+  GNUNET_free (emsg);
 }
 
 
@@ -781,7 +781,7 @@ main (int argc, char *const *argv)
   shc_chld = NULL;
   GNUNET_DISK_pipe_close (sigpipe);
   sigpipe = NULL;
-  GNUNET_free_non_null (cfg_filename);
+  GNUNET_free (cfg_filename);
   cfg_filename = NULL;
   GNUNET_free_nz ((void *) argv);
   return ok;

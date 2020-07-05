@@ -831,9 +831,9 @@ cleanup_s5r (struct Socks5Request *s5r)
   GNUNET_CONTAINER_DLL_remove (s5r_head,
                                s5r_tail,
                                s5r);
-  GNUNET_free_non_null (s5r->domain);
-  GNUNET_free_non_null (s5r->leho);
-  GNUNET_free_non_null (s5r->url);
+  GNUNET_free (s5r->domain);
+  GNUNET_free (s5r->leho);
+  GNUNET_free (s5r->url);
   for (unsigned int i = 0; i < s5r->num_danes; i++)
     GNUNET_free (s5r->dane_data[i]);
   GNUNET_free (s5r);
@@ -1311,8 +1311,8 @@ curl_check_hdr (void *buffer,
   }
 cleanup:
   GNUNET_free (ndup);
-  GNUNET_free_non_null (new_cookie_hdr);
-  GNUNET_free_non_null (new_location);
+  GNUNET_free (new_cookie_hdr);
+  GNUNET_free (new_location);
   return bytes;
 }
 
@@ -2446,14 +2446,14 @@ kill_httpd (struct MhdHttpList *hd)
   GNUNET_CONTAINER_DLL_remove (mhd_httpd_head,
                                mhd_httpd_tail,
                                hd);
-  GNUNET_free_non_null (hd->domain);
+  GNUNET_free (hd->domain);
   MHD_stop_daemon (hd->daemon);
   if (NULL != hd->httpd_task)
   {
     GNUNET_SCHEDULER_cancel (hd->httpd_task);
     hd->httpd_task = NULL;
   }
-  GNUNET_free_non_null (hd->proxy_cert);
+  GNUNET_free (hd->proxy_cert);
   if (hd == httpd)
     httpd = NULL;
   GNUNET_free (hd);
@@ -2657,7 +2657,7 @@ load_key_from_file (gnutls_x509_privkey_t key,
                 _ ("Unable to import private key from file `%s'\n"),
                 keyfile);
   }
-  GNUNET_free_non_null (key_data.data);
+  GNUNET_free (key_data.data);
   return (GNUTLS_E_SUCCESS != ret) ? GNUNET_SYSERR : GNUNET_OK;
 }
 
@@ -2689,7 +2689,7 @@ load_cert_from_file (gnutls_x509_crt_t crt,
                 _ ("Unable to import certificate from `%s'\n"),
                 certfile);
   }
-  GNUNET_free_non_null (cert_data.data);
+  GNUNET_free (cert_data.data);
   return (GNUTLS_E_SUCCESS != ret) ? GNUNET_SYSERR : GNUNET_OK;
 }
 
@@ -2921,7 +2921,7 @@ setup_data_transfer (struct Socks5Request *s5r)
     GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
                 _ ("Failed to pass client to MHD\n"));
     cleanup_s5r (s5r);
-    GNUNET_free_non_null (domain);
+    GNUNET_free (domain);
     return;
   }
   s5r->hd = hd;
@@ -2929,7 +2929,7 @@ setup_data_transfer (struct Socks5Request *s5r)
   s5r->timeout_task = GNUNET_SCHEDULER_add_delayed (HTTP_HANDSHAKE_TIMEOUT,
                                                     &timeout_s5r_handshake,
                                                     s5r);
-  GNUNET_free_non_null (domain);
+  GNUNET_free (domain);
 }
 
 
@@ -3145,7 +3145,7 @@ handle_gns_result (void *cls,
       break;
 
     case GNUNET_GNSRECORD_TYPE_LEHO:
-      GNUNET_free_non_null (s5r->leho);
+      GNUNET_free (s5r->leho);
       s5r->leho = GNUNET_strndup (r->data,
                                   r->data_size);
       break;
@@ -3732,10 +3732,10 @@ run (void *cls,
     gnutls_x509_crt_deinit (proxy_ca.cert);
     gnutls_x509_privkey_deinit (proxy_ca.key);
     gnutls_global_deinit ();
-    GNUNET_free_non_null (cafile_cfg);
+    GNUNET_free (cafile_cfg);
     return;
   }
-  GNUNET_free_non_null (cafile_cfg);
+  GNUNET_free (cafile_cfg);
   if (NULL == (gns_handle = GNUNET_GNS_connect (cfg)))
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
@@ -3900,7 +3900,7 @@ main (int argc,
                          options,
                          &run, NULL)) ? 0 : 1;
   MHD_destroy_response (curl_failure_response);
-  GNUNET_free_non_null ((char *) argv);
+  GNUNET_free_nz ((char *) argv);
   return ret;
 }
 

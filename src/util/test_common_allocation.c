@@ -55,9 +55,9 @@ check (void)
     GNUNET_free (ptrs[i]);
   }
 
-  /* GNUNET_free_non_null test */
-  GNUNET_free_non_null (NULL);
-  GNUNET_free_non_null (GNUNET_malloc (4));
+  /* GNUNET_free test */
+  GNUNET_free (NULL);
+  GNUNET_free (GNUNET_malloc (4));
 
   /* GNUNET_strdup tests */
   ptrs[0] = GNUNET_strdup ("bar");

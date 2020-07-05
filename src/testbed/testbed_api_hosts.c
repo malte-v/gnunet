@@ -506,7 +506,7 @@ GNUNET_TESTBED_hosts_load_from_file (
       else
         (void) GNUNET_TESTBED_host_create (hostname, username, cfg, port);
       count++;
-      GNUNET_free_non_null (username);
+      GNUNET_free (username);
       GNUNET_free (hostname);
       buf = &data[offset + 1];
     }
@@ -611,26 +611,27 @@ GNUNET_TESTBED_hosts_load_from_loadleveler (
 void
 GNUNET_TESTBED_host_destroy (struct GNUNET_TESTBED_Host *host)
 {
-  struct RegisteredController *rc;
-  uint32_t id;
-
   GNUNET_assert (host->id < host_list_size);
   GNUNET_assert (host_list[host->id] == host);
   host_list[host->id] = NULL;
   /* clear registered controllers list */
-  for (rc = host->rc_head; NULL != rc; rc = host->rc_head)
+  for (struct RegisteredController *rc = host->rc_head;
+       NULL != rc;
+       rc = host->rc_head)
   {
     GNUNET_CONTAINER_DLL_remove (host->rc_head, host->rc_tail, rc);
     GNUNET_free (rc);
   }
-  GNUNET_free_non_null ((char *) host->username);
-  GNUNET_free_non_null ((char *) host->hostname);
+  GNUNET_free_nz ((char *) host->username);
+  GNUNET_free_nz ((char *) host->hostname);
   GNUNET_TESTBED_operation_queue_destroy_ (
     host->opq_parallel_overlay_connect_operations);
   GNUNET_CONFIGURATION_destroy (host->cfg);
   GNUNET_free (host);
   while (host_list_size >= HOST_LIST_GROW_STEP)
   {
+    uint32_t id;
+
     for (id = host_list_size - 1; id > host_list_size - HOST_LIST_GROW_STEP;
          id--)
       if (NULL != host_list[id])
@@ -1223,7 +1224,7 @@ GNUNET_TESTBED_controller_destroy_ (struct GNUNET_TESTBED_ControllerProc *cproc)
     free_argv (cproc->helper_argv);
   cproc->host->controller_started = GNUNET_NO;
   cproc->host->locked = GNUNET_NO;
-  GNUNET_free_non_null (cproc->msg);
+  GNUNET_free (cproc->msg);
   GNUNET_free (cproc);
 }
 

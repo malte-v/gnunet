@@ -197,7 +197,7 @@ run (void *cls, char *const *args, const char *cfgfile,
 end:
   FAIL_TEST (0);
   GNUNET_SCHEDULER_add_now (&do_shutdown, test_ctx);
-  GNUNET_free_non_null (emsg);
+  GNUNET_free (emsg);
 }
 
 

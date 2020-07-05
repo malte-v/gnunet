@@ -359,7 +359,7 @@ start_phone ()
   else
   {
     GNUNET_CONVERSATION_phone_get_record (phone, &rd);
-    GNUNET_free_non_null (address);
+    GNUNET_free (address);
     address =
       GNUNET_GNSRECORD_value_to_string (rd.record_type, rd.data, rd.data_size);
     fprintf (
@@ -1035,7 +1035,7 @@ do_stop_task (void *cls)
   mic = NULL;
   GNUNET_free (ego_name);
   ego_name = NULL;
-  GNUNET_free_non_null (peer_name);
+  GNUNET_free (peer_name);
   peer_name = NULL;
   phone_state = PS_ERROR;
 }

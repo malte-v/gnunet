@@ -333,7 +333,7 @@ client_disconnect_cb (void *cls,
       struct ClientMonitorRecord *next;
 
       next = monitor->next;
-      GNUNET_free_non_null (monitor->key);
+      GNUNET_free (monitor->key);
       GNUNET_CONTAINER_DLL_remove (monitor_head,
                                    monitor_tail,
                                    monitor);
@@ -938,7 +938,7 @@ handle_dht_local_monitor_stop (void *cls,
       GNUNET_CONTAINER_DLL_remove (monitor_head,
                                    monitor_tail,
                                    r);
-      GNUNET_free_non_null (r->key);
+      GNUNET_free (r->key);
       GNUNET_free (r);
       return;     /* Delete only ONE entry */
     }
@@ -1281,7 +1281,7 @@ GDS_CLIENTS_process_get (uint32_t options,
                       env);
     }
   }
-  GNUNET_free_non_null (cl);
+  GNUNET_free (cl);
 }
 
 
@@ -1363,7 +1363,7 @@ GDS_CLIENTS_process_get_resp (enum GNUNET_BLOCK_Type type,
                       env);
     }
   }
-  GNUNET_free_non_null (cl);
+  GNUNET_free (cl);
 }
 
 
@@ -1445,7 +1445,7 @@ GDS_CLIENTS_process_put (uint32_t options,
                       env);
     }
   }
-  GNUNET_free_non_null (cl);
+  GNUNET_free (cl);
 }
 
 

@@ -2207,9 +2207,9 @@ LIBGNUNET_PLUGIN_TRANSPORT_DONE (void *cls)
        _ ("Shutdown for plugin `%s' complete\n"),
        plugin->name);
   GNUNET_CONTAINER_multipeermap_destroy (plugin->sessions);
-  GNUNET_free_non_null (plugin->proxy_hostname);
-  GNUNET_free_non_null (plugin->proxy_username);
-  GNUNET_free_non_null (plugin->proxy_password);
+  GNUNET_free (plugin->proxy_hostname);
+  GNUNET_free (plugin->proxy_username);
+  GNUNET_free (plugin->proxy_password);
   GNUNET_free (plugin);
   GNUNET_free (api);
   return NULL;
@@ -2304,9 +2304,9 @@ client_configure_plugin (struct HTTP_Client_Plugin *plugin)
         GNUNET_free (proxy_type);
         GNUNET_free (plugin->proxy_hostname);
         plugin->proxy_hostname = NULL;
-        GNUNET_free_non_null (plugin->proxy_username);
+        GNUNET_free (plugin->proxy_username);
         plugin->proxy_username = NULL;
-        GNUNET_free_non_null (plugin->proxy_password);
+        GNUNET_free (plugin->proxy_password);
         plugin->proxy_password = NULL;
 
         return GNUNET_SYSERR;
@@ -2325,7 +2325,7 @@ client_configure_plugin (struct HTTP_Client_Plugin *plugin)
     if (GNUNET_SYSERR == plugin->proxy_use_httpproxytunnel)
       plugin->proxy_use_httpproxytunnel = GNUNET_NO;
 
-    GNUNET_free_non_null (proxy_type);
+    GNUNET_free (proxy_type);
   }
 
   /* Should we emulate an XHR client for testing? */

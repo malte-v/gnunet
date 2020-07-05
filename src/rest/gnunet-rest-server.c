@@ -209,7 +209,7 @@ plugin_callback (void *cls, struct MHD_Response *resp, int status)
 static int
 cleanup_url_map (void *cls, const struct GNUNET_HashCode *key, void *value)
 {
-  GNUNET_free_non_null (value);
+  GNUNET_free (value);
   return GNUNET_YES;
 }
 
@@ -728,8 +728,8 @@ do_shutdown (void *cls)
 {
   GNUNET_log (GNUNET_ERROR_TYPE_INFO, "Shutting down...\n");
   kill_httpd ();
-  GNUNET_free_non_null (allow_credentials);
-  GNUNET_free_non_null (allow_headers);
+  GNUNET_free (allow_credentials);
+  GNUNET_free (allow_headers);
 }
 
 
@@ -1055,7 +1055,7 @@ main (int argc, char *const *argv)
         ? 0
         : 1;
   MHD_destroy_response (failure_response);
-  GNUNET_free_non_null ((char *) argv);
+  GNUNET_free_nz ((char *) argv);
   return ret;
 }
 

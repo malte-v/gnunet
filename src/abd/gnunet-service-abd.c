@@ -364,14 +364,14 @@ print_deleset (struct DelegationSetQueueEntry *dsentry, char *text)
 static void
 cleanup_dsq_entry (struct DelegationSetQueueEntry *ds_entry)
 {
-  GNUNET_free_non_null (ds_entry->issuer_key);
-  GNUNET_free_non_null (ds_entry->issuer_attribute);
-  GNUNET_free_non_null (ds_entry->attr_trailer);
+  GNUNET_free (ds_entry->issuer_key);
+  GNUNET_free (ds_entry->issuer_attribute);
+  GNUNET_free (ds_entry->attr_trailer);
   // those fields are only set/used in bw search
   if (ds_entry->from_bw)
   {
-    GNUNET_free_non_null (ds_entry->lookup_attribute);
-    GNUNET_free_non_null (ds_entry->unresolved_attribute_delegation);
+    GNUNET_free (ds_entry->lookup_attribute);
+    GNUNET_free (ds_entry->unresolved_attribute_delegation);
   }
   if (NULL != ds_entry->lookup_request)
   {
@@ -380,9 +380,9 @@ cleanup_dsq_entry (struct DelegationSetQueueEntry *ds_entry)
   }
   if (NULL != ds_entry->delegation_chain_entry)
   {
-    GNUNET_free_non_null (
+    GNUNET_free (
       ds_entry->delegation_chain_entry->subject_attribute);
-    GNUNET_free_non_null (ds_entry->delegation_chain_entry->issuer_attribute);
+    GNUNET_free (ds_entry->delegation_chain_entry->issuer_attribute);
     GNUNET_free (ds_entry->delegation_chain_entry);
   }
   // Free DQ entries
@@ -423,11 +423,11 @@ cleanup_handle (struct VerifyRequestHandle *vrh)
       GNUNET_CONTAINER_DLL_remove (vrh->del_chain_head,
                                    vrh->del_chain_tail,
                                    del_entry);
-      GNUNET_free_non_null (del_entry->delegate);
+      GNUNET_free (del_entry->delegate);
       GNUNET_free (del_entry);
     }
   }
-  GNUNET_free_non_null (vrh->issuer_attribute);
+  GNUNET_free (vrh->issuer_attribute);
   GNUNET_free (vrh);
 }
 

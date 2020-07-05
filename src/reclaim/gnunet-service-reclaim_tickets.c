@@ -971,7 +971,7 @@ cleanup_cth (struct RECLAIM_TICKETS_ConsumeHandle *cth)
   {
     if (NULL != lu->lookup_request)
       GNUNET_GNS_lookup_cancel (lu->lookup_request);
-    GNUNET_free_non_null (lu->label);
+    GNUNET_free (lu->label);
     GNUNET_CONTAINER_DLL_remove (cth->parallel_lookups_head,
                                  cth->parallel_lookups_tail,
                                  lu);

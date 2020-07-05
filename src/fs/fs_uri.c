@@ -353,7 +353,7 @@ uri_ksk_parse (const char *s, char **emsg)
   return ret;
 CLEANUP:
   for (i = 0; i < max; i++)
-    GNUNET_free_non_null (keywords[i]);
+    GNUNET_free (keywords[i]);
   GNUNET_free (keywords);
   GNUNET_free (dup);
   return NULL;
@@ -1172,7 +1172,7 @@ GNUNET_FS_uri_ksk_create_from_args (unsigned int argc, const char **argv)
                      strlen (GNUNET_FS_URI_PREFIX))) &&
       (NULL != (uri = GNUNET_FS_uri_parse (argv[0], &emsg))))
     return uri;
-  GNUNET_free_non_null (emsg);
+  GNUNET_free (emsg);
   uri = GNUNET_new (struct GNUNET_FS_Uri);
   uri->type = GNUNET_FS_URI_KSK;
   uri->data.ksk.keywordCount = argc;
@@ -1825,7 +1825,7 @@ GNUNET_FS_uri_ksk_create_from_meta_data (
                                 ret->data.ksk.keywords,
                                 ret->data.ksk.keywordCount);
   if (ent > 0)
-    GNUNET_free_non_null (full_name);
+    GNUNET_free (full_name);
   return ret;
 }
 

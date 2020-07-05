@@ -147,7 +147,7 @@ verifyCrypto ()
     ret = 1;
   }
 error:
-  GNUNET_free_non_null (res);
+  GNUNET_free (res);
   return ret;
 }
 

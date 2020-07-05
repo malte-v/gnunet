@@ -448,9 +448,9 @@ do_shutdown (void *cls)
        search_str_cnt < num_peers && NULL != search_strings;
        search_str_cnt++)
   {
-    GNUNET_free_non_null (search_strings[search_str_cnt]);
+    GNUNET_free (search_strings[search_str_cnt]);
   }
-  GNUNET_free_non_null (search_strings);
+  GNUNET_free (search_strings);
   search_strings = NULL;
 
   if (NULL != reg_handle)

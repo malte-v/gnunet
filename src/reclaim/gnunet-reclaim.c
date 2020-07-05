@@ -313,7 +313,7 @@ process_attrs (void *cls,
            attr->flag,
            id,
            (NULL == attest) ? "" : "(ATTESTED)");
-  GNUNET_free_non_null (value_str);
+  GNUNET_free (value_str);
   GNUNET_free (id);
 }
 

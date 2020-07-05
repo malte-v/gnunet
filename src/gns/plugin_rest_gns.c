@@ -461,7 +461,7 @@ libgnunet_plugin_rest_gns_done (void *cls)
 
   plugin->cfg = NULL;
 
-  GNUNET_free_non_null (allow_methods);
+  GNUNET_free (allow_methods);
   GNUNET_free (api);
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Gns REST plugin is finished\n");
   return NULL;

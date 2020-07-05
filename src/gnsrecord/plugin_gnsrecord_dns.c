@@ -65,7 +65,7 @@ dns_value_to_string (void *cls,
       if ((NULL == ns) || (off != data_size))
       {
         GNUNET_break_op (0);
-        GNUNET_free_non_null (ns);
+        GNUNET_free (ns);
         return NULL;
       }
       return ns;
@@ -80,7 +80,7 @@ dns_value_to_string (void *cls,
       if ((NULL == cname) || (off != data_size))
       {
         GNUNET_break_op (0);
-        GNUNET_free_non_null (cname);
+        GNUNET_free (cname);
         return NULL;
       }
       return cname;
@@ -121,7 +121,7 @@ dns_value_to_string (void *cls,
       if ((NULL == ptr) || (off != data_size))
       {
         GNUNET_break_op (0);
-        GNUNET_free_non_null (ptr);
+        GNUNET_free (ptr);
         return NULL;
       }
       return ptr;

@@ -658,7 +658,7 @@ handle_consume_ticket_result (void *cls,
     }
     GNUNET_CONTAINER_DLL_remove (h->op_head, h->op_tail, op);
     free_op (op);
-    GNUNET_free_non_null (attrs);
+    GNUNET_free (attrs);
     return;
   }
   GNUNET_assert (0);

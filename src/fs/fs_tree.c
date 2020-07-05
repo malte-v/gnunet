@@ -454,7 +454,7 @@ GNUNET_FS_tree_encoder_finish (struct GNUNET_FS_TreeEncoder *te,
   if (emsg != NULL)
     *emsg = te->emsg;
   else
-    GNUNET_free_non_null (te->emsg);
+    GNUNET_free (te->emsg);
   GNUNET_free (te->chk_tree);
   GNUNET_free (te);
 }

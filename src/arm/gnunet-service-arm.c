@@ -475,7 +475,7 @@ get_server_addresses (const char *service_name,
           (EACCES == errno))
       {
         LOG_STRERROR (GNUNET_ERROR_TYPE_ERROR, "socket");
-        GNUNET_free_non_null (hostname);
+        GNUNET_free (hostname);
         GNUNET_free (unixpath);
         return GNUNET_SYSERR;
       }
@@ -504,7 +504,7 @@ get_server_addresses (const char *service_name,
            _ (
              "Have neither PORT nor UNIXPATH for service `%s', but one is required\n"),
            service_name);
-    GNUNET_free_non_null (hostname);
+    GNUNET_free (hostname);
     return GNUNET_SYSERR;
   }
   if (0 == port)
@@ -512,8 +512,8 @@ get_server_addresses (const char *service_name,
     saddrs = GNUNET_new_array (2, struct sockaddr *);
     saddrlens = GNUNET_new_array (2, socklen_t);
     add_unixpath (saddrs, saddrlens, unixpath, abstract);
-    GNUNET_free_non_null (unixpath);
-    GNUNET_free_non_null (hostname);
+    GNUNET_free (unixpath);
+    GNUNET_free (hostname);
     *addrs = saddrs;
     *addr_lens = saddrlens;
     return 1;
@@ -537,7 +537,7 @@ get_server_addresses (const char *service_name,
            hostname,
            gai_strerror (ret));
       GNUNET_free (hostname);
-      GNUNET_free_non_null (unixpath);
+      GNUNET_free (unixpath);
       return GNUNET_SYSERR;
     }
     next = res;
@@ -557,7 +557,7 @@ get_server_addresses (const char *service_name,
            hostname);
       freeaddrinfo (res);
       GNUNET_free (hostname);
-      GNUNET_free_non_null (unixpath);
+      GNUNET_free (unixpath);
       return GNUNET_SYSERR;
     }
     resi = i;
@@ -664,7 +664,7 @@ get_server_addresses (const char *service_name,
       ((struct sockaddr_in *) saddrs[i])->sin_port = htons (port);
     }
   }
-  GNUNET_free_non_null (unixpath);
+  GNUNET_free (unixpath);
   *addrs = saddrs;
   *addr_lens = saddrlens;
   return resi;
@@ -1132,8 +1132,8 @@ free_service (struct ServiceList *sl)
   GNUNET_assert (GNUNET_YES == in_shutdown);
   GNUNET_CONTAINER_DLL_remove (running_head, running_tail, sl);
   GNUNET_assert (NULL == sl->listen_head);
-  GNUNET_free_non_null (sl->config);
-  GNUNET_free_non_null (sl->binary);
+  GNUNET_free (sl->config);
+  GNUNET_free (sl->binary);
   GNUNET_free (sl->name);
   GNUNET_free (sl);
 }

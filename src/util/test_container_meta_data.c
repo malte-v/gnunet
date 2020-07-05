@@ -113,7 +113,7 @@ testMeta (int i)
       GNUNET_CONTAINER_meta_data_serialize (m, &sval, size,
                                             GNUNET_CONTAINER_META_DATA_SERIALIZE_FULL))
   {
-    GNUNET_free_non_null (sval);
+    GNUNET_free (sval);
     ABORT (m);
   }
   GNUNET_CONTAINER_meta_data_destroy (m);

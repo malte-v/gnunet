@@ -762,7 +762,7 @@ GNUNET_TRANSPORT_core_connect (const struct GNUNET_CONFIGURATION_Handle *cfg,
   reconnect (h);
   if (NULL == h->mq)
   {
-    GNUNET_free_non_null (h->handlers);
+    GNUNET_free (h->handlers);
     GNUNET_free (h);
     return NULL;
   }
@@ -792,7 +792,7 @@ GNUNET_TRANSPORT_core_disconnect (struct GNUNET_TRANSPORT_CoreHandle *handle)
   }
   GNUNET_CONTAINER_multipeermap_destroy (handle->neighbours);
   handle->neighbours = NULL;
-  GNUNET_free_non_null (handle->handlers);
+  GNUNET_free (handle->handlers);
   handle->handlers = NULL;
   GNUNET_free (handle);
 }

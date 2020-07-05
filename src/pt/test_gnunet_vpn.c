@@ -165,7 +165,7 @@ do_shutdown (void *cls)
     GNUNET_VPN_disconnect (vpn);
     vpn = NULL;
   }
-  GNUNET_free_non_null (url);
+  GNUNET_free (url);
   url = NULL;
 }
 

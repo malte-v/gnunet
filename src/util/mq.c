@@ -881,7 +881,7 @@ GNUNET_MQ_destroy (struct GNUNET_MQ_Handle *mq)
     GNUNET_CONTAINER_multihashmap32_destroy (mq->assoc_map);
     mq->assoc_map = NULL;
   }
-  GNUNET_free_non_null (mq->handlers);
+  GNUNET_free (mq->handlers);
   GNUNET_free (mq);
 }
 

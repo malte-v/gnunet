@@ -1495,7 +1495,7 @@ server_lookup_connection (struct HTTP_Server_Plugin *plugin,
          http_common_plugin_address_to_string (plugin->protocol,
                                                addr,
                                                addr_len));
-    GNUNET_free_non_null (addr);
+    GNUNET_free (addr);
   }
 
   if ((_RECEIVE == direction) &&
@@ -2179,9 +2179,9 @@ server_load_certificate (struct HTTP_Server_Plugin *plugin)
   {
     struct GNUNET_OS_Process *cert_creation;
 
-    GNUNET_free_non_null (plugin->key);
+    GNUNET_free (plugin->key);
     plugin->key = NULL;
-    GNUNET_free_non_null (plugin->cert);
+    GNUNET_free (plugin->cert);
     plugin->cert = NULL;
 
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
@@ -2203,11 +2203,11 @@ server_load_certificate (struct HTTP_Server_Plugin *plugin)
       GNUNET_free (key_file);
       GNUNET_free (cert_file);
 
-      GNUNET_free_non_null (plugin->key);
+      GNUNET_free (plugin->key);
       plugin->key = NULL;
-      GNUNET_free_non_null (plugin->cert);
+      GNUNET_free (plugin->cert);
       plugin->cert = NULL;
-      GNUNET_free_non_null (plugin->crypto_init);
+      GNUNET_free (plugin->crypto_init);
       plugin->crypto_init = NULL;
 
       return GNUNET_SYSERR;
@@ -2228,11 +2228,11 @@ server_load_certificate (struct HTTP_Server_Plugin *plugin)
     GNUNET_free (key_file);
     GNUNET_free (cert_file);
 
-    GNUNET_free_non_null (plugin->key);
+    GNUNET_free (plugin->key);
     plugin->key = NULL;
-    GNUNET_free_non_null (plugin->cert);
+    GNUNET_free (plugin->cert);
     plugin->cert = NULL;
-    GNUNET_free_non_null (plugin->crypto_init);
+    GNUNET_free (plugin->crypto_init);
     plugin->crypto_init = NULL;
 
     return GNUNET_SYSERR;
@@ -2871,8 +2871,8 @@ server_start_report_addresses (struct HTTP_Server_Plugin *plugin)
     GNUNET_assert (NULL != addrs[res]);
     GNUNET_free (addrs[res]);
   }
-  GNUNET_free_non_null (addrs);
-  GNUNET_free_non_null (addrlens);
+  GNUNET_free (addrs);
+  GNUNET_free (addrlens);
 }
 
 
@@ -3316,9 +3316,9 @@ LIBGNUNET_PLUGIN_TRANSPORT_DONE (void *cls)
     plugin->server_v6_task = NULL;
   }
 #if BUILD_HTTPS
-  GNUNET_free_non_null (plugin->crypto_init);
-  GNUNET_free_non_null (plugin->cert);
-  GNUNET_free_non_null (plugin->key);
+  GNUNET_free (plugin->crypto_init);
+  GNUNET_free (plugin->cert);
+  GNUNET_free (plugin->key);
 #endif
   GNUNET_CONTAINER_multipeermap_iterate (plugin->sessions,
                                          &destroy_session_shutdown_cb,
@@ -3336,10 +3336,10 @@ LIBGNUNET_PLUGIN_TRANSPORT_DONE (void *cls)
     plugin->server_v6 = NULL;
   }
   /* Clean up */
-  GNUNET_free_non_null (plugin->external_hostname);
-  GNUNET_free_non_null (plugin->ext_addr);
-  GNUNET_free_non_null (plugin->server_addr_v4);
-  GNUNET_free_non_null (plugin->server_addr_v6);
+  GNUNET_free (plugin->external_hostname);
+  GNUNET_free (plugin->ext_addr);
+  GNUNET_free (plugin->server_addr_v4);
+  GNUNET_free (plugin->server_addr_v6);
   regfree (&plugin->url_regex);
 
   LOG (GNUNET_ERROR_TYPE_DEBUG,

@@ -198,7 +198,7 @@ main (int argc, char **argv)
                                   NUM_PEERS,
                                   1LL, NULL, NULL,
                                   &test_master, NULL);
-  GNUNET_free_non_null (seen_peers);
+  GNUNET_free (seen_peers);
   if (GNUNET_OK != result)
     return 1;
   return 0;

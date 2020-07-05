@@ -790,7 +790,7 @@ clean_up ()
     curl_easy_cleanup (curl);
     curl = NULL;
   }
-  GNUNET_free_non_null (current_url);
+  GNUNET_free (current_url);
   current_url = NULL;
   stat_bytes_downloaded = 0;
   stat_download_in_progress = GNUNET_NO;
@@ -1460,7 +1460,7 @@ load_hostlist_file ()
                          linked_list_size,
                          GNUNET_NO);
 
-  GNUNET_free_non_null (uri);
+  GNUNET_free (uri);
   emsg = NULL;
   (void) GNUNET_BIO_read_close (rh, &emsg);
   if (emsg != NULL)
@@ -1657,15 +1657,15 @@ GNUNET_HOSTLIST_client_start (const struct GNUNET_CONFIGURATION_Handle *c,
         GNUNET_free (proxytype_str);
         GNUNET_free (proxy);
         proxy = NULL;
-        GNUNET_free_non_null (proxy_username);
+        GNUNET_free (proxy_username);
         proxy_username = NULL;
-        GNUNET_free_non_null (proxy_password);
+        GNUNET_free (proxy_password);
         proxy_password = NULL;
 
         return GNUNET_SYSERR;
       }
     }
-    GNUNET_free_non_null (proxytype_str);
+    GNUNET_free (proxytype_str);
   }
 
   stat_learning = learn;
@@ -1786,11 +1786,11 @@ GNUNET_HOSTLIST_client_stop ()
     ti_check_download = NULL;
     curl_global_cleanup ();
   }
-  GNUNET_free_non_null (proxy);
+  GNUNET_free (proxy);
   proxy = NULL;
-  GNUNET_free_non_null (proxy_username);
+  GNUNET_free (proxy_username);
   proxy_username = NULL;
-  GNUNET_free_non_null (proxy_password);
+  GNUNET_free (proxy_password);
   proxy_password = NULL;
   if (NULL != pi)
   {

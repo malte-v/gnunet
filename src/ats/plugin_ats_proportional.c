@@ -1225,7 +1225,7 @@ libgnunet_plugin_ats_proportional_done (void *cls)
       GNUNET_CONTAINER_DLL_remove (s->network_entries[c].head,
                                    s->network_entries[c].tail,
                                    cur);
-      GNUNET_free_non_null (cur->addr->solver_information);
+      GNUNET_free (cur->addr->solver_information);
       GNUNET_free (cur);
     }
     GNUNET_free (s->network_entries[c].stat_total);

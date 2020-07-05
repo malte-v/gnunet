@@ -390,7 +390,7 @@ handle_ad_arrive (void *cls,
                 expected_uri,
                 current_adv_uri);
   GNUNET_free (expected_uri);
-  GNUNET_free_non_null (hostname);
+  GNUNET_free (hostname);
 }
 
 

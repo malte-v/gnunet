@@ -258,7 +258,7 @@ run (void *cls,
         GNUNET_CONFIGURATION_write ((NULL == out) ? diff : out, cfgfile))
       global_ret = 2;
   }
-  GNUNET_free_non_null (cfg_fn);
+  GNUNET_free (cfg_fn);
   if (NULL != out)
     GNUNET_CONFIGURATION_destroy (out);
 cleanup:

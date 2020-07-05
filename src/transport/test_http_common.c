@@ -32,9 +32,9 @@ clean (struct SplittedHTTPAddress *addr)
 {
   if (NULL == addr)
     return;
-  GNUNET_free_non_null (addr->host);
-  GNUNET_free_non_null (addr->path);
-  GNUNET_free_non_null (addr->protocol);
+  GNUNET_free (addr->host);
+  GNUNET_free (addr->path);
+  GNUNET_free (addr->protocol);
   GNUNET_free (addr);
 }
 

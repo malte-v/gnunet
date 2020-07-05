@@ -2108,7 +2108,7 @@ free_blacklist_entry (void *cls,
 {
   char *be = value;
 
-  GNUNET_free_non_null (be);
+  GNUNET_free (be);
   return GNUNET_OK;
 }
 
@@ -2511,7 +2511,7 @@ GST_blacklist_test_cancel (struct GST_BlacklistCheck *bc)
     GNUNET_SCHEDULER_cancel (bc->task);
     bc->task = NULL;
   }
-  GNUNET_free_non_null (bc->address);
+  GNUNET_free (bc->address);
   GNUNET_free (bc);
 }
 

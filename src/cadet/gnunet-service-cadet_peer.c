@@ -345,8 +345,8 @@ destroy_peer (void *cls)
                  GNUNET_CONTAINER_multipeermap_remove (peers,
                                                        &cp->pid,
                                                        cp));
-  GNUNET_free_non_null (cp->path_heads);
-  GNUNET_free_non_null (cp->path_tails);
+  GNUNET_free (cp->path_heads);
+  GNUNET_free (cp->path_tails);
   cp->path_dll_length = 0;
   if (NULL != cp->search_h)
   {
@@ -376,7 +376,7 @@ destroy_peer (void *cls)
     GNUNET_SCHEDULER_cancel (cp->heap_cleanup_task);
     cp->heap_cleanup_task = NULL;
   }
-  GNUNET_free_non_null (cp->hello);
+  GNUNET_free (cp->hello);
   /* Peer should not be freed if paths exist; if there are no paths,
      there ought to be no connections, and without connections, no
      notifications. Thus we can assert that mqm_head is empty at this

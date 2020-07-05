@@ -1492,7 +1492,7 @@ libgnunet_plugin_rest_reclaim_done (void *cls)
 
   plugin->cfg = NULL;
 
-  GNUNET_free_non_null (allow_methods);
+  GNUNET_free (allow_methods);
   GNUNET_free (api);
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Identity Provider REST plugin is finished\n");

@@ -195,7 +195,7 @@ report_uri (void *cls)
   if ((GNUNET_YES != po->do_index) &&
       (NULL != po->publish_tmp_file))
     (void) GNUNET_DISK_directory_remove (po->publish_tmp_file);
-  GNUNET_free_non_null (po->publish_tmp_file);
+  GNUNET_free (po->publish_tmp_file);
   GNUNET_free (po);
 }
 
@@ -217,7 +217,7 @@ publish_timeout (void *cls)
   GNUNET_FS_publish_stop (po->publish_context);
   po->publish_cont (po->publish_cont_cls, NULL, NULL);
   (void) GNUNET_DISK_directory_remove (po->publish_tmp_file);
-  GNUNET_free_non_null (po->publish_tmp_file);
+  GNUNET_free (po->publish_tmp_file);
   GNUNET_free (po);
 }
 

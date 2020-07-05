@@ -215,7 +215,7 @@ run (void *cls, char *const *args, const char *cfgfile,
   own_fqdn = GNUNET_RESOLVER_local_fqdn_get ();
   /* can't really check, only thing we can safely
      compare against is our own identical logic... */
-  GNUNET_free_non_null (own_fqdn);
+  GNUNET_free (own_fqdn);
 
   /*
    * Testing non-local DNS resolution

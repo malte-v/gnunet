@@ -172,7 +172,7 @@ modify_request (void *cls,
                "Injecting modified DNS response\n");
     GNUNET_DNS_request_answer (rh, len, buf);
   }
-  GNUNET_free_non_null (buf);
+  GNUNET_free (buf);
 }
 
 

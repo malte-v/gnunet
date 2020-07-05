@@ -255,7 +255,7 @@ reset_meter (struct ProgressMeter *meter)
 static void
 free_meter (struct ProgressMeter *meter)
 {
-  GNUNET_free_non_null (meter->startup_string);
+  GNUNET_free (meter->startup_string);
   GNUNET_free (meter);
 }
 

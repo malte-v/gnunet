@@ -340,7 +340,7 @@ GNUNET_GNS_lookup_with_tld_cancel (struct GNUNET_GNS_LookupWithTldRequest *ltr)
     GNUNET_GNS_lookup_cancel (ltr->lr);
     ltr->lr = NULL;
   }
-  GNUNET_free_non_null (ltr->longest_match);
+  GNUNET_free (ltr->longest_match);
   GNUNET_free (ltr->name);
   GNUNET_free (ltr);
   return ret;

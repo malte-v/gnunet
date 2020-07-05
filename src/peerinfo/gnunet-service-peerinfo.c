@@ -443,8 +443,8 @@ add_host_to_known_hosts (const struct GNUNET_PeerIdentity *identity)
         update_hello (identity, r.hello);
       if (NULL != r.friend_only_hello)
         update_hello (identity, r.friend_only_hello);
-      GNUNET_free_non_null (r.hello);
-      GNUNET_free_non_null (r.friend_only_hello);
+      GNUNET_free (r.hello);
+      GNUNET_free (r.friend_only_hello);
       GNUNET_free (fn);
     }
   }
@@ -825,7 +825,7 @@ update_hello (const struct GNUNET_PeerIdentity *peer,
       GNUNET_free (buffer);
     }
   }
-  GNUNET_free_non_null (fn);
+  GNUNET_free (fn);
   notify_all (host);
 }
 
@@ -982,7 +982,7 @@ discard_hosts_helper (void *cls, const char *fn)
       write_pos += new_hello_size;
     }
     read_pos += cur_hello_size;
-    GNUNET_free_non_null (new_hello);
+    GNUNET_free (new_hello);
   }
 
   if (0 < write_pos)
@@ -1209,8 +1209,8 @@ free_host_entry (void *cls, const struct GNUNET_PeerIdentity *key, void *value)
 
   (void) cls;
   (void) key;
-  GNUNET_free_non_null (he->hello);
-  GNUNET_free_non_null (he->friend_only_hello);
+  GNUNET_free (he->hello);
+  GNUNET_free (he->friend_only_hello);
   GNUNET_free (he);
   return GNUNET_YES;
 }

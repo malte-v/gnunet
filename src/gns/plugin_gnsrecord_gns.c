@@ -75,14 +75,14 @@ gns_value_to_string (void *cls,
       if (NULL == ns)
       {
         GNUNET_break_op (0);
-        GNUNET_free_non_null (ns);
+        GNUNET_free (ns);
         return NULL;
       }
       /* DNS server IP/name must be UTF-8 */
       ip = GNUNET_strdup (&((const char*) data)[off]);
       GNUNET_asprintf (&nstr, "%s@%s", ns, ip);
-      GNUNET_free_non_null (ns);
-      GNUNET_free_non_null (ip);
+      GNUNET_free (ns);
+      GNUNET_free (ip);
       return nstr;
     }
 

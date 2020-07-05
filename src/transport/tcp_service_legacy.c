@@ -657,7 +657,7 @@ LEGACY_SERVICE_get_server_addresses (
           (EACCES == errno))
       {
         LOG_STRERROR (GNUNET_ERROR_TYPE_ERROR, "socket");
-        GNUNET_free_non_null (hostname);
+        GNUNET_free (hostname);
         GNUNET_free (unixpath);
         return GNUNET_SYSERR;
       }
@@ -683,7 +683,7 @@ LEGACY_SERVICE_get_server_addresses (
          _ (
            "Have neither PORT nor UNIXPATH for service `%s', but one is required\n"),
          service_name);
-    GNUNET_free_non_null (hostname);
+    GNUNET_free (hostname);
     return GNUNET_SYSERR;
   }
   if (0 == port)
@@ -691,8 +691,8 @@ LEGACY_SERVICE_get_server_addresses (
     saddrs = GNUNET_malloc (2 * sizeof(struct sockaddr *));
     saddrlens = GNUNET_malloc (2 * sizeof(socklen_t));
     add_unixpath (saddrs, saddrlens, unixpath, abstract);
-    GNUNET_free_non_null (unixpath);
-    GNUNET_free_non_null (hostname);
+    GNUNET_free (unixpath);
+    GNUNET_free (hostname);
     *addrs = saddrs;
     *addr_lens = saddrlens;
     return 1;
@@ -716,7 +716,7 @@ LEGACY_SERVICE_get_server_addresses (
            hostname,
            gai_strerror (ret));
       GNUNET_free (hostname);
-      GNUNET_free_non_null (unixpath);
+      GNUNET_free (unixpath);
       return GNUNET_SYSERR;
     }
     next = res;
@@ -736,7 +736,7 @@ LEGACY_SERVICE_get_server_addresses (
            hostname);
       freeaddrinfo (res);
       GNUNET_free (hostname);
-      GNUNET_free_non_null (unixpath);
+      GNUNET_free (unixpath);
       return GNUNET_SYSERR;
     }
     resi = i;
@@ -843,7 +843,7 @@ LEGACY_SERVICE_get_server_addresses (
       ((struct sockaddr_in *) saddrs[i])->sin_port = htons (port);
     }
   }
-  GNUNET_free_non_null (unixpath);
+  GNUNET_free (unixpath);
   *addrs = saddrs;
   *addr_lens = saddrlens;
   return resi;
@@ -1024,7 +1024,7 @@ write_pid_file (struct LEGACY_SERVICE_Context *sctx, pid_t pid)
   {
     LOG_STRERROR_FILE (GNUNET_ERROR_TYPE_ERROR, "access", rdir);
     GNUNET_free (rdir);
-    GNUNET_free_non_null (user);
+    GNUNET_free (user);
     GNUNET_free (pif);
     return GNUNET_SYSERR;
   }
@@ -1034,7 +1034,7 @@ write_pid_file (struct LEGACY_SERVICE_Context *sctx, pid_t pid)
   {
     LOG_STRERROR_FILE (GNUNET_ERROR_TYPE_ERROR, "fopen", pif);
     GNUNET_free (pif);
-    GNUNET_free_non_null (user);
+    GNUNET_free (user);
     return GNUNET_SYSERR;
   }
   if (0 > fprintf (pidfd, "%u", pid))
@@ -1042,7 +1042,7 @@ write_pid_file (struct LEGACY_SERVICE_Context *sctx, pid_t pid)
   GNUNET_break (0 == fclose (pidfd));
   if ((NULL != user) && (0 < strlen (user)))
     GNUNET_DISK_file_change_owner (pif, user);
-  GNUNET_free_non_null (user);
+  GNUNET_free (user);
   GNUNET_free (pif);
   return GNUNET_OK;
 }
@@ -1441,7 +1441,7 @@ LEGACY_SERVICE_run (int argc,
   /* shutdown */
   if ((1 == do_daemonize) && (NULL != sctx.server))
     pid_file_delete (&sctx);
-  GNUNET_free_non_null (sctx.my_handlers);
+  GNUNET_free (sctx.my_handlers);
 
 shutdown:
   if (-1 != sctx.ready_confirm_fd)
@@ -1475,16 +1475,16 @@ shutdown:
   if (NULL != sctx.addrs)
     while (NULL != sctx.addrs[i])
       GNUNET_free_nz (sctx.addrs[i++]);
-  GNUNET_free_non_null (sctx.addrs);
-  GNUNET_free_non_null (sctx.addrlens);
-  GNUNET_free_non_null (logfile);
-  GNUNET_free_non_null (loglev);
+  GNUNET_free (sctx.addrs);
+  GNUNET_free (sctx.addrlens);
+  GNUNET_free (logfile);
+  GNUNET_free (loglev);
   GNUNET_free (cfg_fn);
-  GNUNET_free_non_null (opt_cfg_fn);
-  GNUNET_free_non_null (sctx.v4_denied);
-  GNUNET_free_non_null (sctx.v6_denied);
-  GNUNET_free_non_null (sctx.v4_allowed);
-  GNUNET_free_non_null (sctx.v6_allowed);
+  GNUNET_free (opt_cfg_fn);
+  GNUNET_free (sctx.v4_denied);
+  GNUNET_free (sctx.v6_denied);
+  GNUNET_free (sctx.v4_allowed);
+  GNUNET_free (sctx.v6_allowed);
 
   return err ? GNUNET_SYSERR : sctx.ret;
 }
@@ -1626,7 +1626,7 @@ LEGACY_SERVICE_stop (struct LEGACY_SERVICE_Context *sctx)
   }
   if (NULL != sctx->server)
     GNUNET_SERVER_destroy (sctx->server);
-  GNUNET_free_non_null (sctx->my_handlers);
+  GNUNET_free (sctx->my_handlers);
   if (NULL != sctx->addrs)
   {
     i = 0;
@@ -1634,11 +1634,11 @@ LEGACY_SERVICE_stop (struct LEGACY_SERVICE_Context *sctx)
       GNUNET_free_nz (sctx->addrs[i++]);
     GNUNET_free (sctx->addrs);
   }
-  GNUNET_free_non_null (sctx->addrlens);
-  GNUNET_free_non_null (sctx->v4_denied);
-  GNUNET_free_non_null (sctx->v6_denied);
-  GNUNET_free_non_null (sctx->v4_allowed);
-  GNUNET_free_non_null (sctx->v6_allowed);
+  GNUNET_free (sctx->addrlens);
+  GNUNET_free (sctx->v4_denied);
+  GNUNET_free (sctx->v6_denied);
+  GNUNET_free (sctx->v4_allowed);
+  GNUNET_free (sctx->v6_allowed);
   GNUNET_free (sctx);
 }
 

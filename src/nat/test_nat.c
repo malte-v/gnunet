@@ -108,7 +108,7 @@ process_if (void *cls,
 
   if (addr == NULL)
     return GNUNET_OK;
-  GNUNET_free_non_null (data->addr);
+  GNUNET_free (data->addr);
   data->addr = GNUNET_malloc (addrlen);
   GNUNET_memcpy (data->addr, addr, addrlen);
   data->addrlen = addrlen;

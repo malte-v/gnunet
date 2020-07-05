@@ -1556,8 +1556,8 @@ GNUNET_DISK_pipe_from_fd (int blocking_read, int blocking_write, int fd[2])
       GNUNET_break (0 == close (p->fd[0]->fd));
     if (p->fd[1]->fd >= 0)
       GNUNET_break (0 == close (p->fd[1]->fd));
-    GNUNET_free_non_null (p->fd[0]);
-    GNUNET_free_non_null (p->fd[1]);
+    GNUNET_free (p->fd[0]);
+    GNUNET_free (p->fd[1]);
     GNUNET_free (p);
     errno = eno;
     return NULL;

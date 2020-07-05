@@ -405,7 +405,7 @@ tokenizer_cb (void *cls, const struct GNUNET_MessageHeader *message)
     GNUNET_free (evstr);
     evstr = NULL;
   }
-  GNUNET_free_non_null (hostname);
+  GNUNET_free (hostname);
   hostname = NULL;
   GNUNET_assert (NULL != test_system);
   GNUNET_assert (GNUNET_OK ==

@@ -395,7 +395,7 @@ heap_plugin_del (void *cls)
   plugin->env->delete_notify (plugin->env->cls,
                               &val->key,
                               val->size + OVERHEAD);
-  GNUNET_free_non_null (val->path_info);
+  GNUNET_free (val->path_info);
   GNUNET_free (val);
   return GNUNET_OK;
 }
@@ -577,7 +577,7 @@ libgnunet_plugin_datacache_heap_done (void *cls)
                      GNUNET_CONTAINER_multihashmap_remove (plugin->map,
                                                            &val->key,
                                                            val));
-      GNUNET_free_non_null (val->path_info);
+      GNUNET_free (val->path_info);
       GNUNET_free (val);
     }
     GNUNET_CONTAINER_heap_destroy (plugin->heaps[i]);

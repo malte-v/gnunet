@@ -88,8 +88,8 @@ free_experiment (struct Experiment *e)
     GNUNET_free (cur);
   }
 
-  GNUNET_free_non_null (e->name);
-  GNUNET_free_non_null (e->cfg_file);
+  GNUNET_free (e->name);
+  GNUNET_free (e->cfg_file);
   GNUNET_free (e);
 }
 
@@ -332,7 +332,7 @@ load_episode (struct Experiment *e,
           GNUNET_free (type);
           GNUNET_free (op_name);
           GNUNET_free (op);
-          GNUNET_free_non_null (pref);
+          GNUNET_free (pref);
           GNUNET_free (o);
           GNUNET_free (sec_name);
           return GNUNET_SYSERR;
@@ -350,7 +350,7 @@ load_episode (struct Experiment *e,
           GNUNET_free (type);
           GNUNET_free (op_name);
           GNUNET_free (op);
-          GNUNET_free_non_null (pref);
+          GNUNET_free (pref);
           GNUNET_free (o);
           GNUNET_free (sec_name);
           return GNUNET_SYSERR;
@@ -384,7 +384,7 @@ load_episode (struct Experiment *e,
       fprintf (stderr, "Found operation %u in episode %u: %s [%llu]->[%llu]\n",
                op_counter, cur->id, print_op (o->type), o->src_id, o->dest_id);
 
-    GNUNET_free_non_null (type);
+    GNUNET_free (type);
     GNUNET_free (op);
 
     GNUNET_CONTAINER_DLL_insert (cur->head, cur->tail, o);

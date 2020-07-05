@@ -1178,7 +1178,7 @@ handle_link_controllers_result (
     LOG_DEBUG ("Not calling callback\n");
   if (NULL != cfg)
     GNUNET_CONFIGURATION_destroy (cfg);
-  GNUNET_free_non_null (emsg);
+  GNUNET_free (emsg);
 }
 
 
@@ -1314,7 +1314,7 @@ handle_barrier_status (void *cls,
     return; /* just initialised; skip cleanup */
 
 cleanup:
-  GNUNET_free_non_null (emsg);
+  GNUNET_free (emsg);
   /**
    * Do not remove the barrier if we did not echo the status back; this is
    * required at the chained testbed controller setup to ensure the only the
@@ -1459,7 +1459,7 @@ oprelease_link_controllers (void *cls)
   case OPC_STATE_FINISHED:
     break;
   }
-  GNUNET_free_non_null (data);
+  GNUNET_free (data);
   GNUNET_free (opc);
 }
 

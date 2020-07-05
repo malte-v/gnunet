@@ -162,7 +162,7 @@ GNUNET_buffer_reap (struct GNUNET_Buffer *buf, size_t *size)
 void
 GNUNET_buffer_clear (struct GNUNET_Buffer *buf)
 {
-  GNUNET_free_non_null (buf->mem);
+  GNUNET_free (buf->mem);
   memset (buf, 0, sizeof (struct GNUNET_Buffer));
 }
 

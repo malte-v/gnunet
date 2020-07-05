@@ -319,7 +319,7 @@ save ()
                   total,
                   fn);
   }
-  GNUNET_free_non_null (fn);
+  GNUNET_free (fn);
 }
 
 

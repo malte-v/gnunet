@@ -325,8 +325,8 @@ end_now (int res)
     ph.stat = NULL;
   }
 
-  GNUNET_free_non_null (ph.peers);
-  GNUNET_free_non_null (ph.iterations_results);
+  GNUNET_free (ph.peers);
+  GNUNET_free (ph.iterations_results);
 
   GAS_normalization_stop ();
   GAS_preference_done ();
@@ -1090,13 +1090,13 @@ write_all_iterations (void)
   if ((NULL != f_full) && (GNUNET_SYSERR == GNUNET_DISK_file_close (f_full)))
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR, "Cannot close log file `%s'\n",
                 data_fn_full);
-  GNUNET_free_non_null (data_fn_full);
+  GNUNET_free (data_fn_full);
 
   if ((NULL != f_update) && (GNUNET_SYSERR == GNUNET_DISK_file_close (
                                f_update)))
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR, "Cannot close log file `%s'\n",
                 data_fn_update);
-  GNUNET_free_non_null (data_fn_update);
+  GNUNET_free (data_fn_update);
 }
 
 
@@ -1115,7 +1115,7 @@ do_delete_address (void *cls,
                                                        pid,
                                                        cur));
   ph.sf->s_del (ph.sf->cls, cur);
-  GNUNET_free_non_null (cur->atsi);
+  GNUNET_free (cur->atsi);
   GNUNET_free (cur);
   return GNUNET_OK;
 }
@@ -1427,7 +1427,7 @@ run (void *cls, char *const *args, const char *cfgfile,
       if (0 == c2)
         continue;
       if (ph.measure_updates)
-        GNUNET_free_non_null (
+        GNUNET_free (
           ph.iterations_results[c].update_results_array[c2]);
       GNUNET_free (ph.iterations_results[c].results_array[c2]);
     }
