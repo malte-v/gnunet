@@ -528,6 +528,8 @@ run (void *cls,
 int
 main (int argc, char *const *argv)
 {
+  char *tmp_argv;
+
   struct GNUNET_GETOPT_CommandLineOption options[] = {
     GNUNET_GETOPT_option_uint16 ('p',
                                  "port",
@@ -557,7 +559,7 @@ main (int argc, char *const *argv)
   }
   if (GNUNET_OK !=
       GNUNET_STRINGS_get_utf8_args (argc, argv,
-                                    &argc, &argv))
+                                    &argc, &tmp_argv))
     return 2;
   GNUNET_log_setup ("gnunet-gns-proxy-test",
                     "WARNING",
@@ -568,7 +570,7 @@ main (int argc, char *const *argv)
                                        options,
                                        &run, NULL))
     return 1;
-  GNUNET_free ((char *) argv);
+  GNUNET_free (tmp_argv);
   return global_ret;
 }
 
