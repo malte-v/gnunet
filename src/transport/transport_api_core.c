@@ -622,13 +622,14 @@ handle_send_ok (void *cls, const struct SendOkMessage *okm)
   struct Neighbour *n;
   uint32_t bytes_msg;
   uint32_t bytes_physical;
+  uint16_t success =  ntohs (okm->success);
 
-  bytes_msg = ntohl (okm->bytes_msg);
+  bytes_msg = ntohs (okm->bytes_msg);
   bytes_physical = ntohl (okm->bytes_physical);
   LOG (GNUNET_ERROR_TYPE_DEBUG,
        "Receiving SEND_OK message, transmission to %s %s.\n",
        GNUNET_i2s (&okm->peer),
-       ntohl (okm->success) == GNUNET_OK ? "succeeded" : "failed");
+       success == GNUNET_OK ? "succeeded" : "failed");
   n = neighbour_find (h, &okm->peer);
   if (NULL == n)
   {

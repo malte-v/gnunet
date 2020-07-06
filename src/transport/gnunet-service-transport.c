@@ -727,9 +727,9 @@ handle_send_transmit_continuation (void *cls,
                 stcc->uuid);
     send_ok_msg.header.size = htons (sizeof(send_ok_msg));
     send_ok_msg.header.type = htons (GNUNET_MESSAGE_TYPE_TRANSPORT_SEND_OK);
-    send_ok_msg.bytes_msg = htonl (bytes_payload);
+    send_ok_msg.bytes_msg = htons (bytes_payload);
     send_ok_msg.bytes_physical = htonl (bytes_on_wire);
-    send_ok_msg.success = htonl (success);
+    send_ok_msg.success = htons (success);
     send_ok_msg.peer = stcc->target;
     unicast (stcc->tc, &send_ok_msg.header, GNUNET_NO);
   }
