@@ -1,4 +1,4 @@
-@node Preface
+doc/handbook/chapters/preface.texi@node Preface
 @chapter Preface
 
 @c FIXME: Do we have to mention that this is Free Software?
@@ -180,6 +180,15 @@ overrule decisions made by the GNUnet maintainer. Similarly, the
 GNUnet maintainer can overrule any decisions made by individual
 developers.  Still, in practice neither has happened in the last 20
 years for GNUnet, and we hope to keep it that way.
+
+The current maintainers of GNUnet are:
+
+@itemize @bullet
+
+@item @uref{Christian Grothoff, https://grothoff.org/christian/}
+@item @uref{Martin Schanzenbach, https://schanzen.eu}
+
+@end itemize
 
 The GNUnet project is supported by GNUnet e.V., a German association
 where any developer can become a member.  GNUnet e.V. serves as a
