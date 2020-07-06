@@ -1,4 +1,4 @@
-doc/handbook/chapters/preface.texi@node Preface
+@node Preface
 @chapter Preface
 
 @c FIXME: Do we have to mention that this is Free Software?
