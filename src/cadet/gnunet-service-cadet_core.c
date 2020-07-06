@@ -822,7 +822,7 @@ handle_connection_create (
          GCP_2s (origin),
          GNUNET_sh2s (&msg->cid.connection_of_tunnel));
     path = GCPP_get_path_from_route (path_length - 1, pids);
-    t = GCP_get_tunnel (sender, GNUNET_YES);
+    t = GCP_get_tunnel (origin, GNUNET_YES);
 
     // Check for CADET state in case the other side has lost the tunnel (xrs,t3ss)
     if ((GNUNET_YES == msg->has_monotime) &&
