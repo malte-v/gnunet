@@ -637,7 +637,7 @@ respective protocols or APIs:
 @item testbed @tab n/a @tab testing @tab testing
 @item testing @tab n/a @tab n/a @tab testing
 @item topology @tab n/a @tab n/a @tab n/a
-@item transport @tab stable @tab stable @tab stable
+@item transport @tab experimental @tab experimental @tab experimental
 @item tun @tab n/a @tab n/a @tab stable
 @item vpn @tab testing @tab n/a @tab n/a
 @end multitable
@@ -1215,9 +1215,6 @@ accordingly with your own Operating System environment.
 
 For the full list of dependencies, consult the appropriate, up-to-date
 section in the @file{README} file.
-
-First, we need to build or install (depending on your OS) the following
-packages. If you build them from source, build them in this exact order:
 
 @example
 libgpgerror, libgcrypt, libnettle, libunbound, GnuTLS (with libunbound
