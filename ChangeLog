@@ -1,3 +1,27 @@
+Mon, 6 Jul 2020 23:34:48 +0200 (309ad1364)
+fix: cadet fix to use correct tunnel end - Martin Schanzenbach
+
+Mon, 6 Jul 2020 22:29:59 +0200 (13b2791f4)
+fix: do not use udp plugin for tests - Martin Schanzenbach
+
+Mon, 6 Jul 2020 21:33:06 +0200 (29131b26c)
+fix: update test hostkeys - Martin Schanzenbach
+
+Mon, 6 Jul 2020 20:19:00 +0200 (f0ecab499)
+fix: namestore rest test - Martin Schanzenbach
+
+Sun, 5 Jul 2020 21:59:40 +0200 (7247d3f1f)
+style fix: use correct type - Christian Grothoff
+
+Sat, 4 Jul 2020 19:06:49 +0200 (1d417dcd0)
+Fix_build_dependencies - Martin Schanzenbach
+
+Sun, 5 Jul 2020 16:32:34 +0200 (e31c1d4a9)
+GNUNET_free_non_null -> GNUNET_free - Christian Grothoff
+
+Sun, 5 Jul 2020 15:21:55 +0200 (143755664)
+build: fix libidn2 detection if prefix given (#5948) - Martin Schanzenbach
+
 Sun, 28 Jun 2020 22:38:45 +0200 (8c2243f05)
 Prevent user from storing records which belong in a BOX - Martin Schanzenbach
 

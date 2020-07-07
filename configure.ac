@@ -1,5 +1,5 @@
 # This file is part of GNUnet.
-# (C) 2001--2019 GNUnet e.V.
+# (C) 2001--2020 GNUnet e.V.
 #
 # GNUnet is free software: you can redistribute it and/or modify it
 # under the terms of the GNU Affero General Public License as published
@@ -21,7 +21,7 @@
 #
 AC_PREREQ(2.61)
 # Checks for programs.
-AC_INIT([gnunet], [0.12.2], [bug-gnunet@gnu.org])
+AC_INIT([gnunet], [0.13.0], [bug-gnunet@gnu.org])
 AC_CONFIG_AUX_DIR([build-aux])
 
 # check for legacy option that is no longer supported (#5627) and fail hard
