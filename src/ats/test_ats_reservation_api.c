@@ -102,14 +102,14 @@ static struct Command test_commands[] = {
 
 
   },
-  /* 6: reserve another 32k -- should now fail (if MAX_BANDWIDTH_CARRY_S
+  /* 6: reserve another 32M -- should now fail (if MAX_BANDWIDTH_CARRY_S
      is precisely observed) */
   {
     .code = CMD_RESERVE_BANDWIDTH,
     .label = "failing reservation",
     .details.reserve_bandwidth = {
       .pid = 0,
-      .amount = 32 * 1024,
+      .amount = 32 * 1024 * 1024,
       .expected_result = GNUNET_SYSERR
     }
 
