@@ -218,6 +218,8 @@ is_bandwidth_available_in_network (struct Network *net,
   if (((net->total_quota_in / na) > min_bw) &&
       ((net->total_quota_out / na) > min_bw))
     return GNUNET_YES;
+  LOG (GNUNET_ERROR_TYPE_DEBUG,
+       "No bandwidth available in network\n");
   return GNUNET_NO;
 }
 
