@@ -12,9 +12,11 @@ UNIX_MATCH_GID = YES
 # Designated assignment mode: PROPORTIONAL / MLP / RIL
 MODE = proportional
 
+# IMPORTANT: Do not lower those quotas below 10 MiB
+# Or your peer may not bootstrap correctly.
 # Network specific inbound/outbound quotas
-UNSPECIFIED_QUOTA_IN = 64 KiB
-UNSPECIFIED_QUOTA_OUT = 64 KiB
+UNSPECIFIED_QUOTA_IN = 10 MiB
+UNSPECIFIED_QUOTA_OUT = 10 MiB
 # LOOPBACK
 LOOPBACK_QUOTA_IN = unlimited
 LOOPBACK_QUOTA_OUT = unlimited
@@ -22,14 +24,14 @@ LOOPBACK_QUOTA_OUT = unlimited
 LAN_QUOTA_IN = unlimited
 LAN_QUOTA_OUT = unlimited
 # WAN
-WAN_QUOTA_IN = 64 KiB
-WAN_QUOTA_OUT = 64 KiB
+WAN_QUOTA_IN = 10 MiB
+WAN_QUOTA_OUT = 10 MiB
 # WLAN
-WLAN_QUOTA_IN = 1 MiB
-WLAN_QUOTA_OUT = 1 MiB
+WLAN_QUOTA_IN = 10 MiB
+WLAN_QUOTA_OUT = 10 MiB
 # BLUETOOTH
-BLUETOOTH_QUOTA_IN = 128 KiB
-BLUETOOTH_QUOTA_OUT = 128 KiB
+BLUETOOTH_QUOTA_IN = 10 MiB
+BLUETOOTH_QUOTA_OUT = 10 MiB
 # ATS options
 
 # Proportional specific settings
