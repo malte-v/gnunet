@@ -1,3 +1,6 @@
+Thu, 9 Jul 2020 09:09:50 +0200 (5a0df5e18)
+fix: raise ATS quotas to 10 MiB #6426 - Martin Schanzenbach
+
 Mon, 6 Jul 2020 23:34:48 +0200 (309ad1364)
 fix: cadet fix to use correct tunnel end - Martin Schanzenbach
 
