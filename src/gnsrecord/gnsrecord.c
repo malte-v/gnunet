@@ -139,7 +139,7 @@ GNSRECORD_fini ()
   GNUNET_free (gns_plugins);
 
   if (pd != dpd)
-    GNUNET_OS_init(dpd);
+    GNUNET_OS_init(pd);
 
   gns_plugins = NULL;
   once = 0;
