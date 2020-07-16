@@ -78,7 +78,7 @@ respective public key (you will learn how below) and extend the
 configuration:
 
 @example
-$ gnunet-config -s gns -n .myfriend -V PUBLIC_KEY
+$ gnunet-config -s gns -o .myfriend -V PUBLIC_KEY
 @end example
 
 @node Managing Egos
