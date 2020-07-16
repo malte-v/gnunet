@@ -170,7 +170,90 @@ struct GNUNET_CURL_Context
    * Closure for @e cb.
    */
   void *cb_cls;
+
+  /**
+   * USERNAME:PASSWORD to use for client-authentication
+   * with all requests of this context, or NULL.
+   */
+  char *userpass;
+
+  /**
+   * Type of the TLS client certificate used, or NULL.
+   */
+  char *certtype;
+
+  /**
+   * File with the TLS client certificate, or NULL.
+   */
+  char *certfile;
+
+  /**
+   * File with the private key to authenticate the
+   * TLS client, or NULL.
+   */
+  char *keyfile;
+
+  /**
+   * Passphrase to decrypt @e keyfile, or NULL.
+   */ 
+  char *keypass;
+
 };
+
+
+/**
+ * Force use of the provided username and password 
+ * for client authentication for all operations performed
+ * with @a ctx.
+ *
+ * @param ctx context to set authentication data for
+ * @param userpass string with "$USERNAME:$PASSWORD"
+ */
+void
+GNUNET_CURL_set_userpass (struct GNUNET_CURL_Context *ctx,
+                          const char *userpass)
+{
+  GNUNET_free (ctx->userpass);
+  if (NULL != userpass)
+    ctx->userpass = GNUNET_strdup (userpass);
+}
+
+
+/**
+ * Force use of the provided TLS client certificate
+ * for client authentication for all operations performed
+ * with @a ctx.
+ *
+ * Note that if the provided information is incorrect,
+ * the earliest operation that could fail is
+ * #GNUNET_CURL_job_add() or #GNUNET_CURL_job_add2()!
+ *
+ * @param ctx context to set authentication data for
+ * @param certtype type of the certificate
+ * @param certfile file with the certificate
+ * @param keyfile file with the private key
+ * @param keypass passphrase to decrypt @a keyfile (or NULL)
+ */
+void
+GNUNET_CURL_set_tlscert (struct GNUNET_CURL_Context *ctx,
+                         const char *certtype,
+                         const char *certfile,
+                         const char *keyfile,
+                         const char *keypass)
+{
+  GNUNET_free (ctx->certtype);
+  GNUNET_free (ctx->certfile);
+  GNUNET_free (ctx->keyfile);
+  GNUNET_free (ctx->keypass);
+  if (NULL != certtype)
+    ctx->certtype = GNUNET_strdup (certtype);
+  if (NULL != certfile)
+    ctx->certfile = GNUNET_strdup (certfile);
+  if (NULL != keyfile)
+    ctx->certtype = GNUNET_strdup (keyfile);
+  if (NULL != keypass)
+    ctx->certtype = GNUNET_strdup (keypass);
+}
 
 
 /**
@@ -457,6 +540,32 @@ GNUNET_CURL_job_add2 (struct GNUNET_CURL_Context *ctx,
   struct curl_slist *all_headers;
 
   GNUNET_assert (NULL != jcc);
+  if ( (NULL != ctx->userpass) &&
+       (0 != curl_easy_setopt (eh,
+                               CURLOPT_USERPWD,
+                               ctx->userpass)) )
+    return NULL;
+  if ( (NULL != ctx->certfile) &&
+       (0 != curl_easy_setopt (eh,
+                               CURLOPT_SSLCERT,
+                               ctx->certfile)) )
+    return NULL;
+  if ( (NULL != ctx->certtype) &&
+       (0 != curl_easy_setopt (eh,
+                               CURLOPT_SSLCERTTYPE,
+                               ctx->certtype)) )
+    return NULL;
+  if ( (NULL != ctx->keyfile) &&
+       (0 != curl_easy_setopt (eh,
+                               CURLOPT_SSLKEY,
+                               ctx->keyfile)) )
+    return NULL;
+  if ( (NULL != ctx->keypass) &&
+       (0 != curl_easy_setopt (eh,
+                               CURLOPT_KEYPASSWD,
+                               ctx->keypass)) )
+    return NULL;
+
   all_headers = setup_job_headers (ctx,
                                    job_headers);
   if (NULL == (job = setup_job (eh,
@@ -899,6 +1008,11 @@ GNUNET_CURL_fini (struct GNUNET_CURL_Context *ctx)
   curl_share_cleanup (ctx->share);
   curl_multi_cleanup (ctx->multi);
   curl_slist_free_all (ctx->common_headers);
+  GNUNET_free (ctx->userpass);
+  GNUNET_free (ctx->certtype);
+  GNUNET_free (ctx->certfile);
+  GNUNET_free (ctx->keyfile);
+  GNUNET_free (ctx->keypass);
   GNUNET_free (ctx);
 }
 

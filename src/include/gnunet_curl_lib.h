@@ -245,6 +245,42 @@ GNUNET_CURL_job_add (struct GNUNET_CURL_Context *ctx,
 
 
 /**
+ * Force use of the provided username and password 
+ * for client authentication for all operations performed
+ * with @a ctx.
+ *
+ * @param ctx context to set authentication data for
+ * @param userpass string with "$USERNAME:$PASSWORD"
+ */
+void
+GNUNET_CURL_set_userpass (struct GNUNET_CURL_Context *ctx,
+                          const char *userpass);
+
+
+/**
+ * Force use of the provided TLS client certificate
+ * for client authentication for all operations performed
+ * with @a ctx.
+ *
+ * Note that if the provided information is incorrect,
+ * the earliest operation that could fail is
+ * #GNUNET_CURL_job_add() or #GNUNET_CURL_job_add2()!
+ *
+ * @param ctx context to set authentication data for
+ * @param certtype type of the certificate
+ * @param certfile file with the certificate
+ * @param keyfile file with the private key
+ * @param keypass passphrase to decrypt @a keyfile (or NULL)
+ */
+void
+GNUNET_CURL_set_tlscert (struct GNUNET_CURL_Context *ctx,
+                         const char *certtype,
+                         const char *certfile,
+                         const char *keyfile,
+                         const char *keypass);
+
+
+/**
  * Schedule a CURL request to be executed and call the given @a jcc
  * upon its completion.  Note that the context will make use of the
  * CURLOPT_PRIVATE facility of the CURL @a eh.

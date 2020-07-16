@@ -62,7 +62,8 @@ GNUNET_CRYPTO_kdf_v (void *result,
    * hash function."
    *
    * http://eprint.iacr.org/2010/264
-   */return GNUNET_CRYPTO_hkdf_v (result,
+   *///
+  return GNUNET_CRYPTO_hkdf_v (result,
                                out_len,
                                GCRY_MD_SHA512,
                                GCRY_MD_SHA256,
@@ -142,7 +143,6 @@ GNUNET_CRYPTO_kdf_mod_mpi (gcry_mpi_t *r,
   {
     /* Ain't clear if n is always divisible by 8 */
     uint8_t buf[ (nbits - 1) / 8 + 1 ];
-
     uint16_t ctr_nbo = htons (ctr);
 
     rc = GNUNET_CRYPTO_kdf (buf,
