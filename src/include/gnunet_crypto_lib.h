@@ -289,6 +289,17 @@ struct GNUNET_CRYPTO_SymmetricSessionKey
   unsigned char twofish_key[GNUNET_CRYPTO_AES_KEY_LENGTH];
 };
 
+/**
+ * Type of a nonce used for challenges.
+ */
+struct ChallengeNonceP
+{
+  /**
+   * The value of the nonce.  Note that this is NOT a hash.
+   */
+  struct GNUNET_ShortHashCode value;
+};
+
 GNUNET_NETWORK_STRUCT_END
 
 /**

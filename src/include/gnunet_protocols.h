@@ -3293,6 +3293,11 @@ extern "C" {
 #define GNUNET_MESSAGE_TYPE_COMMUNICATOR_TCP_FINISH 1452
 
 /**
+ * TCP communicator confirmation ack.
+ */
+#define GNUNET_MESSAGE_TYPE_COMMUNICATOR_TCP_CONFIRMATION_ACK 1453
+
+/**
  * UDP KX acknowledgement.
  */
 #define GNUNET_MESSAGE_TYPE_COMMUNICATOR_UDP_ACK 1460

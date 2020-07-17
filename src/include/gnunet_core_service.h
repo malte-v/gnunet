@@ -48,6 +48,122 @@ extern "C" {
  */
 #define GNUNET_CORE_VERSION 0x00000001
 
+GNUNET_NETWORK_STRUCT_BEGIN
+
+/**
+ * Message transmitted with the signed ephemeral key of a peer.  The
+ * session key is then derived from the two ephemeral keys (ECDHE).
+ */
+struct EphemeralKeyMessage
+{
+  /**
+   * Message type is #GNUNET_MESSAGE_TYPE_CORE_EPHEMERAL_KEY.
+   */
+  struct GNUNET_MessageHeader header;
+
+  /**
+   * Status of the sender (should be in `enum PeerStateMachine`), nbo.
+   */
+  int32_t sender_status GNUNET_PACKED;
+
+  /**
+   * An ECC signature of the @e origin_identity asserting the validity
+   * of the given ephemeral key.
+   */
+  struct GNUNET_CRYPTO_EddsaSignature signature;
+
+  /**
+   * Information about what is being signed.
+   */
+  struct GNUNET_CRYPTO_EccSignaturePurpose purpose;
+
+  /**
+   * At what time was this key created (beginning of validity).
+   */
+  struct GNUNET_TIME_AbsoluteNBO creation_time;
+
+  /**
+   * When does the given ephemeral key expire (end of validity).
+   */
+  struct GNUNET_TIME_AbsoluteNBO expiration_time;
+
+  /**
+   * Ephemeral public ECC key.
+   */
+  struct GNUNET_CRYPTO_EcdhePublicKey ephemeral_key;
+
+  /**
+   * Public key of the signing peer (persistent version, not the
+   * ephemeral public key).
+   */
+  struct GNUNET_PeerIdentity origin_identity;
+};
+
+
+/**
+ * We're sending an (encrypted) PING to the other peer to check if it
+ * can decrypt.  The other peer should respond with a PONG with the
+ * same content, except this time encrypted with the receiver's key.
+ */
+struct PingMessage
+{
+  /**
+   * Message type is #GNUNET_MESSAGE_TYPE_CORE_PING.
+   */
+  struct GNUNET_MessageHeader header;
+
+  /**
+   * Seed for the IV
+   */
+  uint32_t iv_seed GNUNET_PACKED;
+
+  /**
+   * Intended target of the PING, used primarily to check
+   * that decryption actually worked.
+   */
+  struct GNUNET_PeerIdentity target;
+
+  /**
+   * Random number chosen to make replay harder.
+   */
+  uint32_t challenge GNUNET_PACKED;
+};
+
+
+/**
+ * Response to a PING.  Includes data from the original PING.
+ */
+struct PongMessage
+{
+  /**
+   * Message type is #GNUNET_MESSAGE_TYPE_CORE_PONG.
+   */
+  struct GNUNET_MessageHeader header;
+
+  /**
+   * Seed for the IV
+   */
+  uint32_t iv_seed GNUNET_PACKED;
+
+  /**
+   * Random number to make replay attacks harder.
+   */
+  uint32_t challenge GNUNET_PACKED;
+
+  /**
+   * Reserved, always zero.
+   */
+  uint32_t reserved;
+
+  /**
+   * Intended target of the PING, used primarily to check
+   * that decryption actually worked.
+   */
+  struct GNUNET_PeerIdentity target;
+};
+
+
+GNUNET_NETWORK_STRUCT_END
 
 /**
  * Opaque handle to the service.

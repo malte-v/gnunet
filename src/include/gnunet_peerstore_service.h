@@ -67,6 +67,24 @@ extern "C" {
 #define GNUNET_PEERSTORE_TRANSPORT_DVLEARN_MONOTIME \
   "transport-dv-learn-monotonic-time"
 
+/**
+ * Key used to store sender's monotonic time from handshake message.
+ */
+#define GNUNET_PEERSTORE_TRANSPORT_TCP_COMMUNICATOR_HANDSHAKE \
+  "transport-tcp-communicator-handshake"
+
+/**
+ * Key used to store sender's monotonic time from handshake ack message.
+ */
+#define GNUNET_PEERSTORE_TRANSPORT_TCP_COMMUNICATOR_HANDSHAKE_ACK \
+  "transport-tcp-communicator-handshake-ack"
+
+/**
+ * Key used to store sender's monotonic time from rekey message.
+ */
+#define GNUNET_PEERSTORE_TRANSPORT_TCP_COMMUNICATOR_REKEY \
+  "transport-tcp-communicator-rekey"
+
 
 /**
  * Options for storing values in PEERSTORE

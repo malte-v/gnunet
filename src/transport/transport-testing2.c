@@ -114,6 +114,11 @@ struct GNUNET_TRANSPORT_TESTING_TransportCommunicatorHandle
   struct GNUNET_OS_Process *resolver_proc;
 
   /**
+   * peerstore service process
+   */
+  struct GNUNET_OS_Process *ps_proc;
+
+  /**
    * @brief Task that will be run on shutdown to stop and clean communicator
    */
   struct GNUNET_SCHEDULER_Task *c_shutdown_task;
@@ -671,8 +676,8 @@ handle_update_queue_message (void *cls,
   struct GNUNET_TRANSPORT_TESTING_TransportCommunicatorQueue *tc_queue;
 
   LOG (GNUNET_ERROR_TYPE_DEBUG,
-       "Received queue update message for %u with q_len %"PRIu64"\n",
-       msg->qid, GNUNET_ntohll(msg->q_len));
+       "Received queue update message for %u with q_len %" PRIu64 "\n",
+       msg->qid, GNUNET_ntohll (msg->q_len));
   tc_queue = tc_h->queue_head;
   if (NULL != tc_queue)
   {
@@ -892,6 +897,12 @@ shutdown_process (struct GNUNET_OS_Process *proc)
   GNUNET_OS_process_destroy (proc);
 }
 
+static void
+shutdown_peerstore (void *cls)
+{
+  struct GNUNET_OS_Process *proc = cls;
+  shutdown_process (proc);
+}
 
 static void
 shutdown_communicator (void *cls)
@@ -987,6 +998,38 @@ resolver_start (struct
 
 }
 
+
+/**
+ * @brief Start Peerstore
+ *
+ */
+static void
+peerstore_start (
+  struct GNUNET_TRANSPORT_TESTING_TransportCommunicatorHandle *tc_h)
+{
+  char *binary;
+
+  LOG (GNUNET_ERROR_TYPE_DEBUG, "peerstore_start\n");
+  binary = GNUNET_OS_get_libexec_binary_path ("gnunet-service-peerstore");
+  tc_h->ps_proc = GNUNET_OS_start_process (GNUNET_YES,
+                                           GNUNET_OS_INHERIT_STD_OUT_AND_ERR,
+                                           NULL,
+                                           NULL,
+                                           NULL,
+                                           binary,
+                                           "gnunet-service-peerstore",
+                                           "-c",
+                                           tc_h->cfg_filename,
+                                           NULL);
+  if (NULL == tc_h->ps_proc)
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR, "Failed to start Peerstore!");
+    return;
+  }
+  LOG (GNUNET_ERROR_TYPE_INFO, "started Peerstore\n");
+  GNUNET_free (binary);
+}
+
 /**
  * @brief Start NAT
  *
@@ -1017,7 +1060,6 @@ nat_start (
   LOG (GNUNET_ERROR_TYPE_INFO, "started NAT\n");
   GNUNET_free (binary);
 }
-
 
 /**
  * @brief Start communicator part of transport service and communicator
@@ -1083,6 +1125,8 @@ GNUNET_TRANSPORT_TESTING_transport_communicator_service_start (
   nat_start (tc_h);
   /* Start resolver service */
   resolver_start (tc_h);
+  /* Start peerstore service */
+  peerstore_start (tc_h);
   /* Schedule start communicator */
   communicator_start (tc_h,
                       binary_name);
@@ -1098,6 +1142,7 @@ GNUNET_TRANSPORT_TESTING_transport_communicator_service_stop (
   shutdown_service (tc_h->sh);
   shutdown_nat (tc_h->nat_proc);
   shutdown_resolver (tc_h->resolver_proc);
+  shutdown_peerstore (tc_h->ps_proc);
   GNUNET_CONFIGURATION_destroy (tc_h->cfg);
   GNUNET_free (tc_h);
 }

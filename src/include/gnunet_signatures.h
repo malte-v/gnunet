@@ -246,6 +246,11 @@ extern "C"
  */
 #define GNUNET_SIGNATURE_PURPOSE_CADET_CONNECTION_INITIATOR 38
 
+/**
+ * Signature by a peer sending back the nonce received at initial handshake.
+ */
+#define GNUNET_SIGNATURE_COMMUNICATOR_TCP_HANDSHAKE_ACK 39
+
 #if 0                           /* keep Emacsens' auto-indent happy */
 {
 #endif
