@@ -348,8 +348,8 @@ main (int argc, char *argv[])
                     "WARNING",
                     NULL);
   fn = GNUNET_OS_get_libexec_binary_path ("gnunet-service-resolver");
-  proc = GNUNET_OS_start_process (GNUNET_YES,
-                                  GNUNET_OS_INHERIT_STD_OUT_AND_ERR,
+  proc = GNUNET_OS_start_process (GNUNET_OS_INHERIT_STD_OUT_AND_ERR
+                                  | GNUNET_OS_USE_PIPE_CONTROL,
                                   NULL, NULL, NULL,
                                   fn,
                                   "gnunet-service-resolver",

@@ -87,8 +87,7 @@ static int ret;
 
 
 static int
-run_process_and_wait (int pipe_control,
-                      enum GNUNET_OS_InheritStdioFlags std_inheritance,
+run_process_and_wait (enum GNUNET_OS_InheritStdioFlags std_inheritance,
                       struct GNUNET_DISK_PipeHandle *pipe_stdin,
                       struct GNUNET_DISK_PipeHandle *pipe_stdout,
                       enum GNUNET_OS_ProcessStatusType *st,
@@ -120,7 +119,7 @@ run_process_and_wait (int pipe_control,
   va_end (apc2);
   if (arglen > 0)
     argp[-1] = '\0';
-  p = GNUNET_OS_start_process_va (pipe_control, std_inheritance,
+  p = GNUNET_OS_start_process_va (std_inheritance,
                                   pipe_stdin,
                                   pipe_stdout,
                                   NULL,
@@ -222,7 +221,7 @@ zone_iteration_error (void *cls)
 
   if (! found_private_rec)
   {
-    if (0 != run_process_and_wait (GNUNET_NO, GNUNET_OS_INHERIT_STD_OUT_AND_ERR,
+    if (0 != run_process_and_wait (GNUNET_OS_INHERIT_STD_OUT_AND_ERR,
                                    NULL, NULL, &st, &code,
                                    "gnunet-namestore",
                                    "gnunet-namestore", "-z", "master-zone",
@@ -236,7 +235,7 @@ zone_iteration_error (void *cls)
   }
   if (! found_pin_rec)
   {
-    if (0 != run_process_and_wait (GNUNET_NO, GNUNET_OS_INHERIT_STD_OUT_AND_ERR,
+    if (0 != run_process_and_wait (GNUNET_OS_INHERIT_STD_OUT_AND_ERR,
                                    NULL, NULL, &st, &code,
                                    "gnunet-namestore",
                                    "gnunet-namestore", "-z", "master-zone",
@@ -385,7 +384,8 @@ run (void *cls, char *const *args, const char *cfgfile,
 
   cfg = c;
 
-  if (0 != run_process_and_wait (GNUNET_NO, 0, NULL, NULL, &st, &code,
+  if (0 != run_process_and_wait (GNUNET_OS_INHERIT_STD_NONE,
+                                 NULL, NULL, &st, &code,
                                  "gnunet-arm",
                                  "gnunet-arm", "-I", NULL))
   {
@@ -395,60 +395,60 @@ run (void *cls, char *const *args, const char *cfgfile,
     return;
   }
 
-  if (0 != run_process_and_wait (GNUNET_NO, GNUNET_OS_INHERIT_STD_OUT_AND_ERR,
+  if (0 != run_process_and_wait (GNUNET_OS_INHERIT_STD_OUT_AND_ERR,
                                  NULL, NULL, &st, &code,
                                  "gnunet-identity",
                                  "gnunet-identity", "-C", "master-zone", NULL))
     return;
 
-  if (0 != run_process_and_wait (GNUNET_NO, GNUNET_OS_INHERIT_STD_OUT_AND_ERR,
+  if (0 != run_process_and_wait (GNUNET_OS_INHERIT_STD_OUT_AND_ERR,
                                  NULL, NULL, &st, &code,
                                  "gnunet-identity",
                                  "gnunet-identity", "-C", "private-zone", NULL))
     return;
 
-  if (0 != run_process_and_wait (GNUNET_NO, GNUNET_OS_INHERIT_STD_OUT_AND_ERR,
+  if (0 != run_process_and_wait (GNUNET_OS_INHERIT_STD_OUT_AND_ERR,
                                  NULL, NULL, &st, &code,
                                  "gnunet-identity",
                                  "gnunet-identity", "-C", "sks-zone", NULL))
     return;
 
-  if (0 != run_process_and_wait (GNUNET_NO, GNUNET_OS_INHERIT_STD_OUT_AND_ERR,
+  if (0 != run_process_and_wait (GNUNET_OS_INHERIT_STD_OUT_AND_ERR,
                                  NULL, NULL, &st, &code,
                                  "gnunet-identity",
                                  "gnunet-identity", "-e", "master-zone", "-s",
                                  "gns-master", NULL))
     return;
 
-  if (0 != run_process_and_wait (GNUNET_NO, GNUNET_OS_INHERIT_STD_OUT_AND_ERR,
+  if (0 != run_process_and_wait (GNUNET_OS_INHERIT_STD_OUT_AND_ERR,
                                  NULL, NULL, &st, &code,
                                  "gnunet-identity",
                                  "gnunet-identity", "-e", "master-zone", "-s",
                                  "namestore", NULL))
     return;
 
-  if (0 != run_process_and_wait (GNUNET_NO, GNUNET_OS_INHERIT_STD_OUT_AND_ERR,
+  if (0 != run_process_and_wait (GNUNET_OS_INHERIT_STD_OUT_AND_ERR,
                                  NULL, NULL, &st, &code,
                                  "gnunet-identity",
                                  "gnunet-identity", "-e", "master-zone", "-s",
                                  "gns-proxy", NULL))
     return;
 
-  if (0 != run_process_and_wait (GNUNET_NO, GNUNET_OS_INHERIT_STD_OUT_AND_ERR,
+  if (0 != run_process_and_wait (GNUNET_OS_INHERIT_STD_OUT_AND_ERR,
                                  NULL, NULL, &st, &code,
                                  "gnunet-identity",
                                  "gnunet-identity", "-e", "master-zone", "-s",
                                  "gns-intercept", NULL))
     return;
 
-  if (0 != run_process_and_wait (GNUNET_NO, GNUNET_OS_INHERIT_STD_OUT_AND_ERR,
+  if (0 != run_process_and_wait (GNUNET_OS_INHERIT_STD_OUT_AND_ERR,
                                  NULL, NULL, &st, &code,
                                  "gnunet-identity",
                                  "gnunet-identity", "-e", "private-zone", "-s",
                                  "gns-private", NULL))
     return;
 
-  if (0 != run_process_and_wait (GNUNET_NO, GNUNET_OS_INHERIT_STD_OUT_AND_ERR,
+  if (0 != run_process_and_wait (GNUNET_OS_INHERIT_STD_OUT_AND_ERR,
                                  NULL, NULL, &st, &code,
                                  "gnunet-identity",
                                  "gnunet-identity", "-e", "sks-zone", "-s",

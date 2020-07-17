@@ -422,8 +422,9 @@ start_helper (struct GNUNET_HELPER_Handle *h)
     GNUNET_DISK_pipe_handle (h->helper_out, GNUNET_DISK_PIPE_END_READ);
   h->fh_to_helper =
     GNUNET_DISK_pipe_handle (h->helper_in, GNUNET_DISK_PIPE_END_WRITE);
-  h->helper_proc = GNUNET_OS_start_process_vap (h->with_control_pipe,
-                                                GNUNET_OS_INHERIT_STD_ERR,
+  h->helper_proc = GNUNET_OS_start_process_vap (h->with_control_pipe
+                                                ? GNUNET_OS_INHERIT_STD_ERR | GNUNET_OS_USE_PIPE_CONTROL
+                                                : GNUNET_OS_INHERIT_STD_ERR,
                                                 h->helper_in,
                                                 h->helper_out,
                                                 NULL,

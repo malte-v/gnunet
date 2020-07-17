@@ -38,12 +38,6 @@
 
 
 /**
- * We need pipe control only on WINDOWS
- */
-#define PIPE_CONTROL GNUNET_NO
-
-
-/**
  * Lowest port used for GNUnet testing.  Should be high enough to not
  * conflict with other applications running on the hosts but be low
  * enough to not conflict with client-ports (typically starting around
@@ -492,8 +486,7 @@ start_shared_service_instance (struct SharedServiceInstance *i)
   (void) GNUNET_asprintf (&binary, "gnunet-service-%s", i->ss->sname);
   libexec_binary = GNUNET_OS_get_libexec_binary_path (binary);
   GNUNET_free (binary);
-  i->proc = GNUNET_OS_start_process (PIPE_CONTROL,
-                                     GNUNET_OS_INHERIT_STD_OUT_AND_ERR,
+  i->proc = GNUNET_OS_start_process (GNUNET_OS_INHERIT_STD_OUT_AND_ERR,
                                      NULL,
                                      NULL,
                                      NULL,
@@ -1378,8 +1371,7 @@ GNUNET_TESTING_peer_start (struct GNUNET_TESTING_Peer *peer)
   peer->main_binary =
     GNUNET_CONFIGURATION_expand_dollar (peer->cfg, peer->main_binary);
   peer->main_process =
-    GNUNET_OS_start_process_s (PIPE_CONTROL,
-                               GNUNET_OS_INHERIT_STD_OUT_AND_ERR,
+    GNUNET_OS_start_process_s (GNUNET_OS_INHERIT_STD_OUT_AND_ERR,
                                NULL,
                                peer->main_binary,
                                peer->args,

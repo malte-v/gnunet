@@ -168,7 +168,8 @@ main (int argc, char *argv_ign[])
 
   binary = GNUNET_OS_get_libexec_binary_path ("gnunet-service-statistics");
   proc =
-    GNUNET_OS_start_process (GNUNET_YES, GNUNET_OS_INHERIT_STD_OUT_AND_ERR,
+    GNUNET_OS_start_process (GNUNET_OS_INHERIT_STD_OUT_AND_ERR
+                             | GNUNET_OS_USE_PIPE_CONTROL,
                              NULL, NULL, NULL,
                              binary,
                              "gnunet-service-statistics",

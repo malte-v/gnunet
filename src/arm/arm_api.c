@@ -729,8 +729,7 @@ start_arm_service (struct GNUNET_ARM_Handle *h,
     /* Means we are ONLY running locally */
     /* we're clearly running a test, don't daemonize */
     if (NULL == config)
-      proc = GNUNET_OS_start_process_s (GNUNET_NO,
-                                        std_inheritance,
+      proc = GNUNET_OS_start_process_s (std_inheritance,
                                         lsocks,
                                         loprefix,
                                         quotedbinary,
@@ -738,8 +737,7 @@ start_arm_service (struct GNUNET_ARM_Handle *h,
                                         lopostfix,
                                         NULL);
     else
-      proc = GNUNET_OS_start_process_s (GNUNET_NO,
-                                        std_inheritance,
+      proc = GNUNET_OS_start_process_s (std_inheritance,
                                         lsocks,
                                         loprefix,
                                         quotedbinary,
@@ -752,8 +750,7 @@ start_arm_service (struct GNUNET_ARM_Handle *h,
   else
   {
     if (NULL == config)
-      proc = GNUNET_OS_start_process_s (GNUNET_NO,
-                                        std_inheritance,
+      proc = GNUNET_OS_start_process_s (std_inheritance,
                                         lsocks,
                                         loprefix,
                                         quotedbinary,
@@ -761,8 +758,7 @@ start_arm_service (struct GNUNET_ARM_Handle *h,
                                         lopostfix,
                                         NULL);
     else
-      proc = GNUNET_OS_start_process_s (GNUNET_NO,
-                                        std_inheritance,
+      proc = GNUNET_OS_start_process_s (std_inheritance,
                                         lsocks,
                                         loprefix,
                                         quotedbinary,

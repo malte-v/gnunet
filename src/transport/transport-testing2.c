@@ -915,8 +915,8 @@ communicator_start (
 
   LOG (GNUNET_ERROR_TYPE_DEBUG, "communicator_start\n");
   binary = GNUNET_OS_get_libexec_binary_path (binary_name);
-  tc_h->c_proc = GNUNET_OS_start_process (GNUNET_YES,
-                                          GNUNET_OS_INHERIT_STD_OUT_AND_ERR,
+  tc_h->c_proc = GNUNET_OS_start_process (GNUNET_OS_INHERIT_STD_OUT_AND_ERR
+                                          | GNUNET_OS_USE_PIPE_CONTROL,
                                           NULL,
                                           NULL,
                                           NULL,
@@ -967,8 +967,8 @@ resolver_start (struct
 
   LOG (GNUNET_ERROR_TYPE_DEBUG, "resolver_start\n");
   binary = GNUNET_OS_get_libexec_binary_path ("gnunet-service-resolver");
-  tc_h->resolver_proc = GNUNET_OS_start_process (GNUNET_YES,
-                                                 GNUNET_OS_INHERIT_STD_OUT_AND_ERR,
+  tc_h->resolver_proc = GNUNET_OS_start_process (GNUNET_OS_INHERIT_STD_OUT_AND_ERR
+                                                 | GNUNET_OS_USE_PIPE_CONTROL,
                                                  NULL,
                                                  NULL,
                                                  NULL,
@@ -999,8 +999,8 @@ nat_start (
 
   LOG (GNUNET_ERROR_TYPE_DEBUG, "nat_start\n");
   binary = GNUNET_OS_get_libexec_binary_path ("gnunet-service-nat");
-  tc_h->nat_proc = GNUNET_OS_start_process (GNUNET_YES,
-                                            GNUNET_OS_INHERIT_STD_OUT_AND_ERR,
+  tc_h->nat_proc = GNUNET_OS_start_process (GNUNET_OS_INHERIT_STD_OUT_AND_ERR
+                                            | GNUNET_OS_USE_PIPE_CONTROL,
                                             NULL,
                                             NULL,
                                             NULL,

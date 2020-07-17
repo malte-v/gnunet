@@ -1384,8 +1384,7 @@ GNUNET_TESTBED_is_host_habitable (
     join_argv ((const char **) rsh_args, (const char **) rsh_suffix_args);
   free_argv (rsh_suffix_args);
   free_argv (rsh_args);
-  h->auxp = GNUNET_OS_start_process_vap (GNUNET_NO,
-                                         GNUNET_OS_INHERIT_STD_ERR,
+  h->auxp = GNUNET_OS_start_process_vap (GNUNET_OS_INHERIT_STD_ERR,
                                          NULL,
                                          NULL,
                                          NULL,

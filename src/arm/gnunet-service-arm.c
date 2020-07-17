@@ -858,8 +858,9 @@ start_process (struct ServiceList *sl,
      * of ''-quoted strings, escaping should be considered. */
     if (NULL != options)
       options = GNUNET_CONFIGURATION_expand_dollar (cfg, options);
-    sl->proc = GNUNET_OS_start_process_s (sl->pipe_control,
-                                          GNUNET_OS_INHERIT_STD_OUT_AND_ERR,
+    sl->proc = GNUNET_OS_start_process_s (sl->pipe_control
+                                          ? GNUNET_OS_INHERIT_STD_OUT_AND_ERR | GNUNET_OS_USE_PIPE_CONTROL
+                                          : GNUNET_OS_INHERIT_STD_OUT_AND_ERR,
                                           lsocks,
                                           loprefix,
                                           quotedbinary,
@@ -880,8 +881,9 @@ start_process (struct ServiceList *sl,
     if (GNUNET_YES == use_debug)
     {
       if (NULL == sl->config)
-        sl->proc = GNUNET_OS_start_process_s (sl->pipe_control,
-                                              GNUNET_OS_INHERIT_STD_OUT_AND_ERR,
+        sl->proc = GNUNET_OS_start_process_s (sl->pipe_control
+                                              ? GNUNET_OS_INHERIT_STD_OUT_AND_ERR | GNUNET_OS_USE_PIPE_CONTROL
+                                              : GNUNET_OS_INHERIT_STD_OUT_AND_ERR,
                                               lsocks,
                                               loprefix,
                                               quotedbinary,
@@ -890,8 +892,9 @@ start_process (struct ServiceList *sl,
                                               options,
                                               NULL);
       else
-        sl->proc = GNUNET_OS_start_process_s (sl->pipe_control,
-                                              GNUNET_OS_INHERIT_STD_OUT_AND_ERR,
+        sl->proc = GNUNET_OS_start_process_s (sl->pipe_control
+                                              ? GNUNET_OS_INHERIT_STD_OUT_AND_ERR | GNUNET_OS_USE_PIPE_CONTROL
+                                              : GNUNET_OS_INHERIT_STD_OUT_AND_ERR,
                                               lsocks,
                                               loprefix,
                                               quotedbinary,
@@ -905,16 +908,18 @@ start_process (struct ServiceList *sl,
     else
     {
       if (NULL == sl->config)
-        sl->proc = GNUNET_OS_start_process_s (sl->pipe_control,
-                                              GNUNET_OS_INHERIT_STD_OUT_AND_ERR,
+        sl->proc = GNUNET_OS_start_process_s (sl->pipe_control
+                                              ? GNUNET_OS_INHERIT_STD_OUT_AND_ERR | GNUNET_OS_USE_PIPE_CONTROL
+                                              : GNUNET_OS_INHERIT_STD_OUT_AND_ERR,
                                               lsocks,
                                               loprefix,
                                               quotedbinary,
                                               options,
                                               NULL);
       else
-        sl->proc = GNUNET_OS_start_process_s (sl->pipe_control,
-                                              GNUNET_OS_INHERIT_STD_OUT_AND_ERR,
+        sl->proc = GNUNET_OS_start_process_s (sl->pipe_control
+                                              ? GNUNET_OS_INHERIT_STD_OUT_AND_ERR | GNUNET_OS_USE_PIPE_CONTROL
+                                              : GNUNET_OS_INHERIT_STD_OUT_AND_ERR,
                                               lsocks,
                                               loprefix,
                                               quotedbinary,

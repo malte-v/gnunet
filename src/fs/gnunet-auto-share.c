@@ -478,8 +478,7 @@ work (void *cls)
   argv[argc] = NULL;
   GNUNET_log (GNUNET_ERROR_TYPE_INFO, _ ("Publishing `%s'\n"), wi->filename);
   GNUNET_assert (NULL == publish_proc);
-  publish_proc = GNUNET_OS_start_process_vap (GNUNET_YES,
-                                              0,
+  publish_proc = GNUNET_OS_start_process_vap (GNUNET_OS_USE_PIPE_CONTROL,
                                               NULL,
                                               NULL,
                                               NULL,

@@ -138,7 +138,7 @@ run_task (void *cls)
   }
 
   proc =
-    GNUNET_OS_start_process (GNUNET_NO, GNUNET_OS_INHERIT_STD_ERR,
+    GNUNET_OS_start_process (GNUNET_OS_INHERIT_STD_ERR,
                              hello_pipe_stdin, hello_pipe_stdout, NULL,
                              fn,
                              "test_gnunet_echo_hello", "-", NULL);
@@ -212,7 +212,8 @@ check_kill ()
   }
   fn = GNUNET_OS_get_libexec_binary_path ("gnunet-service-resolver");
   proc =
-    GNUNET_OS_start_process (GNUNET_YES, GNUNET_OS_INHERIT_STD_ERR,
+    GNUNET_OS_start_process (GNUNET_OS_INHERIT_STD_ERR
+                             | GNUNET_OS_USE_PIPE_CONTROL,
                              hello_pipe_stdin,
                              hello_pipe_stdout,
                              NULL,
@@ -256,7 +257,8 @@ check_instant_kill ()
   }
   fn = GNUNET_OS_get_libexec_binary_path ("gnunet-service-resolver");
   proc =
-    GNUNET_OS_start_process (GNUNET_YES, GNUNET_OS_INHERIT_STD_ERR,
+    GNUNET_OS_start_process (GNUNET_OS_INHERIT_STD_ERR
+                             | GNUNET_OS_USE_PIPE_CONTROL,
                              hello_pipe_stdin, hello_pipe_stdout, NULL,
                              fn,
                              "gnunet-service-resolver", "-", NULL);

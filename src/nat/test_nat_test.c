@@ -117,8 +117,8 @@ main (int argc, char *const argv[])
     return 0;
   }
 
-  gns = GNUNET_OS_start_process (GNUNET_YES,
-                                 GNUNET_OS_INHERIT_STD_OUT_AND_ERR,
+  gns = GNUNET_OS_start_process (GNUNET_OS_INHERIT_STD_OUT_AND_ERR
+                                 | GNUNET_OS_USE_PIPE_CONTROL,
                                  NULL, NULL, NULL,
                                  "gnunet-nat-server",
                                  "gnunet-nat-server",

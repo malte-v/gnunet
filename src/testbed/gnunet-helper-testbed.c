@@ -58,12 +58,6 @@
 
 
 /**
- * We need pipe control only on WINDOWS
- */
-#define PIPE_CONTROL GNUNET_NO
-
-
-/**
  * Context for a single write on a chunk of memory
  */
 struct WriteContext
@@ -435,8 +429,7 @@ tokenizer_cb (void *cls, const struct GNUNET_MessageHeader *message)
                                             see putenv(): becomes part of envrionment! */
     evstr = NULL;
   }
-  testbed = GNUNET_OS_start_process (PIPE_CONTROL,
-                                     GNUNET_OS_INHERIT_STD_ERR /*verbose? */,
+  testbed = GNUNET_OS_start_process (GNUNET_OS_INHERIT_STD_ERR /*verbose? */,
                                      NULL,
                                      NULL,
                                      NULL,
