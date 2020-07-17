@@ -1,6 +1,6 @@
 /*
      This file is part of GNUnet.
-     Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2011 GNUnet e.V.
+     Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2011, 2020 GNUnet e.V.
 
      GNUnet is free software: you can redistribute it and/or modify it
      under the terms of the GNU Affero General Public License as published
@@ -555,7 +555,7 @@ GNUNET_OS_start_process_v (int pipe_control,
  */
 struct GNUNET_OS_Process *
 GNUNET_OS_start_process_s (int pipe_control,
-                           unsigned int std_inheritance,
+                           enum GNUNET_OS_InheritStdioFlags std_inheritance,
                            const int *lsocks,
                            const char *filename, ...);
 

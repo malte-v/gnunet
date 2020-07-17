@@ -760,7 +760,7 @@ GNUNET_OS_start_process_v (int pipe_control,
  */
 struct GNUNET_OS_Process *
 GNUNET_OS_start_process_s (int pipe_control,
-                           unsigned int std_inheritance,
+                           enum GNUNET_OS_InheritStdioFlags std_inheritance,
                            const int *lsocks,
                            const char *filename,
                            ...)
