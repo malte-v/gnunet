@@ -31,7 +31,7 @@
                   if (m != NULL) GNUNET_CONTAINER_multihashmap_destroy (m); \
                   if (NULL != \
                       iter) \
-                    GNUNET_CONTAINER_multihashmap_iterator_destroy (iter); \
+                  GNUNET_CONTAINER_multihashmap_iterator_destroy (iter); \
                   return 1; }
 #define CHECK(c) { if (! (c)) ABORT (); }
 

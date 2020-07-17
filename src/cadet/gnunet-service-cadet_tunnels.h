@@ -235,7 +235,7 @@ GCT_send (struct CadetTunnel *t,
           const struct GNUNET_MessageHeader *message,
           GCT_SendContinuation cont,
           void *cont_cls,
-	  struct GNUNET_CADET_ChannelTunnelNumber *ctn);
+          struct GNUNET_CADET_ChannelTunnelNumber *ctn);
 
 
 /**

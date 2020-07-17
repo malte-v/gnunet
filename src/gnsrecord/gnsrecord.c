@@ -106,11 +106,11 @@ init ()
   const struct GNUNET_OS_ProjectData *dpd = GNUNET_OS_project_data_default ();
 
   if (pd != dpd)
-    GNUNET_OS_init(dpd);
+    GNUNET_OS_init (dpd);
   GNUNET_PLUGIN_load_all ("libgnunet_plugin_gnsrecord_", NULL,
                           &add_plugin, NULL);
   if (pd != dpd)
-    GNUNET_OS_init(pd);
+    GNUNET_OS_init (pd);
 }
 
 
@@ -125,7 +125,7 @@ GNSRECORD_fini ()
   const struct GNUNET_OS_ProjectData *dpd = GNUNET_OS_project_data_default ();
 
   if (pd != dpd)
-    GNUNET_OS_init(dpd);
+    GNUNET_OS_init (dpd);
 
   for (unsigned int i = 0; i < num_plugins; i++)
   {
@@ -139,7 +139,7 @@ GNSRECORD_fini ()
   GNUNET_free (gns_plugins);
 
   if (pd != dpd)
-    GNUNET_OS_init(pd);
+    GNUNET_OS_init (pd);
 
   gns_plugins = NULL;
   once = 0;

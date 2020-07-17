@@ -552,7 +552,7 @@ GNUNET_RECLAIM_attestation_get_issuer (const struct
 int
 GNUNET_RECLAIM_attestation_get_expiration (const struct
                                            GNUNET_RECLAIM_Attestation *attest,
-                                           struct GNUNET_TIME_Absolute* exp)
+                                           struct GNUNET_TIME_Absolute*exp)
 {
   unsigned int i;
   struct Plugin *plugin;

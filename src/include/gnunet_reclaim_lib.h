@@ -80,7 +80,7 @@ static const struct GNUNET_RECLAIM_Identifier GNUNET_RECLAIM_ID_ZERO;
                                           memcmp (a, \
                                                   b, \
                                                   sizeof (GNUNET_RECLAIM_ID_ZERO))) \
-  ? \
+                                         ? \
                                          GNUNET_YES : GNUNET_NO)
 
 

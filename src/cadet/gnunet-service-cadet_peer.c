@@ -1552,6 +1552,7 @@ GCP_send_ooo (struct CadetPeer *cp,
                   env);
 }
 
+
 /**
  * Checking if a monotime value is newer than the last monotime value received from a peer. If the time value is newer it will be stored at the peer.
  *
@@ -1573,6 +1574,7 @@ GCP_check_and_update_monotime (struct CadetPeer *peer,
   }
   return GNUNET_NO;
 }
+
 
 /**
  * Checking the signature for a monotime of a GNUNET_CADET_ConnectionCreateMessage.

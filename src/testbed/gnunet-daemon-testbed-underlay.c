@@ -57,8 +57,8 @@
                        "`%s' failed at %s:%d with error: %s\n"), \
                      cmd, __FILE__, __LINE__, sqlite3_errmsg (db));  \
     if (msg != NULL)                                                    \
-      GNUNET_asprintf (msg, _ ("`%s' failed at %s:%u with error: %s"), cmd, \
-                       __FILE__, __LINE__, sqlite3_errmsg (db));     \
+    GNUNET_asprintf (msg, _ ("`%s' failed at %s:%u with error: %s"), cmd, \
+                     __FILE__, __LINE__, sqlite3_errmsg (db));     \
   } while (0)
 
 

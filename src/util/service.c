@@ -2021,8 +2021,8 @@ GNUNET_SERVICE_run_ (int argc,
   sh.disconnect_cb = disconnect_cb;
   sh.cb_cls = cls;
   sh.handlers = (NULL == pd->agpl_url)
-    ? GNUNET_MQ_copy_handlers (handlers)
-    : GNUNET_MQ_copy_handlers2 (handlers, &return_agpl, NULL);
+                ? GNUNET_MQ_copy_handlers (handlers)
+                : GNUNET_MQ_copy_handlers2 (handlers, &return_agpl, NULL);
   sh.service_name = service_name;
   sh.ret = 0;
   /* setup subsystems */

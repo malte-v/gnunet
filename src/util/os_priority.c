@@ -376,7 +376,7 @@ start_process (enum GNUNET_OS_InheritStdioFlags std_inheritance,
     struct GNUNET_DISK_PipeHandle *childpipe;
     int dup_childpipe_read_fd = -1;
 
-    childpipe = GNUNET_DISK_pipe (GNUNET_NO, GNUNET_NO, GNUNET_YES, GNUNET_NO);
+    childpipe = GNUNET_DISK_pipe (GNUNET_DISK_PF_NONE);
     if (NULL == childpipe)
       return NULL;
     childpipe_read =
@@ -1152,7 +1152,7 @@ GNUNET_OS_command_run (GNUNET_OS_LineProcessor proc,
   struct GNUNET_DISK_PipeHandle *opipe;
   va_list ap;
 
-  opipe = GNUNET_DISK_pipe (GNUNET_YES, GNUNET_YES, GNUNET_NO, GNUNET_YES);
+  opipe = GNUNET_DISK_pipe (GNUNET_DISK_PF_BLOCKING_RW);
   if (NULL == opipe)
     return NULL;
   va_start (ap, binary);

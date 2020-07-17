@@ -38,7 +38,7 @@
 /** macro to align idx to 32bit boundary */
 #define ALIGN(idx) do { \
     if (idx % sizeof(void*)) \
-      idx += (sizeof(void*) - idx % sizeof(void*)); /* Align on 32 bit boundary */ \
+    idx += (sizeof(void*) - idx % sizeof(void*));   /* Align on 32 bit boundary */ \
 } while (0)
 
 

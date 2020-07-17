@@ -427,4 +427,5 @@ GNUNET_GNS_lookup (struct GNUNET_GNS_Handle *handle,
                                     proc_cls);
 }
 
+
 /* end of gns_api.c */

@@ -56,11 +56,11 @@ perf_realloc ()
     ptr = GNUNET_malloc (i);
     memset (ptr, 1, i);
     ptr = GNUNET_realloc (ptr, i + 5);
-    for (size_t j=0;j<i;j++)
+    for (size_t j = 0; j<i; j++)
       GNUNET_assert (1 == ptr[j]);
     memset (ptr, 6, i + 5);
     ptr = GNUNET_realloc (ptr, i - 5);
-    for (size_t j=0;j<i-5;j++)
+    for (size_t j = 0; j<i - 5; j++)
       GNUNET_assert (6 == ptr[j]);
     GNUNET_free (ptr);
   }

@@ -1819,12 +1819,12 @@ GNUNET_CONFIGURATION_load_from (struct GNUNET_CONFIGURATION_Handle *cfg,
  * @return a freshly allocated configuration
  */
 struct GNUNET_CONFIGURATION_Handle *
-GNUNET_CONFIGURATION_default(void)
+GNUNET_CONFIGURATION_default (void)
 {
   const struct GNUNET_OS_ProjectData *pd = GNUNET_OS_project_data_get ();
   const struct GNUNET_OS_ProjectData *dpd = GNUNET_OS_project_data_default ();
 
-  GNUNET_OS_init(dpd);
+  GNUNET_OS_init (dpd);
 
   struct GNUNET_CONFIGURATION_Handle *cfg = GNUNET_CONFIGURATION_create ();
   const char *xdg = getenv ("XDG_CONFIG_HOME");
@@ -1835,7 +1835,8 @@ GNUNET_CONFIGURATION_default(void)
   else
     cfgname = GNUNET_strdup (pd->user_config_file);
 
-  if (GNUNET_OK != GNUNET_CONFIGURATION_load (cfg, cfgname)) {
+  if (GNUNET_OK != GNUNET_CONFIGURATION_load (cfg, cfgname))
+  {
     GNUNET_OS_init (pd);
     GNUNET_CONFIGURATION_destroy (cfg);
     GNUNET_free (cfgname);

@@ -195,14 +195,14 @@ struct GNUNET_CURL_Context
 
   /**
    * Passphrase to decrypt @e keyfile, or NULL.
-   */ 
+   */
   char *keypass;
 
 };
 
 
 /**
- * Force use of the provided username and password 
+ * Force use of the provided username and password
  * for client authentication for all operations performed
  * with @a ctx.
  *
@@ -605,8 +605,8 @@ GNUNET_CURL_job_add_with_ct_json (struct GNUNET_CURL_Context *ctx,
   struct curl_slist *job_headers = NULL;
 
   GNUNET_assert (NULL != (job_headers =
-                          curl_slist_append (NULL,
-                                             "Content-Type: application/json")));
+                            curl_slist_append (NULL,
+                                               "Content-Type: application/json")));
   job = GNUNET_CURL_job_add2 (ctx,
                               eh,
                               job_headers,

@@ -826,9 +826,9 @@ handle_connection_create (
 
     // Check for CADET state in case the other side has lost the tunnel (xrs,t3ss)
     if ((GNUNET_YES == msg->has_monotime) &&
-        (GNUNET_YES == GCP_check_and_update_monotime(origin, msg->monotime)) &&
-        ( GNUNET_OK == GCP_check_monotime_sig(origin, msg)) &&
-         (CADET_TUNNEL_KEY_OK == GCT_get_estate(t)))
+        (GNUNET_YES == GCP_check_and_update_monotime (origin, msg->monotime)) &&
+        (GNUNET_OK == GCP_check_monotime_sig (origin, msg)) &&
+        (CADET_TUNNEL_KEY_OK == GCT_get_estate (t)))
     {
       GCT_change_estate (t, CADET_TUNNEL_KEY_UNINITIALIZED);
     }

@@ -47,7 +47,8 @@ extern "C"
  * so that at least one maximum-size message can be send roughly once
  * per minute.
  */
-#define GNUNET_CONSTANTS_DEFAULT_BW_IN_OUT GNUNET_BANDWIDTH_value_init (1024*1024)
+#define GNUNET_CONSTANTS_DEFAULT_BW_IN_OUT GNUNET_BANDWIDTH_value_init (1024 \
+                                                                        * 1024)
 
 /**
  * After how long do we consider a connection to a peer dead

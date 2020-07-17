@@ -671,8 +671,8 @@ handle_update_queue_message (void *cls,
   struct GNUNET_TRANSPORT_TESTING_TransportCommunicatorQueue *tc_queue;
 
   LOG (GNUNET_ERROR_TYPE_DEBUG,
-       "Received queue update message for %u with q_len %"PRIu64"\n",
-       msg->qid, GNUNET_ntohll(msg->q_len));
+       "Received queue update message for %u with q_len %" PRIu64 "\n",
+       msg->qid, GNUNET_ntohll (msg->q_len));
   tc_queue = tc_h->queue_head;
   if (NULL != tc_queue)
   {
@@ -947,6 +947,7 @@ shutdown_nat (void *cls)
   shutdown_process (proc);
 }
 
+
 /**
  * @brief Task run at shutdown to kill the resolver process
  *
@@ -959,6 +960,7 @@ shutdown_resolver (void *cls)
   shutdown_process (proc);
 }
 
+
 static void
 resolver_start (struct
                 GNUNET_TRANSPORT_TESTING_TransportCommunicatorHandle *tc_h)
@@ -967,16 +969,17 @@ resolver_start (struct
 
   LOG (GNUNET_ERROR_TYPE_DEBUG, "resolver_start\n");
   binary = GNUNET_OS_get_libexec_binary_path ("gnunet-service-resolver");
-  tc_h->resolver_proc = GNUNET_OS_start_process (GNUNET_OS_INHERIT_STD_OUT_AND_ERR
-                                                 | GNUNET_OS_USE_PIPE_CONTROL,
-                                                 NULL,
-                                                 NULL,
-                                                 NULL,
-                                                 binary,
-                                                 "gnunet-service-resolver",
-                                                 "-c",
-                                                 tc_h->cfg_filename,
-                                                 NULL);
+  tc_h->resolver_proc = GNUNET_OS_start_process (
+    GNUNET_OS_INHERIT_STD_OUT_AND_ERR
+    | GNUNET_OS_USE_PIPE_CONTROL,
+    NULL,
+    NULL,
+    NULL,
+    binary,
+    "gnunet-service-resolver",
+    "-c",
+    tc_h->cfg_filename,
+    NULL);
   if (NULL == tc_h->resolver_proc)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR, "Failed to start resolver service!");
@@ -986,6 +989,7 @@ resolver_start (struct
   GNUNET_free (binary);
 
 }
+
 
 /**
  * @brief Start NAT

@@ -2158,9 +2158,9 @@ GNUNET_CONTAINER_multihashmap32_iterator_destroy (
     (element)->next = (head);                                           \
     (element)->prev = NULL;                                             \
     if ((tail) == NULL)                                                 \
-      (tail) = element;                                                 \
+    (tail) = element;                                                 \
     else                                                                \
-      (head)->prev = element;                                           \
+    (head)->prev = element;                                           \
     (head) = (element);                                                 \
   } while (0)
 
@@ -2182,9 +2182,9 @@ GNUNET_CONTAINER_multihashmap32_iterator_destroy (
     (element)->prev = (tail);                                           \
     (element)->next = NULL;                                             \
     if ((head) == NULL)                                                 \
-      (head) = element;                                                 \
+    (head) = element;                                                 \
     else                                                                \
-      (tail)->next = element;                                           \
+    (tail)->next = element;                                           \
     (tail) = (element);                                                 \
   } while (0)
 
@@ -2216,9 +2216,9 @@ GNUNET_CONTAINER_multihashmap32_iterator_destroy (
       (other)->next = (element);                                        \
     }                                                                   \
     if (NULL == (element)->next)                                        \
-      (tail) = (element);                                               \
+    (tail) = (element);                                               \
     else                                                                \
-      (element)->next->prev = (element);                                \
+    (element)->next->prev = (element);                                \
   } while (0)
 
 
@@ -2249,9 +2249,9 @@ GNUNET_CONTAINER_multihashmap32_iterator_destroy (
       (other)->prev = (element);                                        \
     }                                                                   \
     if (NULL == (element)->prev)                                        \
-      (head) = (element);                                               \
+    (head) = (element);                                               \
     else                                                                \
-      (element)->prev->next = (element);                                \
+    (element)->prev->next = (element);                                \
   } while (0)
 
 
@@ -2275,13 +2275,13 @@ GNUNET_CONTAINER_multihashmap32_iterator_destroy (
     GNUNET_assert (((element)->prev != NULL) || ((head) == (element))); \
     GNUNET_assert (((element)->next != NULL) || ((tail) == (element))); \
     if ((element)->prev == NULL)                                        \
-      (head) = (element)->next;                                         \
+    (head) = (element)->next;                                         \
     else                                                                \
-      (element)->prev->next = (element)->next;                          \
+    (element)->prev->next = (element)->next;                          \
     if ((element)->next == NULL)                                        \
-      (tail) = (element)->prev;                                         \
+    (tail) = (element)->prev;                                         \
     else                                                                \
-      (element)->next->prev = (element)->prev;                          \
+    (element)->next->prev = (element)->prev;                          \
     (element)->next = NULL;                                             \
     (element)->prev = NULL;                                             \
   } while (0)
@@ -2308,9 +2308,9 @@ GNUNET_CONTAINER_multihashmap32_iterator_destroy (
     (element)->next_ ## mdll = (head);                                           \
     (element)->prev_ ## mdll = NULL;                                             \
     if ((tail) == NULL)                                                        \
-      (tail) = element;                                                        \
+    (tail) = element;                                                        \
     else                                                                       \
-      (head)->prev_ ## mdll = element;                                           \
+    (head)->prev_ ## mdll = element;                                           \
     (head) = (element);                                                        \
   } while (0)
 
@@ -2333,9 +2333,9 @@ GNUNET_CONTAINER_multihashmap32_iterator_destroy (
     (element)->prev_ ## mdll = (tail);                                           \
     (element)->next_ ## mdll = NULL;                                             \
     if ((head) == NULL)                                                        \
-      (head) = element;                                                        \
+    (head) = element;                                                        \
     else                                                                       \
-      (tail)->next_ ## mdll = element;                                           \
+    (tail)->next_ ## mdll = element;                                           \
     (tail) = (element);                                                        \
   } while (0)
 
@@ -2368,9 +2368,9 @@ GNUNET_CONTAINER_multihashmap32_iterator_destroy (
       (other)->next_ ## mdll = (element);                                        \
     }                                                                          \
     if (NULL == (element)->next_ ## mdll)                                        \
-      (tail) = (element);                                                      \
+    (tail) = (element);                                                      \
     else                                                                       \
-      (element)->next_ ## mdll->prev_ ## mdll = (element);                         \
+    (element)->next_ ## mdll->prev_ ## mdll = (element);                         \
   } while (0)
 
 
@@ -2402,9 +2402,9 @@ GNUNET_CONTAINER_multihashmap32_iterator_destroy (
       (other)->prev_ ## mdll = (element);                                        \
     }                                                                          \
     if (NULL == (element)->prev_ ## mdll)                                        \
-      (head) = (element);                                                      \
+    (head) = (element);                                                      \
     else                                                                       \
-      (element)->prev_ ## mdll->next_ ## mdll = (element);                         \
+    (element)->prev_ ## mdll->next_ ## mdll = (element);                         \
   } while (0)
 
 
@@ -2425,13 +2425,13 @@ GNUNET_CONTAINER_multihashmap32_iterator_destroy (
     GNUNET_assert (((element)->prev_ ## mdll != NULL) || ((head) == (element))); \
     GNUNET_assert (((element)->next_ ## mdll != NULL) || ((tail) == (element))); \
     if ((element)->prev_ ## mdll == NULL)                                        \
-      (head) = (element)->next_ ## mdll;                                         \
+    (head) = (element)->next_ ## mdll;                                         \
     else                                                                       \
-      (element)->prev_ ## mdll->next_ ## mdll = (element)->next_ ## mdll;            \
+    (element)->prev_ ## mdll->next_ ## mdll = (element)->next_ ## mdll;            \
     if ((element)->next_ ## mdll == NULL)                                        \
-      (tail) = (element)->prev_ ## mdll;                                         \
+    (tail) = (element)->prev_ ## mdll;                                         \
     else                                                                       \
-      (element)->next_ ## mdll->prev_ ## mdll = (element)->prev_ ## mdll;            \
+    (element)->next_ ## mdll->prev_ ## mdll = (element)->prev_ ## mdll;            \
     (element)->next_ ## mdll = NULL;                                             \
     (element)->prev_ ## mdll = NULL;                                             \
   } while (0)
@@ -2468,8 +2468,8 @@ GNUNET_CONTAINER_multihashmap32_iterator_destroy (
       TYPE *pos;                                                            \
                                                                             \
       for (pos = head; NULL != pos; pos = pos->next)                        \
-        if (0 < comparator (comparator_cls, element, pos))                  \
-          break; /* element < pos */                                        \
+      if (0 < comparator (comparator_cls, element, pos))                  \
+      break;     /* element < pos */                                        \
       if (NULL == pos)     /* => element > tail */                              \
       {                                                                     \
         GNUNET_CONTAINER_DLL_insert_tail (head, tail, element);             \

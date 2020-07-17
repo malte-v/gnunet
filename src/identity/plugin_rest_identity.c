@@ -1065,7 +1065,8 @@ ego_create (struct GNUNET_REST_RequestHandle *con_handle,
     GNUNET_STRINGS_string_to_data (privkey,
                                    strlen (privkey),
                                    &pk,
-                                   sizeof(struct GNUNET_CRYPTO_EcdsaPrivateKey));
+                                   sizeof(struct
+                                          GNUNET_CRYPTO_EcdsaPrivateKey));
     pk_ptr = &pk;
   }
   else

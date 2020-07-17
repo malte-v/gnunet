@@ -468,9 +468,9 @@ GNUNET_REVOCATION_check_pow (const struct GNUNET_REVOCATION_PowP *pow,
   /**
    * First, check if PoW set is strictly monotically increasing
    */
-  for (unsigned int i = 0; i < POW_COUNT-1; i++)
+  for (unsigned int i = 0; i < POW_COUNT - 1; i++)
   {
-    if (GNUNET_ntohll (pow->pow[i]) >= GNUNET_ntohll (pow->pow[i+1]))
+    if (GNUNET_ntohll (pow->pow[i]) >= GNUNET_ntohll (pow->pow[i + 1]))
       return GNUNET_NO;
   }
   GNUNET_memcpy (&buf[sizeof(uint64_t)],
@@ -592,6 +592,7 @@ GNUNET_REVOCATION_pow_start (struct GNUNET_REVOCATION_PowP *pow,
   return pc;
 }
 
+
 /**
  * Comparison function for quicksort
  *
@@ -602,8 +603,9 @@ GNUNET_REVOCATION_pow_start (struct GNUNET_REVOCATION_PowP *pow,
 static int
 cmp_pow_value (const void *a, const void *b)
 {
-  return ( GNUNET_ntohll(*(uint64_t*)a) - GNUNET_ntohll(*(uint64_t*)b));
+  return (GNUNET_ntohll (*(uint64_t*) a) - GNUNET_ntohll (*(uint64_t*) b));
 }
+
 
 /**
  * Calculate a key revocation valid for broadcasting for a number

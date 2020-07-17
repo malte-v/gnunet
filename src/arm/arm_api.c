@@ -972,10 +972,7 @@ GNUNET_ARM_request_service_start (struct GNUNET_ARM_Handle *h,
      the above check should catch 99.99% of the cases where ARM
      is already running. */LOG (GNUNET_ERROR_TYPE_DEBUG,
        "Starting ARM service\n");
-  if (NULL == (sig = GNUNET_DISK_pipe (GNUNET_NO,
-                                       GNUNET_NO,
-                                       GNUNET_NO,
-                                       GNUNET_YES)))
+  if (NULL == (sig = GNUNET_DISK_pipe (GNUNET_DISK_PF_NONE)))
   {
     GNUNET_log_strerror (GNUNET_ERROR_TYPE_WARNING,
                          "pipe");

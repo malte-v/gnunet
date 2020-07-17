@@ -391,33 +391,54 @@ GNUNET_DISK_file_handle_size (struct GNUNET_DISK_FileHandle *fh,
 
 
 /**
+ * Flags for #GNUNET_DISK_pipe().
+ */
+enum GNUNET_DISK_PipeFlags
+{
+
+  /**
+   * No special options, use non-blocking read/write operations.
+   */
+  GNUNET_DISK_PF_NONE,
+
+  /**
+   * Configure read end to block when reading if set.
+   */
+  GNUNET_DISK_PF_BLOCKING_READ = 1,
+  /**
+   * Configure write end to block when writing if set.
+   */
+  GNUNET_DISK_PF_BLOCKING_WRITE = 2,
+
+  /**
+   * Configure both pipe ends for blocking operations if set.
+   */
+  GNUNET_DISK_PF_BLOCKING_RW = GNUNET_DISK_PF_BLOCKING_READ
+                               | GNUNET_DISK_PF_BLOCKING_WRITE
+
+};
+
+
+/**
  * Creates an interprocess channel
  *
- * @param blocking_read creates an asynchronous pipe for reading if set to #GNUNET_NO
- * @param blocking_write creates an asynchronous pipe for writing if set to #GNUNET_NO
- * @param inherit_read 1 to make read handle inheritable, 0 otherwise (NT only)
- * @param inherit_write 1 to make write handle inheritable, 0 otherwise (NT only)
+ * @param pf how to configure the pipe
  * @return handle to the new pipe, NULL on error
  */
 struct GNUNET_DISK_PipeHandle *
-GNUNET_DISK_pipe (int blocking_read,
-                  int blocking_write,
-                  int inherit_read,
-                  int inherit_write);
+GNUNET_DISK_pipe (enum GNUNET_DISK_PipeFlags pf);
 
 
 /**
  * Creates a pipe object from a couple of file descriptors.
  * Useful for wrapping existing pipe FDs.
  *
- * @param blocking_read creates an asynchronous pipe for reading if set to #GNUNET_NO
- * @param blocking_write creates an asynchronous pipe for writing if set to #GNUNET_NO
+ * @param pf how to configure the pipe
  * @param fd an array of two fd values. One of them may be -1 for read-only or write-only pipes
  * @return handle to the new pipe, NULL on error
  */
 struct GNUNET_DISK_PipeHandle *
-GNUNET_DISK_pipe_from_fd (int blocking_read,
-                          int blocking_write,
+GNUNET_DISK_pipe_from_fd (enum GNUNET_DISK_PipeFlags pf,
                           int fd[2]);
 
 
@@ -478,6 +499,7 @@ GNUNET_DISK_file_close (struct GNUNET_DISK_FileHandle *h);
 const struct GNUNET_DISK_FileHandle *
 GNUNET_DISK_pipe_handle (const struct GNUNET_DISK_PipeHandle *p,
                          enum GNUNET_DISK_PipeEnd n);
+
 
 /**
  * Update POSIX permissions mask of a file on disk.  If both argumets

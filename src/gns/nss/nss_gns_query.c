@@ -150,7 +150,7 @@ query_gns:
     if (1 == retry)
       return -2; /* no go -> service unavailable */
     retry = 1;
-    system("gnunet-arm -s");
+    system ("gnunet-arm -s");
     goto query_gns; /* Try again */
   }
   if (3 == WEXITSTATUS (ret))

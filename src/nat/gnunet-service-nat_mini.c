@@ -192,7 +192,7 @@ GNUNET_NAT_mini_get_external_ipv4_ (GNUNET_NAT_IPCallback cb, void *cb_cls)
   }
   LOG (GNUNET_ERROR_TYPE_DEBUG,
        "Running `external-ip' to determine our external IP\n");
-  eh->opipe = GNUNET_DISK_pipe (GNUNET_YES, GNUNET_YES, GNUNET_NO, GNUNET_YES);
+  eh->opipe = GNUNET_DISK_pipe (GNUNET_DISK_PF_BLOCKING_RW);
   if (NULL == eh->opipe)
   {
     eh->ret = GNUNET_NAT_ERROR_IPC_FAILURE;

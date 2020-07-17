@@ -298,7 +298,7 @@ static enum Stage result;
     {                                         \
       GNUNET_break (0);                       \
       if (NULL != abort_task)                 \
-        GNUNET_SCHEDULER_cancel (abort_task); \
+      GNUNET_SCHEDULER_cancel (abort_task); \
       abort_task = NULL;                      \
       GNUNET_SCHEDULER_shutdown ();           \
       return;                                 \

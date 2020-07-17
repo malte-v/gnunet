@@ -224,8 +224,8 @@ latency_timeout (void *cls)
   }
 
   LOG (GNUNET_ERROR_TYPE_ERROR,
-              "Latency too high. Test failed. (Phase: %d. Sent: %lu, Received: %lu)\n",
-              phase, num_sent, num_received);
+       "Latency too high. Test failed. (Phase: %d. Sent: %lu, Received: %lu)\n",
+       phase, num_sent, num_received);
   ret = 2;
   GNUNET_SCHEDULER_shutdown ();
 }
@@ -403,7 +403,7 @@ incoming_message_cb (void *cls,
   if (0 != strcmp ((char*) cls, cfg_peers_name[NUM_PEERS - 1]))
   {
     LOG (GNUNET_ERROR_TYPE_WARNING,
-                "unexpected receiver...\n");
+         "unexpected receiver...\n");
     return;
   }
   /* Reset timeout */
@@ -422,18 +422,18 @@ incoming_message_cb (void *cls,
       if (num_received == BURST_PACKETS)
       {
         LOG (GNUNET_ERROR_TYPE_MESSAGE,
-                    "Short size packet test done.\n");
+             "Short size packet test done.\n");
         char *goodput = GNUNET_STRINGS_byte_size_fancy ((SHORT_MESSAGE_SIZE
                                                          * num_received * 1000
                                                          * 1000)
                                                         / duration.rel_value_us);
         LOG (GNUNET_ERROR_TYPE_MESSAGE,
-                    "%lu/%lu packets in %llu us (%s/s) -- avg latency: %llu us\n",
-                    (unsigned long) num_received,
-                    (unsigned long) num_sent,
-                    (unsigned long long) duration.rel_value_us,
-                    goodput,
-                    (unsigned long long) avg_latency);
+             "%lu/%lu packets in %llu us (%s/s) -- avg latency: %llu us\n",
+             (unsigned long) num_received,
+             (unsigned long) num_sent,
+             (unsigned long long) duration.rel_value_us,
+             goodput,
+             (unsigned long long) avg_latency);
         GNUNET_free (goodput);
         start_long = GNUNET_TIME_absolute_get ();
         phase = TP_BURST_LONG;
@@ -449,7 +449,7 @@ incoming_message_cb (void *cls,
       if (long_message_size != payload_len)
       {
         LOG (GNUNET_ERROR_TYPE_WARNING,
-                    "Ignoring packet with wrong length\n");
+             "Ignoring packet with wrong length\n");
         return; // Ignore
       }
       num_received++;
@@ -458,19 +458,19 @@ incoming_message_cb (void *cls,
       if (num_received == BURST_PACKETS)
       {
         LOG (GNUNET_ERROR_TYPE_MESSAGE,
-                    "Long size packet test done.\n");
+             "Long size packet test done.\n");
         char *goodput = GNUNET_STRINGS_byte_size_fancy ((long_message_size
                                                          * num_received * 1000
                                                          * 1000)
                                                         / duration.rel_value_us);
 
         LOG (GNUNET_ERROR_TYPE_MESSAGE,
-                    "%lu/%lu packets in %llu us (%s/s) -- avg latency: %llu us\n",
-                    (unsigned long) num_received,
-                    (unsigned long) num_sent,
-                    (unsigned long long) duration.rel_value_us,
-                    goodput,
-                    (unsigned long long) avg_latency);
+             "%lu/%lu packets in %llu us (%s/s) -- avg latency: %llu us\n",
+             (unsigned long) num_received,
+             (unsigned long) num_sent,
+             (unsigned long long) duration.rel_value_us,
+             goodput,
+             (unsigned long long) avg_latency);
         GNUNET_free (goodput);
         ack = 0;
         phase = TP_SIZE_CHECK;
@@ -493,12 +493,12 @@ incoming_message_cb (void *cls,
       if (num_received >= (max_size) / 10)
       {
         LOG (GNUNET_ERROR_TYPE_MESSAGE,
-                    "Size packet test done.\n");
+             "Size packet test done.\n");
         LOG (GNUNET_ERROR_TYPE_MESSAGE,
-                    "%lu/%lu packets -- avg latency: %llu us\n",
-                    (unsigned long) num_received,
-                    (unsigned long) num_sent,
-                    (unsigned long long) avg_latency);
+             "%lu/%lu packets -- avg latency: %llu us\n",
+             (unsigned long) num_received,
+             (unsigned long) num_sent,
+             (unsigned long long) avg_latency);
         num_received = 0;
         num_sent = 0;
         avg_latency = 0;
@@ -511,7 +511,7 @@ incoming_message_cb (void *cls,
           break;
         }
         LOG (GNUNET_ERROR_TYPE_DEBUG,
-                    "Finished\n");
+             "Finished\n");
         GNUNET_SCHEDULER_shutdown ();
       }
       break;
@@ -640,9 +640,9 @@ main (int argc,
                                         &peer_id[i].public_key);
     GNUNET_free (private_key);
     LOG (GNUNET_ERROR_TYPE_INFO,
-                "Identity of peer %u is %s\n",
-                i,
-                GNUNET_i2s_full (&peer_id[i]));
+         "Identity of peer %u is %s\n",
+         i,
+         GNUNET_i2s_full (&peer_id[i]));
   }
   LOG (GNUNET_ERROR_TYPE_MESSAGE, "Starting test...\n");
   GNUNET_SCHEDULER_run (&run,

@@ -260,7 +260,7 @@ read_from_buffer (struct GNUNET_BIO_ReadHandle *h,
                   char *result,
                   size_t len)
 {
-  if (h->size < len || h->size - h->pos < len)
+  if ((h->size < len) || (h->size - h->pos < len))
   {
     GNUNET_asprintf (&h->emsg,
                      _ ("Error while reading `%s' from buffer: %s"),
@@ -431,6 +431,7 @@ GNUNET_BIO_read_meta_data (struct GNUNET_BIO_ReadHandle *h,
   return GNUNET_OK;
 }
 
+
 /**
  * Read a float.
  *
@@ -439,9 +440,9 @@ GNUNET_BIO_read_meta_data (struct GNUNET_BIO_ReadHandle *h,
  * @param f address of float to read
  */
 int
-GNUNET_BIO_read_float(struct GNUNET_BIO_ReadHandle *h,
-                      const char *what,
-                      float *f)
+GNUNET_BIO_read_float (struct GNUNET_BIO_ReadHandle *h,
+                       const char *what,
+                       float *f)
 {
   int32_t *i = (int32_t *) f;
   return GNUNET_BIO_read_int32 (h, what, i);
@@ -456,9 +457,9 @@ GNUNET_BIO_read_float(struct GNUNET_BIO_ReadHandle *h,
  * @param f address of double to read
  */
 int
-GNUNET_BIO_read_double(struct GNUNET_BIO_ReadHandle *h,
-                       const char *what,
-                       double *f)
+GNUNET_BIO_read_double (struct GNUNET_BIO_ReadHandle *h,
+                        const char *what,
+                        double *f)
 {
   int64_t *i = (int64_t *) f;
   return GNUNET_BIO_read_int64 (h, what, i);
@@ -692,7 +693,7 @@ GNUNET_BIO_get_buffer_contents (struct GNUNET_BIO_WriteHandle *h,
 {
   if (IO_BUFFER != h->type)
     return GNUNET_SYSERR;
-  if (NULL == contents || NULL == size)
+  if ((NULL == contents) || (NULL == size))
     return GNUNET_SYSERR;
   int ret = (NULL != h->emsg) ? GNUNET_SYSERR : GNUNET_OK;
   if (NULL != emsg)
@@ -897,9 +898,9 @@ GNUNET_BIO_write_meta_data (struct GNUNET_BIO_WriteHandle *h,
  * @param f float to write
  */
 int
-GNUNET_BIO_write_float(struct GNUNET_BIO_WriteHandle *h,
-                       const char *what,
-                       float f)
+GNUNET_BIO_write_float (struct GNUNET_BIO_WriteHandle *h,
+                        const char *what,
+                        float f)
 {
   int32_t i = f;
   return GNUNET_BIO_write_int32 (h, what, i);
@@ -914,9 +915,9 @@ GNUNET_BIO_write_float(struct GNUNET_BIO_WriteHandle *h,
  * @param f double to write
  */
 int
-GNUNET_BIO_write_double(struct GNUNET_BIO_WriteHandle *h,
-                        const char *what,
-                        double f)
+GNUNET_BIO_write_double (struct GNUNET_BIO_WriteHandle *h,
+                         const char *what,
+                         double f)
 {
   int64_t i = f;
   return GNUNET_BIO_write_int64 (h, what, i);
@@ -1196,7 +1197,7 @@ GNUNET_BIO_read_spec_int64 (const char *what,
  * @param f address of float to read
  */
 struct GNUNET_BIO_ReadSpec
-GNUNET_BIO_read_spec_float(const char *what, float *f)
+GNUNET_BIO_read_spec_float (const char *what, float *f)
 {
   struct GNUNET_BIO_ReadSpec rs = {
     .rh = &read_spec_handler_int32,
@@ -1216,7 +1217,7 @@ GNUNET_BIO_read_spec_float(const char *what, float *f)
  * @param f address of double to read
  */
 struct GNUNET_BIO_ReadSpec
-GNUNET_BIO_read_spec_double(const char *what, double *f)
+GNUNET_BIO_read_spec_double (const char *what, double *f)
 {
   struct GNUNET_BIO_ReadSpec rs = {
     .rh = &read_spec_handler_int64,
@@ -1243,7 +1244,7 @@ GNUNET_BIO_read_spec_commit (struct GNUNET_BIO_ReadHandle *h,
 {
   int ret = GNUNET_OK;
 
-  for (size_t i=0; NULL!=rs[i].rh; ++i)
+  for (size_t i = 0; NULL!=rs[i].rh; ++i)
   {
     ret = rs[i].rh (rs[i].cls, h, rs[i].what, rs[i].target, rs[i].size);
     if (GNUNET_OK != ret)
@@ -1490,7 +1491,7 @@ GNUNET_BIO_write_spec_int64 (const char *what,
  * @return the write spec
  */
 struct GNUNET_BIO_WriteSpec
-GNUNET_BIO_write_spec_float(const char *what, float *f)
+GNUNET_BIO_write_spec_float (const char *what, float *f)
 {
   struct GNUNET_BIO_WriteSpec ws = {
     .wh = &write_spec_handler_int32,
@@ -1512,7 +1513,7 @@ GNUNET_BIO_write_spec_float(const char *what, float *f)
  * @return the write spec
  */
 struct GNUNET_BIO_WriteSpec
-GNUNET_BIO_write_spec_double(const char *what, double *f)
+GNUNET_BIO_write_spec_double (const char *what, double *f)
 {
   struct GNUNET_BIO_WriteSpec ws = {
     .wh = &write_spec_handler_int64,
@@ -1540,7 +1541,7 @@ GNUNET_BIO_write_spec_commit (struct GNUNET_BIO_WriteHandle *h,
 {
   int ret = GNUNET_OK;
 
-  for (size_t i=0; NULL!=ws[i].wh; ++i)
+  for (size_t i = 0; NULL!=ws[i].wh; ++i)
   {
     ret = ws[i].wh (ws[i].cls, h, ws[i].what, ws[i].source, ws[i].source_size);
     if (GNUNET_OK != ret)

@@ -56,4 +56,3 @@ GNUNET_RECLAIM_JSON_spec_ticket (struct GNUNET_RECLAIM_Ticket **ticket);
 struct GNUNET_JSON_Specification
 GNUNET_RECLAIM_JSON_spec_claim_attest (struct
                                        GNUNET_RECLAIM_Attestation **attr);
-

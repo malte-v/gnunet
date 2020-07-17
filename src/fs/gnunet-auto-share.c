@@ -201,9 +201,9 @@ load_state ()
   while (n-- > 0)
   {
     struct GNUNET_BIO_ReadSpec rs[] = {
-      GNUNET_BIO_read_spec_string("filename", &fn, 1024),
-      GNUNET_BIO_read_spec_object("id", &id, sizeof(struct GNUNET_HashCode)),
-      GNUNET_BIO_read_spec_end(),
+      GNUNET_BIO_read_spec_string ("filename", &fn, 1024),
+      GNUNET_BIO_read_spec_object ("id", &id, sizeof(struct GNUNET_HashCode)),
+      GNUNET_BIO_read_spec_end (),
     };
     if (GNUNET_OK != GNUNET_BIO_read_spec_commit (rh, rs))
       goto error;
@@ -258,7 +258,8 @@ write_item (void *cls, const struct GNUNET_HashCode *key, void *value)
   struct GNUNET_BIO_WriteSpec ws[] = {
     GNUNET_BIO_write_spec_string ("auto-share-write-item-filename",
                                   wi->filename),
-    GNUNET_BIO_write_spec_object ("id", &wi->id, sizeof(struct GNUNET_HashCode)),
+    GNUNET_BIO_write_spec_object ("id", &wi->id, sizeof(struct
+                                                        GNUNET_HashCode)),
     GNUNET_BIO_write_spec_end (),
   };
   if (GNUNET_OK != GNUNET_BIO_write_spec_commit (wh, ws))
@@ -747,7 +748,7 @@ main (int argc, char *const *argv)
 
   if (GNUNET_OK != GNUNET_STRINGS_get_utf8_args (argc, argv, &argc, &argv))
     return 2;
-  sigpipe = GNUNET_DISK_pipe (GNUNET_NO, GNUNET_NO, GNUNET_NO, GNUNET_NO);
+  sigpipe = GNUNET_DISK_pipe (GNUNET_DISK_PF_NONE);
   GNUNET_assert (NULL != sigpipe);
   shc_chld =
     GNUNET_SIGNAL_handler_install (GNUNET_SIGCHLD, &sighandler_child_death);

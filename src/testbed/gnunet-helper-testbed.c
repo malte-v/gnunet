@@ -587,7 +587,7 @@ main (int argc, char **argv)
 
   status = GNUNET_OK;
   if (NULL ==
-      (sigpipe = GNUNET_DISK_pipe (GNUNET_NO, GNUNET_NO, GNUNET_NO, GNUNET_NO)))
+      (sigpipe = GNUNET_DISK_pipe (GNUNET_DISK_PF_NONE)))
   {
     GNUNET_break (0);
     return 1;

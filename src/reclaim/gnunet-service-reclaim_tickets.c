@@ -1292,7 +1292,7 @@ issue_ticket (struct TicketIssueHandle *ih)
   for (le = ih->attrs->list_head; NULL != le; le = le->next)
     attrs_count++;
 
-  //Worst case we have one attestation per attribute
+  // Worst case we have one attestation per attribute
   attrs_record =
     GNUNET_malloc (2 * attrs_count * sizeof(struct GNUNET_GNSRECORD_Data));
   i = 0;

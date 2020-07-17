@@ -85,11 +85,11 @@ struct GNUNET_CADET_ConnectionCreateMessage
   uint32_t options GNUNET_PACKED;
 
   /**
-   * This flag indicates the peer sending the connection create 
+   * This flag indicates the peer sending the connection create
    * meassage likes to trigger a KX handshake.
    */
   int has_monotime;
-  
+
   /**
    *  This monotonic time is set, if a peer likes to trigger a KX, but is not
    *  the peer that should start the KX. (xrs,t3ss)

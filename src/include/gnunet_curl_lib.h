@@ -262,7 +262,7 @@ GNUNET_CURL_job_add_with_ct_json (struct GNUNET_CURL_Context *ctx,
 
 
 /**
- * Force use of the provided username and password 
+ * Force use of the provided username and password
  * for client authentication for all operations performed
  * with @a ctx.
  *

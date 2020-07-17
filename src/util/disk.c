@@ -1451,33 +1451,23 @@ GNUNET_DISK_file_sync (const struct GNUNET_DISK_FileHandle *h)
 /**
  * Creates an interprocess channel
  *
- * @param blocking_read creates an asynchronous pipe for reading if set to GNUNET_NO
- * @param blocking_write creates an asynchronous pipe for writing if set to GNUNET_NO
- * @param inherit_read inherit the parent processes stdin (only for windows)
- * @param inherit_write inherit the parent processes stdout (only for windows)
+ * @param pf how to configure the pipe
  * @return handle to the new pipe, NULL on error
  */
 struct GNUNET_DISK_PipeHandle *
-GNUNET_DISK_pipe (int blocking_read,
-                  int blocking_write,
-                  int inherit_read,
-                  int inherit_write)
+GNUNET_DISK_pipe (enum GNUNET_DISK_PipeFlags pf)
 {
   int fd[2];
-  int ret;
-  int eno;
 
-  (void) inherit_read;
-  (void) inherit_write;
-  ret = pipe (fd);
-  if (ret == -1)
+  if (-1 == pipe (fd))
   {
-    eno = errno;
+    int eno = errno;
+
     LOG_STRERROR (GNUNET_ERROR_TYPE_ERROR, "pipe");
     errno = eno;
     return NULL;
   }
-  return GNUNET_DISK_pipe_from_fd (blocking_read, blocking_write, fd);
+  return GNUNET_DISK_pipe_from_fd (pf, fd);
 }
 
 
@@ -1485,29 +1475,26 @@ GNUNET_DISK_pipe (int blocking_read,
  * Creates a pipe object from a couple of file descriptors.
  * Useful for wrapping existing pipe FDs.
  *
- * @param blocking_read creates an asynchronous pipe for reading if set to GNUNET_NO
- * @param blocking_write creates an asynchronous pipe for writing if set to GNUNET_NO
+ * @param pf how to configure the pipe
  * @param fd an array of two fd values. One of them may be -1 for read-only or write-only pipes
  *
  * @return handle to the new pipe, NULL on error
  */
 struct GNUNET_DISK_PipeHandle *
-GNUNET_DISK_pipe_from_fd (int blocking_read, int blocking_write, int fd[2])
+GNUNET_DISK_pipe_from_fd (enum GNUNET_DISK_PipeFlags pf,
+                          int fd[2])
 {
   struct GNUNET_DISK_PipeHandle *p;
-
-  p = GNUNET_new (struct GNUNET_DISK_PipeHandle);
-
-  int ret;
+  int ret = 0;
   int flags;
   int eno = 0; /* make gcc happy */
 
-  ret = 0;
+  p = GNUNET_new (struct GNUNET_DISK_PipeHandle);
   if (fd[0] >= 0)
   {
     p->fd[0] = GNUNET_new (struct GNUNET_DISK_FileHandle);
     p->fd[0]->fd = fd[0];
-    if (! blocking_read)
+    if (0 == (GNUNET_DISK_PF_BLOCKING_READ & pf))
     {
       flags = fcntl (fd[0], F_GETFL);
       flags |= O_NONBLOCK;
@@ -1530,7 +1517,7 @@ GNUNET_DISK_pipe_from_fd (int blocking_read, int blocking_write, int fd[2])
   {
     p->fd[1] = GNUNET_new (struct GNUNET_DISK_FileHandle);
     p->fd[1]->fd = fd[1];
-    if (! blocking_write)
+    if (0 == (GNUNET_DISK_PF_BLOCKING_WRITE & pf))
     {
       flags = fcntl (fd[1], F_GETFL);
       flags |= O_NONBLOCK;
@@ -1562,7 +1549,6 @@ GNUNET_DISK_pipe_from_fd (int blocking_read, int blocking_write, int fd[2])
     errno = eno;
     return NULL;
   }
-
   return p;
 }
 
@@ -1572,7 +1558,7 @@ GNUNET_DISK_pipe_from_fd (int blocking_read, int blocking_write, int fd[2])
  *
  * @param p pipe to close
  * @param end which end of the pipe to close
- * @return GNUNET_OK on success, GNUNET_SYSERR otherwise
+ * @return #GNUNET_OK on success, #GNUNET_SYSERR otherwise
  */
 int
 GNUNET_DISK_pipe_close_end (struct GNUNET_DISK_PipeHandle *p,
@@ -1644,7 +1630,7 @@ GNUNET_DISK_pipe_detach_end (struct GNUNET_DISK_PipeHandle *p,
  * Closes an interprocess channel
  *
  * @param p pipe to close
- * @return GNUNET_OK on success, GNUNET_SYSERR otherwise
+ * @return #GNUNET_OK on success, #GNUNET_SYSERR otherwise
  */
 int
 GNUNET_DISK_pipe_close (struct GNUNET_DISK_PipeHandle *p)

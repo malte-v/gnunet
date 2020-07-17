@@ -513,8 +513,8 @@ get_existing_record (void *cls,
                      const struct GNUNET_GNSRECORD_Data *rd)
 {
   struct GNUNET_GNSRECORD_Data *rde;
-  struct GNUNET_GNSRECORD_Data* rdn =
-    GNUNET_malloc(sizeof(*rdn)*(rd_count + 1));
+  struct GNUNET_GNSRECORD_Data*rdn =
+    GNUNET_malloc (sizeof(*rdn) * (rd_count + 1));
 
   memset (rdn, 0, sizeof (struct GNUNET_GNSRECORD_Data));
   GNUNET_memcpy (&rdn[1], rd,
@@ -541,7 +541,7 @@ get_existing_record (void *cls,
                                            rde,
                                            &add_continuation,
                                            &add_qe);
-  GNUNET_free(rdn);
+  GNUNET_free (rdn);
   return;
 }
 
@@ -604,13 +604,18 @@ store_cb (void *cls, struct GNUNET_IDENTITY_Ego *ego)
     if (GNUNET_OK !=
         GNUNET_GNSRECORD_string_to_value (type, subject, &data, &data_size))
     {
-      if(typestring == NULL) {
-        fputs("No value for unknown record type\n", stderr);
-      } else if(subject == NULL) {
-        fprintf(stderr,
-                "No value for record type`%s'\n",
-                typestring);
-      } else {
+      if (typestring == NULL)
+      {
+        fputs ("No value for unknown record type\n", stderr);
+      }
+      else if (subject == NULL)
+      {
+        fprintf (stderr,
+                 "No value for record type`%s'\n",
+                 typestring);
+      }
+      else
+      {
         fprintf (stderr,
                  "Value `%s' invalid for record type `%s'\n",
                  subject,
@@ -927,8 +932,8 @@ run (void *cls,
     int i;
     while (NULL != (tok = strtok (NULL, ",")))
       count++;
-    struct GNUNET_ABD_Delegate* delegates =
-      GNUNET_malloc(sizeof(*delegates)*count);
+    struct GNUNET_ABD_Delegate*delegates =
+      GNUNET_malloc (sizeof(*delegates) * count);
     struct GNUNET_ABD_Delegate *dele;
     GNUNET_free (tmp);
     tmp = GNUNET_strdup (subject_delegate);
@@ -961,7 +966,7 @@ run (void *cls,
       delegates[i].issuer_attribute = NULL;
     }
     GNUNET_free (tmp);
-    GNUNET_free(delegates);
+    GNUNET_free (delegates);
   }
   else
   {

@@ -536,6 +536,7 @@ namestore_list_iteration (void *cls,
   GNUNET_NAMESTORE_zone_iterator_next (handle->list_it, 1);
 }
 
+
 /**
  * Handle lookup error
  *
@@ -553,10 +554,10 @@ ns_lookup_error_cb (void *cls)
 
 static void
 ns_get_lookup_cb (void *cls,
-              const struct GNUNET_CRYPTO_EcdsaPrivateKey *zone,
-              const char *label,
-              unsigned int rd_len,
-              const struct GNUNET_GNSRECORD_Data *rd)
+                  const struct GNUNET_CRYPTO_EcdsaPrivateKey *zone,
+                  const char *label,
+                  unsigned int rd_len,
+                  const struct GNUNET_GNSRECORD_Data *rd)
 {
   struct RequestHandle *handle = cls;
   struct GNUNET_GNSRECORD_Data rd_filtered[rd_len];
@@ -586,8 +587,6 @@ ns_get_lookup_cb (void *cls,
   }
   GNUNET_SCHEDULER_add_now (&namestore_list_finished, handle);
 }
-
-
 
 
 /**
@@ -666,12 +665,12 @@ namestore_get (struct GNUNET_REST_RequestHandle *con_handle,
   }
   handle->record_name = GNUNET_strdup (labelname + 1);
   handle->ns_qe = GNUNET_NAMESTORE_records_lookup (handle->ns_handle,
-                                                    handle->zone_pkey,
-                                                    handle->record_name,
-                                                    &ns_lookup_error_cb,
-                                                    handle,
-                                                    &ns_get_lookup_cb,
-                                                    handle);
+                                                   handle->zone_pkey,
+                                                   handle->record_name,
+                                                   &ns_lookup_error_cb,
+                                                   handle,
+                                                   &ns_get_lookup_cb,
+                                                   handle);
   if (NULL == handle->ns_qe)
   {
     handle->emsg = GNUNET_strdup (GNUNET_REST_NAMESTORE_FAILED);
@@ -679,7 +678,6 @@ namestore_get (struct GNUNET_REST_RequestHandle *con_handle,
     return;
   }
 }
-
 
 
 static void
@@ -702,12 +700,12 @@ ns_lookup_cb (void *cls,
   for (j = 0; j < handle->rd_count; j++)
     rd_new[i + j] = handle->rd[j];
   handle->ns_qe = GNUNET_NAMESTORE_records_store (handle->ns_handle,
-                                                   handle->zone_pkey,
-                                                   handle->record_name,
-                                                   i + j,
-                                                   rd_new,
-                                                   &create_finished,
-                                                   handle);
+                                                  handle->zone_pkey,
+                                                  handle->record_name,
+                                                  i + j,
+                                                  rd_new,
+                                                  &create_finished,
+                                                  handle);
   if (NULL == handle->ns_qe)
   {
     handle->emsg = GNUNET_strdup (GNUNET_REST_NAMESTORE_FAILED);
@@ -794,12 +792,12 @@ namestore_add_or_update (struct GNUNET_REST_RequestHandle *con_handle,
   }
   handle->zone_pkey = GNUNET_IDENTITY_ego_get_private_key (ego_entry->ego);
   handle->ns_qe = GNUNET_NAMESTORE_records_lookup (handle->ns_handle,
-                                                    handle->zone_pkey,
-                                                    handle->record_name,
-                                                    &ns_lookup_error_cb,
-                                                    handle,
-                                                    &ns_lookup_cb,
-                                                    handle);
+                                                   handle->zone_pkey,
+                                                   handle->record_name,
+                                                   &ns_lookup_error_cb,
+                                                   handle,
+                                                   &ns_lookup_cb,
+                                                   handle);
   if (NULL == handle->ns_qe)
   {
     handle->emsg = GNUNET_strdup (GNUNET_REST_NAMESTORE_FAILED);
@@ -898,9 +896,9 @@ namestore_delete (struct GNUNET_REST_RequestHandle *con_handle,
                                                   handle->zone_pkey,
                                                   handle->record_name,
                                                   0,
-                                                   NULL,
-                                                   &del_finished,
-                                                   handle);
+                                                  NULL,
+                                                  &del_finished,
+                                                  handle);
   if (NULL == handle->ns_qe)
   {
     handle->emsg = GNUNET_strdup (GNUNET_REST_NAMESTORE_FAILED);

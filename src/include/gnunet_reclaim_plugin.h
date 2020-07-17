@@ -172,7 +172,9 @@ typedef const char *(*GNUNET_RECLAIM_AttestationNumberToTypenameFunction) (
  * @param attest the attestation object
  * @return an attribute list
  */
-typedef struct GNUNET_RECLAIM_AttributeList *(*GNUNET_RECLAIM_AttestationGetAttributesFunction) (
+typedef struct
+  GNUNET_RECLAIM_AttributeList *(*
+GNUNET_RECLAIM_AttestationGetAttributesFunction) (
   void *cls,
   const struct GNUNET_RECLAIM_Attestation *attest);
 
@@ -199,7 +201,6 @@ typedef int (*GNUNET_RECLAIM_AttestationGetExpirationFunction) (
   void *cls,
   const struct GNUNET_RECLAIM_Attestation *attest,
   struct GNUNET_TIME_Absolute *expiration);
-
 
 
 /**
@@ -281,7 +282,6 @@ struct GNUNET_RECLAIM_AttestationPluginFunctions
    */
   GNUNET_RECLAIM_AttestationGetExpirationFunction get_expiration;
 };
-
 
 
 #if 0 /* keep Emacsens' auto-indent happy */

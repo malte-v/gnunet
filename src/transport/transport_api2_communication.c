@@ -420,6 +420,7 @@ send_add_queue (struct GNUNET_TRANSPORT_QueueHandle *qh)
   GNUNET_MQ_send (qh->ch->mq, env);
 }
 
+
 /**
  * Send message to the transport service about queue @a qh
  * updated.
@@ -444,7 +445,6 @@ send_update_queue (struct GNUNET_TRANSPORT_QueueHandle *qh)
   uqm->cs = htonl ((uint32_t) qh->cs);
   GNUNET_MQ_send (qh->ch->mq, env);
 }
-
 
 
 /**
@@ -1031,7 +1031,6 @@ GNUNET_TRANSPORT_communicator_mq_update (
   qh->priority = priority;
   send_update_queue (qh);
 }
-
 
 
 /**

@@ -222,7 +222,7 @@ restart_nat_server (void *cls)
     return;
   }
   h->server_stdout =
-    GNUNET_DISK_pipe (GNUNET_YES, GNUNET_YES, GNUNET_NO, GNUNET_YES);
+    GNUNET_DISK_pipe (GNUNET_DISK_PF_BLOCKING_RW);
   if (NULL == h->server_stdout)
   {
     GNUNET_log_strerror (GNUNET_ERROR_TYPE_ERROR, "pipe");

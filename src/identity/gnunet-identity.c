@@ -406,7 +406,8 @@ run (void *cls,
       GNUNET_STRINGS_string_to_data (privkey_ego,
                                      strlen (privkey_ego),
                                      &pk,
-                                     sizeof(struct GNUNET_CRYPTO_EcdsaPrivateKey));
+                                     sizeof(struct
+                                            GNUNET_CRYPTO_EcdsaPrivateKey));
       create_op =
         GNUNET_IDENTITY_create (sh,
                                 create_ego,
@@ -452,7 +453,8 @@ main (int argc, char *const *argv)
     GNUNET_GETOPT_option_string ('P',
                                  "privkey",
                                  "PRIVATE_KEY",
-                                 gettext_noop ("set the private key for the identity to PRIVATE_KEY (use together with -C)"),
+                                 gettext_noop (
+                                   "set the private key for the identity to PRIVATE_KEY (use together with -C)"),
                                  &privkey_ego),
     GNUNET_GETOPT_option_flag ('d',
                                "display",

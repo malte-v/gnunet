@@ -1048,7 +1048,8 @@ run_with_zone_pkey (const struct GNUNET_CONFIGURATION_Handle *cfg)
       return;
     }
     add = 1;
-    typestring = GNUNET_strdup (GNUNET_GNSRECORD_number_to_typename (GNUNET_GNSRECORD_TYPE_NICK));
+    typestring = GNUNET_strdup (GNUNET_GNSRECORD_number_to_typename (
+                                  GNUNET_GNSRECORD_TYPE_NICK));
     name = GNUNET_strdup (GNUNET_GNS_EMPTY_LABEL_AT);
     value = GNUNET_strdup (nickstring);
     is_public = 0;

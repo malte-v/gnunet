@@ -457,11 +457,11 @@ __attribute__ ((format (printf, 2, 3)));
   __extension__ ({                  \
     int _gnunet_boolean_var_;      \
     if (expr)                      \
-      _gnunet_boolean_var_ = 1;    \
+    _gnunet_boolean_var_ = 1;    \
     else                           \
-      _gnunet_boolean_var_ = 0;    \
+    _gnunet_boolean_var_ = 0;    \
     _gnunet_boolean_var_;          \
-  })
+    })
 #define GN_LIKELY(expr) (__builtin_expect (_GNUNET_BOOLEAN_EXPR (expr), 1))
 #define GN_UNLIKELY(expr) (__builtin_expect (_GNUNET_BOOLEAN_EXPR (expr), 0))
 #else
@@ -499,12 +499,12 @@ GNUNET_log_from_nocheck (enum GNUNET_ErrorType kind,
         ((GNUNET_ERROR_TYPE_DEBUG & (kind)) == 0))                        \
     {                                                                     \
       if (GN_UNLIKELY (log_call_enabled == -1))                           \
-        log_call_enabled =                                                \
-          GNUNET_get_log_call_status ((kind) & (~GNUNET_ERROR_TYPE_BULK), \
-                                      (comp),                             \
-                                      __FILE__,                           \
-                                      __FUNCTION__,                       \
-                                      __LINE__);                          \
+      log_call_enabled =                                                \
+        GNUNET_get_log_call_status ((kind) & (~GNUNET_ERROR_TYPE_BULK), \
+                                    (comp),                             \
+                                    __FILE__,                           \
+                                    __FUNCTION__,                       \
+                                    __LINE__);                          \
       if (GN_UNLIKELY (GNUNET_get_log_skip () > 0))                       \
       {                                                                   \
         GNUNET_log_skip (-1, GNUNET_NO);                                  \
@@ -512,7 +512,7 @@ GNUNET_log_from_nocheck (enum GNUNET_ErrorType kind,
       else                                                                \
       {                                                                   \
         if (GN_UNLIKELY (log_call_enabled))                               \
-          GNUNET_log_from_nocheck ((kind), comp, __VA_ARGS__);            \
+        GNUNET_log_from_nocheck ((kind), comp, __VA_ARGS__);            \
       }                                                                   \
     }                                                                     \
   } while (0)
@@ -525,12 +525,12 @@ GNUNET_log_from_nocheck (enum GNUNET_ErrorType kind,
         ((GNUNET_ERROR_TYPE_DEBUG & (kind)) == 0))                        \
     {                                                                     \
       if (GN_UNLIKELY (log_call_enabled == -1))                           \
-        log_call_enabled =                                                \
-          GNUNET_get_log_call_status ((kind) & (~GNUNET_ERROR_TYPE_BULK), \
-                                      NULL,                               \
-                                      __FILE__,                           \
-                                      __FUNCTION__,                       \
-                                      __LINE__);                          \
+      log_call_enabled =                                                \
+        GNUNET_get_log_call_status ((kind) & (~GNUNET_ERROR_TYPE_BULK), \
+                                    NULL,                               \
+                                    __FILE__,                           \
+                                    __FUNCTION__,                       \
+                                    __LINE__);                          \
       if (GN_UNLIKELY (GNUNET_get_log_skip () > 0))                       \
       {                                                                   \
         GNUNET_log_skip (-1, GNUNET_NO);                                  \
@@ -538,7 +538,7 @@ GNUNET_log_from_nocheck (enum GNUNET_ErrorType kind,
       else                                                                \
       {                                                                   \
         if (GN_UNLIKELY (log_call_enabled))                               \
-          GNUNET_log_nocheck ((kind), __VA_ARGS__);                       \
+        GNUNET_log_nocheck ((kind), __VA_ARGS__);                       \
       }                                                                   \
     }                                                                     \
   } while (0)
@@ -1319,8 +1319,8 @@ GNUNET_is_zero_ (const void *a,
  *     been returned by #GNUNET_strdup, #GNUNET_strndup, #GNUNET_malloc or #GNUNET_array_grow earlier.  NULL is allowed.
  */
 #define GNUNET_free(ptr) do { \
-    GNUNET_xfree_ (ptr, __FILE__, __LINE__); \
-    ptr = NULL; \
+  GNUNET_xfree_ (ptr, __FILE__, __LINE__); \
+  ptr = NULL; \
 } while (0)
 
 

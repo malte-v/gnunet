@@ -1309,7 +1309,8 @@ handle_ack (void *cls, const struct GNUNET_PeerIdentity *pid, void *value)
                     "Tell transport we have more acks!\n");
         GNUNET_TRANSPORT_communicator_mq_update (ch,
                                                  receiver->d_qh,
-                                                 (allowed - ss->sequence_allowed),
+                                                 (allowed
+                                                  - ss->sequence_allowed),
                                                  1);
         ss->sequence_allowed = allowed;
         /* move ss to head to avoid discarding it anytime soon! */

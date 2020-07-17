@@ -868,7 +868,7 @@ process_bf (struct Operation *op)
                   GNUNET_CONTAINER_multihashmap_size (op->state->my_elements));
       op->state->full_result_iter
         = GNUNET_CONTAINER_multihashmap_iterator_create (
-        op->state->my_elements);
+            op->state->my_elements);
       send_remaining_elements (op);
       return;
     }

@@ -31,7 +31,7 @@
                   if (NULL != m) GNUNET_CONTAINER_multipeermap_destroy (m); \
                   if (NULL != \
                       iter) \
-                    GNUNET_CONTAINER_multipeermap_iterator_destroy (iter); \
+                  GNUNET_CONTAINER_multipeermap_iterator_destroy (iter); \
                   return 1; }
 #define CHECK(c) { if (! (c)) ABORT (); }
 

@@ -290,7 +290,8 @@ save ()
         msg->flags =
           htonl (pos->persistent ? GNUNET_STATISTICS_SETFLAG_PERSISTENT : 0);
         msg->value = GNUNET_htonll (pos->value);
-        if (GNUNET_OK != GNUNET_BIO_write (wh, "statistics-save-msg", msg, size))
+        if (GNUNET_OK != GNUNET_BIO_write (wh, "statistics-save-msg", msg,
+                                           size))
         {
           GNUNET_log_strerror_file (GNUNET_ERROR_TYPE_WARNING, "write", fn);
           if (GNUNET_OK != GNUNET_BIO_write_close (wh, NULL))

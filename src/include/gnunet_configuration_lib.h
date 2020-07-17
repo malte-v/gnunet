@@ -109,7 +109,7 @@ GNUNET_CONFIGURATION_load_from (struct GNUNET_CONFIGURATION_Handle *cfg,
  * @return a freshly allocated configuration
  */
 struct GNUNET_CONFIGURATION_Handle *
-GNUNET_CONFIGURATION_default(void);
+GNUNET_CONFIGURATION_default (void);
 
 
 /**

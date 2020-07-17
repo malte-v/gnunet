@@ -1985,7 +1985,7 @@ GNUNET_STRINGS_base64_decode (const char *data, size_t len, void **out)
                 "ignoring CR/LF\n");                              \
     i++;                                                          \
     if (i >= len)                                                 \
-      goto END;                                                   \
+    goto END;                                                   \
   }
 
   GNUNET_assert (len / 3 < SIZE_MAX);

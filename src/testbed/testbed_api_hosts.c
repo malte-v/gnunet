@@ -56,7 +56,7 @@
   do                                                                       \
   {                                                                        \
     if (cond)                                                              \
-      break;                                                               \
+    break;                                                               \
     LOG (GNUNET_ERROR_TYPE_ERROR, "API violation detected: %s\n", errstr); \
     GNUNET_assert (0);                                                     \
   } while (0)

@@ -230,7 +230,8 @@ GNUNET_RECLAIM_attribute_value_to_string (uint32_t type,
  */
 struct GNUNET_RECLAIM_Attribute *
 GNUNET_RECLAIM_attribute_new (const char *attr_name,
-                              const struct GNUNET_RECLAIM_Identifier *attestation,
+                              const struct
+                              GNUNET_RECLAIM_Identifier *attestation,
                               uint32_t type,
                               const void *data,
                               size_t data_size)

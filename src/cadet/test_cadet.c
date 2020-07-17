@@ -550,6 +550,7 @@ get_from_p_ids ()
   }
 }
 
+
 static struct GNUNET_CADET_Handle *
 get_from_cadets ()
 {
@@ -568,6 +569,7 @@ get_from_cadets ()
 
 }
 
+
 static unsigned int
 get_peer_nr (int outgoing)
 {
@@ -580,6 +582,7 @@ get_peer_nr (int outgoing)
     return GNUNET_YES == outgoing ? peers_running - 1 : 0;
   }
 }
+
 
 /**
  * Task to reconnect to other peer.
@@ -626,6 +629,7 @@ reconnect_op (void *cls)
   send_test_message (outgoing_ch);
 }
 
+
 void
 reopen_channel ()
 {
@@ -659,6 +663,7 @@ reopen_channel ()
   send_test_message (outgoing_ch);
 }
 
+
 static void
 peers_callback (void *cls, const struct GNUNET_CADET_PeerListEntry *ple);
 
@@ -675,6 +680,7 @@ get_peers (void *cls)
                                  &peers_callback, NULL);
 
 }
+
 
 /**
  * Method called to retrieve information about all peers in CADET, called
@@ -712,7 +718,7 @@ peers_callback (void *cls, const struct GNUNET_CADET_PeerListEntry *ple)
               "p_id %s\n",
               GNUNET_i2s_full (p_id));
 
-  if ((0 == GNUNET_memcmp (&ple->peer, p_id))&& ple->have_tunnel)
+  if ((0 == GNUNET_memcmp (&ple->peer, p_id)) && ple->have_tunnel)
   {
 
     GNUNET_log (GNUNET_ERROR_TYPE_INFO,
@@ -732,6 +738,7 @@ peers_callback (void *cls, const struct GNUNET_CADET_PeerListEntry *ple)
 
   }
 }
+
 
 /**
  * Function called whenever an MQ-channel is destroyed, unless the destruction
@@ -1169,7 +1176,7 @@ connect_handler (void *cls,
 
   if (peer == get_peer_nr (GNUNET_NO))
   {
-    if ((DESTROY != test)&&(NULL != incoming_ch))
+    if ((DESTROY != test) && (NULL != incoming_ch))
     {
       GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                   "Duplicate incoming channel for client %lu\n",
