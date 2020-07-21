@@ -923,19 +923,31 @@ communicator_start (
   const char *binary_name)
 {
   char *binary;
+  char *loprefix;
+  char *section_name;
 
   LOG (GNUNET_ERROR_TYPE_DEBUG, "communicator_start\n");
+
+  section_name = strchr (binary_name, '-');
+  section_name++;
+
+  if (GNUNET_OK != GNUNET_CONFIGURATION_get_value_string (tc_h->cfg,
+                                                          section_name,
+                                                          "PREFIX",
+                                                          &loprefix))
+    loprefix = GNUNET_strdup ("");
+
+
   binary = GNUNET_OS_get_libexec_binary_path (binary_name);
-  tc_h->c_proc = GNUNET_OS_start_process (GNUNET_YES,
-                                          GNUNET_OS_INHERIT_STD_OUT_AND_ERR,
-                                          NULL,
-                                          NULL,
-                                          NULL,
-                                          binary,
-                                          binary_name,
-                                          "-c",
-                                          tc_h->cfg_filename,
-                                          NULL);
+  tc_h->c_proc = GNUNET_OS_start_process_s (GNUNET_YES,
+                                            GNUNET_OS_INHERIT_STD_OUT_AND_ERR,
+                                            NULL,
+                                            loprefix,
+                                            binary,
+                                            binary_name,
+                                            "-c",
+                                            tc_h->cfg_filename,
+                                            NULL);
   if (NULL == tc_h->c_proc)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR, "Failed to start communicator!");
