@@ -141,11 +141,11 @@ revocation_cb (void *cls, enum GNUNET_GenericReturnValue is_valid)
   }
 }
 
-struct GNUNET_REVOCATION_Pow proof_of_work;
 
+static struct GNUNET_REVOCATION_PowP proof_of_work;
 
 static void
-ego_cb (void *cls, const struct GNUNET_IDENTITY_Ego *ego)
+ego_cb (void *cls, struct GNUNET_IDENTITY_Ego *ego)
 {
   static int completed = 0;
   const struct GNUNET_CRYPTO_EcdsaPrivateKey *privkey;

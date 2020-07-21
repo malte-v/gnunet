@@ -46,8 +46,13 @@ libgnunetfs_la_SOURCES = \
 
 libgnunetfs_la_LIBADD = \
   $(top_builddir)/src/datastore/libgnunetdatastore.la \
+  $(top_builddir)/src/statistics/libgnunetstatistics.la \
   $(top_builddir)/src/util/libgnunetutil.la \
   $(GN_LIBINTL) $(XLIB) $(LIBGCRYPT_LIBS) -lunistring
+libgnunetfs_la_DEPENDENCIES = \
+  $(top_builddir)/src/datastore/libgnunetdatastore.la \
+  $(top_builddir)/src/statistics/libgnunetstatistics.la \
+  $(top_builddir)/src/util/libgnunetutil.la
 
 if HAVE_LIBEXTRACTOR
 libgnunetfs_la_LIBADD += \

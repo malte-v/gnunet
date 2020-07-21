@@ -971,7 +971,7 @@ cleanup_cth (struct RECLAIM_TICKETS_ConsumeHandle *cth)
   {
     if (NULL != lu->lookup_request)
       GNUNET_GNS_lookup_cancel (lu->lookup_request);
-    GNUNET_free_non_null (lu->label);
+    GNUNET_free (lu->label);
     GNUNET_CONTAINER_DLL_remove (cth->parallel_lookups_head,
                                  cth->parallel_lookups_tail,
                                  lu);
@@ -1292,7 +1292,7 @@ issue_ticket (struct TicketIssueHandle *ih)
   for (le = ih->attrs->list_head; NULL != le; le = le->next)
     attrs_count++;
 
-  //Worst case we have one attestation per attribute
+  // Worst case we have one attestation per attribute
   attrs_record =
     GNUNET_malloc (2 * attrs_count * sizeof(struct GNUNET_GNSRECORD_Data));
   i = 0;

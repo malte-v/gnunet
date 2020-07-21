@@ -1065,7 +1065,8 @@ ego_create (struct GNUNET_REST_RequestHandle *con_handle,
     GNUNET_STRINGS_string_to_data (privkey,
                                    strlen (privkey),
                                    &pk,
-                                   sizeof(struct GNUNET_CRYPTO_EcdsaPrivateKey));
+                                   sizeof(struct
+                                          GNUNET_CRYPTO_EcdsaPrivateKey));
     pk_ptr = &pk;
   }
   else
@@ -1422,7 +1423,7 @@ libgnunet_plugin_rest_identity_done (void *cls)
 
   plugin->cfg = NULL;
 
-  GNUNET_free_non_null (allow_methods);
+  GNUNET_free (allow_methods);
   GNUNET_free (api);
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Identity REST plugin is finished\n");
   return NULL;

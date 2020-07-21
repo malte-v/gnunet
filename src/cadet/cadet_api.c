@@ -819,7 +819,7 @@ GNUNET_CADET_close_port (struct GNUNET_CADET_Port *p)
     msg->port = p->id;
     GNUNET_MQ_send (p->cadet->mq, env);
   }
-  GNUNET_free_non_null (p->handlers);
+  GNUNET_free (p->handlers);
   GNUNET_free (p);
 }
 
@@ -1001,8 +1001,8 @@ GNUNET_CADET_open_port (struct GNUNET_CADET_Handle *h,
   p->window_changes = window_changes;
   p->disconnects = disconnects;
   p->handlers = (NULL == pd->agpl_url)
-    ? GNUNET_MQ_copy_handlers (handlers)
-    : GNUNET_MQ_copy_handlers2 (handlers, &return_agpl, NULL);
+                ? GNUNET_MQ_copy_handlers (handlers)
+                : GNUNET_MQ_copy_handlers2 (handlers, &return_agpl, NULL);
 
   GNUNET_assert (GNUNET_OK == open_port_cb (h, &p->id, p));
   return p;

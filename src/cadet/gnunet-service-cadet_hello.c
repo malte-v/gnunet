@@ -75,7 +75,7 @@ got_hello (void *cls,
   if (0 == GNUNET_memcmp (id,
                           &my_full_id))
   {
-    GNUNET_free_non_null (mine);
+    GNUNET_free (mine);
     mine = (struct GNUNET_HELLO_Message *) GNUNET_copy_message (&hello->header);
     GCD_hello_update ();
     return;

@@ -38,12 +38,6 @@
 
 
 /**
- * We need pipe control only on WINDOWS
- */
-#define PIPE_CONTROL GNUNET_NO
-
-
-/**
  * Lowest port used for GNUnet testing.  Should be high enough to not
  * conflict with other applications running on the hosts but be low
  * enough to not conflict with client-ports (typically starting around
@@ -473,8 +467,8 @@ cleanup_shared_service_instance (struct SharedServiceInstance *i)
     (void) unlink (i->cfg_fn);
     GNUNET_free (i->cfg_fn);
   }
-  GNUNET_free_non_null (i->unix_sock);
-  GNUNET_free_non_null (i->port_str);
+  GNUNET_free (i->unix_sock);
+  GNUNET_free (i->port_str);
   GNUNET_break (NULL == i->proc);
   GNUNET_break (0 == i->n_refs);
   GNUNET_free (i);
@@ -492,8 +486,7 @@ start_shared_service_instance (struct SharedServiceInstance *i)
   (void) GNUNET_asprintf (&binary, "gnunet-service-%s", i->ss->sname);
   libexec_binary = GNUNET_OS_get_libexec_binary_path (binary);
   GNUNET_free (binary);
-  i->proc = GNUNET_OS_start_process (PIPE_CONTROL,
-                                     GNUNET_OS_INHERIT_STD_OUT_AND_ERR,
+  i->proc = GNUNET_OS_start_process (GNUNET_OS_INHERIT_STD_OUT_AND_ERR,
                                      NULL,
                                      NULL,
                                      NULL,
@@ -551,17 +544,17 @@ GNUNET_TESTING_system_destroy (struct GNUNET_TESTING_System *system,
         stop_shared_service_instance (i);
       cleanup_shared_service_instance (i);
     }
-    GNUNET_free_non_null (ss->instances);
+    GNUNET_free (ss->instances);
     GNUNET_CONFIGURATION_destroy (ss->cfg);
     GNUNET_free (ss->sname);
     GNUNET_free (ss);
   }
-  GNUNET_free_non_null (system->shared_services);
+  GNUNET_free (system->shared_services);
   if (GNUNET_YES == remove_paths)
     GNUNET_DISK_directory_remove (system->tmppath);
   GNUNET_free (system->tmppath);
-  GNUNET_free_non_null (system->trusted_ip);
-  GNUNET_free_non_null (system->hostname);
+  GNUNET_free (system->trusted_ip);
+  GNUNET_free (system->hostname);
   GNUNET_free (system);
 }
 
@@ -957,7 +950,7 @@ update_config_sections (void *cls, const char *section)
     }
     GNUNET_free (ikeys);
   }
-  GNUNET_free_non_null (val);
+  GNUNET_free (val);
   ACCEPT_FROM_key = "ACCEPT_FROM";
   if ((NULL != uc->system->trusted_ip) &&
       (NULL != strstr (uc->system->trusted_ip, ":"))) /* IPv6 in use */
@@ -1120,7 +1113,7 @@ GNUNET_TESTING_configuration_create_ (struct GNUNET_TESTING_System *system,
     *nports = uc.nports;
   }
   else
-    GNUNET_free_non_null (uc.ports);
+    GNUNET_free (uc.ports);
   return uc.status;
 }
 
@@ -1316,8 +1309,8 @@ GNUNET_TESTING_peer_configure (struct GNUNET_TESTING_System *system,
   return peer;
 
 err_ret:
-  GNUNET_free_non_null (ss_instances);
-  GNUNET_free_non_null (ports);
+  GNUNET_free (ss_instances);
+  GNUNET_free (ports);
   GNUNET_log (GNUNET_ERROR_TYPE_ERROR, "%s", emsg_);
   if (NULL != emsg)
     *emsg = emsg_;
@@ -1378,8 +1371,7 @@ GNUNET_TESTING_peer_start (struct GNUNET_TESTING_Peer *peer)
   peer->main_binary =
     GNUNET_CONFIGURATION_expand_dollar (peer->cfg, peer->main_binary);
   peer->main_process =
-    GNUNET_OS_start_process_s (PIPE_CONTROL,
-                               GNUNET_OS_INHERIT_STD_OUT_AND_ERR,
+    GNUNET_OS_start_process_s (GNUNET_OS_INHERIT_STD_OUT_AND_ERR,
                                NULL,
                                peer->main_binary,
                                peer->args,
@@ -1566,8 +1558,8 @@ GNUNET_TESTING_peer_destroy (struct GNUNET_TESTING_Peer *peer)
     GNUNET_CONFIGURATION_destroy (peer->cfg);
   GNUNET_free (peer->main_binary);
   GNUNET_free (peer->args);
-  GNUNET_free_non_null (peer->id);
-  GNUNET_free_non_null (peer->ss_instances);
+  GNUNET_free (peer->id);
+  GNUNET_free (peer->ss_instances);
   if (NULL != peer->ports)
   {
     for (cnt = 0; cnt < peer->nports; cnt++)

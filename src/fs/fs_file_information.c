@@ -75,7 +75,7 @@ void
 GNUNET_FS_file_information_set_filename (struct GNUNET_FS_FileInformation *s,
                                          const char *filename)
 {
-  GNUNET_free_non_null (s->filename);
+  GNUNET_free (s->filename);
   if (filename)
     s->filename = GNUNET_strdup (filename);
   else
@@ -426,7 +426,7 @@ GNUNET_FS_file_information_destroy (struct GNUNET_FS_FileInformation *fi,
                &fi->bo,
                &no,
                &fi->client_info);
-    GNUNET_free_non_null (fi->data.dir.dir_data);
+    GNUNET_free (fi->data.dir.dir_data);
   }
   else
   {
@@ -447,8 +447,8 @@ GNUNET_FS_file_information_destroy (struct GNUNET_FS_FileInformation *fi,
                &fi->data.file.do_index,
                &fi->client_info);
   }
-  GNUNET_free_non_null (fi->filename);
-  GNUNET_free_non_null (fi->emsg);
+  GNUNET_free (fi->filename);
+  GNUNET_free (fi->emsg);
   if (NULL != fi->sks_uri)
     GNUNET_FS_uri_destroy (fi->sks_uri);
   if (NULL != fi->chk_uri)
@@ -462,7 +462,7 @@ GNUNET_FS_file_information_destroy (struct GNUNET_FS_FileInformation *fi,
     GNUNET_FS_uri_destroy (fi->keywords);
   if (NULL != fi->meta)
     GNUNET_CONTAINER_meta_data_destroy (fi->meta);
-  GNUNET_free_non_null (fi->serialization);
+  GNUNET_free (fi->serialization);
   if (NULL != fi->te)
   {
     GNUNET_FS_tree_encoder_finish (fi->te, NULL);

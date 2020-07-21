@@ -1,6 +1,6 @@
 /*
      This file is part of GNUnet.
-     Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2011 GNUnet e.V.
+     Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2011, 2020 GNUnet e.V.
 
      GNUnet is free software: you can redistribute it and/or modify it
      under the terms of the GNU Affero General Public License as published
@@ -100,7 +100,12 @@ enum GNUNET_OS_InheritStdioFlags
    * Use this option to have all of the standard streams
    * (stdin, stdout and stderror) be inherited.
    */
-  GNUNET_OS_INHERIT_STD_ALL = 7
+  GNUNET_OS_INHERIT_STD_ALL = 7,
+
+  /**
+   * Should a pipe be used to send signals to the child?
+   */
+  GNUNET_OS_USE_PIPE_CONTROL = 8
 };
 
 
@@ -455,7 +460,6 @@ GNUNET_OS_process_get_pid (struct GNUNET_OS_Process *proc);
 /**
  * Start a process.
  *
- * @param pipe_control should a pipe be used to send signals to the child?
  * @param std_inheritance a set of GNUNET_OS_INHERIT_STD_* flags
  * @param pipe_stdin pipe to use to send input to child process (or NULL)
  * @param pipe_stdout pipe to use to get output from child process (or NULL)
@@ -465,8 +469,7 @@ GNUNET_OS_process_get_pid (struct GNUNET_OS_Process *proc);
  * @return pointer to process structure of the new process, NULL on error
  */
 struct GNUNET_OS_Process *
-GNUNET_OS_start_process_vap (int pipe_control,
-                             enum GNUNET_OS_InheritStdioFlags std_inheritance,
+GNUNET_OS_start_process_vap (enum GNUNET_OS_InheritStdioFlags std_inheritance,
                              struct GNUNET_DISK_PipeHandle *pipe_stdin,
                              struct GNUNET_DISK_PipeHandle *pipe_stdout,
                              struct GNUNET_DISK_PipeHandle *pipe_stderr,
@@ -477,7 +480,6 @@ GNUNET_OS_start_process_vap (int pipe_control,
 /**
  * Start a process.
  *
- * @param pipe_control should a pipe be used to send signals to the child?
  * @param std_inheritance a set of GNUNET_OS_INHERIT_STD_* flags
  * @param pipe_stdin pipe to use to send input to child process (or NULL)
  * @param pipe_stdout pipe to use to get output from child process (or NULL)
@@ -487,8 +489,7 @@ GNUNET_OS_start_process_vap (int pipe_control,
  * @return pointer to process structure of the new process, NULL on error
  */
 struct GNUNET_OS_Process *
-GNUNET_OS_start_process (int pipe_control,
-                         enum GNUNET_OS_InheritStdioFlags std_inheritance,
+GNUNET_OS_start_process (enum GNUNET_OS_InheritStdioFlags std_inheritance,
                          struct GNUNET_DISK_PipeHandle *pipe_stdin,
                          struct GNUNET_DISK_PipeHandle *pipe_stdout,
                          struct GNUNET_DISK_PipeHandle *pipe_stderr,
@@ -498,7 +499,6 @@ GNUNET_OS_start_process (int pipe_control,
 /**
  * Start a process.
  *
- * @param pipe_control should a pipe be used to send signals to the child?
  * @param std_inheritance a set of GNUNET_OS_INHERIT_STD_* flags
  * @param pipe_stdin pipe to use to send input to child process (or NULL)
  * @param pipe_stdout pipe to use to get output from child process (or NULL)
@@ -508,8 +508,7 @@ GNUNET_OS_start_process (int pipe_control,
  * @return pointer to process structure of the new process, NULL on error
  */
 struct GNUNET_OS_Process *
-GNUNET_OS_start_process_va (int pipe_control,
-                            enum GNUNET_OS_InheritStdioFlags std_inheritance,
+GNUNET_OS_start_process_va (enum GNUNET_OS_InheritStdioFlags std_inheritance,
                             struct GNUNET_DISK_PipeHandle *pipe_stdin,
                             struct GNUNET_DISK_PipeHandle *pipe_stdout,
                             struct GNUNET_DISK_PipeHandle *pipe_stderr,
@@ -518,7 +517,6 @@ GNUNET_OS_start_process_va (int pipe_control,
 /**
  * Start a process.
  *
- * @param pipe_control should a pipe be used to send signals to the child?
  * @param std_inheritance a set of GNUNET_OS_INHERIT_STD_* flags
  * @param lsocks array of listen sockets to dup systemd-style (or NULL);
  *         must be NULL on platforms where dup is not supported
@@ -528,8 +526,7 @@ GNUNET_OS_start_process_va (int pipe_control,
  * @return pointer to process structure of the new process, NULL on error
  */
 struct GNUNET_OS_Process *
-GNUNET_OS_start_process_v (int pipe_control,
-                           enum GNUNET_OS_InheritStdioFlags std_inheritance,
+GNUNET_OS_start_process_v (enum GNUNET_OS_InheritStdioFlags std_inheritance,
                            const int *lsocks,
                            const char *filename,
                            char *const argv[]);
@@ -542,7 +539,6 @@ GNUNET_OS_start_process_v (int pipe_control,
  * in the order they appear.  Arguments containing spaces can be used by
  * quoting them with @em ".
  *
- * @param pipe_control should a pipe be used to send signals to the child?
  * @param std_inheritance a set of GNUNET_OS_INHERIT_STD_* flags
  * @param lsocks array of listen sockets to dup systemd-style (or NULL);
  *         must be NULL on platforms where dup is not supported
@@ -554,8 +550,7 @@ GNUNET_OS_start_process_v (int pipe_control,
  * @return pointer to process structure of the new process, NULL on error
  */
 struct GNUNET_OS_Process *
-GNUNET_OS_start_process_s (int pipe_control,
-                           unsigned int std_inheritance,
+GNUNET_OS_start_process_s (enum GNUNET_OS_InheritStdioFlags std_inheritance,
                            const int *lsocks,
                            const char *filename, ...);
 

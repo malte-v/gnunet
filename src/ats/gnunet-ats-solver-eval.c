@@ -1307,17 +1307,17 @@ free_experiment (struct Experiment *e)
     for (cur_o = next_o; NULL != cur_o; cur_o = next_o)
     {
       next_o = cur_o->next;
-      GNUNET_free_non_null (cur_o->address);
-      GNUNET_free_non_null (cur_o->plugin);
+      GNUNET_free (cur_o->address);
+      GNUNET_free (cur_o->plugin);
       GNUNET_free (cur_o);
     }
     GNUNET_free (cur);
   }
 
-  GNUNET_free_non_null (e->name);
-  GNUNET_free_non_null (e->log_prefix);
-  GNUNET_free_non_null (e->log_output_dir);
-  GNUNET_free_non_null (e->cfg_file);
+  GNUNET_free (e->name);
+  GNUNET_free (e->log_prefix);
+  GNUNET_free (e->log_output_dir);
+  GNUNET_free (e->cfg_file);
   GNUNET_free (e);
 }
 
@@ -1967,7 +1967,7 @@ load_op_start_set_property (struct GNUNET_ATS_TEST_Operation *o,
     fprintf (stderr, "Missing property in operation %u `%s' in episode %u\n",
              op_counter, op_name, e->id);
     GNUNET_free (op_name);
-    GNUNET_free_non_null (prop);
+    GNUNET_free (prop);
     return GNUNET_SYSERR;
   }
 
@@ -2038,7 +2038,7 @@ load_op_stop_set_property (struct GNUNET_ATS_TEST_Operation *o,
     fprintf (stderr, "Missing property in operation %u `%s' in episode `%s'\n",
              op_counter, "STOP_SET_PROPERTY", op_name);
     GNUNET_free (op_name);
-    GNUNET_free_non_null (pref);
+    GNUNET_free (pref);
     return GNUNET_SYSERR;
   }
 
@@ -2047,7 +2047,7 @@ load_op_stop_set_property (struct GNUNET_ATS_TEST_Operation *o,
     fprintf (stderr, "Invalid property in operation %u `%s' in episode %u\n",
              op_counter, op_name, e->id);
     GNUNET_free (op_name);
-    GNUNET_free_non_null (pref);
+    GNUNET_free (pref);
     return GNUNET_SYSERR;
   }
 
@@ -2419,7 +2419,7 @@ enforce_del_address (struct GNUNET_ATS_TEST_Operation *op)
   }
   GNUNET_CONTAINER_DLL_remove (p->addr_head, p->addr_tail, a);
 
-  GNUNET_free_non_null (a->ats_addr->atsi);
+  GNUNET_free (a->ats_addr->atsi);
   GNUNET_free (a->ats_addr);
   GNUNET_free (a);
 }

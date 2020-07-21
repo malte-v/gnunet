@@ -349,7 +349,7 @@ get_hello (void *cb_cls,
   GNUNET_assert (0 == memcmp (&hello_id,
                               &p->id,
                               sizeof(hello_id)));
-  GNUNET_free_non_null (p->hello);
+  GNUNET_free (p->hello);
   p->hello = (struct GNUNET_HELLO_Message *) GNUNET_copy_message (message);
 
   if (NULL != p->start_cb)
@@ -460,10 +460,10 @@ GNUNET_TRANSPORT_TESTING_start_peer (struct
          cfgname,
          emsg);
     GNUNET_TRANSPORT_TESTING_stop_peer (p);
-    GNUNET_free_non_null (emsg);
+    GNUNET_free (emsg);
     return NULL;
   }
-  GNUNET_free_non_null (emsg);
+  GNUNET_free (emsg);
   if (GNUNET_OK != GNUNET_TESTING_peer_start (p->peer))
   {
     LOG (GNUNET_ERROR_TYPE_ERROR,

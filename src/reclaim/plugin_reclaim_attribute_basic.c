@@ -90,6 +90,7 @@ basic_string_to_value (void *cls,
   }
 }
 
+
 /**
  * Mapping of attribute type numbers to human-readable
  * attribute type names.

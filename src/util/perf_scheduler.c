@@ -94,8 +94,8 @@ main (int argc, char *argv[])
             GNUNET_YES));
   GAUGER ("UTIL", "Scheduler",
           tasks / 1024 / (1
-                       + GNUNET_TIME_absolute_get_duration
-                         (start).rel_value_us / 1000LL), "tasks/ms");
+                          + GNUNET_TIME_absolute_get_duration
+                            (start).rel_value_us / 1000LL), "tasks/ms");
   return 0;
 }
 

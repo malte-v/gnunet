@@ -106,7 +106,7 @@ print_entry (void *cls,
     GNUNET_CONTAINER_meta_data_iterate (meta, &item_printer, NULL);
     printf ("\n");
     printf (_ ("Directory `%s' contents:\n"), name ? name : "");
-    GNUNET_free_non_null (name);
+    GNUNET_free (name);
     return;
   }
   string = GNUNET_FS_uri_to_string (uri);
@@ -114,7 +114,7 @@ print_entry (void *cls,
   GNUNET_free (string);
   GNUNET_CONTAINER_meta_data_iterate (meta, &item_printer, NULL);
   printf ("\n");
-  GNUNET_free_non_null (name);
+  GNUNET_free (name);
 }
 
 

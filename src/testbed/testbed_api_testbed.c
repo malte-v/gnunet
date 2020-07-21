@@ -472,11 +472,11 @@ cleanup (struct GNUNET_TESTBED_RunHandle *rc)
     GNUNET_TESTBED_host_destroy (rc->h);
   for (hid = 0; hid < rc->num_hosts; hid++)
     GNUNET_TESTBED_host_destroy (rc->hosts[hid]);
-  GNUNET_free_non_null (rc->hosts);
+  GNUNET_free (rc->hosts);
   if (NULL != rc->cfg)
     GNUNET_CONFIGURATION_destroy (rc->cfg);
-  GNUNET_free_non_null (rc->topo_file);
-  GNUNET_free_non_null (rc->trusted_ip);
+  GNUNET_free (rc->topo_file);
+  GNUNET_free (rc->trusted_ip);
   GNUNET_free (rc);
 }
 
@@ -863,7 +863,7 @@ event_cb (void *cls, const struct GNUNET_TESTBED_EventInformation *event)
   case RC_PEERS_CREATED:
   case RC_READY:
     rc->state = RC_PEERS_SHUTDOWN;
-    GNUNET_free_non_null (rc->peers);
+    GNUNET_free (rc->peers);
     rc->peers = NULL;
     DEBUG ("Peers shut down in %s\n", prof_time (rc));
     GNUNET_SCHEDULER_shutdown ();

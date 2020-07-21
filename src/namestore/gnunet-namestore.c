@@ -878,7 +878,7 @@ del_monitor (void *cls,
                                                       rd[i].data_size)))) ||
             (0 == strcmp (vs, value)))))
       rdx[rd_left++] = rd[i];
-    GNUNET_free_non_null (vs);
+    GNUNET_free (vs);
   }
   if (rd_count == rd_left)
   {
@@ -1048,7 +1048,8 @@ run_with_zone_pkey (const struct GNUNET_CONFIGURATION_Handle *cfg)
       return;
     }
     add = 1;
-    typestring = GNUNET_strdup (GNUNET_GNSRECORD_number_to_typename (GNUNET_GNSRECORD_TYPE_NICK));
+    typestring = GNUNET_strdup (GNUNET_GNSRECORD_number_to_typename (
+                                  GNUNET_GNSRECORD_TYPE_NICK));
     name = GNUNET_strdup (GNUNET_GNS_EMPTY_LABEL_AT);
     value = GNUNET_strdup (nickstring);
     is_public = 0;
@@ -1083,6 +1084,17 @@ run_with_zone_pkey (const struct GNUNET_CONFIGURATION_Handle *cfg)
     if (UINT32_MAX == type)
     {
       fprintf (stderr, _ ("Unsupported type `%s'\n"), typestring);
+      GNUNET_SCHEDULER_shutdown ();
+      ret = 1;
+      return;
+    }
+    if ((GNUNET_DNSPARSER_TYPE_SRV == type) ||
+        (GNUNET_DNSPARSER_TYPE_TLSA == type) ||
+        (GNUNET_DNSPARSER_TYPE_OPENPGPKEY == type))
+    {
+      fprintf (stderr,
+               _ ("For DNS record types `SRV', `TLSA' and `OPENPGPKEY'"));
+      fprintf (stderr, ", please use a `BOX' record instead\n");
       GNUNET_SCHEDULER_shutdown ();
       ret = 1;
       return;
@@ -1296,7 +1308,7 @@ identity_cb (void *cls, struct GNUNET_IDENTITY_Ego *ego)
     return;
   }
   zone_pkey = *GNUNET_IDENTITY_ego_get_private_key (ego);
-  GNUNET_free_non_null (ego_name);
+  GNUNET_free (ego_name);
   ego_name = NULL;
   run_with_zone_pkey (cfg);
 }

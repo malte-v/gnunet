@@ -92,7 +92,7 @@ enum
     if (! (cond)) {                                              \
       GNUNET_break (0);                                          \
       if (NULL != abort_task)               \
-        GNUNET_SCHEDULER_cancel (abort_task);                   \
+      GNUNET_SCHEDULER_cancel (abort_task);                   \
       abort_task = GNUNET_SCHEDULER_add_now (&do_abort, NULL);  \
       ret;                                                      \
     }                                                           \

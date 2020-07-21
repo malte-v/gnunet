@@ -903,7 +903,6 @@ struct GNUNET_TRANSPORT_UpdateQueueMessage
 };
 
 
-
 /**
  * Remove queue, it is no longer available.
  */

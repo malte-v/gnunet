@@ -390,7 +390,7 @@ handle_ad_arrive (void *cls,
                 expected_uri,
                 current_adv_uri);
   GNUNET_free (expected_uri);
-  GNUNET_free_non_null (hostname);
+  GNUNET_free (hostname);
 }
 
 
@@ -412,7 +412,8 @@ setup_learn_peer (struct PeerContext *p,
   binary = GNUNET_OS_get_libexec_binary_path ("gnunet-service-arm");
   p->cfg = GNUNET_CONFIGURATION_create ();
   p->arm_proc =
-    GNUNET_OS_start_process (GNUNET_YES, GNUNET_OS_INHERIT_STD_OUT_AND_ERR,
+    GNUNET_OS_start_process (GNUNET_OS_INHERIT_STD_OUT_AND_ERR
+                             | GNUNET_OS_USE_PIPE_CONTROL,
                              NULL, NULL, NULL,
                              binary,
                              "gnunet-service-arm",
@@ -459,8 +460,8 @@ setup_adv_peer (struct PeerContext *p,
   binary = GNUNET_OS_get_libexec_binary_path ("gnunet-service-arm");
   p->cfg = GNUNET_CONFIGURATION_create ();
   p->arm_proc =
-    GNUNET_OS_start_process (GNUNET_YES,
-                             GNUNET_OS_INHERIT_STD_OUT_AND_ERR,
+    GNUNET_OS_start_process (GNUNET_OS_INHERIT_STD_OUT_AND_ERR
+                             | GNUNET_OS_USE_PIPE_CONTROL,
                              NULL, NULL, NULL,
                              binary,
                              "gnunet-service-arm",

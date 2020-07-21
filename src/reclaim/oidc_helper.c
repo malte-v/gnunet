@@ -616,7 +616,7 @@ OIDC_parse_authz_code (const struct GNUNET_CRYPTO_EcdsaPrivateKey *ecdsa_priv,
       + sizeof(struct GNUNET_CRYPTO_EcdsaSignature))
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR, "Authorization code malformed\n");
-    GNUNET_free_non_null (code_payload);
+    GNUNET_free (code_payload);
     return GNUNET_SYSERR;
   }
 
@@ -646,7 +646,7 @@ OIDC_parse_authz_code (const struct GNUNET_CRYPTO_EcdsaPrivateKey *ecdsa_priv,
     {
       GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                   "Expected code verifier!\n");
-      GNUNET_free_non_null (code_payload);
+      GNUNET_free (code_payload);
       return GNUNET_SYSERR;
     }
     code_verifier_hash = GNUNET_malloc (256 / 8);
@@ -669,7 +669,7 @@ OIDC_parse_authz_code (const struct GNUNET_CRYPTO_EcdsaPrivateKey *ecdsa_priv,
                   expected_code_challenge,
                   code_challenge_len,
                   code_challenge);
-      GNUNET_free_non_null (code_payload);
+      GNUNET_free (code_payload);
       GNUNET_free (expected_code_challenge);
       return GNUNET_SYSERR;
     }

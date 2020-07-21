@@ -125,7 +125,7 @@ GNUNET_PQ_connect (const char *config_str,
   GNUNET_PQ_reconnect (db);
   if (NULL == db->conn)
   {
-    GNUNET_free_non_null (db->load_path);
+    GNUNET_free (db->load_path);
     GNUNET_free (db->config_str);
     GNUNET_free (db);
     return NULL;
@@ -162,8 +162,7 @@ apply_patch (struct GNUNET_PQ_Context *db,
               "Applying SQL file `%s' on database %s\n",
               buf,
               db->config_str);
-  psql = GNUNET_OS_start_process (GNUNET_NO,
-                                  GNUNET_OS_INHERIT_STD_NONE,
+  psql = GNUNET_OS_start_process (GNUNET_OS_INHERIT_STD_NONE,
                                   NULL,
                                   NULL,
                                   NULL,
@@ -495,9 +494,9 @@ GNUNET_PQ_connect_with_cfg (const struct GNUNET_CONFIGURATION_Handle *cfg,
                           load_path,
                           es,
                           ps);
-  GNUNET_free_non_null (load_path);
-  GNUNET_free_non_null (sp);
-  GNUNET_free_non_null (conninfo);
+  GNUNET_free (load_path);
+  GNUNET_free (sp);
+  GNUNET_free (conninfo);
   return db;
 }
 
@@ -511,10 +510,10 @@ GNUNET_PQ_connect_with_cfg (const struct GNUNET_CONFIGURATION_Handle *cfg,
 void
 GNUNET_PQ_disconnect (struct GNUNET_PQ_Context *db)
 {
-  GNUNET_free_non_null (db->es);
-  GNUNET_free_non_null (db->ps);
-  GNUNET_free_non_null (db->load_path);
-  GNUNET_free_non_null (db->config_str);
+  GNUNET_free (db->es);
+  GNUNET_free (db->ps);
+  GNUNET_free (db->load_path);
+  GNUNET_free (db->config_str);
   PQfinish (db->conn);
   GNUNET_free (db);
 }

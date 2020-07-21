@@ -3476,7 +3476,7 @@ GCT_send (struct CadetTunnel *t,
   {
     ch = lookup_channel (t,
                          *ctn);
-    if ((NULL != ch)&& GCCH_is_type_to_drop (ch, message))
+    if ((NULL != ch) && GCCH_is_type_to_drop (ch, message))
     {
       GNUNET_break (0);
       return NULL;

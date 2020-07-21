@@ -557,12 +557,12 @@ cleanup_handle (struct RequestHandle *handle)
     GNUNET_RECLAIM_cancel (handle->idp_op);
   if (NULL != handle->idp)
     GNUNET_RECLAIM_disconnect (handle->idp);
-  GNUNET_free_non_null (handle->url);
-  GNUNET_free_non_null (handle->tld);
-  GNUNET_free_non_null (handle->redirect_prefix);
-  GNUNET_free_non_null (handle->redirect_suffix);
-  GNUNET_free_non_null (handle->emsg);
-  GNUNET_free_non_null (handle->edesc);
+  GNUNET_free (handle->url);
+  GNUNET_free (handle->tld);
+  GNUNET_free (handle->redirect_prefix);
+  GNUNET_free (handle->redirect_suffix);
+  GNUNET_free (handle->emsg);
+  GNUNET_free (handle->edesc);
   if (NULL != handle->gns_op)
     GNUNET_GNS_lookup_cancel (handle->gns_op);
   if (NULL != handle->gns_handle)
@@ -572,13 +572,13 @@ cleanup_handle (struct RequestHandle *handle)
     GNUNET_NAMESTORE_disconnect (handle->namestore_handle);
   if (NULL != handle->oidc)
   {
-    GNUNET_free_non_null (handle->oidc->client_id);
-    GNUNET_free_non_null (handle->oidc->login_identity);
-    GNUNET_free_non_null (handle->oidc->nonce);
-    GNUNET_free_non_null (handle->oidc->redirect_uri);
-    GNUNET_free_non_null (handle->oidc->response_type);
-    GNUNET_free_non_null (handle->oidc->scope);
-    GNUNET_free_non_null (handle->oidc->state);
+    GNUNET_free (handle->oidc->client_id);
+    GNUNET_free (handle->oidc->login_identity);
+    GNUNET_free (handle->oidc->nonce);
+    GNUNET_free (handle->oidc->redirect_uri);
+    GNUNET_free (handle->oidc->response_type);
+    GNUNET_free (handle->oidc->scope);
+    GNUNET_free (handle->oidc->state);
     json_decref (handle->oidc->response);
     GNUNET_free (handle->oidc);
   }
@@ -594,8 +594,8 @@ cleanup_handle (struct RequestHandle *handle)
     GNUNET_CONTAINER_DLL_remove (handle->ego_head,
                                  handle->ego_tail,
                                  ego_entry);
-    GNUNET_free_non_null (ego_entry->identifier);
-    GNUNET_free_non_null (ego_entry->keystring);
+    GNUNET_free (ego_entry->identifier);
+    GNUNET_free (ego_entry->keystring);
     GNUNET_free (ego_entry);
   }
   GNUNET_free (handle);
@@ -1734,7 +1734,7 @@ login_cont (struct GNUNET_REST_RequestHandle *con_handle,
                                      OIDC_COOKIE_EXPIRATION));
     last_time =
       GNUNET_CONTAINER_multihashmap_get (OIDC_cookie_jar_map, &cache_key);
-    GNUNET_free_non_null (last_time);
+    GNUNET_free (last_time);
     GNUNET_CONTAINER_multihashmap_put (OIDC_cookie_jar_map,
                                        &cache_key,
                                        current_time,
@@ -1804,7 +1804,7 @@ check_authorization (struct RequestHandle *handle,
   client_id = strtok (basic_authorization, ":");
   if (NULL == client_id)
   {
-    GNUNET_free_non_null (basic_authorization);
+    GNUNET_free (basic_authorization);
     handle->emsg = GNUNET_strdup (OIDC_ERROR_KEY_INVALID_CLIENT);
     handle->response_code = MHD_HTTP_UNAUTHORIZED;
     return GNUNET_SYSERR;
@@ -1812,7 +1812,7 @@ check_authorization (struct RequestHandle *handle,
   pass = strtok (NULL, ":");
   if (NULL == pass)
   {
-    GNUNET_free_non_null (basic_authorization);
+    GNUNET_free (basic_authorization);
     handle->emsg = GNUNET_strdup (OIDC_ERROR_KEY_INVALID_CLIENT);
     handle->response_code = MHD_HTTP_UNAUTHORIZED;
     return GNUNET_SYSERR;
@@ -1826,7 +1826,7 @@ check_authorization (struct RequestHandle *handle,
   {
     if (0 != strcmp (expected_pass, pass))
     {
-      GNUNET_free_non_null (basic_authorization);
+      GNUNET_free (basic_authorization);
       GNUNET_free (expected_pass);
       handle->emsg = GNUNET_strdup (OIDC_ERROR_KEY_INVALID_CLIENT);
       handle->response_code = MHD_HTTP_UNAUTHORIZED;
@@ -1836,7 +1836,7 @@ check_authorization (struct RequestHandle *handle,
   }
   else
   {
-    GNUNET_free_non_null (basic_authorization);
+    GNUNET_free (basic_authorization);
     handle->emsg = GNUNET_strdup (OIDC_ERROR_KEY_SERVER_ERROR);
     handle->edesc = GNUNET_strdup ("gnunet configuration failed");
     handle->response_code = MHD_HTTP_INTERNAL_SERVER_ERROR;
@@ -1852,7 +1852,7 @@ check_authorization (struct RequestHandle *handle,
   }
   if (NULL == handle->ego_entry)
   {
-    GNUNET_free_non_null (basic_authorization);
+    GNUNET_free (basic_authorization);
     handle->emsg = GNUNET_strdup (OIDC_ERROR_KEY_INVALID_CLIENT);
     handle->response_code = MHD_HTTP_UNAUTHORIZED;
     return GNUNET_SYSERR;
@@ -2504,7 +2504,7 @@ libgnunet_plugin_rest_openid_connect_done (void *cls)
   while (GNUNET_YES ==
          GNUNET_CONTAINER_multihashmap_iterator_next (hashmap_it, NULL,
                                                       value))
-    GNUNET_free_non_null (value);
+    GNUNET_free (value);
   GNUNET_CONTAINER_multihashmap_iterator_destroy (hashmap_it);
   GNUNET_CONTAINER_multihashmap_destroy (OIDC_cookie_jar_map);
 
@@ -2513,10 +2513,10 @@ libgnunet_plugin_rest_openid_connect_done (void *cls)
   while (GNUNET_YES ==
          GNUNET_CONTAINER_multihashmap_iterator_next (hashmap_it, NULL,
                                                       value))
-    GNUNET_free_non_null (value);
+    GNUNET_free (value);
   GNUNET_CONTAINER_multihashmap_destroy (OIDC_access_token_map);
   GNUNET_CONTAINER_multihashmap_iterator_destroy (hashmap_it);
-  GNUNET_free_non_null (allow_methods);
+  GNUNET_free (allow_methods);
   GNUNET_free (api);
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "OpenID Connect REST plugin is finished\n");

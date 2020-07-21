@@ -783,7 +783,7 @@ bi_destroy (struct BroadcastInterface *bi)
   GNUNET_CONTAINER_DLL_remove (bi_head, bi_tail, bi);
   GNUNET_SCHEDULER_cancel (bi->broadcast_task);
   GNUNET_free (bi->sa);
-  GNUNET_free_non_null (bi->ba);
+  GNUNET_free (bi->ba);
   GNUNET_free (bi);
 }
 
@@ -1309,7 +1309,8 @@ handle_ack (void *cls, const struct GNUNET_PeerIdentity *pid, void *value)
                     "Tell transport we have more acks!\n");
         GNUNET_TRANSPORT_communicator_mq_update (ch,
                                                  receiver->d_qh,
-                                                 (allowed - ss->sequence_allowed),
+                                                 (allowed
+                                                  - ss->sequence_allowed),
                                                  1);
         ss->sequence_allowed = allowed;
         /* move ss to head to avoid discarding it anytime soon! */

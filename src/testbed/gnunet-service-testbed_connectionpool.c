@@ -687,7 +687,7 @@ oprelease_get_handle_core (void *cls)
     return;
   GNUNET_CORE_disconnect (entry->handle_core);
   entry->handle_core = NULL;
-  GNUNET_free_non_null (entry->peer_identity);
+  GNUNET_free (entry->peer_identity);
   entry->peer_identity = NULL;
 }
 

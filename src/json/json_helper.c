@@ -721,7 +721,7 @@ GNUNET_JSON_spec_absolute_time (const char *name,
     .cls = NULL,
     .field = name,
     .ptr = at,
-    .ptr_size = sizeof(uint64_t),
+    .ptr_size = sizeof(struct GNUNET_TIME_Absolute),
     .size_ptr = NULL
   };
 
@@ -775,7 +775,7 @@ GNUNET_JSON_spec_absolute_time_nbo (const char *name,
     .cls = NULL,
     .field = name,
     .ptr = at,
-    .ptr_size = sizeof(uint64_t),
+    .ptr_size = sizeof(struct GNUNET_TIME_AbsoluteNBO),
     .size_ptr = NULL
   };
 
@@ -852,7 +852,7 @@ GNUNET_JSON_spec_relative_time (const char *name,
     .cls = NULL,
     .field = name,
     .ptr = rt,
-    .ptr_size = sizeof(uint64_t),
+    .ptr_size = sizeof(struct GNUNET_TIME_Relative),
     .size_ptr = NULL
   };
 

@@ -54,11 +54,12 @@ static struct GNUNET_NAMESTORE_QueueEntry *nsqe;
 // static const char * name = "dummy.dummy.gnunet";
 static const char *name = "d";
 
+static char *record_data;
 
 static void
 cleanup ()
 {
-  GNUNET_free_non_null ((void *) rd_orig.data);
+  GNUNET_free (record_data);
   if (NULL != nsh)
   {
     GNUNET_NAMESTORE_disconnect (nsh);
@@ -264,7 +265,8 @@ nick_cont (void *cls, int32_t success, const char *emsg)
   rd_orig.expiration_time = GNUNET_TIME_absolute_get ().abs_value_us;
   rd_orig.record_type = TEST_RECORD_TYPE;
   rd_orig.data_size = TEST_RECORD_DATALEN;
-  rd_orig.data = GNUNET_malloc (TEST_RECORD_DATALEN);
+  record_data = GNUNET_malloc (TEST_RECORD_DATALEN);
+  rd_orig.data = record_data;
   rd_orig.flags = 0;
   memset ((char *) rd_orig.data, 'a', TEST_RECORD_DATALEN);
 

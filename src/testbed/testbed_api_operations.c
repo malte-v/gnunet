@@ -696,7 +696,7 @@ decide_capacity (struct OperationQueue *opq,
   }
 
 ret:
-  GNUNET_free_non_null (evict_entries);
+  GNUNET_free (evict_entries);
   if (NULL != ops_)
     *ops_ = ops;
   else
@@ -771,7 +771,7 @@ check_readiness (struct GNUNET_TESTBED_Operation *op)
     if (GNUNET_NO == decide_capacity (op->queues[i], op->qentries[i],
                                       &ops, &n_ops))
     {
-      GNUNET_free_non_null (evict_ops);
+      GNUNET_free (evict_ops);
       return GNUNET_NO;
     }
     if (NULL == ops)
@@ -842,7 +842,7 @@ cleanup_tslots (struct OperationQueue *queue)
       continue;
     GNUNET_CONTAINER_DLL_remove (op->tslots_head, op->tslots_tail, tslot);
   }
-  GNUNET_free_non_null (fctx->tslots_freeptr);
+  GNUNET_free (fctx->tslots_freeptr);
   fctx->tslots_freeptr = NULL;
   fctx->alloc_head = NULL;
   fctx->alloc_tail = NULL;
@@ -1337,7 +1337,7 @@ GNUNET_TESTBED_operation_release_ (struct GNUNET_TESTBED_Operation *op)
     }
     GNUNET_free (entry);
   }
-  GNUNET_free_non_null (op->qentries);
+  GNUNET_free (op->qentries);
   GNUNET_free (op->queues);
   GNUNET_free (op->nres);
   if (NULL != op->release)
@@ -1376,7 +1376,7 @@ GNUNET_TESTBED_operations_fini ()
       warn = 1;
     queue_destroy (queue);
   }
-  GNUNET_free_non_null (expired_opqs);
+  GNUNET_free (expired_opqs);
   n_expired_opqs = 0;
   if (warn)
     GNUNET_log (GNUNET_ERROR_TYPE_WARNING,

@@ -323,7 +323,7 @@ main (int argc, char *const *argv)
     ? 0
     : 1;
   GNUNET_free_nz ((void *) argv);
-  GNUNET_free_non_null (pwfn);
+  GNUNET_free (pwfn);
   return ret;
 }
 

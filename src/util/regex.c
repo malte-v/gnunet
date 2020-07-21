@@ -174,10 +174,10 @@ num_to_regex (uint16_t value,
     GNUNET_asprintf (&ret,
                      "%s%s%s%s",
                      a, b, c, d);
-  GNUNET_free_non_null (a);
-  GNUNET_free_non_null (b);
-  GNUNET_free_non_null (c);
-  GNUNET_free_non_null (d);
+  GNUNET_free (a);
+  GNUNET_free (b);
+  GNUNET_free (c);
+  GNUNET_free (d);
   return ret;
 }
 
@@ -607,7 +607,7 @@ address_to_regex (const void *addr,
     reg = num_to_regex (a[i], m[i]);
     if (NULL == reg)
     {
-      GNUNET_free_non_null (ret);
+      GNUNET_free (ret);
       return NULL;
     }
     if (NULL == ret)
@@ -721,7 +721,7 @@ GNUNET_TUN_ipv4policy2regex (const char *policy)
     line = ipv4_to_regex (&np[i]);
     if (NULL == line)
     {
-      GNUNET_free_non_null (reg);
+      GNUNET_free (reg);
       GNUNET_free (np);
       return NULL;
     }
@@ -777,7 +777,7 @@ GNUNET_TUN_ipv6policy2regex (const char *policy)
     line = ipv6_to_regex (&np[i]);
     if (NULL == line)
     {
-      GNUNET_free_non_null (reg);
+      GNUNET_free (reg);
       GNUNET_free (np);
       return NULL;
     }

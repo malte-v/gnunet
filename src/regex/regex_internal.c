@@ -168,7 +168,7 @@ state_remove_transition (struct REGEX_INTERNAL_State *state,
   if (transition->from_state != state)
     return;
 
-  GNUNET_free_non_null (transition->label);
+  GNUNET_free (transition->label);
 
   state->transition_count--;
   GNUNET_CONTAINER_DLL_remove (state->transitions_head,
@@ -310,8 +310,8 @@ automaton_destroy_state (struct REGEX_INTERNAL_State *s)
   if (NULL == s)
     return;
 
-  GNUNET_free_non_null (s->name);
-  GNUNET_free_non_null (s->proof);
+  GNUNET_free (s->name);
+  GNUNET_free (s->proof);
   state_set_clear (&s->nfa_set);
   for (t = s->transitions_head; NULL != t; t = next_t)
   {
@@ -658,7 +658,7 @@ sb_realloc (struct StringBuffer *ret, size_t nlen)
   ret->blen = nlen;
   GNUNET_memcpy (ret->abuf, ret->sbuf, ret->slen);
   ret->sbuf = ret->abuf;
-  GNUNET_free_non_null (old);
+  GNUNET_free (old);
 }
 
 
@@ -726,7 +726,7 @@ sb_wrap (struct StringBuffer *ret, const char *format, size_t extra_chars)
                    format,
                    (int) ret->slen,
                    ret->sbuf);
-  GNUNET_free_non_null (ret->abuf);
+  GNUNET_free (ret->abuf);
   ret->abuf = temp;
   ret->sbuf = temp;
   ret->blen = ret->slen + extra_chars + 1;
@@ -1592,8 +1592,8 @@ automaton_create_proofs (struct REGEX_INTERNAL_Automaton *a)
   if ((NULL == R_last) || (NULL == R_cur))
   {
     GNUNET_log_strerror (GNUNET_ERROR_TYPE_ERROR, "malloc");
-    GNUNET_free_non_null (R_cur);
-    GNUNET_free_non_null (R_last);
+    GNUNET_free (R_cur);
+    GNUNET_free (R_last);
     return GNUNET_SYSERR;
   }
 
@@ -2159,7 +2159,7 @@ dfa_add_multi_strides_helper (void *cls,
                                     t->to_state);
     }
   }
-  GNUNET_free_non_null (label);
+  GNUNET_free (label);
 }
 
 
@@ -2213,7 +2213,7 @@ REGEX_INTERNAL_dfa_add_multi_strides (struct REGEX_INTERNAL_Context *regex_ctx,
     t_next = t->next;
     state_add_transition (regex_ctx, t->from_state, t->label, t->to_state);
     GNUNET_CONTAINER_DLL_remove (ctx.transitions_head, ctx.transitions_tail, t);
-    GNUNET_free_non_null (t->label);
+    GNUNET_free (t->label);
     GNUNET_free (t);
   }
 
@@ -2361,7 +2361,7 @@ dfa_compress_paths (struct REGEX_INTERNAL_Context *regex_ctx,
     t_next = t->next;
     state_add_transition (regex_ctx, t->from_state, t->label, t->to_state);
     GNUNET_CONTAINER_DLL_remove (transitions_head, transitions_tail, t);
-    GNUNET_free_non_null (t->label);
+    GNUNET_free (t->label);
     GNUNET_free (t);
   }
 
@@ -2972,7 +2972,7 @@ error:
   if (NULL != error_msg)
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR, "%s\n", error_msg);
 
-  GNUNET_free_non_null (p);
+  GNUNET_free (p);
 
   while (NULL != (nfa = ctx.stack_head))
   {
@@ -3133,8 +3133,8 @@ REGEX_INTERNAL_automaton_destroy (struct REGEX_INTERNAL_Automaton *a)
   if (NULL == a)
     return;
 
-  GNUNET_free_non_null (a->regex);
-  GNUNET_free_non_null (a->canonical_regex);
+  GNUNET_free (a->regex);
+  GNUNET_free (a->canonical_regex);
 
   for (s = a->states_head; NULL != s; s = next_state)
   {

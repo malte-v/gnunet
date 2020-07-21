@@ -550,7 +550,7 @@ database_shutdown (struct Plugin *plugin)
 #endif
   if (SQLITE_OK != result)
     LOG_SQLITE (plugin, GNUNET_ERROR_TYPE_ERROR, "sqlite3_close");
-  GNUNET_free_non_null (plugin->fn);
+  GNUNET_free (plugin->fn);
 }
 
 
@@ -640,7 +640,7 @@ sqlite_plugin_put (void *cls,
                       GNUNET_ERROR_TYPE_ERROR | GNUNET_ERROR_TYPE_BULK,
                       "sqlite3_step");
       cont (cont_cls, key, size, GNUNET_SYSERR, msg);
-      GNUNET_free_non_null (msg);
+      GNUNET_free (msg);
       return;
     }
     int changes = sqlite3_changes (plugin->dbh);
@@ -724,12 +724,12 @@ sqlite_plugin_put (void *cls,
     database_shutdown (plugin);
     database_setup (plugin->env->cfg, plugin);
     cont (cont_cls, key, size, GNUNET_SYSERR, msg);
-    GNUNET_free_non_null (msg);
+    GNUNET_free (msg);
     return;
   }
   GNUNET_SQ_reset (plugin->dbh, stmt);
   cont (cont_cls, key, size, ret, msg);
-  GNUNET_free_non_null (msg);
+  GNUNET_free (msg);
 }
 
 

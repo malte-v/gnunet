@@ -374,8 +374,8 @@ schedule_watch_request (struct GNUNET_STATISTICS_Handle *h,
 static void
 free_action_item (struct GNUNET_STATISTICS_GetHandle *gh)
 {
-  GNUNET_free_non_null (gh->subsystem);
-  GNUNET_free_non_null (gh->name);
+  GNUNET_free (gh->subsystem);
+  GNUNET_free (gh->name);
   GNUNET_free (gh);
 }
 

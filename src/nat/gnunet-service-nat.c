@@ -2009,7 +2009,7 @@ client_disconnect_cb (void *cls,
       ch->caddrs[i].mh = NULL;
     }
   }
-  GNUNET_free_non_null (ch->caddrs);
+  GNUNET_free (ch->caddrs);
   while (NULL != (lal = ch->ext_addr_head))
   {
     GNUNET_CONTAINER_DLL_remove (ch->ext_addr_head,
@@ -2032,8 +2032,8 @@ client_disconnect_cb (void *cls,
     GNUNET_RESOLVER_request_cancel (ch->ext_dns);
     ch->ext_dns = NULL;
   }
-  GNUNET_free_non_null (ch->hole_external);
-  GNUNET_free_non_null (ch->section_name);
+  GNUNET_free (ch->hole_external);
+  GNUNET_free (ch->section_name);
   GNUNET_free (ch);
 }
 

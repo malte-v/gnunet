@@ -576,7 +576,8 @@ attest_collect (void *cls,
   if (GNUNET_OK == GNUNET_RECLAIM_attestation_get_expiration (attest,
                                                               &exp))
   {
-    json_object_set_new (attest_obj, "expiration", json_integer (exp.abs_value_us));
+    json_object_set_new (attest_obj, "expiration", json_integer (
+                           exp.abs_value_us));
   }
   id_str = GNUNET_STRINGS_data_to_string_alloc (&attest->id,
                                                 sizeof(attest->id));
@@ -597,7 +598,7 @@ attest_collect (void *cls,
       json_object_set_new (attr_obj, "name", json_string (
                              ale->attribute->name));
 
-      json_object_set_new (attr_obj, "flag", json_string ("1")); //FIXME
+      json_object_set_new (attr_obj, "flag", json_string ("1")); // FIXME
       type = GNUNET_RECLAIM_attribute_number_to_typename (ale->attribute->type);
       json_object_set_new (attr_obj, "type", json_string (type));
       json_object_set_new (attr_obj, "id", json_string (""));
@@ -1492,7 +1493,7 @@ libgnunet_plugin_rest_reclaim_done (void *cls)
 
   plugin->cfg = NULL;
 
-  GNUNET_free_non_null (allow_methods);
+  GNUNET_free (allow_methods);
   GNUNET_free (api);
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Identity Provider REST plugin is finished\n");

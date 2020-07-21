@@ -138,9 +138,9 @@ GNUNET_BIO_read_meta_data (struct GNUNET_BIO_ReadHandle *h,
  * @param f address of float to read
  */
 int
-GNUNET_BIO_read_float(struct GNUNET_BIO_ReadHandle *h,
-                      const char *what,
-                      float *f);
+GNUNET_BIO_read_float (struct GNUNET_BIO_ReadHandle *h,
+                       const char *what,
+                       float *f);
 
 
 /**
@@ -151,10 +151,9 @@ GNUNET_BIO_read_float(struct GNUNET_BIO_ReadHandle *h,
  * @param f address of double to read
  */
 int
-GNUNET_BIO_read_double(struct GNUNET_BIO_ReadHandle *h,
-                       const char *what,
-                       double *f);
-
+GNUNET_BIO_read_double (struct GNUNET_BIO_ReadHandle *h,
+                        const char *what,
+                        double *f);
 
 
 /**
@@ -171,7 +170,6 @@ GNUNET_BIO_read_int32 (struct GNUNET_BIO_ReadHandle *h,
                        int32_t *i);
 
 
-
 /**
  * Read an (u)int64_t.
  *
@@ -184,7 +182,6 @@ int
 GNUNET_BIO_read_int64 (struct GNUNET_BIO_ReadHandle *h,
                        const char *what,
                        int64_t *i);
-
 
 
 /****************************** WRITING API *******************************/
@@ -310,9 +307,9 @@ GNUNET_BIO_write_meta_data (struct GNUNET_BIO_WriteHandle *h,
  * @param f float to write (must be a variable)
  */
 int
-GNUNET_BIO_write_float(struct GNUNET_BIO_WriteHandle *h,
-                       const char *what,
-                       float f);
+GNUNET_BIO_write_float (struct GNUNET_BIO_WriteHandle *h,
+                        const char *what,
+                        float f);
 
 /**
  * Write a double.
@@ -322,9 +319,9 @@ GNUNET_BIO_write_float(struct GNUNET_BIO_WriteHandle *h,
  * @param f double to write (must be a variable)
  */
 int
-GNUNET_BIO_write_double(struct GNUNET_BIO_WriteHandle *h,
-                        const char *what,
-                        double f);
+GNUNET_BIO_write_double (struct GNUNET_BIO_WriteHandle *h,
+                         const char *what,
+                         double f);
 
 
 /**
@@ -490,7 +487,7 @@ GNUNET_BIO_read_spec_int64 (const char *what,
  * @param f address of float to read
  */
 struct GNUNET_BIO_ReadSpec
-GNUNET_BIO_read_spec_float(const char *what, float *f);
+GNUNET_BIO_read_spec_float (const char *what, float *f);
 
 
 /**
@@ -500,7 +497,7 @@ GNUNET_BIO_read_spec_float(const char *what, float *f);
  * @param f address of double to read
  */
 struct GNUNET_BIO_ReadSpec
-GNUNET_BIO_read_spec_double(const char *what, double *f);
+GNUNET_BIO_read_spec_double (const char *what, double *f);
 
 
 /**
@@ -647,7 +644,7 @@ GNUNET_BIO_write_spec_int64 (const char *what,
  * @return the write spec
  */
 struct GNUNET_BIO_WriteSpec
-GNUNET_BIO_write_spec_float(const char *what, float *f);
+GNUNET_BIO_write_spec_float (const char *what, float *f);
 
 
 /**
@@ -658,7 +655,7 @@ GNUNET_BIO_write_spec_float(const char *what, float *f);
  * @return the write spec
  */
 struct GNUNET_BIO_WriteSpec
-GNUNET_BIO_write_spec_double(const char *what, double *f);
+GNUNET_BIO_write_spec_double (const char *what, double *f);
 
 
 /**

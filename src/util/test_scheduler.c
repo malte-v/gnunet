@@ -133,7 +133,7 @@ task4 (void *cls)
 
   GNUNET_assert (4 == *ok);
   (*ok) = 6;
-  p = GNUNET_DISK_pipe (GNUNET_NO, GNUNET_NO, GNUNET_NO, GNUNET_NO);
+  p = GNUNET_DISK_pipe (GNUNET_DISK_PF_NONE);
   GNUNET_assert (NULL != p);
   fds[0] = GNUNET_DISK_pipe_handle (p, GNUNET_DISK_PIPE_END_READ);
   fds[1] = GNUNET_DISK_pipe_handle (p, GNUNET_DISK_PIPE_END_WRITE);

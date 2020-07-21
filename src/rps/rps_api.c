@@ -674,7 +674,7 @@ handle_stream_input (void *cls,
   // peers = (struct GNUNET_PeerIdentity *) &msg[1];
   num_peers = ntohl (msg->num_peers);
   srh_callback_num_peers = num_peers;
-  GNUNET_free_non_null (srh_callback_peers);
+  GNUNET_free (srh_callback_peers);
   srh_callback_peers = GNUNET_new_array (num_peers,
                                          struct GNUNET_PeerIdentity);
   GNUNET_memcpy (srh_callback_peers,

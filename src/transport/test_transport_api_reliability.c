@@ -93,10 +93,9 @@ get_size (unsigned int iter)
   /* FreeBSD/OSX etc. Unix DGRAMs do not work
    * with large messages */
   if (0 == strcmp ("unix", ccc->test_plugin))
-    ret = sizeof(struct GNUNET_TRANSPORT_TESTING_TestMessage) + (ret % 1024);
+    return sizeof(struct GNUNET_TRANSPORT_TESTING_TestMessage) + (ret % 1024);
 #endif
-  ret = sizeof(struct GNUNET_TRANSPORT_TESTING_TestMessage) + (ret % 60000);
-  return ret;
+  return sizeof(struct GNUNET_TRANSPORT_TESTING_TestMessage) + (ret % 60000);
 }
 
 

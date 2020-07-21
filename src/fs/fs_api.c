@@ -570,7 +570,7 @@ GNUNET_FS_data_reader_copy_ (void *cls,
     return 0;
   if (0 == max)
   {
-    GNUNET_free_non_null (data);
+    GNUNET_free (data);
     return 0;
   }
   GNUNET_memcpy (buf, &data[offset], max);
@@ -1132,15 +1132,15 @@ deserialize_fi_node (struct GNUNET_FS_Handle *h,
     GNUNET_free (filename);
     filename = NULL;
   }
-  GNUNET_free_non_null (ksks);
-  GNUNET_free_non_null (skss);
-  GNUNET_free_non_null (chks);
+  GNUNET_free (ksks);
+  GNUNET_free (skss);
+  GNUNET_free (chks);
   return ret;
 cleanup:
-  GNUNET_free_non_null (ksks);
-  GNUNET_free_non_null (chks);
-  GNUNET_free_non_null (skss);
-  GNUNET_free_non_null (filename);
+  GNUNET_free (ksks);
+  GNUNET_free (chks);
+  GNUNET_free (skss);
+  GNUNET_free (filename);
   GNUNET_FS_file_information_destroy (ret, NULL, NULL);
   return NULL;
 }
@@ -1417,11 +1417,11 @@ GNUNET_FS_file_information_sync_ (struct GNUNET_FS_FileInformation *fi)
     GNUNET_break (0);
     goto cleanup;
   }
-  GNUNET_free_non_null (chks);
+  GNUNET_free (chks);
   chks = NULL;
-  GNUNET_free_non_null (ksks);
+  GNUNET_free (ksks);
   ksks = NULL;
-  GNUNET_free_non_null (skss);
+  GNUNET_free (skss);
   skss = NULL;
 
   switch (b)
@@ -1527,9 +1527,9 @@ GNUNET_FS_file_information_sync_ (struct GNUNET_FS_FileInformation *fi)
 cleanup:
   if (NULL != wh)
     (void) GNUNET_BIO_write_close (wh, NULL);
-  GNUNET_free_non_null (chks);
-  GNUNET_free_non_null (ksks);
-  GNUNET_free_non_null (skss);
+  GNUNET_free (chks);
+  GNUNET_free (ksks);
+  GNUNET_free (skss);
   fn = get_serialization_file_name (fi->h,
                                     GNUNET_FS_SYNC_PATH_FILE_INFO,
                                     fi->serialization);
@@ -1729,10 +1729,10 @@ deserialize_publish_file (void *cls, const char *filename)
   pc->top = GNUNET_FS_make_top (h, &GNUNET_FS_publish_signal_suspend_, pc);
   return GNUNET_OK;
 cleanup:
-  GNUNET_free_non_null (pc->nid);
-  GNUNET_free_non_null (pc->nuid);
-  GNUNET_free_non_null (fi_root);
-  GNUNET_free_non_null (fi_pos);
+  GNUNET_free (pc->nid);
+  GNUNET_free (pc->nuid);
+  GNUNET_free (fi_root);
+  GNUNET_free (fi_pos);
   if ((NULL != rh) && (GNUNET_OK != GNUNET_BIO_read_close (rh, &emsg)))
   {
     GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
@@ -2131,7 +2131,7 @@ GNUNET_FS_download_sync_ (struct GNUNET_FS_DownloadContext *dc)
       goto cleanup;
     }
   }
-  GNUNET_free_non_null (uris);
+  GNUNET_free (uris);
   uris = NULL;
   if (GNUNET_OK != GNUNET_BIO_write_close (wh, NULL))
   {
@@ -2144,7 +2144,7 @@ GNUNET_FS_download_sync_ (struct GNUNET_FS_DownloadContext *dc)
 cleanup:
   if (NULL != wh)
     (void) GNUNET_BIO_write_close (wh, NULL);
-  GNUNET_free_non_null (uris);
+  GNUNET_free (uris);
   if (0 != unlink (fn))
     GNUNET_log_strerror_file (GNUNET_ERROR_TYPE_WARNING, "unlink", fn);
   GNUNET_free (fn);
@@ -2235,10 +2235,10 @@ GNUNET_FS_search_result_sync_ (struct GNUNET_FS_SearchResult *sr)
     GNUNET_break (0);
     goto cleanup;
   }
-  GNUNET_free_non_null (uris);
+  GNUNET_free (uris);
   return;
 cleanup:
-  GNUNET_free_non_null (uris);
+  GNUNET_free (uris);
   if (NULL != wh)
     (void) GNUNET_BIO_write_close (wh, NULL);
   remove_sync_file_in_dir (sr->h,
@@ -2309,7 +2309,7 @@ GNUNET_FS_search_sync_ (struct GNUNET_FS_SearchContext *sc)
 cleanup:
   if (NULL != wh)
     (void) GNUNET_BIO_write_close (wh, NULL);
-  GNUNET_free_non_null (uris);
+  GNUNET_free (uris);
   GNUNET_FS_remove_sync_file_ (sc->h, category, sc->serialization);
   GNUNET_free (sc->serialization);
   sc->serialization = NULL;
@@ -2359,7 +2359,7 @@ deserialize_unindex_file (void *cls, const char *filename)
       (GNUNET_OK != GNUNET_BIO_read_int32 (rh, "ksk offset",
                                            (int32_t *) &uc->ksk_offset)))
   {
-    GNUNET_free_non_null (uris);
+    GNUNET_free (uris);
     GNUNET_break (0);
     goto cleanup;
   }
@@ -2370,7 +2370,7 @@ deserialize_unindex_file (void *cls, const char *filename)
     if (NULL == uc->ksk_uri)
     {
       GNUNET_break (0);
-      GNUNET_free_non_null (emsg);
+      GNUNET_free (emsg);
       goto cleanup;
     }
   }
@@ -2472,7 +2472,7 @@ deserialize_unindex_file (void *cls, const char *filename)
   }
   return GNUNET_OK;
 cleanup:
-  GNUNET_free_non_null (uc->filename);
+  GNUNET_free (uc->filename);
   if ((NULL != rh) && (GNUNET_OK != GNUNET_BIO_read_close (rh, &emsg)))
   {
     GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
@@ -2485,7 +2485,7 @@ cleanup:
     GNUNET_FS_remove_sync_file_ (h,
                                  GNUNET_FS_SYNC_PATH_MASTER_UNINDEX,
                                  uc->serialization);
-  GNUNET_free_non_null (uc->serialization);
+  GNUNET_free (uc->serialization);
   GNUNET_free (uc);
   return GNUNET_OK;
 }
@@ -2665,10 +2665,10 @@ deserialize_search_result (void *cls, const char *filename)
   }
   return GNUNET_OK;
 cleanup:
-  GNUNET_free_non_null (download);
-  GNUNET_free_non_null (emsg);
-  GNUNET_free_non_null (uris);
-  GNUNET_free_non_null (update_srch);
+  GNUNET_free (download);
+  GNUNET_free (emsg);
+  GNUNET_free (uris);
+  GNUNET_free (update_srch);
   if (NULL != sr->uri)
     GNUNET_FS_uri_destroy (sr->uri);
   if (NULL != sr->meta)
@@ -2823,8 +2823,8 @@ free_search_context (struct GNUNET_FS_SearchContext *sc)
                                 : GNUNET_FS_SYNC_PATH_CHILD_SEARCH,
                                 sc->serialization);
   }
-  GNUNET_free_non_null (sc->serialization);
-  GNUNET_free_non_null (sc->emsg);
+  GNUNET_free (sc->serialization);
+  GNUNET_free (sc->emsg);
   if (NULL != sc->uri)
     GNUNET_FS_uri_destroy (sc->uri);
   if (NULL != sc->master_result_map)
@@ -2896,10 +2896,10 @@ free_download_context (struct GNUNET_FS_DownloadContext *dc)
     GNUNET_CONTAINER_meta_data_destroy (dc->meta);
   if (NULL != dc->uri)
     GNUNET_FS_uri_destroy (dc->uri);
-  GNUNET_free_non_null (dc->temp_filename);
-  GNUNET_free_non_null (dc->emsg);
-  GNUNET_free_non_null (dc->filename);
-  GNUNET_free_non_null (dc->serialization);
+  GNUNET_free (dc->temp_filename);
+  GNUNET_free (dc->emsg);
+  GNUNET_free (dc->filename);
+  GNUNET_free (dc->serialization);
   while (NULL != (dcc = dc->child_head))
   {
     GNUNET_CONTAINER_DLL_remove (dc->child_head, dc->child_tail, dcc);
@@ -3020,8 +3020,8 @@ deserialize_download (struct GNUNET_FS_Handle *h,
   dc->task = GNUNET_SCHEDULER_add_now (&GNUNET_FS_download_start_task_, dc);
   return;
 cleanup:
-  GNUNET_free_non_null (uris);
-  GNUNET_free_non_null (emsg);
+  GNUNET_free (uris);
+  GNUNET_free (emsg);
   free_download_context (dc);
 }
 
@@ -3127,9 +3127,9 @@ deserialize_search (struct GNUNET_FS_Handle *h,
   GNUNET_free (uris);
   return sc;
 cleanup:
-  GNUNET_free_non_null (emsg);
+  GNUNET_free (emsg);
   free_search_context (sc);
-  GNUNET_free_non_null (uris);
+  GNUNET_free (uris);
   return NULL;
 }
 

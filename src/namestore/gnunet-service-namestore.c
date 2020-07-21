@@ -540,7 +540,7 @@ cache_nick (const struct GNUNET_CRYPTO_EcdsaPrivateKey *zone,
       break;
     }
   }
-  GNUNET_free_non_null (oldest->rd);
+  GNUNET_free (oldest->rd);
   oldest->zone = *zone;
   if (NULL != nick)
   {
@@ -915,7 +915,7 @@ refresh_block (struct NamestoreClient *nc,
   nick = get_nick_record (zone_key);
   res_count = rd_count;
   res = (struct GNUNET_GNSRECORD_Data *) rd;  /* fixme: a bit unclean... */
-  if (NULL != nick  && (0 != strcmp (name, GNUNET_GNS_EMPTY_LABEL_AT)))
+  if ((NULL != nick) && (0 != strcmp (name, GNUNET_GNS_EMPTY_LABEL_AT)))
   {
     nick->flags =
       (nick->flags | GNUNET_GNSRECORD_RF_PRIVATE) ^ GNUNET_GNSRECORD_RF_PRIVATE;
@@ -1392,7 +1392,7 @@ handle_record_lookup (void *cls, const struct LabelLookupMessage *ll_msg)
   GNUNET_memcpy (&llr_msg[1], name_tmp, name_len);
   GNUNET_memcpy (&res_name[name_len], rlc.res_rd, rlc.rd_ser_len);
   GNUNET_MQ_send (nc->mq, env);
-  GNUNET_free_non_null (rlc.res_rd);
+  GNUNET_free (rlc.res_rd);
 }
 
 

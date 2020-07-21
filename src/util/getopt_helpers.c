@@ -377,7 +377,7 @@ set_string (struct GNUNET_GETOPT_CommandLineProcessorContext *ctx,
   (void) ctx;
   (void) option;
   GNUNET_assert (NULL != value);
-  GNUNET_free_non_null (*val);
+  GNUNET_free (*val);
   *val = GNUNET_strdup (value);
   return GNUNET_OK;
 }
@@ -458,7 +458,7 @@ set_filename (struct GNUNET_GETOPT_CommandLineProcessorContext *ctx,
   (void) ctx;
   (void) option;
   GNUNET_assert (NULL != value);
-  GNUNET_free_non_null (*val);
+  GNUNET_free (*val);
   *val = GNUNET_STRINGS_filename_expand (value);
   return GNUNET_OK;
 }

@@ -217,7 +217,7 @@ free_cache_entry (struct ResolveCache *rc)
     GNUNET_free (pos->record);
     GNUNET_free (pos);
   }
-  GNUNET_free_non_null (rc->hostname);
+  GNUNET_free (rc->hostname);
   GNUNET_CONTAINER_DLL_remove (cache_head, cache_tail, rc);
   cache_size--;
   GNUNET_free (rc);
@@ -241,7 +241,7 @@ free_hosts_entry (struct ResolveCache *rc)
     GNUNET_free (pos->record);
     GNUNET_free (pos);
   }
-  GNUNET_free_non_null (rc->hostname);
+  GNUNET_free (rc->hostname);
   GNUNET_CONTAINER_DLL_remove (hosts_head, hosts_tail, rc);
   cache_size--;
   GNUNET_free (rc);
@@ -267,7 +267,7 @@ free_active_lookup (struct ActiveLookup *al)
     GNUNET_SCHEDULER_cancel (al->timeout_task);
     al->timeout_task = NULL;
   }
-  GNUNET_free_non_null (al->hostname);
+  GNUNET_free (al->hostname);
   GNUNET_free (al);
 }
 
@@ -1094,7 +1094,7 @@ handle_get (void *cls, const struct GNUNET_RESOLVER_GetMessage *msg)
                  client_request_id,
                  client);
   }
-  GNUNET_free_non_null (hostname);
+  GNUNET_free (hostname);
 }
 
 
@@ -1115,7 +1115,7 @@ shutdown_task (void *cls)
   while (NULL != hosts_head)
     free_hosts_entry (hosts_head);
   GNUNET_DNSSTUB_stop (dnsstub_ctx);
-  GNUNET_free_non_null (my_domain);
+  GNUNET_free (my_domain);
 }
 
 
@@ -1296,7 +1296,7 @@ init_cb (void *cls,
                 GNUNET_OK == result ? "success" : "failure");
     GNUNET_free (dns_servers[i]);
   }
-  GNUNET_free_non_null (dns_servers);
+  GNUNET_free (dns_servers);
 }
 
 

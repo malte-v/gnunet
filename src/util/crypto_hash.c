@@ -250,11 +250,12 @@ GNUNET_CRYPTO_hash_to_aes_key (const struct GNUNET_HashCode *hc,
  */
 int
 GNUNET_CRYPTO_hash_get_bit_ltr (const struct GNUNET_HashCode *code,
-                            unsigned int bit)
+                                unsigned int bit)
 {
   GNUNET_assert (bit < 8 * sizeof(struct GNUNET_HashCode));
   return (((unsigned char *) code)[bit >> 3] & (128 >> (bit & 7))) > 0;
 }
+
 
 /**
  * Obtain a bit from a hashcode.
@@ -270,7 +271,6 @@ GNUNET_CRYPTO_hash_get_bit_rtl (const struct GNUNET_HashCode *code,
   GNUNET_assert (bit < 8 * sizeof(struct GNUNET_HashCode));
   return (((unsigned char *) code)[bit >> 3] & (1 << (bit & 7))) > 0;
 }
-
 
 
 /**

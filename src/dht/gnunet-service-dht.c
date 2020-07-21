@@ -69,7 +69,7 @@ static void
 process_hello (void *cls,
                const struct GNUNET_MessageHeader *message)
 {
-  GNUNET_free_non_null (GDS_my_hello);
+  GNUNET_free (GDS_my_hello);
   GDS_my_hello = GNUNET_malloc (ntohs (message->size));
   GNUNET_memcpy (GDS_my_hello,
                  message,
@@ -106,7 +106,7 @@ shutdown_task (void *cls)
                                GNUNET_YES);
     GDS_stats = NULL;
   }
-  GNUNET_free_non_null (GDS_my_hello);
+  GNUNET_free (GDS_my_hello);
   GDS_my_hello = NULL;
   GDS_CLIENTS_stop ();
 }

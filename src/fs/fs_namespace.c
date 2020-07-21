@@ -214,13 +214,13 @@ write_update_information_graph (struct GNUNET_FS_UpdateInformationGraph *uig)
     n = uig->update_nodes[i];
     uris = GNUNET_FS_uri_to_string (n->uri);
     struct GNUNET_BIO_WriteSpec ws[] = {
-      GNUNET_BIO_write_spec_string("fs-namespace-node-id", n->id),
-      GNUNET_BIO_write_spec_meta_data("fs-namespace-node-meta", n->md),
-      GNUNET_BIO_write_spec_string("fs-namespace-node-update", n->update),
-      GNUNET_BIO_write_spec_string("fs-namespace-uris", uris),
-      GNUNET_BIO_write_spec_end(),
+      GNUNET_BIO_write_spec_string ("fs-namespace-node-id", n->id),
+      GNUNET_BIO_write_spec_meta_data ("fs-namespace-node-meta", n->md),
+      GNUNET_BIO_write_spec_string ("fs-namespace-node-update", n->update),
+      GNUNET_BIO_write_spec_string ("fs-namespace-uris", uris),
+      GNUNET_BIO_write_spec_end (),
     };
-    if (GNUNET_OK != GNUNET_BIO_write_spec_commit(wh, ws))
+    if (GNUNET_OK != GNUNET_BIO_write_spec_commit (wh, ws))
     {
       GNUNET_free (uris);
       break;
@@ -292,17 +292,17 @@ read_update_information_graph (struct GNUNET_FS_Handle *h,
   {
     n = GNUNET_new (struct NamespaceUpdateNode);
     struct GNUNET_BIO_ReadSpec rs[] = {
-      GNUNET_BIO_read_spec_string("identifier", &n->id, 1024),
-      GNUNET_BIO_read_spec_meta_data("meta", &n->md),
-      GNUNET_BIO_read_spec_string("update-id", &n->update, 1024),
-      GNUNET_BIO_read_spec_string("uri", &uris, 1024 * 2),
-      GNUNET_BIO_read_spec_end(),
+      GNUNET_BIO_read_spec_string ("identifier", &n->id, 1024),
+      GNUNET_BIO_read_spec_meta_data ("meta", &n->md),
+      GNUNET_BIO_read_spec_string ("update-id", &n->update, 1024),
+      GNUNET_BIO_read_spec_string ("uri", &uris, 1024 * 2),
+      GNUNET_BIO_read_spec_end (),
     };
     if (GNUNET_OK != GNUNET_BIO_read_spec_commit (rh, rs))
     {
       GNUNET_break (0);
-      GNUNET_free_non_null (n->id);
-      GNUNET_free_non_null (n->update);
+      GNUNET_free (n->id);
+      GNUNET_free (n->update);
       if (n->md != NULL)
         GNUNET_CONTAINER_meta_data_destroy (n->md);
       GNUNET_free (n);
@@ -315,7 +315,7 @@ read_update_information_graph (struct GNUNET_FS_Handle *h,
       GNUNET_break (0);
       GNUNET_free (emsg);
       GNUNET_free (n->id);
-      GNUNET_free_non_null (n->update);
+      GNUNET_free (n->update);
       GNUNET_CONTAINER_meta_data_destroy (n->md);
       GNUNET_free (n);
       break;

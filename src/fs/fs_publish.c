@@ -85,9 +85,9 @@ publish_cleanup (struct GNUNET_FS_PublishContext *pc)
     pc->fhc = NULL;
   }
   GNUNET_FS_file_information_destroy (pc->fi, NULL, NULL);
-  GNUNET_free_non_null (pc->nid);
-  GNUNET_free_non_null (pc->nuid);
-  GNUNET_free_non_null (pc->serialization);
+  GNUNET_free (pc->nid);
+  GNUNET_free (pc->nuid);
+  GNUNET_free (pc->serialization);
   if (NULL != pc->dsh)
   {
     GNUNET_DATASTORE_disconnect (pc->dsh, GNUNET_NO);
@@ -650,7 +650,7 @@ publish_content (struct GNUNET_FS_PublishContext *pc)
                                           dirpos->data.file.file_size, raw_data,
                                           &emsg))
             {
-              GNUNET_free_non_null (emsg);
+              GNUNET_free (emsg);
               GNUNET_free (raw_data);
               raw_data = NULL;
             }
@@ -660,10 +660,10 @@ publish_content (struct GNUNET_FS_PublishContext *pc)
         }
         GNUNET_FS_directory_builder_add (db, dirpos->chk_uri, dirpos->meta,
                                          raw_data);
-        GNUNET_free_non_null (raw_data);
+        GNUNET_free (raw_data);
         dirpos = dirpos->next;
       }
-      GNUNET_free_non_null (p->data.dir.dir_data);
+      GNUNET_free (p->data.dir.dir_data);
       p->data.dir.dir_data = NULL;
       p->data.dir.dir_size = 0;
       GNUNET_FS_directory_builder_finish (db, &p->data.dir.dir_size,
@@ -1281,7 +1281,7 @@ suspend_operation (struct GNUNET_FS_FileInformation *fi,
   }
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Suspending publish operation\n");
-  GNUNET_free_non_null (fi->serialization);
+  GNUNET_free (fi->serialization);
   fi->serialization = NULL;
   off = (NULL == fi->chk_uri) ? 0 : (GNUNET_YES == fi->is_directory) ?
         fi->data.dir.dir_size : fi->data.file.file_size;

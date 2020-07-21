@@ -614,6 +614,7 @@ set_monotime_sig (struct GNUNET_CADET_ConnectionCreateMessage *msg)
 
 }
 
+
 /**
  * Send a #GNUNET_MESSAGE_TYPE_CADET_CONNECTION_CREATE message to the
  * first hop.
@@ -641,7 +642,7 @@ send_create (void *cls)
 
   // check for tunnel state and set signed monotime (xrs,t3ss)
   t = GCP_get_tunnel (cc->destination, GNUNET_YES);
-  if ((NULL != t)&& (GCT_get_estate (t) == CADET_TUNNEL_KEY_UNINITIALIZED) &&
+  if ((NULL != t) && (GCT_get_estate (t) == CADET_TUNNEL_KEY_UNINITIALIZED) &&
       (GCT_alice_or_betty (GCP_get_id (cc->destination)) == GNUNET_NO))
   {
     create_msg->has_monotime = GNUNET_YES;

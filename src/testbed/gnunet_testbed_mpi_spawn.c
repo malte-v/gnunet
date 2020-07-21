@@ -299,8 +299,7 @@ main (int argc, char *argv[])
     GNUNET_break (0);
     return 1;
   }
-  if (NULL == (sigpipe = GNUNET_DISK_pipe (GNUNET_NO, GNUNET_NO,
-                                           GNUNET_NO, GNUNET_NO)))
+  if (NULL == (sigpipe = GNUNET_DISK_pipe (GNUNET_DISK_PF_NONE)))
   {
     GNUNET_break (0);
     ret = GNUNET_SYSERR;
@@ -321,7 +320,7 @@ main (int argc, char *argv[])
   GNUNET_SIGNAL_handler_uninstall (shc_chld);
   shc_chld = NULL;
   GNUNET_DISK_pipe_close (sigpipe);
-  GNUNET_free_non_null (fn);
+  GNUNET_free (fn);
   if (GNUNET_OK != ret)
     return ret;
   return 0;

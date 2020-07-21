@@ -1084,7 +1084,7 @@ handle_peer_reconfigure (void *cls,
     GST_send_operation_success_msg (client,
                                     op_id);
     GNUNET_SERVICE_client_continue (client);
-    GNUNET_free_non_null (emsg);
+    GNUNET_free (emsg);
     return;
   }
   prc = GNUNET_new (struct PeerReconfigureContext);
@@ -1264,7 +1264,7 @@ ret:
   else
     GST_send_operation_success_msg (mctx->client,
                                     mctx->op_id);
-  GNUNET_free_non_null (emsg);
+  GNUNET_free (emsg);
   cleanup_mctx (mctx);
 }
 
@@ -1459,7 +1459,7 @@ GST_destroy_peers ()
     }
     GNUNET_free (peer);
   }
-  GNUNET_free_non_null (GST_peer_list);
+  GNUNET_free (GST_peer_list);
   GST_peer_list = NULL;
   GST_peer_list_size = 0;
 }

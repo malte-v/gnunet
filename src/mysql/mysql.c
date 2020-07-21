@@ -296,9 +296,9 @@ iopen (struct GNUNET_MYSQL_Context *mc)
                       (unsigned int) mysql_port,
                       NULL,
                       CLIENT_IGNORE_SIGPIPE);
-  GNUNET_free_non_null (mysql_server);
-  GNUNET_free_non_null (mysql_user);
-  GNUNET_free_non_null (mysql_password);
+  GNUNET_free (mysql_server);
+  GNUNET_free (mysql_user);
+  GNUNET_free (mysql_password);
   GNUNET_free (mysql_dbname);
   if (mysql_error (mc->dbf)[0])
   {

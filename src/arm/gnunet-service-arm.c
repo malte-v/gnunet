@@ -475,7 +475,7 @@ get_server_addresses (const char *service_name,
           (EACCES == errno))
       {
         LOG_STRERROR (GNUNET_ERROR_TYPE_ERROR, "socket");
-        GNUNET_free_non_null (hostname);
+        GNUNET_free (hostname);
         GNUNET_free (unixpath);
         return GNUNET_SYSERR;
       }
@@ -504,7 +504,7 @@ get_server_addresses (const char *service_name,
            _ (
              "Have neither PORT nor UNIXPATH for service `%s', but one is required\n"),
            service_name);
-    GNUNET_free_non_null (hostname);
+    GNUNET_free (hostname);
     return GNUNET_SYSERR;
   }
   if (0 == port)
@@ -512,8 +512,8 @@ get_server_addresses (const char *service_name,
     saddrs = GNUNET_new_array (2, struct sockaddr *);
     saddrlens = GNUNET_new_array (2, socklen_t);
     add_unixpath (saddrs, saddrlens, unixpath, abstract);
-    GNUNET_free_non_null (unixpath);
-    GNUNET_free_non_null (hostname);
+    GNUNET_free (unixpath);
+    GNUNET_free (hostname);
     *addrs = saddrs;
     *addr_lens = saddrlens;
     return 1;
@@ -537,7 +537,7 @@ get_server_addresses (const char *service_name,
            hostname,
            gai_strerror (ret));
       GNUNET_free (hostname);
-      GNUNET_free_non_null (unixpath);
+      GNUNET_free (unixpath);
       return GNUNET_SYSERR;
     }
     next = res;
@@ -557,7 +557,7 @@ get_server_addresses (const char *service_name,
            hostname);
       freeaddrinfo (res);
       GNUNET_free (hostname);
-      GNUNET_free_non_null (unixpath);
+      GNUNET_free (unixpath);
       return GNUNET_SYSERR;
     }
     resi = i;
@@ -664,7 +664,7 @@ get_server_addresses (const char *service_name,
       ((struct sockaddr_in *) saddrs[i])->sin_port = htons (port);
     }
   }
-  GNUNET_free_non_null (unixpath);
+  GNUNET_free (unixpath);
   *addrs = saddrs;
   *addr_lens = saddrlens;
   return resi;
@@ -858,8 +858,10 @@ start_process (struct ServiceList *sl,
      * of ''-quoted strings, escaping should be considered. */
     if (NULL != options)
       options = GNUNET_CONFIGURATION_expand_dollar (cfg, options);
-    sl->proc = GNUNET_OS_start_process_s (sl->pipe_control,
-                                          GNUNET_OS_INHERIT_STD_OUT_AND_ERR,
+    sl->proc = GNUNET_OS_start_process_s (sl->pipe_control
+                                          ? GNUNET_OS_INHERIT_STD_OUT_AND_ERR
+                                          | GNUNET_OS_USE_PIPE_CONTROL
+                                          : GNUNET_OS_INHERIT_STD_OUT_AND_ERR,
                                           lsocks,
                                           loprefix,
                                           quotedbinary,
@@ -880,7 +882,11 @@ start_process (struct ServiceList *sl,
     if (GNUNET_YES == use_debug)
     {
       if (NULL == sl->config)
-        sl->proc = GNUNET_OS_start_process_s (sl->pipe_control,
+        sl->proc = GNUNET_OS_start_process_s (sl->pipe_control
+                                              ?
+                                              GNUNET_OS_INHERIT_STD_OUT_AND_ERR
+                                              | GNUNET_OS_USE_PIPE_CONTROL
+                                              :
                                               GNUNET_OS_INHERIT_STD_OUT_AND_ERR,
                                               lsocks,
                                               loprefix,
@@ -890,7 +896,11 @@ start_process (struct ServiceList *sl,
                                               options,
                                               NULL);
       else
-        sl->proc = GNUNET_OS_start_process_s (sl->pipe_control,
+        sl->proc = GNUNET_OS_start_process_s (sl->pipe_control
+                                              ?
+                                              GNUNET_OS_INHERIT_STD_OUT_AND_ERR
+                                              | GNUNET_OS_USE_PIPE_CONTROL
+                                              :
                                               GNUNET_OS_INHERIT_STD_OUT_AND_ERR,
                                               lsocks,
                                               loprefix,
@@ -905,7 +915,11 @@ start_process (struct ServiceList *sl,
     else
     {
       if (NULL == sl->config)
-        sl->proc = GNUNET_OS_start_process_s (sl->pipe_control,
+        sl->proc = GNUNET_OS_start_process_s (sl->pipe_control
+                                              ?
+                                              GNUNET_OS_INHERIT_STD_OUT_AND_ERR
+                                              | GNUNET_OS_USE_PIPE_CONTROL
+                                              :
                                               GNUNET_OS_INHERIT_STD_OUT_AND_ERR,
                                               lsocks,
                                               loprefix,
@@ -913,7 +927,11 @@ start_process (struct ServiceList *sl,
                                               options,
                                               NULL);
       else
-        sl->proc = GNUNET_OS_start_process_s (sl->pipe_control,
+        sl->proc = GNUNET_OS_start_process_s (sl->pipe_control
+                                              ?
+                                              GNUNET_OS_INHERIT_STD_OUT_AND_ERR
+                                              | GNUNET_OS_USE_PIPE_CONTROL
+                                              :
                                               GNUNET_OS_INHERIT_STD_OUT_AND_ERR,
                                               lsocks,
                                               loprefix,
@@ -1132,8 +1150,8 @@ free_service (struct ServiceList *sl)
   GNUNET_assert (GNUNET_YES == in_shutdown);
   GNUNET_CONTAINER_DLL_remove (running_head, running_tail, sl);
   GNUNET_assert (NULL == sl->listen_head);
-  GNUNET_free_non_null (sl->config);
-  GNUNET_free_non_null (sl->binary);
+  GNUNET_free (sl->config);
+  GNUNET_free (sl->binary);
   GNUNET_free (sl->name);
   GNUNET_free (sl);
 }
@@ -2152,7 +2170,7 @@ main (int argc, char *const *argv)
     GNUNET_MQ_handler_end ()
   };
 
-  sigpipe = GNUNET_DISK_pipe (GNUNET_NO, GNUNET_NO, GNUNET_NO, GNUNET_NO);
+  sigpipe = GNUNET_DISK_pipe (GNUNET_DISK_PF_NONE);
   GNUNET_assert (NULL != sigpipe);
   shc_chld =
     GNUNET_SIGNAL_handler_install (GNUNET_SIGCHLD,

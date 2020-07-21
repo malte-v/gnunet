@@ -339,7 +339,7 @@ parse_args (int argc, char *argv[])
   {
     if ((c < (argc - 1)) && (0 == strcmp (argv[c], "-e")))
     {
-      GNUNET_free_non_null (opt_exp_file);
+      GNUNET_free (opt_exp_file);
       opt_exp_file = GNUNET_strdup (argv[c + 1]);
     }
     if (0 == strcmp (argv[c], "-l"))

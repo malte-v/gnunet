@@ -978,8 +978,8 @@ main (int argc, char *const *argv)
                             options,
                             &run,
                             NULL);
-  GNUNET_free_non_null (opt_pid_str);
-  GNUNET_free_non_null (opt_type_str);
+  GNUNET_free (opt_pid_str);
+  GNUNET_free (opt_type_str);
   GNUNET_free_nz ((void *) argv);
 
   if (GNUNET_OK == res)

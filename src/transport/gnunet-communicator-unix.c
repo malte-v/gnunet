@@ -673,7 +673,8 @@ setup_queue (const struct GNUNET_PeerIdentity *target,
     queue->qh = GNUNET_TRANSPORT_communicator_mq_add (ch,
                                                       &queue->target,
                                                       foreign_addr,
-                                                      UNIX_MTU - sizeof (struct UNIXMessage),
+                                                      UNIX_MTU - sizeof (struct
+                                                                         UNIXMessage),
                                                       GNUNET_TRANSPORT_QUEUE_LENGTH_UNLIMITED,
                                                       0,
                                                       GNUNET_NT_LOOPBACK,
@@ -799,7 +800,7 @@ select_read_cb (void *cls)
     /* ensure aligned access */
     memcpy (&al_hdr, currhdr, sizeof(al_hdr));
     if ((tsize < sizeof(struct GNUNET_MessageHeader)) ||
-        (tsize != ntohs(al_hdr.size)))
+        (tsize != ntohs (al_hdr.size)))
     {
       GNUNET_break_op (0);
       return;

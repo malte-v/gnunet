@@ -249,7 +249,7 @@ dump_pc (struct PrintContext *pc)
     }
   }
   printf ("\n");
-  GNUNET_free_non_null (pc->address_list);
+  GNUNET_free (pc->address_list);
   GNUNET_CONTAINER_DLL_remove (pc_head, pc_tail, pc);
   GNUNET_free (pc);
   if ((NULL == pc_head) && (NULL == pic))
@@ -619,14 +619,14 @@ shutdown_task (void *cls)
     for (i = 0; i < pc->address_list_size; i++)
     {
       ar = &pc->address_list[i];
-      GNUNET_free_non_null (ar->result);
+      GNUNET_free (ar->result);
       if (NULL != ar->atsc)
       {
         GNUNET_TRANSPORT_address_to_string_cancel (ar->atsc);
         ar->atsc = NULL;
       }
     }
-    GNUNET_free_non_null (pc->address_list);
+    GNUNET_free (pc->address_list);
     GNUNET_free (pc);
   }
   GPI_plugins_unload ();

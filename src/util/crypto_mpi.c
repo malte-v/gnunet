@@ -157,8 +157,8 @@ GNUNET_CRYPTO_mpi_scan_unsigned (gcry_mpi_t *result,
  */
 void
 GNUNET_CRYPTO_mpi_scan_unsigned_le (gcry_mpi_t *result,
-                                 const void *data,
-                                 size_t size)
+                                    const void *data,
+                                    size_t size)
 {
   int rc;
 

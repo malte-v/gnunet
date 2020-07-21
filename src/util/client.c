@@ -422,7 +422,7 @@ connection_client_destroy_impl (struct GNUNET_MQ_Handle *mq,
   }
   cancel_aps (cstate);
   GNUNET_free (cstate->service_name);
-  GNUNET_free_non_null (cstate->hostname);
+  GNUNET_free (cstate->hostname);
   GNUNET_MST_destroy (cstate->mst);
   GNUNET_free (cstate);
 }
@@ -563,7 +563,7 @@ try_unixpath (const char *service_name,
     if (NULL != sock)
       GNUNET_NETWORK_socket_close (sock);
   }
-  GNUNET_free_non_null (unixpath);
+  GNUNET_free (unixpath);
 #endif
   return NULL;
 }
@@ -747,7 +747,7 @@ test_service_configuration (const char *service_name,
                                _ ("not a valid filename"));
     return GNUNET_SYSERR;   /* UNIXPATH specified but invalid! */
   }
-  GNUNET_free_non_null (unixpath);
+  GNUNET_free (unixpath);
 #endif
 
   if ((GNUNET_YES ==
@@ -768,7 +768,7 @@ test_service_configuration (const char *service_name,
                                               &hostname)) &&
       (0 != strlen (hostname)))
     ret = GNUNET_OK;
-  GNUNET_free_non_null (hostname);
+  GNUNET_free (hostname);
   return ret;
 }
 
@@ -1043,7 +1043,7 @@ GNUNET_CLIENT_test (const struct GNUNET_CONFIGURATION_Handle *cfg,
     /* service running remotely */
     ret = GNUNET_OK;
   }
-  GNUNET_free_non_null (hostname);
+  GNUNET_free (hostname);
   return ret;
 }
 

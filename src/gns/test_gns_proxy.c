@@ -139,7 +139,7 @@ load_key_from_file (gnutls_x509_privkey_t key,
                 _ ("Unable to import private key from file `%s'\n"),
                 keyfile);
   }
-  GNUNET_free_non_null (key_data.data);
+  GNUNET_free (key_data.data);
   return (GNUTLS_E_SUCCESS != ret) ? GNUNET_SYSERR : GNUNET_OK;
 }
 
@@ -171,7 +171,7 @@ load_cert_from_file (gnutls_x509_crt_t crt,
                 _ ("Unable to import certificate from `%s'\n"),
                 certfile);
   }
-  GNUNET_free_non_null (cert_data.data);
+  GNUNET_free (cert_data.data);
   return (GNUTLS_E_SUCCESS != ret) ? GNUNET_SYSERR : GNUNET_OK;
 }
 
@@ -245,7 +245,7 @@ do_shutdown ()
     MHD_stop_daemon (mhd);
     mhd = NULL;
   }
-  GNUNET_free_non_null (url);
+  GNUNET_free (url);
 
   if (NULL != proxy_proc)
   {
@@ -528,6 +528,8 @@ run (void *cls,
 int
 main (int argc, char *const *argv)
 {
+  char *tmp_argv;
+
   struct GNUNET_GETOPT_CommandLineOption options[] = {
     GNUNET_GETOPT_option_uint16 ('p',
                                  "port",
@@ -557,7 +559,7 @@ main (int argc, char *const *argv)
   }
   if (GNUNET_OK !=
       GNUNET_STRINGS_get_utf8_args (argc, argv,
-                                    &argc, &argv))
+                                    &argc, &tmp_argv))
     return 2;
   GNUNET_log_setup ("gnunet-gns-proxy-test",
                     "WARNING",
@@ -568,7 +570,7 @@ main (int argc, char *const *argv)
                                        options,
                                        &run, NULL))
     return 1;
-  GNUNET_free_non_null ((char *) argv);
+  GNUNET_free (tmp_argv);
   return global_ret;
 }
 

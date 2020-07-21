@@ -127,7 +127,7 @@ clean_task (void *cls)
              _ ("Failed to write directory with search results to `%s'\n"),
              output_filename);
   }
-  GNUNET_free_non_null (ddata);
+  GNUNET_free (ddata);
   GNUNET_free (output_filename);
 }
 
@@ -197,7 +197,7 @@ progress_cb (void *cls, const struct GNUNET_FS_ProgressInfo *info)
                                           NULL);
     printf ("\n");
     fflush (stdout);
-    GNUNET_free_non_null (filename);
+    GNUNET_free (filename);
     GNUNET_free (uri);
     results++;
     if ((results_limit > 0) && (results >= results_limit))

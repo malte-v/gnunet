@@ -198,7 +198,7 @@ check_success (void *cls,
                 msg);
     crc->phase = RP_ERROR;
   }
-  GNUNET_free_non_null (crc->data);
+  GNUNET_free (crc->data);
   crc->data = NULL;
   GNUNET_SCHEDULER_add_now (&run_continuation, crc);
 }

@@ -622,13 +622,14 @@ handle_send_ok (void *cls, const struct SendOkMessage *okm)
   struct Neighbour *n;
   uint32_t bytes_msg;
   uint32_t bytes_physical;
+  uint16_t success =  ntohs (okm->success);
 
-  bytes_msg = ntohl (okm->bytes_msg);
+  bytes_msg = ntohs (okm->bytes_msg);
   bytes_physical = ntohl (okm->bytes_physical);
   LOG (GNUNET_ERROR_TYPE_DEBUG,
        "Receiving SEND_OK message, transmission to %s %s.\n",
        GNUNET_i2s (&okm->peer),
-       ntohl (okm->success) == GNUNET_OK ? "succeeded" : "failed");
+       success == GNUNET_OK ? "succeeded" : "failed");
   n = neighbour_find (h, &okm->peer);
   if (NULL == n)
   {
@@ -891,7 +892,7 @@ GNUNET_TRANSPORT_core_connect (const struct GNUNET_CONFIGURATION_Handle *cfg,
   reconnect (h);
   if (NULL == h->mq)
   {
-    GNUNET_free_non_null (h->handlers);
+    GNUNET_free (h->handlers);
     GNUNET_free (h);
     return NULL;
   }
@@ -922,7 +923,7 @@ GNUNET_TRANSPORT_core_disconnect (struct GNUNET_TRANSPORT_CoreHandle *handle)
   }
   GNUNET_CONTAINER_multipeermap_destroy (handle->neighbours);
   handle->neighbours = NULL;
-  GNUNET_free_non_null (handle->handlers);
+  GNUNET_free (handle->handlers);
   handle->handlers = NULL;
   GNUNET_free (handle);
 }

@@ -178,9 +178,9 @@ test_random (unsigned int rx_length, unsigned int max_str_len,
   return result;
 
 error:
-  GNUNET_free_non_null (matching_str);
-  GNUNET_free_non_null (rand_rx);
-  GNUNET_free_non_null (canonical_regex);
+  GNUNET_free (matching_str);
+  GNUNET_free (rand_rx);
+  GNUNET_free (canonical_regex);
   return -1;
 }
 
@@ -371,7 +371,7 @@ main (int argc, char *argv[])
     REGEX_INTERNAL_automaton_destroy (a);
     if (0 != check_dfa)
       GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "check_proof: %s\n", check_proof);
-    GNUNET_free_non_null (check_proof);
+    GNUNET_free (check_proof);
 
     regfree (&rx);
   }

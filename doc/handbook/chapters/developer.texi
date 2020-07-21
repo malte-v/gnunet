@@ -92,33 +92,25 @@ introduction, each of the GNUnet subsystems (directories in the
 addition to this documentation, GNUnet developers should be aware of the
 services available on the GNUnet server to them.
 
-New developers can have a look a the GNUnet tutorials for C and java
-available in the @file{src/} directory of the repository or under the
-following links:
+New developers can have a look a the @uref{https://docs.gnunet.org/tutorial/gnunet-tutorial.html, GNUnet C tutorial}.
 
 @c ** FIXME: Link to files in source, not online.
 @c ** FIXME: Where is the Java tutorial?
-@itemize @bullet
-@item @xref{Top, Introduction,, gnunet-c-tutorial, The GNUnet C Tutorial}.
-@item @uref{https://docs.gnunet.org/tutorial/gnunet-tutorial.html, GNUnet C tutorial}
-@item GNUnet Java tutorial
-@end itemize
 
 In addition to the GNUnet Reference Documentation you are reading,
 the GNUnet server at @uref{https://gnunet.org} contains
 various resources for GNUnet developers and those
 who aspire to become regular contributors.
 They are all conveniently reachable via the "Developer"
-entry in the navigation menu. Some additional tools (such as static
-analysis reports) require a special developer access to perform certain
+entry in the navigation menu. Some additional tools (such as continuous
+integration) require a special developer access to perform certain
 operations. If you want (or require) access, you should contact
-@uref{http://grothoff.org/christian/, Christian Grothoff},
-GNUnet's maintainer.
+GNUnet's maintainers.
 
 @c FIXME: A good part of this belongs on the website or should be
 @c extended in subsections explaining usage of this. A simple list
 @c is just taking space people have to read.
-The public subsystems on the GNUnet server that help developers are:
+The developer services on the GNUnet project infrastructure are:
 
 @itemize @bullet
 
@@ -136,19 +128,21 @@ It can be accessed at
 @uref{https://bugs.gnunet.org/, https://bugs.gnunet.org/}.
 Anyone can report bugs.
 
-@item The current quality of our automated test suite is assessed using
-code coverage analysis. Testcases that
-improve our code coverage are always welcome.
+@item Continuous integration (Buildbot).
+Used to build gnunet and its websites upon new commits.
+It can be accessed at
+@uref{https://buildbot.gnunet.org/, https://buildbot.gnunet.org/}.
+Anyone can see the builds.
 
-@item We try to automatically find bugs using a static analysis using
-various tools. Note that not everything that is flagged by the
+@item Regularly we make use of static analysis tools.
+Note that not everything that is flagged by the
 analysis is a bug, sometimes even good code can be marked as possibly
 problematic. Nevertheless, developers are encouraged to at least be
 aware of all issues in their code that are listed.
 
-@item We use Gauger for automatic performance regression visualization.
+@c @item We use Gauger for automatic performance regression visualization.
 @c FIXME: LINK!
-Details on how to use Gauger are here.
+@c Details on how to use Gauger are here.
 
 @end itemize
 
@@ -515,6 +509,9 @@ without exposing the private input vectors of the peers to each other.
 @item @file{consensus/}
 The consensus service will allow a set of peers to agree
 on a set of values via a distributed set union computation.
+@item @file{reclaim/}
+A decentralized personal data sharing service used to realize a decentralized
+identity provider. Supports OpenID Connect. See also @uref{https://reclaim.gnunet.org}.
 @item @file{rest/}
 The rest API allows access to GNUnet services using RESTful interaction.
 The services provide plugins that can exposed by the rest server.
@@ -640,7 +637,7 @@ respective protocols or APIs:
 @item testbed @tab n/a @tab testing @tab testing
 @item testing @tab n/a @tab n/a @tab testing
 @item topology @tab n/a @tab n/a @tab n/a
-@item transport @tab stable @tab stable @tab stable
+@item transport @tab experimental @tab experimental @tab experimental
 @item tun @tab n/a @tab n/a @tab stable
 @item vpn @tab testing @tab n/a @tab n/a
 @end multitable
@@ -1218,9 +1215,6 @@ accordingly with your own Operating System environment.
 
 For the full list of dependencies, consult the appropriate, up-to-date
 section in the @file{README} file.
-
-First, we need to build or install (depending on your OS) the following
-packages. If you build them from source, build them in this exact order:
 
 @example
 libgpgerror, libgcrypt, libnettle, libunbound, GnuTLS (with libunbound

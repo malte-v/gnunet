@@ -2471,7 +2471,7 @@ free_service_record (void *cls,
                                                        key,
                                                        service));
   GNUNET_CADET_close_port (service->port);
-  GNUNET_free_non_null (service->name);
+  GNUNET_free (service->name);
   GNUNET_free (service);
   return GNUNET_OK;
 }
@@ -2613,7 +2613,7 @@ store_service (int proto,
                                          GNUNET_CONTAINER_MULTIHASHMAPOPTION_UNIQUE_ONLY))
   {
     GNUNET_CADET_close_port (service->port);
-    GNUNET_free_non_null (service->name);
+    GNUNET_free (service->name);
     GNUNET_free (service);
     GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
                 _ ("Got duplicate service records for `%s:%u'\n"),
@@ -3340,7 +3340,7 @@ cleanup (void *cls)
     stats = NULL;
   }
   for (i = 0; i < 8; i++)
-    GNUNET_free_non_null (exit_argv[i]);
+    GNUNET_free (exit_argv[i]);
 }
 
 
@@ -3706,7 +3706,7 @@ advertise_dns_exit ()
                                "dns",
                                "DNS_RESOLVER",
                                _ ("need a valid IPv4 or IPv6 address\n"));
-    GNUNET_free_non_null (dns_exit);
+    GNUNET_free (dns_exit);
     return;
   }
   /* open port */
@@ -3807,7 +3807,7 @@ setup_exit_helper_args ()
       GNUNET_log_config_missing (GNUNET_ERROR_TYPE_ERROR,
                                  "EXIT",
                                  "IPV6ADDR");
-      GNUNET_free_non_null (ipv6addr);
+      GNUNET_free (ipv6addr);
       return GNUNET_SYSERR;
     }
     exit_argv[3] = ipv6addr;
@@ -3858,7 +3858,7 @@ setup_exit_helper_args ()
       GNUNET_log_config_missing (GNUNET_ERROR_TYPE_ERROR,
                                  "EXIT",
                                  "IPV4ADDR");
-      GNUNET_free_non_null (ipv4addr);
+      GNUNET_free (ipv4addr);
       return GNUNET_SYSERR;
     }
     exit_argv[5] = ipv4addr;
@@ -3875,7 +3875,7 @@ setup_exit_helper_args ()
       GNUNET_log_config_missing (GNUNET_ERROR_TYPE_ERROR,
                                  "EXIT",
                                  "IPV4MASK");
-      GNUNET_free_non_null (ipv4mask);
+      GNUNET_free (ipv4mask);
       return GNUNET_SYSERR;
     }
     exit_argv[6] = ipv4mask;
@@ -4023,7 +4023,7 @@ run (void *cls,
       regex = NULL;
     else
       regex = GNUNET_TUN_ipv4policy2regex (policy);
-    GNUNET_free_non_null (policy);
+    GNUNET_free (policy);
     if (NULL != regex)
     {
       (void) GNUNET_asprintf (&prefixed_regex,
@@ -4063,7 +4063,7 @@ run (void *cls,
       regex = NULL;
     else
       regex = GNUNET_TUN_ipv6policy2regex (policy);
-    GNUNET_free_non_null (policy);
+    GNUNET_free (policy);
     if (NULL != regex)
     {
       (void) GNUNET_asprintf (&prefixed_regex,

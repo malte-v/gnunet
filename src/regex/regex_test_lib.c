@@ -222,10 +222,10 @@ regex_combine (struct RegexCombineCtx *ctx)
     else
     {
       GNUNET_asprintf (&tmp, "%s%s|", regex, s);
-      GNUNET_free_non_null (regex);
+      GNUNET_free (regex);
       regex = tmp;
     }
-    GNUNET_free_non_null (s);
+    GNUNET_free (s);
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "  so far '%s' for inner %s\n", regex,
                 ctx->s);
   }
@@ -517,7 +517,7 @@ regex_ctx_destroy (struct RegexCombineCtx *ctx)
   {
     regex_ctx_destroy (ctx->children[i]);
   }
-  GNUNET_free_non_null (ctx->s);  /* 's' on root node is null */
+  GNUNET_free (ctx->s);  /* 's' on root node is null */
   GNUNET_free (ctx->children);
   GNUNET_free (ctx);
 }
@@ -632,7 +632,7 @@ REGEX_TEST_read_from_file (const char *filename)
     regex = NULL;
   }
   while (offset < size);
-  GNUNET_free_non_null (regex);
+  GNUNET_free (regex);
   GNUNET_free (buffer);
 
   return regexes;

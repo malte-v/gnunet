@@ -450,7 +450,7 @@ database_setup (struct Plugin *plugin)
                          s);
         else
           GNUNET_break (0);
-        GNUNET_free_non_null (o);
+        GNUNET_free (o);
       }
       entry->value_size = GNUNET_STRINGS_base64_decode (value,
                                                         strlen (value),

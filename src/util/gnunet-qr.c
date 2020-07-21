@@ -31,7 +31,7 @@
 
 #define LOG(fmt, ...)  \
   if (verbose) \
-    printf (fmt, ## __VA_ARGS__)
+  printf (fmt, ## __VA_ARGS__)
 
 /**
  * Video device to capture from. Sane default for GNU/Linux systems.
@@ -161,10 +161,7 @@ gnunet_uri (void *cls,
     return;
   }
   GNUNET_free (subsystem);
-  sigpipe = GNUNET_DISK_pipe (GNUNET_NO,
-                              GNUNET_NO,
-                              GNUNET_NO,
-                              GNUNET_NO);
+  sigpipe = GNUNET_DISK_pipe (GNUNET_DISK_PF_NONE);
   GNUNET_assert (NULL != sigpipe);
   rt = GNUNET_SCHEDULER_add_read_file (
     GNUNET_TIME_UNIT_FOREVER_REL,
@@ -192,8 +189,7 @@ gnunet_uri (void *cls,
     GNUNET_array_append (argv,
                          argc,
                          NULL);
-    p = GNUNET_OS_start_process_vap (GNUNET_NO,
-                                     GNUNET_OS_INHERIT_STD_ALL,
+    p = GNUNET_OS_start_process_vap (GNUNET_OS_INHERIT_STD_ALL,
                                      NULL,
                                      NULL,
                                      NULL,

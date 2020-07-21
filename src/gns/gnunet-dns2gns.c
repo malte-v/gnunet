@@ -190,6 +190,7 @@ do_shutdown (void *cls)
   }
 }
 
+
 /**
  * Shuffle answers
  * Fisher-Yates (aka Knuth) Shuffle
@@ -215,6 +216,7 @@ shuffle_answers (struct Request *request)
             sizeof (struct GNUNET_DNSPARSER_Record));
   }
 }
+
 
 /**
  * Send the response for the given request and clean up.

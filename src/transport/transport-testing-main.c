@@ -604,7 +604,7 @@ GNUNET_TRANSPORT_TESTING_main_ (const char *argv0,
   for (unsigned int i = 0; i < num_peers; i++)
     GNUNET_free (cfg_names[i]);
   GNUNET_free (test_source);
-  GNUNET_free_non_null (test_plugin);
+  GNUNET_free (test_plugin);
   GNUNET_free (test_name);
   return ret;
 }

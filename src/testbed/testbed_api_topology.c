@@ -1183,7 +1183,7 @@ _exit:
         struct TopologyContextOverlay *overlay;
 
         overlay = &tc->u.overlay;
-        GNUNET_free_non_null (overlay->link_array);
+        GNUNET_free (overlay->link_array);
         overlay->link_array = NULL;
       }
       break;
@@ -1193,7 +1193,7 @@ _exit:
         struct TopologyContextUnderlay *underlay;
 
         underlay = &tc->u.underlay;
-        GNUNET_free_non_null (underlay->link_array);
+        GNUNET_free (underlay->link_array);
         underlay->link_array = NULL;
       }
       break;
@@ -1428,7 +1428,7 @@ GNUNET_TESTBED_overlay_configure_topology_va (void *op_cls,
     default:
       GNUNET_break (0);         /* Should not use any other option apart from
                                  * the ones handled here */
-      GNUNET_free_non_null (overlay->link_array);
+      GNUNET_free (overlay->link_array);
       GNUNET_free (tc);
       return NULL;
     }
@@ -1653,7 +1653,7 @@ GNUNET_TESTBED_underlay_construct_ (int num_peers,
       break;
     }
   }
-  GNUNET_free_non_null (underlay->link_array);
+  GNUNET_free (underlay->link_array);
   return ret;
 }
 

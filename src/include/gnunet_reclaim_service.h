@@ -335,7 +335,8 @@ GNUNET_RECLAIM_get_attestations_start (
  * @param it the iterator
  */
 void
-GNUNET_RECLAIM_get_attestations_next (struct GNUNET_RECLAIM_AttestationIterator *ait);
+GNUNET_RECLAIM_get_attestations_next (struct
+                                      GNUNET_RECLAIM_AttestationIterator *ait);
 
 
 /**
@@ -346,7 +347,8 @@ GNUNET_RECLAIM_get_attestations_next (struct GNUNET_RECLAIM_AttestationIterator 
  * @param it the iterator
  */
 void
-GNUNET_RECLAIM_get_attestations_stop (struct GNUNET_RECLAIM_AttestationIterator *ait);
+GNUNET_RECLAIM_get_attestations_stop (struct
+                                      GNUNET_RECLAIM_AttestationIterator *ait);
 
 
 /**

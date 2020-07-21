@@ -639,7 +639,7 @@ database_shutdown (struct Plugin *plugin)
     LOG_SQLITE (plugin,
                 GNUNET_ERROR_TYPE_ERROR,
                 "sqlite3_close");
-  GNUNET_free_non_null (plugin->fn);
+  GNUNET_free (plugin->fn);
 }
 
 

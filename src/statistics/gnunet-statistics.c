@@ -880,7 +880,7 @@ main (int argc, char *const *argv)
   GNUNET_array_grow (nodes,
                      num_nodes,
                      0);
-  GNUNET_free_non_null (remote_host);
+  GNUNET_free (remote_host);
   GNUNET_free_nz ((void *) argv);
   return ret;
 }

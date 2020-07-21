@@ -2214,10 +2214,7 @@ GNUNET_SCHEDULER_driver_init (const struct GNUNET_SCHEDULER_Driver *driver)
   GNUNET_assert (NULL == shutdown_pipe_handle);
   /* general set-up */
   sh = GNUNET_new (struct GNUNET_SCHEDULER_Handle);
-  shutdown_pipe_handle = GNUNET_DISK_pipe (GNUNET_NO,
-                                           GNUNET_NO,
-                                           GNUNET_NO,
-                                           GNUNET_NO);
+  shutdown_pipe_handle = GNUNET_DISK_pipe (GNUNET_DISK_PF_NONE);
   GNUNET_assert (NULL != shutdown_pipe_handle);
   pr = GNUNET_DISK_pipe_handle (shutdown_pipe_handle,
                                 GNUNET_DISK_PIPE_END_READ);

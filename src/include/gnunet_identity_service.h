@@ -86,9 +86,9 @@ GNUNET_IDENTITY_ego_get_private_key (const struct GNUNET_IDENTITY_Ego *ego);
 /**
  * Obtain the ego representing 'anonymous' users.
  *
- * @return handle for the anonymous user, must not be freed
+ * @return handle for the anonymous user, MUST NOT be freed
  */
-const struct GNUNET_IDENTITY_Ego *
+struct GNUNET_IDENTITY_Ego *
 GNUNET_IDENTITY_ego_get_anonymous (void);
 
 

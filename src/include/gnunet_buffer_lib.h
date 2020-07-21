@@ -147,7 +147,7 @@ GNUNET_buffer_write_fstr (struct GNUNET_Buffer *buf, const char *fmt, ...);
  */
 void
 GNUNET_buffer_write_vfstr (struct GNUNET_Buffer *buf, const char *fmt, va_list
-                          args);
+                           args);
 
 
 /**

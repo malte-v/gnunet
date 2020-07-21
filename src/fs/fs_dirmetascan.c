@@ -106,7 +106,7 @@ GNUNET_FS_directory_scan_abort (struct GNUNET_FS_DirScanner *ds)
     GNUNET_FS_share_tree_free (ds->toplevel);
   if (NULL != ds->stop_task)
     GNUNET_SCHEDULER_cancel (ds->stop_task);
-  GNUNET_free_non_null (ds->ex_arg);
+  GNUNET_free (ds->ex_arg);
   GNUNET_free (ds->filename_expanded);
   GNUNET_free (ds);
 }

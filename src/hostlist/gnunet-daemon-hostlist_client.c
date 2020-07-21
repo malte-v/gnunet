@@ -540,12 +540,12 @@ download_get_url ()
   {                                                 \
     ret = curl_easy_setopt (c, a, b);               \
     if (CURLE_OK != ret)                            \
-      GNUNET_log (GNUNET_ERROR_TYPE_WARNING,        \
-                  _ ("%s failed at %s:%d: `%s'\n"), \
-                  "curl_easy_setopt",               \
-                  __FILE__,                         \
-                  __LINE__,                         \
-                  curl_easy_strerror (ret));        \
+    GNUNET_log (GNUNET_ERROR_TYPE_WARNING,        \
+                _ ("%s failed at %s:%d: `%s'\n"), \
+                "curl_easy_setopt",               \
+                __FILE__,                         \
+                __LINE__,                         \
+                curl_easy_strerror (ret));        \
   } while (0)
 
 
@@ -790,7 +790,7 @@ clean_up ()
     curl_easy_cleanup (curl);
     curl = NULL;
   }
-  GNUNET_free_non_null (current_url);
+  GNUNET_free (current_url);
   current_url = NULL;
   stat_bytes_downloaded = 0;
   stat_download_in_progress = GNUNET_NO;
@@ -1418,11 +1418,12 @@ load_hostlist_file ()
 
   counter = 0;
   struct GNUNET_BIO_ReadSpec rs[] = {
-    GNUNET_BIO_read_spec_int32 ("times used", (int32_t *)&times_used),
+    GNUNET_BIO_read_spec_int32 ("times used", (int32_t *) &times_used),
     GNUNET_BIO_read_spec_int64 ("quality", (int64_t *) &quality),
     GNUNET_BIO_read_spec_int64 ("last used", (int64_t *) &last_used),
     GNUNET_BIO_read_spec_int64 ("created", (int64_t *) &created),
-    GNUNET_BIO_read_spec_int32 ("hellos returned", (int32_t *) &hellos_returned),
+    GNUNET_BIO_read_spec_int32 ("hellos returned",
+                                (int32_t *) &hellos_returned),
     GNUNET_BIO_read_spec_end (),
   };
   while ((GNUNET_OK == GNUNET_BIO_read_string (rh, "url", &uri, MAX_URL_LEN)) &&
@@ -1460,7 +1461,7 @@ load_hostlist_file ()
                          linked_list_size,
                          GNUNET_NO);
 
-  GNUNET_free_non_null (uri);
+  GNUNET_free (uri);
   emsg = NULL;
   (void) GNUNET_BIO_read_close (rh, &emsg);
   if (emsg != NULL)
@@ -1527,7 +1528,8 @@ save_hostlist_file (int shutdown)
     {
       struct GNUNET_BIO_WriteSpec ws[] = {
         GNUNET_BIO_write_spec_string ("hostlist uri", pos->hostlist_uri),
-        GNUNET_BIO_write_spec_int32 ("times used", (int32_t *) &pos->times_used),
+        GNUNET_BIO_write_spec_int32 ("times used",
+                                     (int32_t *) &pos->times_used),
         GNUNET_BIO_write_spec_int64 ("quality", (int64_t *) &pos->quality),
         GNUNET_BIO_write_spec_int64 (
           "last usage",
@@ -1657,15 +1659,15 @@ GNUNET_HOSTLIST_client_start (const struct GNUNET_CONFIGURATION_Handle *c,
         GNUNET_free (proxytype_str);
         GNUNET_free (proxy);
         proxy = NULL;
-        GNUNET_free_non_null (proxy_username);
+        GNUNET_free (proxy_username);
         proxy_username = NULL;
-        GNUNET_free_non_null (proxy_password);
+        GNUNET_free (proxy_password);
         proxy_password = NULL;
 
         return GNUNET_SYSERR;
       }
     }
-    GNUNET_free_non_null (proxytype_str);
+    GNUNET_free (proxytype_str);
   }
 
   stat_learning = learn;
@@ -1786,11 +1788,11 @@ GNUNET_HOSTLIST_client_stop ()
     ti_check_download = NULL;
     curl_global_cleanup ();
   }
-  GNUNET_free_non_null (proxy);
+  GNUNET_free (proxy);
   proxy = NULL;
-  GNUNET_free_non_null (proxy_username);
+  GNUNET_free (proxy_username);
   proxy_username = NULL;
-  GNUNET_free_non_null (proxy_password);
+  GNUNET_free (proxy_password);
   proxy_password = NULL;
   if (NULL != pi)
   {

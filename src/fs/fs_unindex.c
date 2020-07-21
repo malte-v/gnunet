@@ -415,7 +415,7 @@ GNUNET_FS_unindex_do_extract_keywords_ (struct GNUNET_FS_UnindexContext *uc)
                                               GNUNET_NO, ex,
                                               &unindex_directory_scan_cb,
                                               uc);
-  GNUNET_free_non_null (ex);
+  GNUNET_free (ex);
 }
 
 
@@ -777,8 +777,8 @@ GNUNET_FS_unindex_signal_suspend_ (void *cls)
                                    UNINDEX_STATE_COMPLETE) ? uc->file_size : 0);
   GNUNET_break (NULL == uc->client_info);
   GNUNET_free (uc->filename);
-  GNUNET_free_non_null (uc->serialization);
-  GNUNET_free_non_null (uc->emsg);
+  GNUNET_free (uc->serialization);
+  GNUNET_free (uc->emsg);
   GNUNET_free (uc);
 }
 
@@ -892,7 +892,7 @@ GNUNET_FS_unindex_stop (struct GNUNET_FS_UnindexContext *uc)
                                   (uc->state ==
                                    UNINDEX_STATE_COMPLETE) ? uc->file_size : 0);
   GNUNET_break (NULL == uc->client_info);
-  GNUNET_free_non_null (uc->emsg);
+  GNUNET_free (uc->emsg);
   GNUNET_free (uc->filename);
   GNUNET_free (uc);
 }

@@ -621,7 +621,7 @@ GNUNET_NETWORK_socket_close (struct GNUNET_NETWORK_Handle *desc)
 void
 GNUNET_NETWORK_socket_free_memory_only_ (struct GNUNET_NETWORK_Handle *desc)
 {
-  GNUNET_free_non_null (desc->addr);
+  GNUNET_free (desc->addr);
   GNUNET_free (desc);
 }
 

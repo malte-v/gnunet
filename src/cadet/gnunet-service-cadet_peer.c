@@ -345,8 +345,8 @@ destroy_peer (void *cls)
                  GNUNET_CONTAINER_multipeermap_remove (peers,
                                                        &cp->pid,
                                                        cp));
-  GNUNET_free_non_null (cp->path_heads);
-  GNUNET_free_non_null (cp->path_tails);
+  GNUNET_free (cp->path_heads);
+  GNUNET_free (cp->path_tails);
   cp->path_dll_length = 0;
   if (NULL != cp->search_h)
   {
@@ -376,7 +376,7 @@ destroy_peer (void *cls)
     GNUNET_SCHEDULER_cancel (cp->heap_cleanup_task);
     cp->heap_cleanup_task = NULL;
   }
-  GNUNET_free_non_null (cp->hello);
+  GNUNET_free (cp->hello);
   /* Peer should not be freed if paths exist; if there are no paths,
      there ought to be no connections, and without connections, no
      notifications. Thus we can assert that mqm_head is empty at this
@@ -1552,6 +1552,7 @@ GCP_send_ooo (struct CadetPeer *cp,
                   env);
 }
 
+
 /**
  * Checking if a monotime value is newer than the last monotime value received from a peer. If the time value is newer it will be stored at the peer.
  *
@@ -1573,6 +1574,7 @@ GCP_check_and_update_monotime (struct CadetPeer *peer,
   }
   return GNUNET_NO;
 }
+
 
 /**
  * Checking the signature for a monotime of a GNUNET_CADET_ConnectionCreateMessage.

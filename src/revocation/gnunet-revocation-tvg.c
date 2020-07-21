@@ -43,12 +43,13 @@ print_bytes (void *buf,
 
   for (i = 0; i < buf_len; i++)
   {
-    if ((0 != i) && (0 != fold) && (i%fold == 0))
-      printf("\n");
-    printf("%02x", ((unsigned char*)buf)[i]);
+    if ((0 != i) && (0 != fold) && (i % fold == 0))
+      printf ("\n");
+    printf ("%02x", ((unsigned char*) buf)[i]);
   }
-  printf("\n");
+  printf ("\n");
 }
+
 
 /**
  * Main function that will be run.
@@ -73,12 +74,12 @@ run (void *cls,
   GNUNET_CRYPTO_ecdsa_key_create (&id_priv);
   GNUNET_CRYPTO_ecdsa_key_get_public (&id_priv,
                                       &id_pub);
-  fprintf(stdout, "Zone private key (d, little-endian scalar):\n");
+  fprintf (stdout, "Zone private key (d, little-endian scalar):\n");
   print_bytes (&id_priv, sizeof(id_priv), 0);
-  fprintf(stdout, "\n");
-  fprintf(stdout, "Zone public key (zk):\n");
+  fprintf (stdout, "\n");
+  fprintf (stdout, "Zone public key (zk):\n");
   print_bytes (&id_pub, sizeof(id_pub), 0);
-  fprintf(stdout, "\n");
+  fprintf (stdout, "\n");
   memset (&pow, 0, sizeof (pow));
   GNUNET_REVOCATION_pow_init (&id_priv,
                               &pow);
@@ -99,7 +100,7 @@ run (void *cls,
   GNUNET_assert (GNUNET_OK == GNUNET_REVOCATION_check_pow (&pow,
                                                            TEST_DIFFICULTY,
                                                            exp));
-  fprintf(stdout, "Proof:\n");
+  fprintf (stdout, "Proof:\n");
   print_bytes (&pow,
                sizeof (pow),
                8);

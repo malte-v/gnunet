@@ -492,7 +492,7 @@ destroy_elements_iterator (void *cls,
 {
   struct ElementEntry *ee = value;
 
-  GNUNET_free_non_null (ee->mutations);
+  GNUNET_free (ee->mutations);
   GNUNET_free (ee);
   return GNUNET_YES;
 }
@@ -570,7 +570,7 @@ client_disconnect_cb (void *cls,
       content->elements = NULL;
       GNUNET_free (content);
     }
-    GNUNET_free_non_null (set->excluded_generations);
+    GNUNET_free (set->excluded_generations);
     set->excluded_generations = NULL;
 
     /* remove set from pending copy requests */

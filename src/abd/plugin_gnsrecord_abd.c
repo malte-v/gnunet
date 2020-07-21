@@ -235,7 +235,8 @@ abd_string_to_value (void *cls,
                                            (char *) &sets[1]);
       for (i = 0; i < entries; i++)
       {
-        if (0 != set[i].subject_attribute_len) {
+        if (0 != set[i].subject_attribute_len)
+        {
           GNUNET_free_nz ((char *) set[i].subject_attribute);
           set[i].subject_attribute = NULL;
         }

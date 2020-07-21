@@ -401,9 +401,9 @@ static void
 start_helper (struct GNUNET_HELPER_Handle *h)
 {
   h->helper_in =
-    GNUNET_DISK_pipe (GNUNET_YES, GNUNET_YES, GNUNET_YES, GNUNET_NO);
+    GNUNET_DISK_pipe (GNUNET_DISK_PF_BLOCKING_RW);
   h->helper_out =
-    GNUNET_DISK_pipe (GNUNET_YES, GNUNET_YES, GNUNET_NO, GNUNET_YES);
+    GNUNET_DISK_pipe (GNUNET_DISK_PF_BLOCKING_RW);
   if ((h->helper_in == NULL) || (h->helper_out == NULL))
   {
     /* out of file descriptors? try again later... */
@@ -422,8 +422,10 @@ start_helper (struct GNUNET_HELPER_Handle *h)
     GNUNET_DISK_pipe_handle (h->helper_out, GNUNET_DISK_PIPE_END_READ);
   h->fh_to_helper =
     GNUNET_DISK_pipe_handle (h->helper_in, GNUNET_DISK_PIPE_END_WRITE);
-  h->helper_proc = GNUNET_OS_start_process_vap (h->with_control_pipe,
-                                                GNUNET_OS_INHERIT_STD_ERR,
+  h->helper_proc = GNUNET_OS_start_process_vap (h->with_control_pipe
+                                                ? GNUNET_OS_INHERIT_STD_ERR
+                                                | GNUNET_OS_USE_PIPE_CONTROL
+                                                : GNUNET_OS_INHERIT_STD_ERR,
                                                 h->helper_in,
                                                 h->helper_out,
                                                 NULL,

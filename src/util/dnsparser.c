@@ -109,8 +109,8 @@ GNUNET_DNSPARSER_free_soa (struct GNUNET_DNSPARSER_SoaRecord *soa)
 {
   if (NULL == soa)
     return;
-  GNUNET_free_non_null (soa->mname);
-  GNUNET_free_non_null (soa->rname);
+  GNUNET_free (soa->mname);
+  GNUNET_free (soa->rname);
   GNUNET_free (soa);
 }
 
@@ -125,7 +125,7 @@ GNUNET_DNSPARSER_free_cert (struct GNUNET_DNSPARSER_CertRecord *cert)
 {
   if (NULL == cert)
     return;
-  GNUNET_free_non_null (cert->certificate_data);
+  GNUNET_free (cert->certificate_data);
   GNUNET_free (cert);
 }
 
@@ -140,7 +140,7 @@ GNUNET_DNSPARSER_free_srv (struct GNUNET_DNSPARSER_SrvRecord *srv)
 {
   if (NULL == srv)
     return;
-  GNUNET_free_non_null (srv->target);
+  GNUNET_free (srv->target);
   GNUNET_free (srv);
 }
 
@@ -155,7 +155,7 @@ GNUNET_DNSPARSER_free_mx (struct GNUNET_DNSPARSER_MxRecord *mx)
 {
   if (NULL == mx)
     return;
-  GNUNET_free_non_null (mx->mxhost);
+  GNUNET_free (mx->mxhost);
   GNUNET_free (mx);
 }
 
@@ -168,7 +168,7 @@ GNUNET_DNSPARSER_free_mx (struct GNUNET_DNSPARSER_MxRecord *mx)
 void
 GNUNET_DNSPARSER_free_record (struct GNUNET_DNSPARSER_Record *r)
 {
-  GNUNET_free_non_null (r->name);
+  GNUNET_free (r->name);
   switch (r->type)
   {
   case GNUNET_DNSPARSER_TYPE_MX:
@@ -190,11 +190,11 @@ GNUNET_DNSPARSER_free_record (struct GNUNET_DNSPARSER_Record *r)
   case GNUNET_DNSPARSER_TYPE_NS:
   case GNUNET_DNSPARSER_TYPE_CNAME:
   case GNUNET_DNSPARSER_TYPE_PTR:
-    GNUNET_free_non_null (r->data.hostname);
+    GNUNET_free (r->data.hostname);
     break;
 
   default:
-    GNUNET_free_non_null (r->data.raw.data);
+    GNUNET_free (r->data.raw.data);
     break;
   }
 }
@@ -854,17 +854,17 @@ void
 GNUNET_DNSPARSER_free_packet (struct GNUNET_DNSPARSER_Packet *p)
 {
   for (unsigned int i = 0; i < p->num_queries; i++)
-    GNUNET_free_non_null (p->queries[i].name);
-  GNUNET_free_non_null (p->queries);
+    GNUNET_free (p->queries[i].name);
+  GNUNET_free (p->queries);
   for (unsigned int i = 0; i < p->num_answers; i++)
     GNUNET_DNSPARSER_free_record (&p->answers[i]);
-  GNUNET_free_non_null (p->answers);
+  GNUNET_free (p->answers);
   for (unsigned int i = 0; i < p->num_authority_records; i++)
     GNUNET_DNSPARSER_free_record (&p->authority_records[i]);
-  GNUNET_free_non_null (p->authority_records);
+  GNUNET_free (p->authority_records);
   for (unsigned int i = 0; i < p->num_additional_records; i++)
     GNUNET_DNSPARSER_free_record (&p->additional_records[i]);
-  GNUNET_free_non_null (p->additional_records);
+  GNUNET_free (p->additional_records);
   GNUNET_free (p);
 }
 

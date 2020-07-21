@@ -88,9 +88,9 @@ do_shutdown ()
     GNUNET_NAMESTORE_disconnect (nsh);
     nsh = NULL;
   }
-  GNUNET_free_non_null (s_name_1);
-  GNUNET_free_non_null (s_name_2);
-  GNUNET_free_non_null (s_name_3);
+  GNUNET_free (s_name_1);
+  GNUNET_free (s_name_2);
+  GNUNET_free (s_name_3);
 
   if (s_rd_1 != NULL)
   {

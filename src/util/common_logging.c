@@ -715,9 +715,9 @@ GNUNET_log_setup (const char *comp,
 #if ! defined(GNUNET_CULL_LOGGING)
   parse_all_definitions ();
 #endif
-  GNUNET_free_non_null (component);
+  GNUNET_free (component);
   GNUNET_asprintf (&component, "%s-%d", comp, getpid ());
-  GNUNET_free_non_null (component_nopid);
+  GNUNET_free (component_nopid);
   component_nopid = GNUNET_strdup (comp);
 
   env_logfile = getenv ("GNUNET_FORCE_LOGFILE");
@@ -725,7 +725,7 @@ GNUNET_log_setup (const char *comp,
     logfile = env_logfile;
   if (NULL == logfile)
     return GNUNET_OK;
-  GNUNET_free_non_null (log_file_name);
+  GNUNET_free (log_file_name);
   log_file_name = GNUNET_STRINGS_filename_expand (logfile);
   if (NULL == log_file_name)
     return GNUNET_SYSERR;

@@ -194,7 +194,7 @@ do_shutdown (void *cls)
     GNUNET_NAMESTORE_disconnect (namestore);
     namestore = NULL;
   }
-  GNUNET_free_non_null (url);
+  GNUNET_free (url);
   url = NULL;
 }
 

@@ -33,6 +33,7 @@ check (void)
   char *ptrs[MAX_TESTVAL];
   unsigned int **a2;
   char ***a3;
+  char *tmp;
   int i;
   int j;
   int k;
@@ -55,9 +56,9 @@ check (void)
     GNUNET_free (ptrs[i]);
   }
 
-  /* GNUNET_free_non_null test */
-  GNUNET_free_non_null (NULL);
-  GNUNET_free_non_null (GNUNET_malloc (4));
+  /* GNUNET_free test */
+  tmp = GNUNET_malloc (4);
+  GNUNET_free (tmp);
 
   /* GNUNET_strdup tests */
   ptrs[0] = GNUNET_strdup ("bar");

@@ -218,6 +218,8 @@ is_bandwidth_available_in_network (struct Network *net,
   if (((net->total_quota_in / na) > min_bw) &&
       ((net->total_quota_out / na) > min_bw))
     return GNUNET_YES;
+  LOG (GNUNET_ERROR_TYPE_DEBUG,
+       "No bandwidth available in network\n");
   return GNUNET_NO;
 }
 
@@ -1225,7 +1227,7 @@ libgnunet_plugin_ats_proportional_done (void *cls)
       GNUNET_CONTAINER_DLL_remove (s->network_entries[c].head,
                                    s->network_entries[c].tail,
                                    cur);
-      GNUNET_free_non_null (cur->addr->solver_information);
+      GNUNET_free (cur->addr->solver_information);
       GNUNET_free (cur);
     }
     GNUNET_free (s->network_entries[c].stat_total);

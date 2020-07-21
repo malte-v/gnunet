@@ -970,6 +970,7 @@ shutdown_nat (void *cls)
   shutdown_process (proc);
 }
 
+
 /**
  * @brief Task run at shutdown to kill the resolver process
  *
@@ -982,6 +983,7 @@ shutdown_resolver (void *cls)
   shutdown_process (proc);
 }
 
+
 static void
 resolver_start (struct
                 GNUNET_TRANSPORT_TESTING_TransportCommunicatorHandle *tc_h)
@@ -990,16 +992,17 @@ resolver_start (struct
 
   LOG (GNUNET_ERROR_TYPE_DEBUG, "resolver_start\n");
   binary = GNUNET_OS_get_libexec_binary_path ("gnunet-service-resolver");
-  tc_h->resolver_proc = GNUNET_OS_start_process (GNUNET_YES,
-                                                 GNUNET_OS_INHERIT_STD_OUT_AND_ERR,
-                                                 NULL,
-                                                 NULL,
-                                                 NULL,
-                                                 binary,
-                                                 "gnunet-service-resolver",
-                                                 "-c",
-                                                 tc_h->cfg_filename,
-                                                 NULL);
+  tc_h->resolver_proc = GNUNET_OS_start_process (
+    GNUNET_OS_INHERIT_STD_OUT_AND_ERR
+    | GNUNET_OS_USE_PIPE_CONTROL,
+    NULL,
+    NULL,
+    NULL,
+    binary,
+    "gnunet-service-resolver",
+    "-c",
+    tc_h->cfg_filename,
+    NULL);
   if (NULL == tc_h->resolver_proc)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR, "Failed to start resolver service!");
@@ -1054,8 +1057,8 @@ nat_start (
 
   LOG (GNUNET_ERROR_TYPE_DEBUG, "nat_start\n");
   binary = GNUNET_OS_get_libexec_binary_path ("gnunet-service-nat");
-  tc_h->nat_proc = GNUNET_OS_start_process (GNUNET_YES,
-                                            GNUNET_OS_INHERIT_STD_OUT_AND_ERR,
+  tc_h->nat_proc = GNUNET_OS_start_process (GNUNET_OS_INHERIT_STD_OUT_AND_ERR
+                                            | GNUNET_OS_USE_PIPE_CONTROL,
                                             NULL,
                                             NULL,
                                             NULL,
@@ -1072,6 +1075,7 @@ nat_start (
   LOG (GNUNET_ERROR_TYPE_INFO, "started NAT\n");
   GNUNET_free (binary);
 }
+
 
 /**
  * @brief Start communicator part of transport service and communicator

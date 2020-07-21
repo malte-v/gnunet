@@ -174,9 +174,9 @@ listenAndDistribute (void *unused)
          goto END; \
        } \
        if (core_api->load_monitor != NULL) \
-         GNUNET_network_monitor_notify_transmission (core_api->load_monitor, \
-                                                     GNUNET_ND_DOWNLOAD, \
-                                                     strlen (retl)); \
+       GNUNET_network_monitor_notify_transmission (core_api->load_monitor, \
+                                                   GNUNET_ND_DOWNLOAD, \
+                                                   strlen (retl)); \
   } while (0)
 
 

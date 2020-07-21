@@ -217,9 +217,9 @@ GNUNET_CONTAINER_meta_data_create ()
 static void
 meta_item_free (struct MetaItem *mi)
 {
-  GNUNET_free_non_null (mi->plugin_name);
-  GNUNET_free_non_null (mi->mime_type);
-  GNUNET_free_non_null (mi->data);
+  GNUNET_free (mi->plugin_name);
+  GNUNET_free (mi->mime_type);
+  GNUNET_free (mi->data);
   GNUNET_free (mi);
 }
 
@@ -258,7 +258,7 @@ GNUNET_CONTAINER_meta_data_destroy (struct GNUNET_CONTAINER_MetaData *md)
     GNUNET_CONTAINER_DLL_remove (md->items_head, md->items_tail, pos);
     meta_item_free (pos);
   }
-  GNUNET_free_non_null (md->sbuf);
+  GNUNET_free (md->sbuf);
   GNUNET_free (md);
 }
 
@@ -280,7 +280,7 @@ GNUNET_CONTAINER_meta_data_clear (struct GNUNET_CONTAINER_MetaData *md)
     GNUNET_CONTAINER_DLL_remove (md->items_head, md->items_tail, mi);
     meta_item_free (mi);
   }
-  GNUNET_free_non_null (md->sbuf);
+  GNUNET_free (md->sbuf);
   memset (md, 0, sizeof(struct GNUNET_CONTAINER_MetaData));
 }
 
@@ -976,7 +976,7 @@ GNUNET_CONTAINER_meta_data_serialize (const struct GNUNET_CONTAINER_MetaData
     if (NULL != pos->mime_type)
       left -= strlen (pos->mime_type) + 1;
 
-    GNUNET_free_non_null (cdata);
+    GNUNET_free (cdata);
     cdata = NULL;
 
     i++;
@@ -1180,7 +1180,7 @@ GNUNET_CONTAINER_meta_data_deserialize (const char *input, size_t size)
                                        ntohl (ent.type), format, mime_type,
                                        meta_data, dlen);
   }
-  GNUNET_free_non_null (data);
+  GNUNET_free (data);
   return md;
 }
 

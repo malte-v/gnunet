@@ -924,10 +924,10 @@ tofile_ (const char *file_name, const char *line)
     int size; \
     size = GNUNET_snprintf (tmp_buf, sizeof(tmp_buf), __VA_ARGS__); \
     if (0 > size) \
-      GNUNET_log (GNUNET_ERROR_TYPE_WARNING, \
-                  "Failed to create tmp_buf\n"); \
+    GNUNET_log (GNUNET_ERROR_TYPE_WARNING, \
+                "Failed to create tmp_buf\n"); \
     else \
-      tofile_ (file_name, tmp_buf); \
+    tofile_ (file_name, tmp_buf); \
 } while (0);
 
 

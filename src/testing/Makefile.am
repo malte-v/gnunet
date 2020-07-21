@@ -20,6 +20,9 @@ libgnunettesting_la_LIBADD = \
  $(top_builddir)/src/arm/libgnunetarm.la \
  $(top_builddir)/src/util/libgnunetutil.la \
  $(LTLIBINTL)
+libgnunettesting_la_DEPENDENCIES = \
+ $(top_builddir)/src/arm/libgnunetarm.la \
+ $(top_builddir)/src/util/libgnunetutil.la
 libgnunettesting_la_LDFLAGS = \
  $(GN_LIB_LDFLAGS) \
  -version-info 2:0:1

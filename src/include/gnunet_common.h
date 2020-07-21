@@ -345,7 +345,9 @@ struct GNUNET_AsyncScopeSave
  *  #GNUNET_NO to stop iteration with no error,
  *  #GNUNET_SYSERR to abort iteration with error!
  */
-typedef int (*GNUNET_FileNameCallback) (void *cls, const char *filename);
+typedef int
+(*GNUNET_FileNameCallback) (void *cls,
+                            const char *filename);
 
 
 /**
@@ -353,7 +355,8 @@ typedef int (*GNUNET_FileNameCallback) (void *cls, const char *filename);
  *
  * @param cls  Closure.
  */
-typedef void (*GNUNET_ContinuationCallback) (void *cls);
+typedef void
+(*GNUNET_ContinuationCallback) (void *cls);
 
 
 /**
@@ -368,10 +371,11 @@ typedef void (*GNUNET_ContinuationCallback) (void *cls);
  * @param data_size
  *        Size of @a data.
  */
-typedef void (*GNUNET_ResultCallback) (void *cls,
-                                       int64_t result_code,
-                                       const void *data,
-                                       uint16_t data_size);
+typedef void
+(*GNUNET_ResultCallback) (void *cls,
+                          int64_t result_code,
+                          const void *data,
+                          uint16_t data_size);
 
 
 /* ****************************** logging ***************************** */
@@ -453,11 +457,11 @@ __attribute__ ((format (printf, 2, 3)));
   __extension__ ({                  \
     int _gnunet_boolean_var_;      \
     if (expr)                      \
-      _gnunet_boolean_var_ = 1;    \
+    _gnunet_boolean_var_ = 1;    \
     else                           \
-      _gnunet_boolean_var_ = 0;    \
+    _gnunet_boolean_var_ = 0;    \
     _gnunet_boolean_var_;          \
-  })
+    })
 #define GN_LIKELY(expr) (__builtin_expect (_GNUNET_BOOLEAN_EXPR (expr), 1))
 #define GN_UNLIKELY(expr) (__builtin_expect (_GNUNET_BOOLEAN_EXPR (expr), 0))
 #else
@@ -495,12 +499,12 @@ GNUNET_log_from_nocheck (enum GNUNET_ErrorType kind,
         ((GNUNET_ERROR_TYPE_DEBUG & (kind)) == 0))                        \
     {                                                                     \
       if (GN_UNLIKELY (log_call_enabled == -1))                           \
-        log_call_enabled =                                                \
-          GNUNET_get_log_call_status ((kind) & (~GNUNET_ERROR_TYPE_BULK), \
-                                      (comp),                             \
-                                      __FILE__,                           \
-                                      __FUNCTION__,                       \
-                                      __LINE__);                          \
+      log_call_enabled =                                                \
+        GNUNET_get_log_call_status ((kind) & (~GNUNET_ERROR_TYPE_BULK), \
+                                    (comp),                             \
+                                    __FILE__,                           \
+                                    __FUNCTION__,                       \
+                                    __LINE__);                          \
       if (GN_UNLIKELY (GNUNET_get_log_skip () > 0))                       \
       {                                                                   \
         GNUNET_log_skip (-1, GNUNET_NO);                                  \
@@ -508,7 +512,7 @@ GNUNET_log_from_nocheck (enum GNUNET_ErrorType kind,
       else                                                                \
       {                                                                   \
         if (GN_UNLIKELY (log_call_enabled))                               \
-          GNUNET_log_from_nocheck ((kind), comp, __VA_ARGS__);            \
+        GNUNET_log_from_nocheck ((kind), comp, __VA_ARGS__);            \
       }                                                                   \
     }                                                                     \
   } while (0)
@@ -521,12 +525,12 @@ GNUNET_log_from_nocheck (enum GNUNET_ErrorType kind,
         ((GNUNET_ERROR_TYPE_DEBUG & (kind)) == 0))                        \
     {                                                                     \
       if (GN_UNLIKELY (log_call_enabled == -1))                           \
-        log_call_enabled =                                                \
-          GNUNET_get_log_call_status ((kind) & (~GNUNET_ERROR_TYPE_BULK), \
-                                      NULL,                               \
-                                      __FILE__,                           \
-                                      __FUNCTION__,                       \
-                                      __LINE__);                          \
+      log_call_enabled =                                                \
+        GNUNET_get_log_call_status ((kind) & (~GNUNET_ERROR_TYPE_BULK), \
+                                    NULL,                               \
+                                    __FILE__,                           \
+                                    __FUNCTION__,                       \
+                                    __LINE__);                          \
       if (GN_UNLIKELY (GNUNET_get_log_skip () > 0))                       \
       {                                                                   \
         GNUNET_log_skip (-1, GNUNET_NO);                                  \
@@ -534,7 +538,7 @@ GNUNET_log_from_nocheck (enum GNUNET_ErrorType kind,
       else                                                                \
       {                                                                   \
         if (GN_UNLIKELY (log_call_enabled))                               \
-          GNUNET_log_nocheck ((kind), __VA_ARGS__);                       \
+        GNUNET_log_nocheck ((kind), __VA_ARGS__);                       \
       }                                                                   \
     }                                                                     \
   } while (0)
@@ -763,6 +767,12 @@ GNUNET_e2s (const struct GNUNET_CRYPTO_EcdhePublicKey *p);
  */
 const char *
 GNUNET_e2s2 (const struct GNUNET_CRYPTO_EcdhePublicKey *p);
+
+
+/**
+ * Forward declaration to make compiler happy depending on include order.
+ */
+struct GNUNET_PeerIdentity;
 
 
 /**
@@ -1271,6 +1281,7 @@ GNUNET_is_zero_ (const void *a,
 #define GNUNET_malloc_large(size) \
   GNUNET_xmalloc_unchecked_ (size, __FILE__, __LINE__)
 
+
 /**
  * @ingroup memory
  * Wrapper around realloc. Reallocates size bytes of memory.
@@ -1283,6 +1294,7 @@ GNUNET_is_zero_ (const void *a,
 #define GNUNET_realloc(ptr, size) \
   GNUNET_xrealloc_ (ptr, size, __FILE__, __LINE__)
 
+
 /**
  * @ingroup memory
  * Wrapper around free. Frees the memory referred to by ptr.
@@ -1290,9 +1302,10 @@ GNUNET_is_zero_ (const void *a,
  * allocated with #GNUNET_array_grow using #GNUNET_array_grow(mem, size, 0) instead of #GNUNET_free_nz.
  *
  * @param ptr location where to free the memory. ptr must have
- *     been returned by #GNUNET_strdup, #GNUNET_strndup, #GNUNET_malloc or #GNUNET_array_grow earlier.
+ *     been returned by #GNUNET_strdup, #GNUNET_strndup, #GNUNET_malloc or #GNUNET_array_grow earlier.  NULL is allowed.
  */
 #define GNUNET_free_nz(ptr) GNUNET_xfree_ (ptr, __FILE__, __LINE__)
+
 
 /**
  * @ingroup memory
@@ -1300,30 +1313,16 @@ GNUNET_is_zero_ (const void *a,
  * Note that it is generally better to free memory that was
  * allocated with #GNUNET_array_grow using #GNUNET_array_grow(mem, size, 0) instead of #GNUNET_free.
  *
+ * @a ptr will be set to NULL. Use #GNUNET_free_nz() if @a ptr is not an L-value.
+ *
  * @param ptr location where to free the memory. ptr must have
- *     been returned by #GNUNET_strdup, #GNUNET_strndup, #GNUNET_malloc or #GNUNET_array_grow earlier.
+ *     been returned by #GNUNET_strdup, #GNUNET_strndup, #GNUNET_malloc or #GNUNET_array_grow earlier.  NULL is allowed.
  */
 #define GNUNET_free(ptr) do { \
-    GNUNET_xfree_ (ptr, __FILE__, __LINE__); \
-    ptr = NULL; \
+  GNUNET_xfree_ (ptr, __FILE__, __LINE__); \
+  ptr = NULL; \
 } while (0)
 
-/**
- * @ingroup memory
- * Free the memory pointed to by ptr if ptr is not NULL.
- * Equivalent to `if (NULL != ptr) GNUNET_free(ptr)`.
- *
- * @param ptr the location in memory to free
- */
-#define GNUNET_free_non_null(ptr) \
-  do                              \
-  {                               \
-    void *__x__ = ptr;            \
-    if (NULL != __x__)            \
-    {                             \
-      GNUNET_free (__x__);        \
-    }                             \
-  } while (0)
 
 /**
  * @ingroup memory

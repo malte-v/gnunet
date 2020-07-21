@@ -764,7 +764,7 @@ libgnunet_plugin_datacache_sqlite_done (void *cls)
 #if ! WINDOWS || defined(__CYGWIN__)
   if ((NULL != plugin->fn) && (0 != unlink (plugin->fn)))
     LOG_STRERROR_FILE (GNUNET_ERROR_TYPE_WARNING, "unlink", plugin->fn);
-  GNUNET_free_non_null (plugin->fn);
+  GNUNET_free (plugin->fn);
 #endif
   sqlite3_finalize (plugin->insert_stmt);
   sqlite3_finalize (plugin->get_count_stmt);

@@ -588,7 +588,7 @@ GSF_pending_request_get_message_ (struct GSF_PendingRequest *pr)
   if (NULL != pr->public_data.target)
     ext[k++] = *pr->public_data.target;
   GNUNET_memcpy (&ext[k], bf_data, bf_size);
-  GNUNET_free_non_null (bf_data);
+  GNUNET_free (bf_data);
   return env;
 }
 
@@ -622,7 +622,7 @@ clean_request (void *cls, const struct GNUNET_HashCode *key, void *value)
     cont (pr->llc_cont_cls, pr, pr->local_result);
   }
   GSF_plan_notify_request_done_ (pr);
-  GNUNET_free_non_null (pr->replies_seen);
+  GNUNET_free (pr->replies_seen);
   GNUNET_BLOCK_group_destroy (pr->bg);
   pr->bg = NULL;
   GNUNET_PEER_change_rc (pr->sender_pid, -1);

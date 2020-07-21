@@ -830,7 +830,7 @@ process_kblock (struct GNUNET_FS_SearchContext *sc,
                   &pt[1],
                   emsg);
     }
-    GNUNET_free_non_null (emsg);
+    GNUNET_free (emsg);
     return;
   }
   j = eos - pt + 1;
@@ -900,7 +900,7 @@ process_sblock (struct GNUNET_FS_SearchContext *sc,
                 _ ("Failed to parse URI `%s': %s\n"),
                 uris, emsg);
     GNUNET_break_op (0);        /* ublock malformed */
-    GNUNET_free_non_null (emsg);
+    GNUNET_free (emsg);
     GNUNET_CONTAINER_meta_data_destroy (meta);
     return;
   }
@@ -1548,10 +1548,10 @@ search_result_suspend (void *cls,
     sr->client_info = GNUNET_FS_search_make_status_ (&pi, sc->h, sc);
   }
   GNUNET_break (NULL == sr->client_info);
-  GNUNET_free_non_null (sr->serialization);
+  GNUNET_free (sr->serialization);
   GNUNET_FS_uri_destroy (sr->uri);
   GNUNET_CONTAINER_meta_data_destroy (sr->meta);
-  GNUNET_free_non_null (sr->keyword_bitmap);
+  GNUNET_free (sr->keyword_bitmap);
   GNUNET_free (sr);
   return GNUNET_OK;
 }
@@ -1596,10 +1596,10 @@ GNUNET_FS_search_signal_suspend_ (void *cls)
       GNUNET_free (sc->requests[i].keyword);
     }
   }
-  GNUNET_free_non_null (sc->requests);
-  GNUNET_free_non_null (sc->emsg);
+  GNUNET_free (sc->requests);
+  GNUNET_free (sc->emsg);
   GNUNET_FS_uri_destroy (sc->uri);
-  GNUNET_free_non_null (sc->serialization);
+  GNUNET_free (sc->serialization);
   GNUNET_free (sc);
 }
 
@@ -1760,10 +1760,10 @@ search_result_free (void *cls,
   GNUNET_break (NULL == sr->probe_ctx);
   GNUNET_break (NULL == sr->probe_cancel_task);
   GNUNET_break (NULL == sr->client_info);
-  GNUNET_free_non_null (sr->serialization);
+  GNUNET_free (sr->serialization);
   GNUNET_FS_uri_destroy (sr->uri);
   GNUNET_CONTAINER_meta_data_destroy (sr->meta);
-  GNUNET_free_non_null (sr->keyword_bitmap);
+  GNUNET_free (sr->keyword_bitmap);
   GNUNET_free (sr);
   return GNUNET_OK;
 }
@@ -1825,8 +1825,8 @@ GNUNET_FS_search_stop (struct GNUNET_FS_SearchContext *sc)
     for (i = 0; i < sc->uri->data.ksk.keywordCount; i++)
       GNUNET_CONTAINER_multihashmap_destroy (sc->requests[i].results);
   }
-  GNUNET_free_non_null (sc->requests);
-  GNUNET_free_non_null (sc->emsg);
+  GNUNET_free (sc->requests);
+  GNUNET_free (sc->emsg);
   GNUNET_FS_uri_destroy (sc->uri);
   GNUNET_free (sc);
 }

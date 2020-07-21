@@ -34,10 +34,10 @@ http_clean_splitted (struct SplittedHTTPAddress *spa)
 {
   if (NULL != spa)
   {
-    GNUNET_free_non_null (spa->protocol);
-    GNUNET_free_non_null (spa->host);
-    GNUNET_free_non_null (spa->path);
-    GNUNET_free_non_null (spa);
+    GNUNET_free (spa->protocol);
+    GNUNET_free (spa->host);
+    GNUNET_free (spa->path);
+    GNUNET_free (spa);
   }
 }
 
@@ -494,7 +494,7 @@ http_common_plugin_address_pretty_printer (void *cls, const char *type,
     asc (asc_cls, ret, (NULL == ret) ? GNUNET_SYSERR : GNUNET_OK);
     asc (asc_cls, NULL, GNUNET_OK);
     http_clean_splitted (saddr);
-    GNUNET_free_non_null (sock_addr);
+    GNUNET_free (sock_addr);
     return;
   }
   if ((GNUNET_YES == numeric) &&
@@ -510,7 +510,7 @@ http_common_plugin_address_pretty_printer (void *cls, const char *type,
       goto handle_error;
     }
     /* Wait for resolver callback */
-    GNUNET_free_non_null (sock_addr);
+    GNUNET_free (sock_addr);
     return;
   }
   if ((GNUNET_NO == numeric) &&
@@ -531,7 +531,7 @@ http_common_plugin_address_pretty_printer (void *cls, const char *type,
       goto handle_error;
     }
     /* Wait for resolver callback */
-    GNUNET_free_non_null (sock_addr);
+    GNUNET_free (sock_addr);
     return;
   }
   if ((GNUNET_NO == numeric) &&
@@ -541,7 +541,7 @@ http_common_plugin_address_pretty_printer (void *cls, const char *type,
     ret = http_common_plugin_address_to_string (type, address, addrlen);
     asc (asc_cls, ret, (NULL == ret) ? GNUNET_SYSERR : GNUNET_OK);
     asc (asc_cls, NULL, GNUNET_OK);
-    GNUNET_free_non_null (sock_addr);
+    GNUNET_free (sock_addr);
     http_clean_splitted (saddr);
     return;
   }
@@ -553,7 +553,7 @@ handle_error:
   /* Report error */
   asc (asc_cls, NULL, GNUNET_SYSERR);
   asc (asc_cls, NULL, GNUNET_OK);
-  GNUNET_free_non_null (sock_addr);
+  GNUNET_free (sock_addr);
   if (NULL != saddr)
     http_clean_splitted (saddr);
 }

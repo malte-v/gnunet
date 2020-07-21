@@ -342,10 +342,10 @@ GNUNET_PROGRAM_run2 (int argc,
   ret = GNUNET_OK;
 cleanup:
   GNUNET_CONFIGURATION_destroy (cfg);
-  GNUNET_free_non_null (cc.cfgfile);
-  GNUNET_free_non_null (cfg_fn);
-  GNUNET_free_non_null (loglev);
-  GNUNET_free_non_null (logfile);
+  GNUNET_free (cc.cfgfile);
+  GNUNET_free (cfg_fn);
+  GNUNET_free (loglev);
+  GNUNET_free (logfile);
   return ret;
 }
 

@@ -365,7 +365,7 @@ run_no_scheduler (void *cls,
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Extracting hostkey %u\n", create_no);
     ret = create_hostkeys (create_no);
   }
-  GNUNET_free_non_null (create_cfg_template);
+  GNUNET_free (create_cfg_template);
 }
 
 

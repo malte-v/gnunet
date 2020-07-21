@@ -120,7 +120,7 @@ static void
 free_entry (struct CacheEntry *entry)
 {
   GNUNET_CONTAINER_DLL_remove (cache_head, cache_tail, entry);
-  GNUNET_free_non_null (entry->hello);
+  GNUNET_free (entry->hello);
   GNUNET_free (entry);
 }
 
@@ -261,7 +261,7 @@ GST_cache_add_hello (const unsigned int peer_id,
   entry = cache_lookup (peer_id);
   if (NULL == entry)
     entry = add_entry (peer_id);
-  GNUNET_free_non_null (entry->hello);
+  GNUNET_free (entry->hello);
   entry->hello = GNUNET_copy_message (hello);
 }
 

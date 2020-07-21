@@ -181,6 +181,15 @@ GNUnet maintainer can overrule any decisions made by individual
 developers.  Still, in practice neither has happened in the last 20
 years for GNUnet, and we hope to keep it that way.
 
+The current maintainers of GNUnet are:
+
+@itemize @bullet
+
+@item @uref{https://grothoff.org/christian/, Christian Grothoff}
+@item @uref{https://schanzen.eu, Martin Schanzenbach}
+
+@end itemize
+
 The GNUnet project is supported by GNUnet e.V., a German association
 where any developer can become a member.  GNUnet e.V. serves as a
 legal entity to hold the copyrights to GNUnet.  GNUnet e.V. may also

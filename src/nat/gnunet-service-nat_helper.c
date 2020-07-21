@@ -222,7 +222,7 @@ restart_nat_server (void *cls)
     return;
   }
   h->server_stdout =
-    GNUNET_DISK_pipe (GNUNET_YES, GNUNET_YES, GNUNET_NO, GNUNET_YES);
+    GNUNET_DISK_pipe (GNUNET_DISK_PF_BLOCKING_RW);
   if (NULL == h->server_stdout)
   {
     GNUNET_log_strerror (GNUNET_ERROR_TYPE_ERROR, "pipe");
@@ -234,8 +234,7 @@ restart_nat_server (void *cls)
               "Starting `%s' at `%s'\n",
               "gnunet-helper-nat-server",
               ia);
-  h->server_proc = GNUNET_OS_start_process (GNUNET_NO,
-                                            0,
+  h->server_proc = GNUNET_OS_start_process (GNUNET_OS_INHERIT_STD_NONE,
                                             NULL,
                                             h->server_stdout,
                                             NULL,
@@ -378,8 +377,7 @@ GN_request_connection_reversal (const struct in_addr *internal_address,
               remv4,
               internal_port);
   binary = GNUNET_OS_get_suid_binary_path (cfg, "gnunet-helper-nat-client");
-  proc = GNUNET_OS_start_process (GNUNET_NO,
-                                  0,
+  proc = GNUNET_OS_start_process (GNUNET_OS_INHERIT_STD_NONE,
                                   NULL,
                                   NULL,
                                   NULL,

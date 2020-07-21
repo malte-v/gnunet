@@ -1,5 +1,5 @@
 # This file is part of GNUnet.
-# (C) 2001--2019 GNUnet e.V.
+# (C) 2001--2020 GNUnet e.V.
 #
 # GNUnet is free software: you can redistribute it and/or modify it
 # under the terms of the GNU Affero General Public License as published
@@ -21,7 +21,7 @@
 #
 AC_PREREQ(2.61)
 # Checks for programs.
-AC_INIT([gnunet], [0.12.2], [bug-gnunet@gnu.org])
+AC_INIT([gnunet], [0.13.1], [bug-gnunet@gnu.org])
 AC_CONFIG_AUX_DIR([build-aux])
 
 # check for legacy option that is no longer supported (#5627) and fail hard
@@ -1160,8 +1160,12 @@ AS_IF([test x_$withval = x_yes],
                                          my_with_libidn2=0]))],
       [AS_IF([test x_$withval != x_no],
              [CFLAGS="$CFLAGS -I$withval/include"
-              LDFLAGS="$LDFLAGS -L$withval/lib"],
-	          [my_with_libidn2=0])])
+              LDFLAGS="$LDFLAGS -L$withval/lib"
+              AC_CHECK_HEADERS([idn2/idn2.h],
+                               AC_MSG_NOTICE([Found idn2/idn2.h]),
+                               [AC_MSG_NOTICE([Failed to find idn2.h])
+                               my_with_libidn2=0])],
+             [my_with_libidn2=0])])
 
 AC_MSG_CHECKING([if libidn can be used])
 # Check for LIBIDNs

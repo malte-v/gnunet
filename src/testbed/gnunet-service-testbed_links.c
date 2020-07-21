@@ -401,7 +401,7 @@ GST_route_list_clear ()
   for (id = 0; id < route_list_size; id++)
     if (NULL != route_list[id])
       GNUNET_free (route_list[id]);
-  GNUNET_free_non_null (route_list);
+  GNUNET_free (route_list);
   route_list = NULL;
 }
 
@@ -508,7 +508,7 @@ GST_slave_list_clear ()
       continue;
     destroy_slave (slave);
   }
-  GNUNET_free_non_null (GST_slave_list);
+  GNUNET_free (GST_slave_list);
   GST_slave_list = NULL;
 }
 
@@ -1104,7 +1104,7 @@ GST_neighbour_list_clean ()
     GNUNET_free (n);
     neighbour_list[id] = NULL;
   }
-  GNUNET_free_non_null (neighbour_list);
+  GNUNET_free (neighbour_list);
 }
 
 

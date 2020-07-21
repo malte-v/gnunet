@@ -254,7 +254,9 @@ GNUNET_JSON_from_gnsrecord (const char*rname,
       rel_exp.rel_value_us = rd[i].expiration_time;
       expiration_time_str = GNUNET_STRINGS_relative_time_to_string (rel_exp,
                                                                     GNUNET_NO);
-    } else {
+    }
+    else
+    {
       abs_exp.abs_value_us = rd[i].expiration_time;
       expiration_time_str = GNUNET_STRINGS_absolute_time_to_string (abs_exp);
     }

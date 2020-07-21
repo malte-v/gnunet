@@ -165,7 +165,7 @@ free_asd (void *cls,
                  GNUNET_CONTAINER_multipeermap_remove (p2asd,
                                                        key,
                                                        asd));
-  GNUNET_free_non_null (asd->address);
+  GNUNET_free (asd->address);
   GNUNET_free (asd);
   return GNUNET_OK;
 }
@@ -951,7 +951,7 @@ address_suggest_cb (void *cls,
   asd->bandwidth_out = bandwidth_out;
   asd->bandwidth_in = bandwidth_in;
   asd->session = session;
-  GNUNET_free_non_null (asd->address);
+  GNUNET_free (asd->address);
   asd->address = NULL;
   if (NULL != address)
     asd->address = GNUNET_HELLO_address_copy (address);

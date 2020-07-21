@@ -325,7 +325,7 @@ struct GNUNET_CADET_RequestDropCadetMessage
    * Type: #GNUNET_MESSAGE_TYPE_CADET_DROP_CADET_MESSAGE
    */
   struct GNUNET_MessageHeader header;
-  
+
   /**
    * Type of the message this handler covers, in host byte order.
    */
@@ -337,7 +337,7 @@ struct GNUNET_CADET_RequestDropCadetMessage
   struct GNUNET_CADET_ClientChannelNumber ccn;
 
 };
-  
+
 /**
  * Message to inform the client about channels in the service.
  */

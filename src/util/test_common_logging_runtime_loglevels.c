@@ -207,7 +207,7 @@ read_output_line (int phase_from1, int phase_to1, int phase_from2,
  */
 #define LOG_MAX_LINE_LENGTH (17)
 
-#define LOG_BUFFER_SIZE LOG_MAX_NUM_LINES * LOG_MAX_LINE_LENGTH
+#define LOG_BUFFER_SIZE LOG_MAX_NUM_LINES *LOG_MAX_LINE_LENGTH
 
 static char buf[LOG_BUFFER_SIZE];
 
@@ -347,8 +347,7 @@ runone ()
 {
   const struct GNUNET_DISK_FileHandle *stdout_read_handle;
 
-  pipe_stdout = GNUNET_DISK_pipe (GNUNET_YES, GNUNET_YES, GNUNET_NO,
-                                  GNUNET_YES);
+  pipe_stdout = GNUNET_DISK_pipe (GNUNET_DISK_PF_BLOCKING_RW);
 
   if (pipe_stdout == NULL)
   {
@@ -403,7 +402,7 @@ runone ()
     break;
   }
 
-  proc = GNUNET_OS_start_process (GNUNET_NO, GNUNET_OS_INHERIT_STD_OUT_AND_ERR,
+  proc = GNUNET_OS_start_process (GNUNET_OS_INHERIT_STD_OUT_AND_ERR,
                                   NULL, pipe_stdout, NULL,
                                   "./test_common_logging_dummy",
                                   "test_common_logging_dummy", NULL);

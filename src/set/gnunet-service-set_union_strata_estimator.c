@@ -120,7 +120,7 @@ strata_estimator_read (const void *buf,
   if (buf_len != se->strata_count * se->ibf_size * IBF_BUCKET_SIZE)
   {
     GNUNET_break (0);  /* very odd error */
-    GNUNET_free_non_null (dbuf);
+    GNUNET_free (dbuf);
     return GNUNET_SYSERR;
   }
 
@@ -129,7 +129,7 @@ strata_estimator_read (const void *buf,
     ibf_read_slice (buf, 0, se->ibf_size, se->strata[i]);
     buf += se->ibf_size * IBF_BUCKET_SIZE;
   }
-  GNUNET_free_non_null (dbuf);
+  GNUNET_free (dbuf);
   return GNUNET_OK;
 }
 
@@ -149,7 +149,7 @@ strata_estimator_insert (struct StrataEstimator *se,
 
   v = key.key_val;
   /* count trailing '1'-bits of v */
-  for (i = 0; v &1; v >>= 1, i++)
+  for (i = 0; v & 1; v >>= 1, i++)
     /* empty */;
   ibf_insert (se->strata[i], key);
 }
@@ -170,7 +170,7 @@ strata_estimator_remove (struct StrataEstimator *se,
 
   v = key.key_val;
   /* count trailing '1'-bits of v */
-  for (i = 0; v &1; v >>= 1, i++)
+  for (i = 0; v & 1; v >>= 1, i++)
     /* empty */;
   ibf_remove (se->strata[i], key);
 }

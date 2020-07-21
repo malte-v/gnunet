@@ -360,7 +360,7 @@ GST_cleanup_focc (struct ForwardedOverlayConnectContext *focc)
   GNUNET_CONTAINER_DLL_remove (rhc->focc_dll_head,
                                rhc->focc_dll_tail,
                                focc);
-  GNUNET_free_non_null (focc->orig_msg);
+  GNUNET_free (focc->orig_msg);
   GNUNET_free (focc);
 }
 
@@ -536,8 +536,8 @@ cleanup_occ (struct OverlayConnectContext *occ)
 
   LOG_DEBUG ("0x%llx: Cleaning up occ\n",
              occ->op_id);
-  GNUNET_free_non_null (occ->emsg);
-  GNUNET_free_non_null (occ->hello);
+  GNUNET_free (occ->emsg);
+  GNUNET_free (occ->hello);
   if (NULL != occ->send_hello_task)
     GNUNET_SCHEDULER_cancel (occ->send_hello_task);
   if (NULL != occ->cleanup_task)
@@ -727,7 +727,7 @@ overlay_connect_notify (void *cls,
     cleanup_occ_rp2c (&occ->p2ctx.remote);
     break;
   }
-  GNUNET_free_non_null (occ->emsg);
+  GNUNET_free (occ->emsg);
   occ->emsg = NULL;
   send_overlay_connect_success_msg (occ);
   occ->cleanup_task = GNUNET_SCHEDULER_add_now (&do_cleanup_occ,
@@ -758,7 +758,7 @@ occ_cache_get_handle_ats_occ_cb (void *cls,
 
   GNUNET_assert (OCC_TYPE_LOCAL == occ->type);
   GNUNET_assert (NULL != occ->timeout_task);
-  GNUNET_free_non_null (occ->emsg);
+  GNUNET_free (occ->emsg);
   if (NULL == ac)
   {
     GNUNET_asprintf (&occ->emsg,
@@ -842,7 +842,7 @@ occ_hello_sent_cb (void *cls)
   lp2c->ohh = NULL;
 
   GNUNET_assert (NULL == occ->send_hello_task);
-  GNUNET_free_non_null (occ->emsg);
+  GNUNET_free (occ->emsg);
 
   GNUNET_asprintf (&occ->emsg,
                    "0x%llx: Timeout while acquiring ATS of %s from cache",
@@ -1092,7 +1092,7 @@ hello_update_cb (void *cls,
   GST_connection_pool_get_handle_done (occ->cgh_p1th);
   occ->cgh_p1th = NULL;
   occ->p1th_ = NULL;
-  GNUNET_free_non_null (occ->emsg);
+  GNUNET_free (occ->emsg);
   occ->emsg = NULL;
   p2_transport_connect (occ);
 }
@@ -1118,7 +1118,7 @@ p1_transport_connect_cache_callback (void *cls,
 {
   struct OverlayConnectContext *occ = cls;
 
-  GNUNET_free_non_null (occ->emsg);
+  GNUNET_free (occ->emsg);
   occ->emsg = NULL;
   if (NULL == th)
   {
@@ -1166,7 +1166,7 @@ occ_cache_get_handle_core_cb (void *cls,
   const struct GNUNET_MessageHeader *hello;
 
   GNUNET_assert (NULL != occ->timeout_task);
-  GNUNET_free_non_null (occ->emsg);
+  GNUNET_free (occ->emsg);
   if ((NULL == ch) || (NULL == my_identity))
   {
     GNUNET_asprintf (&occ->emsg,
@@ -1249,7 +1249,7 @@ overlay_connect_get_config (void *cls,
   cmsg =
     (const struct GNUNET_TESTBED_PeerConfigurationInformationMessage *) msg;
   occ->other_peer_identity = cmsg->peer_identity;
-  GNUNET_free_non_null (occ->emsg);
+  GNUNET_free (occ->emsg);
   GNUNET_asprintf (&occ->emsg,
                    "0x%llx: Timeout while connecting to CORE of peer with "
                    "id: %u",
@@ -1508,7 +1508,7 @@ p2_controller_connect_cb (void *cls,
                                            &cmsg.header,
                                            &overlay_connect_get_config,
                                            occ);
-  GNUNET_free_non_null (occ->emsg);
+  GNUNET_free (occ->emsg);
   GNUNET_asprintf (&occ->emsg,
                    "0x%llx: Timeout while getting peer identity of peer "
                    "with id: %u",
@@ -1674,7 +1674,7 @@ cleanup_rocc (struct RemoteOverlayConnectCtx *rocc)
   if ((GNUNET_YES == rocc->peer->destroy_flag) &&
       (0 == rocc->peer->reference_cnt))
     GST_destroy_peer (rocc->peer);
-  GNUNET_free_non_null (rocc->hello);
+  GNUNET_free (rocc->hello);
   GNUNET_CONTAINER_DLL_remove (roccq_head,
                                roccq_tail,
                                rocc);

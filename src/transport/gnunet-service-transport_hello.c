@@ -182,7 +182,7 @@ refresh_hello_task (void *cls)
   gc.addr_pos = oal_head;
   gc.expiration = GNUNET_TIME_relative_to_absolute (hello_expiration);
 
-  GNUNET_free_non_null (our_hello);
+  GNUNET_free (our_hello);
   our_hello = GNUNET_HELLO_create (&GST_my_identity.public_key,
                                    &address_generator,
                                    &gc,

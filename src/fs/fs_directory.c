@@ -309,8 +309,8 @@ GNUNET_FS_directory_list_contents (size_t size,
            full_data.size,
            full_data.data);
     }
-    GNUNET_free_non_null (full_data.data);
-    GNUNET_free_non_null (filename);
+    GNUNET_free (full_data.data);
+    GNUNET_free (filename);
     GNUNET_CONTAINER_meta_data_destroy (md);
     GNUNET_FS_uri_destroy (uri);
   }
@@ -630,9 +630,9 @@ GNUNET_FS_directory_builder_finish (struct GNUNET_FS_DirectoryBuilder *bld,
                          "malloc");
     *rsize = 0;
     *rdata = NULL;
-    GNUNET_free_non_null (sizes);
-    GNUNET_free_non_null (perm);
-    GNUNET_free_non_null (bes);
+    GNUNET_free (sizes);
+    GNUNET_free (perm);
+    GNUNET_free (bes);
     return GNUNET_SYSERR;
   }
   *rdata = data;
@@ -662,9 +662,9 @@ GNUNET_FS_directory_builder_finish (struct GNUNET_FS_DirectoryBuilder *bld,
     GNUNET_memcpy (&data[off - sizes[i]], &(bes[i])[1], sizes[i]);
     GNUNET_free (bes[i]);
   }
-  GNUNET_free_non_null (sizes);
-  GNUNET_free_non_null (perm);
-  GNUNET_free_non_null (bes);
+  GNUNET_free (sizes);
+  GNUNET_free (perm);
+  GNUNET_free (bes);
   GNUNET_assert (off == size);
   GNUNET_CONTAINER_meta_data_destroy (bld->meta);
   GNUNET_free (bld);

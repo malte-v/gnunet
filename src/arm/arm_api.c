@@ -729,8 +729,7 @@ start_arm_service (struct GNUNET_ARM_Handle *h,
     /* Means we are ONLY running locally */
     /* we're clearly running a test, don't daemonize */
     if (NULL == config)
-      proc = GNUNET_OS_start_process_s (GNUNET_NO,
-                                        std_inheritance,
+      proc = GNUNET_OS_start_process_s (std_inheritance,
                                         lsocks,
                                         loprefix,
                                         quotedbinary,
@@ -738,8 +737,7 @@ start_arm_service (struct GNUNET_ARM_Handle *h,
                                         lopostfix,
                                         NULL);
     else
-      proc = GNUNET_OS_start_process_s (GNUNET_NO,
-                                        std_inheritance,
+      proc = GNUNET_OS_start_process_s (std_inheritance,
                                         lsocks,
                                         loprefix,
                                         quotedbinary,
@@ -752,8 +750,7 @@ start_arm_service (struct GNUNET_ARM_Handle *h,
   else
   {
     if (NULL == config)
-      proc = GNUNET_OS_start_process_s (GNUNET_NO,
-                                        std_inheritance,
+      proc = GNUNET_OS_start_process_s (std_inheritance,
                                         lsocks,
                                         loprefix,
                                         quotedbinary,
@@ -761,8 +758,7 @@ start_arm_service (struct GNUNET_ARM_Handle *h,
                                         lopostfix,
                                         NULL);
     else
-      proc = GNUNET_OS_start_process_s (GNUNET_NO,
-                                        std_inheritance,
+      proc = GNUNET_OS_start_process_s (std_inheritance,
                                         lsocks,
                                         loprefix,
                                         quotedbinary,
@@ -774,7 +770,7 @@ start_arm_service (struct GNUNET_ARM_Handle *h,
   }
   GNUNET_free (binary);
   GNUNET_free (quotedbinary);
-  GNUNET_free_non_null (config);
+  GNUNET_free (config);
   GNUNET_free (loprefix);
   GNUNET_free (lopostfix);
   if (NULL == proc)
@@ -976,10 +972,7 @@ GNUNET_ARM_request_service_start (struct GNUNET_ARM_Handle *h,
      the above check should catch 99.99% of the cases where ARM
      is already running. */LOG (GNUNET_ERROR_TYPE_DEBUG,
        "Starting ARM service\n");
-  if (NULL == (sig = GNUNET_DISK_pipe (GNUNET_NO,
-                                       GNUNET_NO,
-                                       GNUNET_NO,
-                                       GNUNET_YES)))
+  if (NULL == (sig = GNUNET_DISK_pipe (GNUNET_DISK_PF_NONE)))
   {
     GNUNET_log_strerror (GNUNET_ERROR_TYPE_WARNING,
                          "pipe");

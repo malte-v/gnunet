@@ -707,7 +707,6 @@ struct Addresses
 };
 
 
-
 /**
  * Maximum queue length before we stop reading towards the transport service.
  */
@@ -1618,6 +1617,7 @@ queue_read (void *cls)
   queue_finish (queue);
 }
 
+
 /**
  * Convert a `struct sockaddr_in6 to a `struct sockaddr *`
  *
@@ -1642,6 +1642,7 @@ tcp_address_to_sockaddr_numeric_v6 (socklen_t *sock_len, struct sockaddr_in6 v6,
   return in;
 }
 
+
 /**
  * Convert a `struct sockaddr_in4 to a `struct sockaddr *`
  *
@@ -1664,6 +1665,7 @@ tcp_address_to_sockaddr_numeric_v4 (socklen_t *sock_len, struct sockaddr_in v4,
   *sock_len = sizeof(struct sockaddr_in);
   return in;
 }
+
 
 /**
  * Convert TCP bind specification to a `struct PortOnlyIpv4Ipv6  *`
@@ -1724,6 +1726,7 @@ tcp_address_to_sockaddr_port_only (const char *bindto, unsigned int *port)
   return po;
 }
 
+
 /**
  * This Method extracts the address part of the BINDTO string.
  *
@@ -1750,7 +1753,8 @@ extract_address (const char *bindto)
     start++;   /* skip over '['*/
     cp[strlen (cp) - 1] = '\0';  /* eat ']'*/
   }
-  else {
+  else
+  {
     token = strtok_r (cp, "]", &rest);
     if (strlen (bindto) == strlen (token))
     {
@@ -1767,6 +1771,7 @@ extract_address (const char *bindto)
 
   return start;
 }
+
 
 /**
  * This Method extracts the port part of the BINDTO string.
@@ -1845,6 +1850,7 @@ extract_port (const char *addr_and_port)
 
   return port;
 }
+
 
 /**
  * Convert TCP bind specification to a `struct sockaddr *`
@@ -2683,6 +2689,7 @@ queue_read_kx (void *cls)
     queue->read_task = GNUNET_SCHEDULER_add_now (&queue_read, queue);
 }
 
+
 /**
  * Function called by the transport service to initialize a
  * message queue given address information about another peer.
@@ -2776,6 +2783,7 @@ mq_init (void *cls, const struct GNUNET_PeerIdentity *peer, const char *address)
                                     queue);
   return GNUNET_OK;
 }
+
 
 /**
  * Iterator over all message queues to clean up.
@@ -2911,6 +2919,7 @@ nat_address_cb (void *cls,
   }
 }
 
+
 /**
  * This method launch network interactions for each address we like to bind to.
  *
@@ -3015,7 +3024,7 @@ init_socket (const struct sockaddr *addr,
   if (NULL == queue_map)
     queue_map = GNUNET_CONTAINER_multipeermap_create (10, GNUNET_NO);
 
-  if (NULL == ch )
+  if (NULL == ch)
     ch = GNUNET_TRANSPORT_communicator_connect (cfg,
                                                 COMMUNICATOR_CONFIG_SECTION,
                                                 COMMUNICATOR_ADDRESS_PREFIX,
@@ -3037,6 +3046,7 @@ init_socket (const struct sockaddr *addr,
   return GNUNET_OK;
 
 }
+
 
 /**
  * This method reads from the DLL addrs_head to register them at the NAT service.
@@ -3092,6 +3102,7 @@ nat_register ()
   }
 }
 
+
 /**
  * This method adds addresses to the DLL, that are later register at the NAT service.
  */
@@ -3107,6 +3118,7 @@ add_addr (struct sockaddr *in, socklen_t in_len)
   GNUNET_CONTAINER_DLL_insert (addrs_head, addrs_tail, saddrs);
   addrs_lens++;
 }
+
 
 /**
  * This method is the callback called by the resolver API, and wraps method init_socket.
@@ -3159,6 +3171,7 @@ init_socket_resolv (void *cls,
     nat_register ();
   }
 }
+
 
 /**
  * Setup communicator and launch network interactions.

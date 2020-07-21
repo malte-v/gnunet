@@ -1148,7 +1148,7 @@ GNUNET_STRINGS_path_is_absolute (const char *filename,
       if (r_uri_scheme)
         *r_uri_scheme = uri;
       else
-        GNUNET_free_non_null (uri);
+        GNUNET_free (uri);
 
       return GNUNET_STRINGS_path_is_absolute (post_scheme_path,
                                               GNUNET_NO,
@@ -1985,7 +1985,7 @@ GNUNET_STRINGS_base64_decode (const char *data, size_t len, void **out)
                 "ignoring CR/LF\n");                              \
     i++;                                                          \
     if (i >= len)                                                 \
-      goto END;                                                   \
+    goto END;                                                   \
   }
 
   GNUNET_assert (len / 3 < SIZE_MAX);

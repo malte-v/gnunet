@@ -215,7 +215,7 @@ run (void *cls, char *const *args, const char *cfgfile,
   own_fqdn = GNUNET_RESOLVER_local_fqdn_get ();
   /* can't really check, only thing we can safely
      compare against is our own identical logic... */
-  GNUNET_free_non_null (own_fqdn);
+  GNUNET_free (own_fqdn);
 
   /*
    * Testing non-local DNS resolution
@@ -348,8 +348,8 @@ main (int argc, char *argv[])
                     "WARNING",
                     NULL);
   fn = GNUNET_OS_get_libexec_binary_path ("gnunet-service-resolver");
-  proc = GNUNET_OS_start_process (GNUNET_YES,
-                                  GNUNET_OS_INHERIT_STD_OUT_AND_ERR,
+  proc = GNUNET_OS_start_process (GNUNET_OS_INHERIT_STD_OUT_AND_ERR
+                                  | GNUNET_OS_USE_PIPE_CONTROL,
                                   NULL, NULL, NULL,
                                   fn,
                                   "gnunet-service-resolver",

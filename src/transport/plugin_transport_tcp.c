@@ -1186,7 +1186,7 @@ get_server_addresses (const char *service_name,
           (EACCES == errno))
       {
         GNUNET_log_strerror (GNUNET_ERROR_TYPE_ERROR, "socket");
-        GNUNET_free_non_null (hostname);
+        GNUNET_free (hostname);
         GNUNET_free (unixpath);
         return GNUNET_SYSERR;
       }
@@ -1212,7 +1212,7 @@ get_server_addresses (const char *service_name,
          _ (
            "Have neither PORT nor UNIXPATH for service `%s', but one is required\n"),
          service_name);
-    GNUNET_free_non_null (hostname);
+    GNUNET_free (hostname);
     return GNUNET_SYSERR;
   }
   if (0 == port)
@@ -1220,8 +1220,8 @@ get_server_addresses (const char *service_name,
     saddrs = GNUNET_malloc (2 * sizeof(struct sockaddr *));
     saddrlens = GNUNET_malloc (2 * sizeof(socklen_t));
     add_unixpath (saddrs, saddrlens, unixpath, abstract);
-    GNUNET_free_non_null (unixpath);
-    GNUNET_free_non_null (hostname);
+    GNUNET_free (unixpath);
+    GNUNET_free (hostname);
     *addrs = saddrs;
     *addr_lens = saddrlens;
     return 1;
@@ -1245,7 +1245,7 @@ get_server_addresses (const char *service_name,
            hostname,
            gai_strerror (ret));
       GNUNET_free (hostname);
-      GNUNET_free_non_null (unixpath);
+      GNUNET_free (unixpath);
       return GNUNET_SYSERR;
     }
     next = res;
@@ -1265,7 +1265,7 @@ get_server_addresses (const char *service_name,
            hostname);
       freeaddrinfo (res);
       GNUNET_free (hostname);
-      GNUNET_free_non_null (unixpath);
+      GNUNET_free (unixpath);
       return GNUNET_SYSERR;
     }
     resi = i;
@@ -1372,7 +1372,7 @@ get_server_addresses (const char *service_name,
       ((struct sockaddr_in *) saddrs[i])->sin_port = htons (port);
     }
   }
-  GNUNET_free_non_null (unixpath);
+  GNUNET_free (unixpath);
   *addrs = saddrs;
   *addr_lens = saddrlens;
   return resi;
@@ -3163,7 +3163,7 @@ handle_tcp_welcome (void *cls,
       else
       {
         GNUNET_break (0);
-        GNUNET_free_non_null (vaddr);
+        GNUNET_free (vaddr);
         GNUNET_SERVER_receive_done (client, GNUNET_SYSERR);
         return;
       }
@@ -3267,7 +3267,7 @@ handle_tcp_data (void *cls,
          GNUNET_a2s (vaddr, alen));
     GNUNET_break_op (0);
     GNUNET_SERVER_receive_done (client, GNUNET_SYSERR);
-    GNUNET_free_non_null (vaddr);
+    GNUNET_free (vaddr);
     return;
   }
   if (GNUNET_YES == session->expecting_welcome)
@@ -3284,7 +3284,7 @@ handle_tcp_data (void *cls,
          GNUNET_a2s (vaddr, alen));
     GNUNET_break_op (0);
     GNUNET_SERVER_receive_done (client, GNUNET_SYSERR);
-    GNUNET_free_non_null (vaddr);
+    GNUNET_free (vaddr);
     return;
   }
 
@@ -3300,7 +3300,7 @@ handle_tcp_data (void *cls,
          (unsigned int) ntohs (message->type),
          GNUNET_i2s (&session->target),
          GNUNET_a2s (vaddr, alen));
-    GNUNET_free_non_null (vaddr);
+    GNUNET_free (vaddr);
   }
 
   GNUNET_STATISTICS_update (plugin->env->stats,
@@ -3802,8 +3802,8 @@ libgnunet_plugin_transport_tcp_init (void *cls)
                                        plugin);
     for (ret = ret_s - 1; ret >= 0; ret--)
       GNUNET_free (addrs[ret]);
-    GNUNET_free_non_null (addrs);
-    GNUNET_free_non_null (addrlens);
+    GNUNET_free (addrs);
+    GNUNET_free (addrlens);
   }
   else
   {
@@ -3893,7 +3893,7 @@ die:
   if (NULL != service)
     LEGACY_SERVICE_stop (service);
   GNUNET_free (plugin);
-  GNUNET_free_non_null (api);
+  GNUNET_free (api);
   return NULL;
 }
 

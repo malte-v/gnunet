@@ -128,7 +128,7 @@ diffsCallBack (void *cls, const char *section, const char *option,
       }
       else
         cbData->status = 1;
-      GNUNET_free_non_null (diffValue);
+      GNUNET_free (diffValue);
       break;
     }
 

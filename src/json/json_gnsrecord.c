@@ -136,8 +136,8 @@ parse_record (json_t *data, struct GNUNET_GNSRECORD_Data *rd)
   }
   else if ((1 != rel_exp) &&
            (GNUNET_OK ==
-           GNUNET_STRINGS_fancy_time_to_absolute (expiration_time,
-                                                  &abs_expiration_time)))
+            GNUNET_STRINGS_fancy_time_to_absolute (expiration_time,
+                                                   &abs_expiration_time)))
   {
     rd->expiration_time = abs_expiration_time.abs_value_us;
   }

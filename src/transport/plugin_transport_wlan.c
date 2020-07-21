@@ -2093,7 +2093,7 @@ LIBGNUNET_PLUGIN_TRANSPORT_DONE (void *cls)
     GNUNET_SERVER_mst_destroy (plugin->helper_payload_tokenizer);
     plugin->helper_payload_tokenizer = NULL;
   }
-  GNUNET_free_non_null (plugin->wlan_interface);
+  GNUNET_free (plugin->wlan_interface);
   GNUNET_free (plugin);
   GNUNET_free (api);
   return NULL;

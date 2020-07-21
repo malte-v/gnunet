@@ -286,7 +286,7 @@ GNUNET_CONFIGURATION_deserialize (struct GNUNET_CONFIGURATION_Handle *cfg,
   line_orig = NULL;
   while (r_bytes < size)
   {
-    GNUNET_free_non_null (line_orig);
+    GNUNET_free (line_orig);
     /* fgets-like behaviour on buffer */
     to_read = size - r_bytes;
     pos = memchr (&mem[r_bytes], '\n', to_read);
@@ -404,7 +404,7 @@ GNUNET_CONFIGURATION_deserialize (struct GNUNET_CONFIGURATION_Handle *cfg,
     ret = GNUNET_SYSERR;
     break;
   }
-  GNUNET_free_non_null (line_orig);
+  GNUNET_free (line_orig);
   GNUNET_free (section);
   GNUNET_assert ((GNUNET_OK != ret) || (r_bytes == size));
   return ret;
@@ -734,7 +734,7 @@ GNUNET_CONFIGURATION_remove_section (struct GNUNET_CONFIGURATION_Handle *cfg,
       {
         spos->entries = ent->next;
         GNUNET_free (ent->key);
-        GNUNET_free_non_null (ent->val);
+        GNUNET_free (ent->val);
         GNUNET_free (ent);
         cfg->dirty = GNUNET_YES;
       }
@@ -926,13 +926,13 @@ GNUNET_CONFIGURATION_set_value_string (struct GNUNET_CONFIGURATION_Handle *cfg,
   {
     if (NULL == value)
     {
-      GNUNET_free_non_null (e->val);
+      GNUNET_free (e->val);
       e->val = NULL;
     }
     else
     {
       nv = GNUNET_strdup (value);
-      GNUNET_free_non_null (e->val);
+      GNUNET_free (e->val);
       e->val = nv;
     }
     return;
@@ -1383,7 +1383,7 @@ expand_dollar (const struct GNUNET_CONFIGURATION_Handle *cfg,
   result = GNUNET_malloc (strlen (prefix) + strlen (post) + 1);
   strcpy (result, prefix);
   strcat (result, post);
-  GNUNET_free_non_null (def);
+  GNUNET_free (def);
   GNUNET_free (prefix);
   GNUNET_free (orig);
   return result;
@@ -1807,6 +1807,47 @@ GNUNET_CONFIGURATION_load_from (struct GNUNET_CONFIGURATION_Handle *cfg,
       GNUNET_DISK_directory_scan (defaults_d, &parse_configuration_file, cfg))
     return GNUNET_SYSERR; /* no configuration at all found */
   return GNUNET_OK;
+}
+
+
+/**
+ * Return GNUnet's default configuration.  A new configuration is allocated
+ * each time and it's up to the caller to destroy it when done.  This function
+ * returns GNUnet's configuration even when #GNUNET_OS_init has been called
+ * with a value different from #GNUNET_OS_project_data_default.
+ *
+ * @return a freshly allocated configuration
+ */
+struct GNUNET_CONFIGURATION_Handle *
+GNUNET_CONFIGURATION_default (void)
+{
+  const struct GNUNET_OS_ProjectData *pd = GNUNET_OS_project_data_get ();
+  const struct GNUNET_OS_ProjectData *dpd = GNUNET_OS_project_data_default ();
+
+  GNUNET_OS_init (dpd);
+
+  struct GNUNET_CONFIGURATION_Handle *cfg = GNUNET_CONFIGURATION_create ();
+  const char *xdg = getenv ("XDG_CONFIG_HOME");
+  char *cfgname = NULL;
+
+  if (NULL != xdg)
+    GNUNET_asprintf (&cfgname, "%s/%s", xdg, pd->config_file);
+  else
+    cfgname = GNUNET_strdup (pd->user_config_file);
+
+  if (GNUNET_OK != GNUNET_CONFIGURATION_load (cfg, cfgname))
+  {
+    GNUNET_OS_init (pd);
+    GNUNET_CONFIGURATION_destroy (cfg);
+    GNUNET_free (cfgname);
+    return NULL;
+  }
+
+  GNUNET_free (cfgname);
+
+  GNUNET_OS_init (pd);
+
+  return cfg;
 }
 
 

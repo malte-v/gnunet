@@ -141,7 +141,7 @@ decode_private_ecdsa_key (const struct GNUNET_CRYPTO_EcdsaPrivateKey *priv)
   int rc;
   uint8_t d[32];
 
-  for (size_t i=0; i<32; i++)
+  for (size_t i = 0; i<32; i++)
     d[i] = priv->d[31 - i];
 
   rc = gcry_sexp_build (&result,
@@ -195,7 +195,7 @@ GNUNET_CRYPTO_eddsa_key_get_public (
   struct GNUNET_CRYPTO_EddsaPublicKey *pub)
 {
   unsigned char pk[crypto_sign_PUBLICKEYBYTES];
-  unsigned char sk[crypto_sign_SECRETKEYBYTES]; 
+  unsigned char sk[crypto_sign_SECRETKEYBYTES];
 
   BENCHMARK_START (eddsa_key_get_public);
   GNUNET_assert (0 == crypto_sign_seed_keypair (pk, sk, priv->d));
@@ -929,7 +929,7 @@ GNUNET_CRYPTO_ecdsa_private_key_derive (
 
   h = derive_h (&pub, label, context);
   /* Convert to big endian for libgcrypt */
-  for (size_t i=0; i < 32; i++)
+  for (size_t i = 0; i < 32; i++)
     dc[i] = priv->d[31 - i];
   GNUNET_CRYPTO_mpi_scan_unsigned (&x, dc, sizeof(dc));
   d = gcry_mpi_new (256);
@@ -941,9 +941,9 @@ GNUNET_CRYPTO_ecdsa_private_key_derive (
   ret = GNUNET_new (struct GNUNET_CRYPTO_EcdsaPrivateKey);
   GNUNET_CRYPTO_mpi_print_unsigned (dc, sizeof(dc), d);
   /* Convert to big endian for libgcrypt */
-  for (size_t i=0; i < 32; i++)
+  for (size_t i = 0; i < 32; i++)
     ret->d[i] = dc[31 - i];
-  sodium_memzero(dc, sizeof(dc));
+  sodium_memzero (dc, sizeof(dc));
   gcry_mpi_release (d);
   return ret;
 }

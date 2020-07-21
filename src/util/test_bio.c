@@ -52,14 +52,14 @@ test_normal_rw (void)
     GNUNET_BIO_write_spec_string ("test-normal-rw-string", TESTSTRING),
     GNUNET_BIO_write_spec_meta_data ("test-normal-rw-metadata", mdW),
     GNUNET_BIO_write_spec_int64 ("test-normal-rw-int64", &wNum),
-    GNUNET_BIO_write_spec_end(),
+    GNUNET_BIO_write_spec_end (),
   };
 
   struct GNUNET_BIO_ReadSpec rs[] = {
     GNUNET_BIO_read_spec_string ("test-normal-rw-string", &rString, 200),
     GNUNET_BIO_read_spec_meta_data ("test-normal-rw-metadata", &mdR),
     GNUNET_BIO_read_spec_int64 ("test-normal-rw-int64", &rNum),
-    GNUNET_BIO_read_spec_end(),
+    GNUNET_BIO_read_spec_end (),
   };
 
   /* I/O on file */
@@ -73,12 +73,13 @@ test_normal_rw (void)
   GNUNET_assert (GNUNET_OK == GNUNET_BIO_read_spec_commit (rh, rs));
   GNUNET_assert (GNUNET_OK == GNUNET_BIO_read_close (rh, NULL));
   GNUNET_assert (0 == strcmp (TESTSTRING, rString));
-  GNUNET_assert (GNUNET_YES == GNUNET_CONTAINER_meta_data_test_equal (mdR, mdW));
+  GNUNET_assert (GNUNET_YES == GNUNET_CONTAINER_meta_data_test_equal (mdR,
+                                                                      mdW));
   GNUNET_assert (wNum == rNum);
 
   GNUNET_CONTAINER_meta_data_destroy (mdR);
   GNUNET_assert (GNUNET_OK == GNUNET_DISK_directory_remove (filename));
-  GNUNET_free(filename);
+  GNUNET_free (filename);
 
   /* I/O on buffer */
   wh = GNUNET_BIO_write_open_buffer ();
@@ -96,7 +97,8 @@ test_normal_rw (void)
   GNUNET_assert (GNUNET_OK == GNUNET_BIO_read_spec_commit (rh, rs));
   GNUNET_assert (GNUNET_OK == GNUNET_BIO_read_close (rh, NULL));
   GNUNET_assert (0 == strcmp (TESTSTRING, rString));
-  GNUNET_assert (GNUNET_YES == GNUNET_CONTAINER_meta_data_test_equal (mdR, mdW));
+  GNUNET_assert (GNUNET_YES == GNUNET_CONTAINER_meta_data_test_equal (mdR,
+                                                                      mdW));
   GNUNET_assert (wNum == rNum);
 
   GNUNET_free (buffer);
@@ -314,7 +316,7 @@ test_fullfile_rw (void)
                                  200),
     GNUNET_BIO_read_spec_meta_data ("test-fullfile-rw-metadata",
                                     &mdR),
-    GNUNET_BIO_read_spec_end(),
+    GNUNET_BIO_read_spec_end (),
   };
 
   wh = GNUNET_BIO_write_open_file ("/dev/full");

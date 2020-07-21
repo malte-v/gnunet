@@ -3669,7 +3669,7 @@ libgnunet_plugin_transport_udp_init (void *cls)
     }
     have_bind4 = GNUNET_YES;
   }
-  GNUNET_free_non_null (bind4_address);
+  GNUNET_free (bind4_address);
   have_bind6 = GNUNET_NO;
   memset (&server_addrv6, 0, sizeof(server_addrv6));
   if (GNUNET_YES == GNUNET_CONFIGURATION_get_value_string (env->cfg,
@@ -3691,7 +3691,7 @@ libgnunet_plugin_transport_udp_init (void *cls)
     }
     have_bind6 = GNUNET_YES;
   }
-  GNUNET_free_non_null (bind6_address);
+  GNUNET_free (bind6_address);
 
   enable_broadcasting = GNUNET_CONFIGURATION_get_value_yesno (env->cfg,
                                                               "transport-udp",

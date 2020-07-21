@@ -378,8 +378,8 @@ oprelease_get_stats (void *cls)
     }
     GNUNET_free (sc->ops);
   }
-  GNUNET_free_non_null (sc->subsystem);
-  GNUNET_free_non_null (sc->name);
+  GNUNET_free (sc->subsystem);
+  GNUNET_free (sc->name);
   GNUNET_free (sc);
   if (GNUNET_YES ==
       GNUNET_TESTBED_operation_queue_destroy_empty_ (no_wait_queue))

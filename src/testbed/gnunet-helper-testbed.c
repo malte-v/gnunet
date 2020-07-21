@@ -58,12 +58,6 @@
 
 
 /**
- * We need pipe control only on WINDOWS
- */
-#define PIPE_CONTROL GNUNET_NO
-
-
-/**
  * Context for a single write on a chunk of memory
  */
 struct WriteContext
@@ -405,7 +399,7 @@ tokenizer_cb (void *cls, const struct GNUNET_MessageHeader *message)
     GNUNET_free (evstr);
     evstr = NULL;
   }
-  GNUNET_free_non_null (hostname);
+  GNUNET_free (hostname);
   hostname = NULL;
   GNUNET_assert (NULL != test_system);
   GNUNET_assert (GNUNET_OK ==
@@ -435,8 +429,7 @@ tokenizer_cb (void *cls, const struct GNUNET_MessageHeader *message)
                                             see putenv(): becomes part of envrionment! */
     evstr = NULL;
   }
-  testbed = GNUNET_OS_start_process (PIPE_CONTROL,
-                                     GNUNET_OS_INHERIT_STD_ERR /*verbose? */,
+  testbed = GNUNET_OS_start_process (GNUNET_OS_INHERIT_STD_ERR /*verbose? */,
                                      NULL,
                                      NULL,
                                      NULL,
@@ -594,7 +587,7 @@ main (int argc, char **argv)
 
   status = GNUNET_OK;
   if (NULL ==
-      (sigpipe = GNUNET_DISK_pipe (GNUNET_NO, GNUNET_NO, GNUNET_NO, GNUNET_NO)))
+      (sigpipe = GNUNET_DISK_pipe (GNUNET_DISK_PF_NONE)))
   {
     GNUNET_break (0);
     return 1;

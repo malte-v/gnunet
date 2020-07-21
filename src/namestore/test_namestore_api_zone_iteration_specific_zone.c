@@ -88,9 +88,9 @@ end (void *cls)
     GNUNET_SCHEDULER_cancel (endbadly_task);
     endbadly_task = NULL;
   }
-  GNUNET_free_non_null (s_name_1);
-  GNUNET_free_non_null (s_name_2);
-  GNUNET_free_non_null (s_name_3);
+  GNUNET_free (s_name_1);
+  GNUNET_free (s_name_2);
+  GNUNET_free (s_name_3);
   if (s_rd_1 != NULL)
   {
     GNUNET_free_nz ((void *) s_rd_1->data);

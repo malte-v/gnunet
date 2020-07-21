@@ -323,7 +323,7 @@ do_shutdown (void *cls)
     GNUNET_TESTBED_operation_done (bandwidth_stats_op);
     bandwidth_stats_op = NULL;
   }
-  GNUNET_free_non_null (a_ac);
+  GNUNET_free (a_ac);
 }
 
 

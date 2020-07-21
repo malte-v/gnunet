@@ -498,7 +498,7 @@ extern char *GST_stats_dir;
     GNUNET_assert (size <= accommodate_size);                            \
     growth_size = size;                                                 \
     while (growth_size <= accommodate_size)                             \
-      growth_size += LIST_GROW_STEP;                                    \
+    growth_size += LIST_GROW_STEP;                                    \
     GNUNET_array_grow (ptr, size, growth_size);                         \
     GNUNET_assert (size > accommodate_size);                            \
   } while (0)
