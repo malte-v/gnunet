@@ -665,7 +665,7 @@ struct PortOnlyIpv4Ipv6
   /**
    * Length of ipv4 address.
    */
-  socklen_t *addr_len_ipv4;
+  socklen_t addr_len_ipv4;
 
   /**
    * Ipv6 address we like to bind to.
@@ -675,7 +675,7 @@ struct PortOnlyIpv4Ipv6
   /**
    * Length of ipv6 address.
    */
-  socklen_t *addr_len_ipv6;
+  socklen_t addr_len_ipv6;
 
 };
 
@@ -1700,7 +1700,7 @@ tcp_address_to_sockaddr_port_only (const char *bindto, unsigned int *port)
     i4 = GNUNET_malloc (sizeof(struct sockaddr_in));
     po->addr_ipv4 = tcp_address_to_sockaddr_numeric_v4 (&sock_len_ipv4, *i4,
                                                         *port);
-    po->addr_len_ipv4 = &sock_len_ipv4;
+    po->addr_len_ipv4 = sock_len_ipv4;
   }
   else
   {
@@ -1708,14 +1708,19 @@ tcp_address_to_sockaddr_port_only (const char *bindto, unsigned int *port)
     i4 = GNUNET_malloc (sizeof(struct sockaddr_in));
     po->addr_ipv4 = tcp_address_to_sockaddr_numeric_v4 (&sock_len_ipv4, *i4,
                                                         *port);
-    po->addr_len_ipv4 = &sock_len_ipv4;
+    po->addr_len_ipv4 = sock_len_ipv4;
 
     i6 = GNUNET_malloc (sizeof(struct sockaddr_in6));
     po->addr_ipv6 = tcp_address_to_sockaddr_numeric_v6 (&sock_len_ipv6, *i6,
                                                         *port);
 
-    po->addr_len_ipv6 = &sock_len_ipv6;
+    po->addr_len_ipv6 = sock_len_ipv6;
+
+    GNUNET_free (i6);
   }
+
+  GNUNET_free (i4);
+
   return po;
 }
 
@@ -1758,7 +1763,7 @@ extract_address (const char *bindto)
     }
   }
 
-  // GNUNET_free(cp);
+  GNUNET_free (cp);
 
   return start;
 }
@@ -2991,7 +2996,8 @@ init_socket (const struct sockaddr *addr,
       GNUNET_ERROR_TYPE_ERROR,
       _ (
         "Transport service is lacking key configuration settings. Exiting.\n"));
-    GNUNET_RESOLVER_request_cancel (resolve_request_handle);
+    if (NULL != resolve_request_handle)
+      GNUNET_RESOLVER_request_cancel (resolve_request_handle);
     GNUNET_SCHEDULER_shutdown ();
     return GNUNET_SYSERR;
   }
@@ -3022,7 +3028,8 @@ init_socket (const struct sockaddr *addr,
   if (NULL == ch)
   {
     GNUNET_break (0);
-    GNUNET_RESOLVER_request_cancel (resolve_request_handle);
+    if (NULL != resolve_request_handle)
+      GNUNET_RESOLVER_request_cancel (resolve_request_handle);
     GNUNET_SCHEDULER_shutdown ();
     return GNUNET_SYSERR;
   }
@@ -3069,10 +3076,18 @@ nat_register ()
                              NULL /* FIXME: support reversal: #5529 */,
                              NULL /* closure */);
 
+  i = 0;
+
+  /*for (i = addrs_lens - 1; i >= 0; i--)
+    GNUNET_free (saddrs[i]);*/
+  GNUNET_free_non_null (saddrs);
+  GNUNET_free_non_null (saddr_lens);
+
   if (NULL == nat)
   {
     GNUNET_break (0);
-    GNUNET_RESOLVER_request_cancel (resolve_request_handle);
+    if (NULL != resolve_request_handle)
+      GNUNET_RESOLVER_request_cancel (resolve_request_handle);
     GNUNET_SCHEDULER_shutdown ();
   }
 }
@@ -3169,6 +3184,8 @@ run (void *cls,
   char dummy[2];
   char *rest = NULL;
   struct PortOnlyIpv4Ipv6 *po;
+  socklen_t addr_len_ipv4;
+  socklen_t addr_len_ipv6;
 
   (void) cls;
   cfg = c;
@@ -3211,17 +3228,25 @@ run (void *cls,
   {
     po = tcp_address_to_sockaddr_port_only (bindto, &port);
 
-    if (NULL != &po->addr_ipv4)
+    addr_len_ipv4 = po->addr_len_ipv4;
+
+
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "address po %s\n",
+                GNUNET_a2s (po->addr_ipv4, addr_len_ipv4));
+
+    if (NULL != po->addr_ipv4)
     {
-      init_socket (po->addr_ipv4, *po->addr_len_ipv4);
-      add_addr (po->addr_ipv4, *po->addr_len_ipv4);
+      init_socket (po->addr_ipv4, addr_len_ipv4);
+      add_addr (po->addr_ipv4, addr_len_ipv4);
     }
 
-    /*if (NULL != &po->addr_ipv6)
+    if (NULL != po->addr_ipv6)
     {
-      init_socket (po->addr_ipv6, *po->addr_len_ipv6);
-      add_addr (po->addr_ipv6, *po->addr_len_ipv6);
-      }*/
+      addr_len_ipv6 = po->addr_len_ipv6;
+      init_socket (po->addr_ipv6, addr_len_ipv6);
+      add_addr (po->addr_ipv6, addr_len_ipv6);
+    }
 
     nat_register ();
   }
