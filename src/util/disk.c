@@ -1377,14 +1377,13 @@ GNUNET_DISK_file_map (const struct GNUNET_DISK_FileHandle *h,
                       enum GNUNET_DISK_MapType access,
                       size_t len)
 {
+  int prot;
+
   if (NULL == h)
   {
     errno = EINVAL;
     return NULL;
   }
-
-  int prot;
-
   prot = 0;
   if (access & GNUNET_DISK_MAP_TYPE_READ)
     prot = PROT_READ;
@@ -1405,22 +1404,21 @@ GNUNET_DISK_file_map (const struct GNUNET_DISK_FileHandle *h,
 
 /**
  * Unmap a file
+ *
  * @param h mapping handle
- * @return GNUNET_OK on success, GNUNET_SYSERR otherwise
+ * @return #GNUNET_OK on success, #GNUNET_SYSERR otherwise
  */
 int
 GNUNET_DISK_file_unmap (struct GNUNET_DISK_MapHandle *h)
 {
   int ret;
 
-  if (h == NULL)
+  if (NULL == h)
   {
     errno = EINVAL;
     return GNUNET_SYSERR;
   }
-
   ret = munmap (h->addr, h->len) != -1 ? GNUNET_OK : GNUNET_SYSERR;
-
   GNUNET_free (h);
   return ret;
 }
@@ -1429,7 +1427,7 @@ GNUNET_DISK_file_unmap (struct GNUNET_DISK_MapHandle *h)
 /**
  * Write file changes to disk
  * @param h handle to an open file
- * @return GNUNET_OK on success, GNUNET_SYSERR otherwise
+ * @return #GNUNET_OK on success, #GNUNET_SYSERR otherwise
  */
 int
 GNUNET_DISK_file_sync (const struct GNUNET_DISK_FileHandle *h)

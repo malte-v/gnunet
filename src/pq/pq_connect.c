@@ -172,6 +172,8 @@ apply_patch (struct GNUNET_PQ_Context *db,
                                   "-f",
                                   buf,
                                   "-q",
+                                  "--set",
+                                  "ON_ERROR_STOP=1",
                                   NULL);
   if (NULL == psql)
   {
@@ -415,7 +417,7 @@ GNUNET_PQ_reconnect (struct GNUNET_PQ_Context *db)
                            db->load_path))
     {
       GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                  "Failed to load SQL statements from `%s'\n",
+                  "Failed to load SQL statements from `%s*'\n",
                   db->load_path);
       PQfinish (db->conn);
       db->conn = NULL;
