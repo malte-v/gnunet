@@ -41,7 +41,7 @@
  * @param[out] which index into @a spec did we encounter an error
  * @return #GNUNET_OK on success, #GNUNET_SYSERR on error
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_JSON_parse (const json_t *root,
                    struct GNUNET_JSON_Specification *spec,
                    const char **error_json_name,
