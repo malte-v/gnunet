@@ -110,6 +110,21 @@ GNUNET_buffer_write_str (struct GNUNET_Buffer *buf, const char *str);
 
 
 /**
+ * Write data encoded via #GNUNET_STRINGS_data_to_string to the buffer.
+ *
+ * Grows the buffer if necessary.
+ *
+ * @param buf buffer to write to
+ * @param data data to read from
+ * @param len number of bytes to copy from @a data to @a buf
+ */
+void
+GNUNET_buffer_write_data_encoded (struct GNUNET_Buffer *buf,
+                                  const char *data,
+                                  size_t len);
+
+
+/**
  * Write a path component to a buffer, ensuring that
  * there is exactly one slash between the previous contents
  * of the buffer and the new string.
