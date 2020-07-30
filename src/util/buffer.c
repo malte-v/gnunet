@@ -265,7 +265,6 @@ GNUNET_buffer_write_data_encoded (struct GNUNET_Buffer *buf,
                                   size_t len)
 {
   size_t outlen = len * 8;
-  char *p = buf->mem + buf->position;
 
   if (outlen % 5 > 0)
     outlen += 5 - outlen % 5;
@@ -275,7 +274,8 @@ GNUNET_buffer_write_data_encoded (struct GNUNET_Buffer *buf,
   GNUNET_assert (NULL !=
                  GNUNET_STRINGS_data_to_string (data,
                                                 len,
-                                                p,
+                                                (buf->mem +
+                                                 buf->position),
                                                 outlen));
   buf->position += outlen;
   GNUNET_assert (buf->position <= buf->capacity);
