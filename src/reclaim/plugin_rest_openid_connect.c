@@ -28,6 +28,8 @@
 #include <inttypes.h>
 #include <jansson.h>
 
+#include "gnunet_buffer_lib.h"
+#include "gnunet_strings_lib.h"
 #include "gnunet_gns_service.h"
 #include "gnunet_gnsrecord_lib.h"
 #include "gnunet_identity_service.h"
@@ -855,6 +857,7 @@ login_redirect (void *cls)
   char *login_base_url;
   char *new_redirect;
   struct MHD_Response *resp;
+  struct GNUNET_Buffer buf = { 0 };
   struct RequestHandle *handle = cls;
 
   if (GNUNET_OK == GNUNET_CONFIGURATION_get_value_string (cfg,
@@ -862,27 +865,53 @@ login_redirect (void *cls)
                                                           "address",
                                                           &login_base_url))
   {
-    GNUNET_asprintf (&new_redirect,
-                     "%s?%s=%s&%s=%s&%s=%s&%s=%s&%s=%s&%s=%s&%s=%s&%s=%s",
-                     login_base_url,
-                     OIDC_RESPONSE_TYPE_KEY,
-                     handle->oidc->response_type,
-                     OIDC_CLIENT_ID_KEY,
-                     handle->oidc->client_id,
-                     OIDC_REDIRECT_URI_KEY,
-                     handle->oidc->redirect_uri,
-                     OIDC_SCOPE_KEY,
-                     handle->oidc->scope,
-                     OIDC_STATE_KEY,
-                     (NULL != handle->oidc->state) ? handle->oidc->state : "",
-                     OIDC_CODE_CHALLENGE_KEY,
-                     (NULL != handle->oidc->code_challenge) ?
-                     handle->oidc->code_challenge : "",
-                     OIDC_NONCE_KEY,
-                     (NULL != handle->oidc->nonce) ? handle->oidc->nonce : "",
-                     OIDC_CLAIMS_KEY,
-                     (NULL != handle->oidc->claims) ? handle->oidc->claims :
-                     "");
+    GNUNET_buffer_write (&buf, login_base_url, 1);
+    GNUNET_buffer_write_fstr (&buf,
+                              "?%s=%s",
+                              OIDC_RESPONSE_TYPE_KEY,
+                              handle->oidc->response_type);
+    GNUNET_buffer_write_fstr (&buf,
+                              "&%s=%s",
+                              OIDC_CLIENT_ID_KEY,
+                              handle->oidc->client_id);
+    GNUNET_buffer_write_fstr (&buf,
+                              "&%s=%s",
+                              OIDC_REDIRECT_URI_KEY,
+                              handle->oidc->redirect_uri);
+
+    GNUNET_buffer_write_fstr (&buf,
+                              "&%s=%s",
+                              OIDC_SCOPE_KEY,
+                              handle->oidc->scope);
+    if (NULL != handle->oidc->state)
+    {
+      GNUNET_buffer_write_fstr (&buf,
+                                "&%s=%s",
+                                OIDC_STATE_KEY,
+                                handle->oidc->state);
+    }
+    if (NULL != handle->oidc->code_challenge)
+    {
+      GNUNET_buffer_write_fstr (&buf,
+                                "&%s=%s",
+                                OIDC_CODE_CHALLENGE_KEY,
+                                handle->oidc->code_challenge);
+    }
+    if (NULL != handle->oidc->nonce)
+    {
+      GNUNET_buffer_write_fstr (&buf,
+                                "&%s=%s",
+                                OIDC_NONCE_KEY,
+                                handle->oidc->nonce);
+    }
+    if (NULL != handle->oidc->claims)
+    {
+      GNUNET_buffer_write_fstr (&buf,
+                                "&%s=%s",
+                                OIDC_CLAIMS_KEY,
+                                handle->oidc->claims);
+    }
+    new_redirect = GNUNET_buffer_reap_str (&buf);
     resp = GNUNET_REST_create_response ("");
     MHD_add_response_header (resp, "Location", new_redirect);
     GNUNET_free (login_base_url);
