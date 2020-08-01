@@ -865,7 +865,7 @@ login_redirect (void *cls)
                                                           "address",
                                                           &login_base_url))
   {
-    GNUNET_buffer_write (&buf, login_base_url, 1);
+    GNUNET_buffer_write_str (&buf, login_base_url);
     GNUNET_buffer_write_fstr (&buf,
                               "?%s=%s",
                               OIDC_RESPONSE_TYPE_KEY,
