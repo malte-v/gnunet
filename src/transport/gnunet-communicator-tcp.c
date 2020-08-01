@@ -24,26 +24,22 @@
  * @author Christian Grothoff
  *
  * TODO:
- * - support DNS names in BINDTO option (#5528)
  * - support NAT connection reversal method (#5529)
  * - support other TCP-specific NAT traversal methods (#5531)
- * - add replay protection support to the protocol by
- *   adding a nonce in the KX and requiring (!) a
- *   nounce ACK to be send within the first X bytes of
- *   data (#5530)
  */
 #include "platform.h"
 #include "gnunet_util_lib.h"
+#include "gnunet_core_service.h"
+#include "gnunet_peerstore_service.h"
 #include "gnunet_protocols.h"
 #include "gnunet_signatures.h"
 #include "gnunet_constants.h"
 #include "gnunet_nt_lib.h"
 #include "gnunet_nat_service.h"
 #include "gnunet_statistics_service.h"
-#include "gnunet_ats_transport_service.h"
-#include "transport.h"
 #include "gnunet_transport_communication_service.h"
 #include "gnunet_resolver_service.h"
+
 /**
  * How long do we believe our addresses to remain up (before
  * the other peer should revalidate).
@@ -91,6 +87,13 @@
   (sizeof(struct GNUNET_CRYPTO_EcdhePublicKey)   \
    + sizeof(struct TCPConfirmation))
 
+/**
+ * Size of the initial core key exchange messages.
+ */
+#define INITIAL_CORE_KX_SIZE          \
+  (sizeof(struct EphemeralKeyMessage)   \
+   + sizeof(struct PingMessage) \
+   + sizeof(struct PongMessage))
 
 /**
  * Address prefix used by the communicator.
@@ -136,8 +139,45 @@ struct TcpHandshakeSignature
    * (if receiver persists times by sender).
    */
   struct GNUNET_TIME_AbsoluteNBO monotonic_time;
+
+  /**
+   * Challenge value used to protect against replay attack, if there is no stored monotonic time value.
+   */
+  struct ChallengeNonceP challenge;
 };
 
+/**
+ * Signature we use to verify that the ack from the receiver of the ephemeral key was really send by
+ * the specified sender.
+ */
+struct TcpHandshakeAckSignature
+{
+  /**
+   * Purpose must be #GNUNET_SIGNATURE_COMMUNICATOR_TCP_HANDSHAKE_ACK
+   */
+  struct GNUNET_CRYPTO_EccSignaturePurpose purpose;
+
+  /**
+   * Identity of the inititor of the TCP connection (TCP client).
+   */
+  struct GNUNET_PeerIdentity sender;
+
+  /**
+   * Presumed identity of the target of the TCP connection (TCP server)
+   */
+  struct GNUNET_PeerIdentity receiver;
+
+  /**
+   * Monotonic time of @e sender, to possibly help detect replay attacks
+   * (if receiver persists times by sender).
+   */
+  struct GNUNET_TIME_AbsoluteNBO monotonic_time;
+
+  /**
+   * Challenge value used to protect against replay attack, if there is no stored monotonic time value.
+   */
+  struct ChallengeNonceP challenge;
+};
 
 /**
  * Encrypted continuation of TCP initial handshake.
@@ -159,8 +199,48 @@ struct TCPConfirmation
    * (if receiver persists times by sender).
    */
   struct GNUNET_TIME_AbsoluteNBO monotonic_time;
+
+  /**
+   * Challenge value used to protect against replay attack, if there is no stored monotonic time value.
+   */
+  struct ChallengeNonceP challenge;
+
 };
 
+/**
+ * Ack for the encrypted continuation of TCP initial handshake.
+ */
+struct TCPConfirmationAck
+{
+
+
+  /**
+   * Type is #GNUNET_MESSAGE_TYPE_COMMUNICATOR_TCP_CONFIRMATION_ACK.
+   */
+  struct GNUNET_MessageHeader header;
+
+  /**
+   * Sender's identity
+   */
+  struct GNUNET_PeerIdentity sender;
+
+  /**
+   * Sender's signature of type #GNUNET_SIGNATURE_COMMUNICATOR_TCP_HANDSHAKE_ACK
+   */
+  struct GNUNET_CRYPTO_EddsaSignature sender_sig;
+
+  /**
+   * Monotonic time of @e sender, to possibly help detect replay attacks
+   * (if receiver persists times by sender).
+   */
+  struct GNUNET_TIME_AbsoluteNBO monotonic_time;
+
+  /**
+   * Challenge value used to protect against replay attack, if there is no stored monotonic time value.
+   */
+  struct ChallengeNonceP challenge;
+
+};
 
 /**
  * TCP message box.  Always sent encrypted!
@@ -456,6 +536,56 @@ struct Queue
    * re-decrypt ciphertext.
    */
   int rekeyed;
+
+  /**
+   * Monotonic time value for rekey message.
+   */
+  struct GNUNET_TIME_AbsoluteNBO rekey_monotonic_time;
+
+  /**
+   * Monotonic time value for handshake message.
+   */
+  struct GNUNET_TIME_AbsoluteNBO handshake_monotonic_time;
+
+  /**
+   * Monotonic time value for handshake ack message.
+   */
+  struct GNUNET_TIME_AbsoluteNBO handshake_ack_monotonic_time;
+
+  /**
+   * Challenge value used to protect against replay attack, if there is no stored monotonic time value.
+   */
+  struct ChallengeNonceP challenge;
+
+  /**
+   * Iteration Context for retrieving the monotonic time send with key for rekeying.
+   */
+  struct GNUNET_PEERSTORE_IterateContext *rekey_monotime_get;
+
+  /**
+   * Iteration Context for retrieving the monotonic time send with the handshake.
+   */
+  struct GNUNET_PEERSTORE_IterateContext *handshake_monotime_get;
+
+  /**
+   * Iteration Context for retrieving the monotonic time send with the handshake ack.
+   */
+  struct GNUNET_PEERSTORE_IterateContext *handshake_ack_monotime_get;
+
+  /**
+   * Store Context for retrieving the monotonic time send with key for rekeying.
+   */
+  struct GNUNET_PEERSTORE_StoreContext *rekey_monotime_sc;
+
+  /**
+   * Store Context for retrieving the monotonic time send with the handshake.
+   */
+  struct GNUNET_PEERSTORE_StoreContext *handshake_monotime_sc;
+
+  /**
+   * Store Context for retrieving the monotonic time send with the handshake ack.
+   */
+  struct GNUNET_PEERSTORE_StoreContext *handshake_ack_monotime_sc;
 };
 
 
@@ -535,7 +665,7 @@ struct PortOnlyIpv4Ipv6
   /**
    * Length of ipv4 address.
    */
-  socklen_t *addr_len_ipv4;
+  socklen_t addr_len_ipv4;
 
   /**
    * Ipv6 address we like to bind to.
@@ -545,7 +675,7 @@ struct PortOnlyIpv4Ipv6
   /**
    * Length of ipv6 address.
    */
-  socklen_t *addr_len_ipv6;
+  socklen_t addr_len_ipv6;
 
 };
 
@@ -575,6 +705,7 @@ struct Addresses
   socklen_t addr_len;
 
 };
+
 
 
 /**
@@ -658,6 +789,16 @@ struct Addresses *addrs_tail;
 int addrs_lens;
 
 /**
+ * Size of data received without KX challenge played back.
+ */
+size_t unverified_size;
+
+/**
+ * Database for peer's HELLOs.
+ */
+static struct GNUNET_PEERSTORE_Handle *peerstore;
+
+/**
  * We have been notified that our listen socket has something to
  * read. Do the read and reschedule this function to be called again
  * once more is available.
@@ -687,6 +828,36 @@ queue_destroy (struct Queue *queue)
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Disconnecting queue for peer `%s'\n",
               GNUNET_i2s (&queue->target));
+  if (NULL != queue->rekey_monotime_sc)
+  {
+    GNUNET_PEERSTORE_store_cancel (queue->rekey_monotime_sc);
+    queue->rekey_monotime_sc = NULL;
+  }
+  if (NULL != queue->handshake_monotime_sc)
+  {
+    GNUNET_PEERSTORE_store_cancel (queue->handshake_monotime_sc);
+    queue->handshake_monotime_sc = NULL;
+  }
+  if (NULL != queue->handshake_ack_monotime_sc)
+  {
+    GNUNET_PEERSTORE_store_cancel (queue->handshake_ack_monotime_sc);
+    queue->handshake_ack_monotime_sc = NULL;
+  }
+  if (NULL != queue->rekey_monotime_get)
+  {
+    GNUNET_PEERSTORE_iterate_cancel (queue->rekey_monotime_get);
+    queue->rekey_monotime_get = NULL;
+  }
+  if (NULL != queue->handshake_monotime_get)
+  {
+    GNUNET_PEERSTORE_iterate_cancel (queue->handshake_monotime_get);
+    queue->handshake_monotime_get = NULL;
+  }
+  if (NULL != queue->handshake_ack_monotime_get)
+  {
+    GNUNET_PEERSTORE_iterate_cancel (queue->handshake_ack_monotime_get);
+    queue->handshake_ack_monotime_get = NULL;
+  }
   if (NULL != (mq = queue->mq))
   {
     queue->mq = NULL;
@@ -964,6 +1135,78 @@ setup_in_cipher (const struct GNUNET_CRYPTO_EcdhePublicKey *ephemeral,
   setup_cipher (&dh, &my_identity, &queue->in_cipher, &queue->in_hmac);
 }
 
+/**
+ * Callback called when peerstore store operation for rekey monotime value is finished.
+ * @param cls Queue context the store operation was executed.
+ * @param success Store operation was successful (GNUNET_OK) or not.
+ */
+static void
+rekey_monotime_store_cb (void *cls, int success)
+{
+  struct Queue *queue = cls;
+  if (GNUNET_OK != success)
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                "Failed to store rekey monotonic time in PEERSTORE!\n");
+  }
+  queue->rekey_monotime_sc = NULL;
+}
+
+/**
+ * Callback called by peerstore when records for GNUNET_PEERSTORE_TRANSPORT_TCP_COMMUNICATOR_REKEY
+ * where found.
+ * @param cls Queue context the store operation was executed.
+ * @param record The record found or NULL if there is no record left.
+ * @param emsg Message from peerstore.
+ */
+static void
+rekey_monotime_cb (void *cls,
+                   const struct GNUNET_PEERSTORE_Record *record,
+                   const char *emsg)
+{
+  struct Queue *queue = cls;
+  struct GNUNET_TIME_AbsoluteNBO *mtbe;
+  struct GNUNET_TIME_Absolute mt;
+  const struct GNUNET_PeerIdentity *pid;
+  struct GNUNET_TIME_AbsoluteNBO *rekey_monotonic_time;
+
+  (void) emsg;
+
+  rekey_monotonic_time = &queue->rekey_monotonic_time;
+  pid = &queue->target;
+  if (NULL == record)
+  {
+    queue->rekey_monotime_get = NULL;
+    return;
+  }
+  if (sizeof(*mtbe) != record->value_size)
+  {
+    GNUNET_break (0);
+    return;
+  }
+  mtbe = record->value;
+  mt = GNUNET_TIME_absolute_ntoh (*mtbe);
+  if (mt.abs_value_us > GNUNET_TIME_absolute_ntoh (
+        queue->rekey_monotonic_time).abs_value_us)
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                "Queue from %s dropped, rekey monotime in the past\n",
+                GNUNET_i2s (&queue->target));
+    GNUNET_break (0);
+    queue_finish (queue);
+    return;
+  }
+  queue->rekey_monotime_sc = GNUNET_PEERSTORE_store (peerstore,
+                                                     "transport_tcp_communicator",
+                                                     pid,
+                                                     GNUNET_PEERSTORE_TRANSPORT_TCP_COMMUNICATOR_REKEY,
+                                                     rekey_monotonic_time,
+                                                     sizeof(rekey_monotonic_time),
+                                                     GNUNET_TIME_UNIT_FOREVER_ABS,
+                                                     GNUNET_PEERSTORE_STOREOPTION_REPLACE,
+                                                     &rekey_monotime_store_cb,
+                                                     queue);
+}
 
 /**
  * Handle @a rekey message on @a queue. The message was already
@@ -983,7 +1226,6 @@ do_rekey (struct Queue *queue, const struct TCPRekey *rekey)
   thp.receiver = my_identity;
   thp.ephemeral = rekey->ephemeral;
   thp.monotonic_time = rekey->monotonic_time;
-  /* FIXME: check monotonic time is monotonic... */
   if (GNUNET_OK !=
       GNUNET_CRYPTO_eddsa_verify (GNUNET_SIGNATURE_COMMUNICATOR_TCP_REKEY,
                                   &thp,
@@ -994,11 +1236,93 @@ do_rekey (struct Queue *queue, const struct TCPRekey *rekey)
     queue_finish (queue);
     return;
   }
+  queue->rekey_monotonic_time = rekey->monotonic_time;
+  queue->rekey_monotime_get = GNUNET_PEERSTORE_iterate (peerstore,
+                                                        "transport_tcp_communicator",
+                                                        &queue->target,
+                                                        GNUNET_PEERSTORE_TRANSPORT_TCP_COMMUNICATOR_REKEY,
+                                                        &rekey_monotime_cb,
+                                                        queue);
   gcry_cipher_close (queue->in_cipher);
   queue->rekeyed = GNUNET_YES;
   setup_in_cipher (&rekey->ephemeral, queue);
 }
 
+/**
+ * Callback called when peerstore store operation for handshake ack monotime value is finished.
+ * @param cls Queue context the store operation was executed.
+ * @param success Store operation was successful (GNUNET_OK) or not.
+ */
+static void
+handshake_ack_monotime_store_cb (void *cls, int success)
+{
+  struct Queue *queue = cls;
+
+  if (GNUNET_OK != success)
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                "Failed to store handshake ack monotonic time in PEERSTORE!\n");
+  }
+  queue->handshake_ack_monotime_sc = NULL;
+}
+
+/**
+ * Callback called by peerstore when records for GNUNET_PEERSTORE_TRANSPORT_TCP_COMMUNICATOR_HANDSHAKE_ACK
+ * where found.
+ * @param cls Queue context the store operation was executed.
+ * @param record The record found or NULL if there is no record left.
+ * @param emsg Message from peerstore.
+ */
+static void
+handshake_ack_monotime_cb (void *cls,
+                           const struct GNUNET_PEERSTORE_Record *record,
+                           const char *emsg)
+{
+  struct Queue *queue = cls;
+  struct GNUNET_TIME_AbsoluteNBO *mtbe;
+  struct GNUNET_TIME_Absolute mt;
+  const struct GNUNET_PeerIdentity *pid;
+  struct GNUNET_TIME_AbsoluteNBO *handshake_ack_monotonic_time;
+
+  (void) emsg;
+
+  handshake_ack_monotonic_time = &queue->handshake_ack_monotonic_time;
+  pid = &queue->target;
+  if (NULL == record)
+  {
+    queue->handshake_ack_monotime_get = NULL;
+    return;
+  }
+  if (sizeof(*mtbe) != record->value_size)
+  {
+    GNUNET_break (0);
+    return;
+  }
+  mtbe = record->value;
+  mt = GNUNET_TIME_absolute_ntoh (*mtbe);
+  if (mt.abs_value_us > GNUNET_TIME_absolute_ntoh (
+        queue->handshake_ack_monotonic_time).abs_value_us)
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                "Queue from %s dropped, handshake ack monotime in the past\n",
+                GNUNET_i2s (&queue->target));
+    GNUNET_break (0);
+    queue_finish (queue);
+    return;
+  }
+  queue->handshake_ack_monotime_sc = GNUNET_PEERSTORE_store (peerstore,
+                                                             "transport_tcp_communicator",
+                                                             pid,
+                                                             GNUNET_PEERSTORE_TRANSPORT_TCP_COMMUNICATOR_HANDSHAKE_ACK,
+                                                             handshake_ack_monotonic_time,
+                                                             sizeof(
+                                                               handshake_ack_monotonic_time),
+                                                             GNUNET_TIME_UNIT_FOREVER_ABS,
+                                                             GNUNET_PEERSTORE_STOREOPTION_REPLACE,
+                                                             &
+                                                             handshake_ack_monotime_store_cb,
+                                                             queue);
+}
 
 /**
  * Test if we have received a full message in plaintext.
@@ -1012,6 +1336,8 @@ try_handle_plaintext (struct Queue *queue)
 {
   const struct GNUNET_MessageHeader *hdr =
     (const struct GNUNET_MessageHeader *) queue->pread_buf;
+  const struct TCPConfirmationAck *tca = (const struct
+                                          TCPConfirmationAck *) queue->pread_buf;
   const struct TCPBox *box = (const struct TCPBox *) queue->pread_buf;
   const struct TCPRekey *rekey = (const struct TCPRekey *) queue->pread_buf;
   const struct TCPFinish *fin = (const struct TCPFinish *) queue->pread_buf;
@@ -1020,12 +1346,92 @@ try_handle_plaintext (struct Queue *queue)
   struct GNUNET_ShortHashCode tmac;
   uint16_t type;
   size_t size = 0; /* make compiler happy */
+  struct TcpHandshakeAckSignature thas;
+  const struct ChallengeNonceP challenge = queue->challenge;
 
-  if (sizeof(*hdr) > queue->pread_off)
+  if ((sizeof(*hdr) > queue->pread_off))
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "Handling plaintext, not even a header!\n");
     return 0; /* not even a header */
+  }
+
+  if ((-1 != unverified_size) && (unverified_size > INITIAL_CORE_KX_SIZE))
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                "Already received data of size %u bigger than KX size %u!\n",
+                unverified_size,
+                INITIAL_CORE_KX_SIZE);
+    GNUNET_break_op (0);
+    queue_finish (queue);
+    return 0;
+  }
+
   type = ntohs (hdr->type);
   switch (type)
   {
+  case GNUNET_MESSAGE_TYPE_COMMUNICATOR_TCP_CONFIRMATION_ACK:
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "start processing ack\n");
+    if (sizeof(*tca) > queue->pread_off)
+    {
+      GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                  "Handling plaintext size of tca greater than pread offset.\n");
+      return 0;
+    }
+    if (ntohs (hdr->size) != sizeof(*tca))
+    {
+      GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                  "Handling plaintext size does not match message type.\n");
+      GNUNET_break_op (0);
+      queue_finish (queue);
+      return 0;
+    }
+
+    thas.purpose.purpose = htonl (
+      GNUNET_SIGNATURE_COMMUNICATOR_TCP_HANDSHAKE_ACK);
+    thas.purpose.size = htonl (sizeof(thas));
+    thas.sender = tca->sender;
+    thas.receiver = my_identity;
+    thas.monotonic_time = tca->monotonic_time;
+    thas.challenge = tca->challenge;
+
+    if (GNUNET_SYSERR == GNUNET_CRYPTO_eddsa_verify (
+          GNUNET_SIGNATURE_COMMUNICATOR_TCP_HANDSHAKE_ACK,
+          &thas,
+          &tca->sender_sig,
+          &tca->sender.public_key))
+    {
+      GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                  "Verification of signature failed!\n");
+      GNUNET_break (0);
+      queue_finish (queue);
+      return 0;
+    }
+    if (0 != GNUNET_memcmp (&tca->challenge, &challenge))
+    {
+      GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                  "Challenge in TCPConfirmationAck not correct!\n");
+      GNUNET_break (0);
+      queue_finish (queue);
+      return 0;
+    }
+
+    queue->handshake_ack_monotime_get = GNUNET_PEERSTORE_iterate (peerstore,
+                                                                  "transport_tcp_communicator",
+                                                                  &queue->target,
+                                                                  GNUNET_PEERSTORE_TRANSPORT_TCP_COMMUNICATOR_HANDSHAKE_ACK,
+                                                                  &
+                                                                  handshake_ack_monotime_cb,
+                                                                  queue);
+
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "Handling plaintext, ack processed!");
+
+    unverified_size = -1;
+
+    size = ntohs (hdr->size);
+    break;
   case GNUNET_MESSAGE_TYPE_COMMUNICATOR_TCP_BOX:
     /* Special case: header size excludes box itself! */
     if (ntohs (hdr->size) + sizeof(struct TCPBox) > queue->pread_off)
@@ -1039,6 +1445,8 @@ try_handle_plaintext (struct Queue *queue)
     }
     pass_plaintext_to_core (queue, (const void *) &box[1], ntohs (hdr->size));
     size = ntohs (hdr->size) + sizeof(*box);
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "Handling plaintext, box processed!\n");
     break;
 
   case GNUNET_MESSAGE_TYPE_COMMUNICATOR_TCP_REKEY:
@@ -1061,6 +1469,8 @@ try_handle_plaintext (struct Queue *queue)
     }
     do_rekey (queue, rekey);
     size = ntohs (hdr->size);
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "Handling plaintext, rekey processed!\n");
     break;
 
   case GNUNET_MESSAGE_TYPE_COMMUNICATOR_TCP_FINISH:
@@ -1083,14 +1493,20 @@ try_handle_plaintext (struct Queue *queue)
     }
     /* handle FINISH by destroying queue */
     queue_destroy (queue);
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "Handling plaintext, finish processed!\n");
     break;
 
   default:
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "Handling plaintext, nothing processed!\n");
     GNUNET_break_op (0);
     queue_finish (queue);
     return 0;
   }
   GNUNET_assert (0 != size);
+  if (-1 != unverified_size)
+    unverified_size += size;
   return size;
 }
 
@@ -1202,7 +1618,6 @@ queue_read (void *cls)
   queue_finish (queue);
 }
 
-
 /**
  * Convert a `struct sockaddr_in6 to a `struct sockaddr *`
  *
@@ -1216,10 +1631,6 @@ tcp_address_to_sockaddr_numeric_v6 (socklen_t *sock_len, struct sockaddr_in6 v6,
 {
   struct sockaddr *in;
 
-  GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-              "1 address %s\n",
-              GNUNET_a2s (in, *sock_len));
-
   v6.sin6_family = AF_INET6;
   v6.sin6_port = htons ((uint16_t) port);
 #if HAVE_SOCKADDR_IN_SIN_LEN
@@ -1227,13 +1638,9 @@ tcp_address_to_sockaddr_numeric_v6 (socklen_t *sock_len, struct sockaddr_in6 v6,
 #endif
   in = GNUNET_memdup (&v6, sizeof(v6));
   *sock_len = sizeof(struct sockaddr_in6);
-  GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-              "address %s\n",
-              GNUNET_a2s (in, *sock_len));
 
   return in;
 }
-
 
 /**
  * Convert a `struct sockaddr_in4 to a `struct sockaddr *`
@@ -1257,7 +1664,6 @@ tcp_address_to_sockaddr_numeric_v4 (socklen_t *sock_len, struct sockaddr_in v4,
   *sock_len = sizeof(struct sockaddr_in);
   return in;
 }
-
 
 /**
  * Convert TCP bind specification to a `struct PortOnlyIpv4Ipv6  *`
@@ -1294,7 +1700,7 @@ tcp_address_to_sockaddr_port_only (const char *bindto, unsigned int *port)
     i4 = GNUNET_malloc (sizeof(struct sockaddr_in));
     po->addr_ipv4 = tcp_address_to_sockaddr_numeric_v4 (&sock_len_ipv4, *i4,
                                                         *port);
-    po->addr_len_ipv4 = &sock_len_ipv4;
+    po->addr_len_ipv4 = sock_len_ipv4;
   }
   else
   {
@@ -1302,24 +1708,21 @@ tcp_address_to_sockaddr_port_only (const char *bindto, unsigned int *port)
     i4 = GNUNET_malloc (sizeof(struct sockaddr_in));
     po->addr_ipv4 = tcp_address_to_sockaddr_numeric_v4 (&sock_len_ipv4, *i4,
                                                         *port);
-    po->addr_len_ipv4 = &sock_len_ipv4;
-
-    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                "3.5 address %s\n",
-                GNUNET_a2s (po->addr_ipv4, sock_len_ipv4));
+    po->addr_len_ipv4 = sock_len_ipv4;
 
     i6 = GNUNET_malloc (sizeof(struct sockaddr_in6));
     po->addr_ipv6 = tcp_address_to_sockaddr_numeric_v6 (&sock_len_ipv6, *i6,
                                                         *port);
-    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                "3 address %s\n",
-                GNUNET_a2s (po->addr_ipv6, sock_len_ipv6));
 
-    po->addr_len_ipv6 = &sock_len_ipv6;
+    po->addr_len_ipv6 = sock_len_ipv6;
+
+    GNUNET_free (i6);
   }
+
+  GNUNET_free (i4);
+
   return po;
 }
-
 
 /**
  * This Method extracts the address part of the BINDTO string.
@@ -1347,8 +1750,7 @@ extract_address (const char *bindto)
     start++;   /* skip over '['*/
     cp[strlen (cp) - 1] = '\0';  /* eat ']'*/
   }
-  else
-  {
+  else {
     token = strtok_r (cp, "]", &rest);
     if (strlen (bindto) == strlen (token))
     {
@@ -1361,11 +1763,10 @@ extract_address (const char *bindto)
     }
   }
 
-  // GNUNET_free(cp);
+  GNUNET_free (cp);
 
   return start;
 }
-
 
 /**
  * This Method extracts the port part of the BINDTO string.
@@ -1444,7 +1845,6 @@ extract_port (const char *addr_and_port)
 
   return port;
 }
-
 
 /**
  * Convert TCP bind specification to a `struct sockaddr *`
@@ -1827,12 +2227,16 @@ transmit_kx (struct Queue *queue,
   tc.sender = my_identity;
   tc.monotonic_time =
     GNUNET_TIME_absolute_hton (GNUNET_TIME_absolute_get_monotonic (cfg));
+  GNUNET_CRYPTO_random_block (GNUNET_CRYPTO_QUALITY_NONCE,
+                              &tc.challenge,
+                              sizeof(tc.challenge));
   ths.purpose.purpose = htonl (GNUNET_SIGNATURE_COMMUNICATOR_TCP_HANDSHAKE);
   ths.purpose.size = htonl (sizeof(ths));
   ths.sender = my_identity;
   ths.receiver = queue->target;
   ths.ephemeral = *epub;
   ths.monotonic_time = tc.monotonic_time;
+  ths.challenge = tc.challenge;
   GNUNET_CRYPTO_eddsa_sign (my_private_key,
                             &ths,
                             &tc.sender_sig);
@@ -1842,7 +2246,12 @@ transmit_kx (struct Queue *queue,
                                       sizeof(tc),
                                       &tc,
                                       sizeof(tc)));
+  queue->challenge = tc.challenge;
   queue->cwrite_off += sizeof(tc);
+
+  GNUNET_log_from_nocheck (GNUNET_ERROR_TYPE_DEBUG,
+                           "transport",
+                           "handshake written\n");
 }
 
 
@@ -1864,6 +2273,80 @@ start_initial_kx_out (struct Queue *queue)
   transmit_kx (queue, &epub);
 }
 
+/**
+ * Callback called when peerstore store operation for handshake monotime is finished.
+ * @param cls Queue context the store operation was executed.
+ * @param success Store operation was successful (GNUNET_OK) or not.
+ */
+static void
+handshake_monotime_store_cb (void *cls, int success)
+{
+  struct Queue *queue = cls;
+  if (GNUNET_OK != success)
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                "Failed to store handshake monotonic time in PEERSTORE!\n");
+  }
+  queue->handshake_monotime_sc = NULL;
+}
+
+/**
+ * Callback called by peerstore when records for GNUNET_PEERSTORE_TRANSPORT_TCP_COMMUNICATOR_HANDSHAKE
+ * where found.
+ * @param cls Queue context the store operation was executed.
+ * @param record The record found or NULL if there is no record left.
+ * @param emsg Message from peerstore.
+ */
+static void
+handshake_monotime_cb (void *cls,
+                       const struct GNUNET_PEERSTORE_Record *record,
+                       const char *emsg)
+{
+  struct Queue *queue = cls;
+  struct GNUNET_TIME_AbsoluteNBO *mtbe;
+  struct GNUNET_TIME_Absolute mt;
+  const struct GNUNET_PeerIdentity *pid;
+  struct GNUNET_TIME_AbsoluteNBO *handshake_monotonic_time;
+
+  (void) emsg;
+
+  handshake_monotonic_time = &queue->handshake_monotonic_time;
+  pid = &queue->target;
+  if (NULL == record)
+  {
+    queue->handshake_monotime_get = NULL;
+    return;
+  }
+  if (sizeof(*mtbe) != record->value_size)
+  {
+    GNUNET_break (0);
+    return;
+  }
+  mtbe = record->value;
+  mt = GNUNET_TIME_absolute_ntoh (*mtbe);
+  if (mt.abs_value_us > GNUNET_TIME_absolute_ntoh (
+        queue->handshake_monotonic_time).abs_value_us)
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                "Queue from %s dropped, handshake monotime in the past\n",
+                GNUNET_i2s (&queue->target));
+    GNUNET_break (0);
+    queue_finish (queue);
+    return;
+  }
+  queue->handshake_monotime_sc = GNUNET_PEERSTORE_store (peerstore,
+                                                         "transport_tcp_communicator",
+                                                         pid,
+                                                         GNUNET_PEERSTORE_TRANSPORT_TCP_COMMUNICATOR_HANDSHAKE,
+                                                         handshake_monotonic_time,
+                                                         sizeof(
+                                                           handshake_monotonic_time),
+                                                         GNUNET_TIME_UNIT_FOREVER_ABS,
+                                                         GNUNET_PEERSTORE_STOREOPTION_REPLACE,
+                                                         &
+                                                         handshake_monotime_store_cb,
+                                                         queue);
+}
 
 /**
  * We have received the first bytes from the other side on a @a queue.
@@ -1896,13 +2379,19 @@ decrypt_and_check_tc (struct Queue *queue,
   ths.receiver = my_identity;
   memcpy (&ths.ephemeral, ibuf, sizeof(struct GNUNET_CRYPTO_EcdhePublicKey));
   ths.monotonic_time = tc->monotonic_time;
-  /* FIXME: check monotonic time against previous mono times
-     from this sender! */
+  ths.challenge = tc->challenge;
   return GNUNET_CRYPTO_eddsa_verify (
     GNUNET_SIGNATURE_COMMUNICATOR_TCP_HANDSHAKE,
     &ths,
     &tc->sender_sig,
     &tc->sender.public_key);
+  queue->handshake_monotime_get = GNUNET_PEERSTORE_iterate (peerstore,
+                                                            "transport_tcp_communicator",
+                                                            &queue->target,
+                                                            GNUNET_PEERSTORE_TRANSPORT_TCP_COMMUNICATOR_HANDSHAKE,
+                                                            &
+                                                            handshake_monotime_cb,
+                                                            queue);
 }
 
 
@@ -1930,6 +2419,47 @@ free_proto_queue (struct ProtoQueue *pq)
   GNUNET_free (pq);
 }
 
+/**
+ * Sending challenge with TcpConfirmationAck back to sender of ephemeral key.
+ *
+ * @param tc The TCPConfirmation originally send.
+ * @param queue The queue context.
+ */
+static void
+send_challenge (struct TCPConfirmation tc, struct Queue *queue)
+{
+  struct TCPConfirmationAck tca;
+  struct TcpHandshakeAckSignature thas;
+
+  GNUNET_log_from_nocheck (GNUNET_ERROR_TYPE_DEBUG,
+                           "transport",
+                           "sending challenge\n");
+
+  tca.header.type = ntohs (
+    GNUNET_MESSAGE_TYPE_COMMUNICATOR_TCP_CONFIRMATION_ACK);
+  tca.header.size = ntohs (sizeof(tca));
+  tca.challenge = tc.challenge;
+  tca.sender = my_identity;
+  tca.monotonic_time =
+    GNUNET_TIME_absolute_hton (GNUNET_TIME_absolute_get_monotonic (cfg));
+  thas.purpose.purpose = htonl (
+    GNUNET_SIGNATURE_COMMUNICATOR_TCP_HANDSHAKE_ACK);
+  thas.purpose.size = htonl (sizeof(thas));
+  thas.sender = my_identity;
+  thas.receiver = queue->target;
+  thas.monotonic_time = tca.monotonic_time;
+  thas.challenge = tca.challenge;
+  GNUNET_CRYPTO_eddsa_sign (my_private_key,
+                            &thas,
+                            &tca.sender_sig);
+  GNUNET_assert (0 ==
+                 gcry_cipher_encrypt (queue->out_cipher,
+                                      &queue->cwrite_buf[queue->cwrite_off],
+                                      sizeof(tca),
+                                      &tca,
+                                      sizeof(tca)));
+  queue->cwrite_off += sizeof(tca);
+}
 
 /**
  * Read from the socket of the proto queue until we have enough data
@@ -1999,6 +2529,11 @@ proto_read_kx (void *cls)
   queue->listen_task = pq->listen_task;
   queue->listen_sock = pq->listen_sock;
   queue->sock = pq->sock;
+
+
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "start kx proto\n");
+
   start_initial_kx_out (queue);
   boot_queue (queue, GNUNET_TRANSPORT_CS_INBOUND);
   queue->read_task =
@@ -2011,6 +2546,8 @@ proto_read_kx (void *cls)
                                     queue->sock,
                                     &queue_write,
                                     queue);
+  send_challenge (tc, queue);
+
   GNUNET_CONTAINER_DLL_remove (proto_head, proto_tail, pq);
   GNUNET_free (pq);
 }
@@ -2134,7 +2671,7 @@ queue_read_kx (void *cls)
     queue_destroy (queue);
     return;
   }
-
+  send_challenge (tc, queue);
   /* update queue timeout */
   reschedule_queue_timeout (queue);
   /* prepare to continue with regular read task immediately */
@@ -2145,7 +2682,6 @@ queue_read_kx (void *cls)
   if (0 < queue->cread_off)
     queue->read_task = GNUNET_SCHEDULER_add_now (&queue_read, queue);
 }
-
 
 /**
  * Function called by the transport service to initialize a
@@ -2227,6 +2763,11 @@ mq_init (void *cls, const struct GNUNET_PeerIdentity *peer, const char *address)
                                    queue->sock,
                                    &queue_read_kx,
                                    queue);
+
+
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "start kx mq_init\n");
+
   start_initial_kx_out (queue);
   queue->write_task =
     GNUNET_SCHEDULER_add_write_net (GNUNET_TIME_UNIT_FOREVER_REL,
@@ -2235,7 +2776,6 @@ mq_init (void *cls, const struct GNUNET_PeerIdentity *peer, const char *address)
                                     queue);
   return GNUNET_OK;
 }
-
 
 /**
  * Iterator over all message queues to clean up.
@@ -2346,10 +2886,6 @@ nat_address_cb (void *cls,
   char *my_addr;
   struct GNUNET_TRANSPORT_AddressIdentifier *ai;
 
-  GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-              "1 nat_address %s\n",
-              GNUNET_a2s (addr, addrlen));
-
   if (GNUNET_YES == add_remove)
   {
     enum GNUNET_NetworkType nt;
@@ -2375,7 +2911,6 @@ nat_address_cb (void *cls,
   }
 }
 
-
 /**
  * This method launch network interactions for each address we like to bind to.
  *
@@ -2398,10 +2933,6 @@ init_socket (const struct sockaddr *addr,
                 "Address is NULL.\n");
     return GNUNET_SYSERR;
   }
-
-  GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-              "4 address %s\n",
-              GNUNET_a2s (addr, in_len));
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "address %s\n",
@@ -2465,7 +2996,8 @@ init_socket (const struct sockaddr *addr,
       GNUNET_ERROR_TYPE_ERROR,
       _ (
         "Transport service is lacking key configuration settings. Exiting.\n"));
-    GNUNET_RESOLVER_request_cancel (resolve_request_handle);
+    if (NULL != resolve_request_handle)
+      GNUNET_RESOLVER_request_cancel (resolve_request_handle);
     GNUNET_SCHEDULER_shutdown ();
     return GNUNET_SYSERR;
   }
@@ -2483,7 +3015,7 @@ init_socket (const struct sockaddr *addr,
   if (NULL == queue_map)
     queue_map = GNUNET_CONTAINER_multipeermap_create (10, GNUNET_NO);
 
-  if (NULL == ch)
+  if (NULL == ch )
     ch = GNUNET_TRANSPORT_communicator_connect (cfg,
                                                 COMMUNICATOR_CONFIG_SECTION,
                                                 COMMUNICATOR_ADDRESS_PREFIX,
@@ -2496,7 +3028,8 @@ init_socket (const struct sockaddr *addr,
   if (NULL == ch)
   {
     GNUNET_break (0);
-    GNUNET_RESOLVER_request_cancel (resolve_request_handle);
+    if (NULL != resolve_request_handle)
+      GNUNET_RESOLVER_request_cancel (resolve_request_handle);
     GNUNET_SCHEDULER_shutdown ();
     return GNUNET_SYSERR;
   }
@@ -2504,7 +3037,6 @@ init_socket (const struct sockaddr *addr,
   return GNUNET_OK;
 
 }
-
 
 /**
  * This method reads from the DLL addrs_head to register them at the NAT service.
@@ -2518,34 +3050,19 @@ nat_register ()
   int i;
   struct Addresses *pos;
 
-  GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-              "nat here\n");
-
   i = 0;
   saddrs = GNUNET_malloc ((addrs_lens + 1) * sizeof(struct sockaddr *));
 
-  GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-              "2 nat here\n");
-
   saddr_lens = GNUNET_malloc ((addrs_lens + 1) * sizeof(socklen_t));
-
-  GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-              "3 nat here\n");
 
   for (pos = addrs_head; NULL != pos; pos = pos->next)
   {
-
-    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                "5 nat here\n");
 
     saddr_lens[i] = addrs_head->addr_len;
     saddrs[i] = GNUNET_malloc (saddr_lens[i]);
     saddrs[i] = addrs_head->addr;
 
     i++;
-
-    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                "6 nat here\n");
 
   }
 
@@ -2559,14 +3076,21 @@ nat_register ()
                              NULL /* FIXME: support reversal: #5529 */,
                              NULL /* closure */);
 
+  i = 0;
+
+  /*for (i = addrs_lens - 1; i >= 0; i--)
+    GNUNET_free (saddrs[i]);*/
+  GNUNET_free (saddrs);
+  GNUNET_free (saddr_lens);
+
   if (NULL == nat)
   {
     GNUNET_break (0);
-    GNUNET_RESOLVER_request_cancel (resolve_request_handle);
+    if (NULL != resolve_request_handle)
+      GNUNET_RESOLVER_request_cancel (resolve_request_handle);
     GNUNET_SCHEDULER_shutdown ();
   }
 }
-
 
 /**
  * This method adds addresses to the DLL, that are later register at the NAT service.
@@ -2583,7 +3107,6 @@ add_addr (struct sockaddr *in, socklen_t in_len)
   GNUNET_CONTAINER_DLL_insert (addrs_head, addrs_tail, saddrs);
   addrs_lens++;
 }
-
 
 /**
  * This method is the callback called by the resolver API, and wraps method init_socket.
@@ -2637,7 +3160,6 @@ init_socket_resolv (void *cls,
   }
 }
 
-
 /**
  * Setup communicator and launch network interactions.
  *
@@ -2662,6 +3184,8 @@ run (void *cls,
   char dummy[2];
   char *rest = NULL;
   struct PortOnlyIpv4Ipv6 *po;
+  socklen_t addr_len_ipv4;
+  socklen_t addr_len_ipv6;
 
   (void) cls;
   cfg = c;
@@ -2689,6 +3213,13 @@ run (void *cls,
                                            &rekey_interval))
     rekey_interval = DEFAULT_REKEY_INTERVAL;
 
+  peerstore = GNUNET_PEERSTORE_connect (cfg);
+  if (NULL == peerstore)
+  {
+    GNUNET_break (0);
+    GNUNET_SCHEDULER_shutdown ();
+    return;
+  }
 
   // cp = GNUNET_strdup (bindto);
   start = extract_address (bindto);
@@ -2697,16 +3228,24 @@ run (void *cls,
   {
     po = tcp_address_to_sockaddr_port_only (bindto, &port);
 
-    if (NULL != &po->addr_ipv4)
+    addr_len_ipv4 = po->addr_len_ipv4;
+
+
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "address po %s\n",
+                GNUNET_a2s (po->addr_ipv4, addr_len_ipv4));
+
+    if (NULL != po->addr_ipv4)
     {
-      init_socket (po->addr_ipv4, *po->addr_len_ipv4);
-      add_addr (po->addr_ipv4, *po->addr_len_ipv4);
+      init_socket (po->addr_ipv4, addr_len_ipv4);
+      add_addr (po->addr_ipv4, addr_len_ipv4);
     }
 
-    if (NULL != &po->addr_ipv6)
+    if (NULL != po->addr_ipv6)
     {
-      init_socket (po->addr_ipv6, *po->addr_len_ipv6);
-      add_addr (po->addr_ipv6, *po->addr_len_ipv6);
+      addr_len_ipv6 = po->addr_len_ipv6;
+      init_socket (po->addr_ipv6, addr_len_ipv6);
+      add_addr (po->addr_ipv6, addr_len_ipv6);
     }
 
     nat_register ();

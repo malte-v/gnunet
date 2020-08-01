@@ -289,6 +289,17 @@ struct GNUNET_CRYPTO_SymmetricSessionKey
   unsigned char twofish_key[GNUNET_CRYPTO_AES_KEY_LENGTH];
 };
 
+/**
+ * Type of a nonce used for challenges.
+ */
+struct ChallengeNonceP
+{
+  /**
+   * The value of the nonce.  Note that this is NOT a hash.
+   */
+  struct GNUNET_ShortHashCode value;
+};
+
 GNUNET_NETWORK_STRUCT_END
 
 /**
@@ -1779,7 +1790,7 @@ GNUNET_CRYPTO_eddsa_verify_ (
  */
 #define GNUNET_CRYPTO_eddsa_verify(purp,ps,sig,pub) ({             \
     /* check size is set correctly */                              \
-    GNUNET_assert (htonl ((ps)->purpose.size) == sizeof (*(ps))); \
+    GNUNET_assert (ntohl ((ps)->purpose.size) == sizeof (*(ps))); \
     /* check 'ps' begins with the purpose */                       \
     GNUNET_static_assert (((void*) (ps)) ==                        \
                           ((void*) &(ps)->purpose));               \

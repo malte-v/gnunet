@@ -587,6 +587,7 @@ main (int argc,
   GNUNET_asprintf (&communicator_binary,
                    "gnunet-communicator-%s",
                    communicator_name);
+
   if (GNUNET_OK !=
       GNUNET_log_setup ("test_communicator_basic",
                         "DEBUG",
@@ -645,6 +646,21 @@ main (int argc,
          GNUNET_i2s_full (&peer_id[i]));
   }
   LOG (GNUNET_ERROR_TYPE_MESSAGE, "Starting test...\n");
+  LOG (GNUNET_ERROR_TYPE_DEBUG,
+       "argv[0]: %s\n",
+       argv[0]);
+  LOG (GNUNET_ERROR_TYPE_DEBUG,
+       "test_name: %s\n",
+       test_name);
+
+  LOG (GNUNET_ERROR_TYPE_DEBUG,
+       "communicator_name: %s\n",
+       communicator_name);
+
+  LOG (GNUNET_ERROR_TYPE_DEBUG,
+       "communicator_binary: %s\n",
+       communicator_binary);
+
   GNUNET_SCHEDULER_run (&run,
                         NULL);
   return ret;

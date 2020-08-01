@@ -329,19 +329,6 @@ struct AcknowledgementUUIDP
   struct GNUNET_Uuid value;
 };
 
-
-/**
- * Type of a nonce used for challenges.
- */
-struct ChallengeNonceP
-{
-  /**
-   * The value of the nonce.  Note that this is NOT a hash.
-   */
-  struct GNUNET_ShortHashCode value;
-};
-
-
 /**
  * Outer layer of an encapsulated backchannel message.
  */

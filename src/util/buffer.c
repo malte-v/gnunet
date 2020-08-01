@@ -248,3 +248,35 @@ GNUNET_buffer_write_vfstr (struct GNUNET_Buffer *buf,
   buf->position += res;
   GNUNET_assert (buf->position <= buf->capacity);
 }
+
+
+/**
+ * Write data encoded via #GNUNET_STRINGS_data_to_string to the buffer.
+ *
+ * Grows the buffer if necessary.
+ *
+ * @param buf buffer to write to
+ * @param data data to read from
+ * @param len number of bytes to copy from @a data to @a buf
+ */
+void
+GNUNET_buffer_write_data_encoded (struct GNUNET_Buffer *buf,
+                                  const char *data,
+                                  size_t len)
+{
+  size_t outlen = len * 8;
+
+  if (outlen % 5 > 0)
+    outlen += 5 - outlen % 5;
+  outlen /= 5;
+
+  GNUNET_buffer_ensure_remaining (buf, outlen);
+  GNUNET_assert (NULL !=
+                 GNUNET_STRINGS_data_to_string (data,
+                                                len,
+                                                (buf->mem +
+                                                 buf->position),
+                                                outlen));
+  buf->position += outlen;
+  GNUNET_assert (buf->position <= buf->capacity);
+}
