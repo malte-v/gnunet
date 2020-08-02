@@ -856,6 +856,7 @@ login_redirect (void *cls)
 {
   char *login_base_url;
   char *new_redirect;
+  char *tmp;
   struct MHD_Response *resp;
   struct GNUNET_Buffer buf = { 0 };
   struct RequestHandle *handle = cls;
@@ -874,21 +875,32 @@ login_redirect (void *cls)
                               "&%s=%s",
                               OIDC_CLIENT_ID_KEY,
                               handle->oidc->client_id);
+    GNUNET_STRINGS_urlencode (handle->oidc->redirect_uri,
+                              strlen (handle->oidc->redirect_uri),
+                              &tmp);
     GNUNET_buffer_write_fstr (&buf,
                               "&%s=%s",
                               OIDC_REDIRECT_URI_KEY,
-                              handle->oidc->redirect_uri);
-
+                              tmp);
+    GNUNET_free (tmp);
+    GNUNET_STRINGS_urlencode (handle->oidc->scope,
+                              strlen (handle->oidc->scope),
+                              &tmp);
     GNUNET_buffer_write_fstr (&buf,
                               "&%s=%s",
                               OIDC_SCOPE_KEY,
-                              handle->oidc->scope);
+                              tmp);
+    GNUNET_free (tmp);
     if (NULL != handle->oidc->state)
     {
+      GNUNET_STRINGS_urlencode (handle->oidc->state,
+                                strlen (handle->oidc->state),
+                                &tmp);
       GNUNET_buffer_write_fstr (&buf,
                                 "&%s=%s",
                                 OIDC_STATE_KEY,
                                 handle->oidc->state);
+      GNUNET_free (tmp);
     }
     if (NULL != handle->oidc->code_challenge)
     {
@@ -906,10 +918,14 @@ login_redirect (void *cls)
     }
     if (NULL != handle->oidc->claims)
     {
+      GNUNET_STRINGS_urlencode (handle->oidc->claims,
+                                strlen (handle->oidc->claims),
+                                &tmp);
       GNUNET_buffer_write_fstr (&buf,
                                 "&%s=%s",
                                 OIDC_CLAIMS_KEY,
-                                handle->oidc->claims);
+                                tmp);
+      GNUNET_free (tmp);
     }
     new_redirect = GNUNET_buffer_reap_str (&buf);
     resp = GNUNET_REST_create_response ("");
