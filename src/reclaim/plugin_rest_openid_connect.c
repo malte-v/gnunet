@@ -1503,7 +1503,7 @@ get_url_parameter_copy (const struct RequestHandle *handle, const char *key)
     GNUNET_CONTAINER_multihashmap_get (handle->rest_handle->url_param_map, &hc);
   if (NULL == value)
     return NULL;
-  return GNUNET_strdup (value);
+  return GNUNET_STRINGS_urldecode (value);
 }
 
 
