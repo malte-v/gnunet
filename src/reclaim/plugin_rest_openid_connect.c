@@ -1493,6 +1493,7 @@ get_url_parameter_copy (const struct RequestHandle *handle, const char *key)
 {
   struct GNUNET_HashCode hc;
   char *value;
+  char *res;
 
   GNUNET_CRYPTO_hash (key, strlen (key), &hc);
   if (GNUNET_YES != GNUNET_CONTAINER_multihashmap_contains (handle->rest_handle
@@ -1503,7 +1504,8 @@ get_url_parameter_copy (const struct RequestHandle *handle, const char *key)
     GNUNET_CONTAINER_multihashmap_get (handle->rest_handle->url_param_map, &hc);
   if (NULL == value)
     return NULL;
-  return GNUNET_STRINGS_urldecode (value);
+  GNUNET_STRINGS_urldecode (value, strlen (value), &res);
+  return res;
 }
 
 
