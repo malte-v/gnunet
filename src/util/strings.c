@@ -2184,7 +2184,7 @@ GNUNET_STRINGS_urlencode (const char *data, size_t len, char **out)
     if (0x80 + 0x40 + 0x20 == ((0x80 + 0x40 + 0x20 + 0x10) & *i8))
     {
       /* 3-byte value, percent-encode */
-      for (unsigned int i = 0; i<4; i++)
+      for (unsigned int i = 0; i<3; i++)
       {
         GNUNET_buffer_write_fstr (&buf,
                                   "%%%X%X",
