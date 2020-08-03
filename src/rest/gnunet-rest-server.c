@@ -334,8 +334,7 @@ post_data_iter (void *cls,
     {
       GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                   "Could not add url param '%s'\n",
-                  key,
-                  data);
+                  key);
       GNUNET_free (val);
     }
   }
