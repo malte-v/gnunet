@@ -321,19 +321,25 @@ post_data_iter (void *cls,
     return MHD_YES;
 
   GNUNET_CRYPTO_hash (key, strlen (key), &hkey);
-  GNUNET_asprintf (&val, "%s", data);
-  if (GNUNET_OK != GNUNET_CONTAINER_multihashmap_put (
+  val = GNUNET_CONTAINER_multihashmap_get (handle->url_param_map,
+                  &hkey);
+  if (NULL == val)
+  {
+    val = GNUNET_malloc (65536);
+    if (GNUNET_OK != GNUNET_CONTAINER_multihashmap_put (
         handle->url_param_map,
         &hkey,
         val,
         GNUNET_CONTAINER_MULTIHASHMAPOPTION_UNIQUE_ONLY))
-  {
-    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                "Could not load add url param '%s'=%s\n",
-                key,
-                data);
-    GNUNET_free (val);
+    {
+      GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                  "Could not add url param '%s'\n",
+                  key,
+                  data);
+      GNUNET_free (val);
+    }
   }
+  memcpy (val + off, data, size);
   return MHD_YES;
 }
 
@@ -428,12 +434,8 @@ create_response (void *cls,
                                MHD_HEADER_KIND,
                                (MHD_KeyValueIterator) & header_iterator,
                                rest_conndata_handle);
-    MHD_get_connection_values (con,
-                               MHD_POSTDATA_KIND,
-                               (MHD_KeyValueIterator) &post_data_iter,
-                               rest_conndata_handle);
 
-    /*con_handle->pp = MHD_create_post_processor (con,
+    con_handle->pp = MHD_create_post_processor (con,
                                                 65536,
                                                 &post_data_iter,
                                                 rest_conndata_handle);
@@ -441,7 +443,7 @@ create_response (void *cls,
     {
       MHD_post_process (con_handle->pp, upload_data, *upload_data_size);
     }
-    MHD_destroy_post_processor (con_handle->pp);*/
+    MHD_destroy_post_processor (con_handle->pp);
 
     con_handle->state = GN_REST_STATE_PROCESSING;
     con_handle->plugin->process_request (rest_conndata_handle,
