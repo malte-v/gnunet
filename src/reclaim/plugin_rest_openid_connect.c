@@ -999,6 +999,7 @@ oidc_ticket_issue_cb (void *cls, const struct GNUNET_RECLAIM_Ticket *ticket)
                      handle->redirect_prefix,
                      handle->tld,
                      handle->redirect_suffix,
+                     (NULL == strchr(handle->redirect_suffix, '?') ? "?" : "&"),
                      handle->oidc->response_type,
                      code_string,
                      handle->oidc->state);
@@ -1006,8 +1007,9 @@ oidc_ticket_issue_cb (void *cls, const struct GNUNET_RECLAIM_Ticket *ticket)
   else
   {
     GNUNET_asprintf (&redirect_uri,
-                     "%s?%s=%s&state=%s",
+                     "%s%s%s=%s&state=%s",
                      handle->oidc->redirect_uri,
+                     (NULL == strchr(handle->oidc->redirect_uri, '?') ? "?" : "&"),
                      handle->oidc->response_type,
                      code_string,
                      handle->oidc->state);
@@ -1794,18 +1796,17 @@ login_cont (struct GNUNET_REST_RequestHandle *con_handle,
   GNUNET_SCHEDULER_add_now (&cleanup_handle_delayed, handle);
 }
 
-
 static int
-check_authorization (struct RequestHandle *handle,
-                     struct GNUNET_CRYPTO_EcdsaPublicKey *cid)
+parse_credentials_basic_auth (struct RequestHandle *handle,
+                              char **client_id,
+                              char **client_secret)
 {
   struct GNUNET_HashCode cache_key;
   char *authorization;
   char *credentials;
   char *basic_authorization;
-  char *client_id;
+  char *client_id_tmp;
   char *pass;
-  char *expected_pass;
 
   GNUNET_CRYPTO_hash (OIDC_AUTHORIZATION_HEADER_KEY,
                       strlen (OIDC_AUTHORIZATION_HEADER_KEY),
@@ -1813,12 +1814,7 @@ check_authorization (struct RequestHandle *handle,
   if (GNUNET_NO == GNUNET_CONTAINER_multihashmap_contains (handle->rest_handle
                                                            ->header_param_map,
                                                            &cache_key))
-  {
-    handle->emsg = GNUNET_strdup (OIDC_ERROR_KEY_INVALID_CLIENT);
-    handle->edesc = GNUNET_strdup ("missing authorization");
-    handle->response_code = MHD_HTTP_UNAUTHORIZED;
     return GNUNET_SYSERR;
-  }
   authorization =
     GNUNET_CONTAINER_multihashmap_get (handle->rest_handle->header_param_map,
                                        &cache_key);
@@ -1826,40 +1822,93 @@ check_authorization (struct RequestHandle *handle,
   // split header in "Basic" and [content]
   credentials = strtok (authorization, " ");
   if ((NULL == credentials) || (0 != strcmp ("Basic", credentials)))
-  {
-    handle->emsg = GNUNET_strdup (OIDC_ERROR_KEY_INVALID_CLIENT);
-    handle->response_code = MHD_HTTP_UNAUTHORIZED;
     return GNUNET_SYSERR;
-  }
   credentials = strtok (NULL, " ");
   if (NULL == credentials)
-  {
-    handle->emsg = GNUNET_strdup (OIDC_ERROR_KEY_INVALID_CLIENT);
-    handle->response_code = MHD_HTTP_UNAUTHORIZED;
     return GNUNET_SYSERR;
-  }
   GNUNET_STRINGS_base64_decode (credentials,
                                 strlen (credentials),
                                 (void **) &basic_authorization);
 
   if (NULL == basic_authorization)
-  {
-    handle->emsg = GNUNET_strdup (OIDC_ERROR_KEY_INVALID_CLIENT);
-    handle->response_code = MHD_HTTP_UNAUTHORIZED;
     return GNUNET_SYSERR;
-  }
-  client_id = strtok (basic_authorization, ":");
-  if (NULL == client_id)
+  client_id_tmp = strtok (basic_authorization, ":");
+  if (NULL == client_id_tmp)
   {
     GNUNET_free (basic_authorization);
-    handle->emsg = GNUNET_strdup (OIDC_ERROR_KEY_INVALID_CLIENT);
-    handle->response_code = MHD_HTTP_UNAUTHORIZED;
     return GNUNET_SYSERR;
   }
   pass = strtok (NULL, ":");
   if (NULL == pass)
   {
     GNUNET_free (basic_authorization);
+    return GNUNET_SYSERR;
+  }
+  *client_id = strdup (client_id_tmp);
+  *client_secret = strdup (pass);
+  GNUNET_free (basic_authorization);
+  return GNUNET_OK;
+}
+
+
+static int
+parse_credentials_post_body (struct RequestHandle *handle,
+                              char **client_id,
+                              char **client_secret)
+{
+  struct GNUNET_HashCode cache_key;
+  char *client_id_tmp;
+  char *pass;
+
+  GNUNET_CRYPTO_hash ("client_id",
+                      strlen ("client_id"),
+                      &cache_key);
+  if (GNUNET_NO == GNUNET_CONTAINER_multihashmap_contains (handle->rest_handle
+                                                           ->url_param_map,
+                                                           &cache_key))
+    return GNUNET_SYSERR;
+  client_id_tmp = GNUNET_CONTAINER_multihashmap_get (handle->rest_handle->url_param_map,
+                                                     &cache_key);
+  if (NULL == client_id_tmp)
+    return GNUNET_SYSERR;
+  *client_id = strdup (client_id_tmp);
+  GNUNET_CRYPTO_hash ("client_secret",
+                      strlen ("client_secret"),
+                      &cache_key);
+  if (GNUNET_NO == GNUNET_CONTAINER_multihashmap_contains (handle->rest_handle
+                                                           ->url_param_map,
+                                                           &cache_key))
+    return GNUNET_SYSERR;
+  pass = GNUNET_CONTAINER_multihashmap_get (handle->rest_handle->url_param_map,
+                                            &cache_key);
+  if (NULL == pass)
+    return GNUNET_SYSERR;
+  *client_secret = strdup (pass);
+  return GNUNET_OK;
+}
+
+
+static int
+check_authorization (struct RequestHandle *handle,
+                     struct GNUNET_CRYPTO_EcdsaPublicKey *cid)
+{
+  char *expected_pass;
+  char *received_cid;
+  char *received_cpw;
+
+  if (GNUNET_OK == parse_credentials_basic_auth (handle,
+                                                 &received_cid,
+                                                 &received_cpw))
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "Received client credentials in HTTP AuthZ header\n");
+  } else if (GNUNET_OK == parse_credentials_post_body (handle,
+                                                       &received_cid,
+                                                       &received_cpw))
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "Received client credentials in POST body\n");
+  } else {
     handle->emsg = GNUNET_strdup (OIDC_ERROR_KEY_INVALID_CLIENT);
     handle->response_code = MHD_HTTP_UNAUTHORIZED;
     return GNUNET_SYSERR;
@@ -1871,9 +1920,8 @@ check_authorization (struct RequestHandle *handle,
                                                           "OIDC_CLIENT_SECRET",
                                                           &expected_pass))
   {
-    if (0 != strcmp (expected_pass, pass))
+    if (0 != strcmp (expected_pass, received_cpw))
     {
-      GNUNET_free (basic_authorization);
       GNUNET_free (expected_pass);
       handle->emsg = GNUNET_strdup (OIDC_ERROR_KEY_INVALID_CLIENT);
       handle->response_code = MHD_HTTP_UNAUTHORIZED;
@@ -1883,33 +1931,33 @@ check_authorization (struct RequestHandle *handle,
   }
   else
   {
-    GNUNET_free (basic_authorization);
     handle->emsg = GNUNET_strdup (OIDC_ERROR_KEY_SERVER_ERROR);
     handle->edesc = GNUNET_strdup ("gnunet configuration failed");
     handle->response_code = MHD_HTTP_INTERNAL_SERVER_ERROR;
     return GNUNET_SYSERR;
   }
-
   // check client_id
   for (handle->ego_entry = handle->ego_head; NULL != handle->ego_entry;
        handle->ego_entry = handle->ego_entry->next)
   {
-    if (0 == strcmp (handle->ego_entry->keystring, client_id))
+    if (0 == strcmp (handle->ego_entry->keystring, received_cid))
       break;
   }
   if (NULL == handle->ego_entry)
   {
-    GNUNET_free (basic_authorization);
+    GNUNET_free (received_cpw);
+    GNUNET_free (received_cid);
     handle->emsg = GNUNET_strdup (OIDC_ERROR_KEY_INVALID_CLIENT);
     handle->response_code = MHD_HTTP_UNAUTHORIZED;
     return GNUNET_SYSERR;
   }
-  GNUNET_STRINGS_string_to_data (client_id,
-                                 strlen (client_id),
+  GNUNET_STRINGS_string_to_data (received_cid,
+                                 strlen (received_cid),
                                  cid,
                                  sizeof(struct GNUNET_CRYPTO_EcdsaPublicKey));
 
-  GNUNET_free (basic_authorization);
+  GNUNET_free (received_cpw);
+  GNUNET_free (received_cid);
   return GNUNET_OK;
 }
 
