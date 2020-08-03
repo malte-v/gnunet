@@ -116,12 +116,12 @@ GNUNET_buffer_write_str (struct GNUNET_Buffer *buf, const char *str);
  *
  * @param buf buffer to write to
  * @param data data to read from
- * @param len number of bytes to copy from @a data to @a buf
+ * @param data_len number of bytes to copy from @a data to @a buf
  */
 void
 GNUNET_buffer_write_data_encoded (struct GNUNET_Buffer *buf,
-                                  const char *data,
-                                  size_t len);
+                                  const void *data,
+                                  size_t data_len);
 
 
 /**

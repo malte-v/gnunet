@@ -32,7 +32,8 @@
  * @param capacity the capacity (in bytes) to allocate for @a buf
  */
 void
-GNUNET_buffer_prealloc (struct GNUNET_Buffer *buf, size_t capacity)
+GNUNET_buffer_prealloc (struct GNUNET_Buffer *buf,
+                        size_t capacity)
 {
   /* Buffer should be zero-initialized */
   GNUNET_assert (0 == buf->mem);
@@ -257,25 +258,25 @@ GNUNET_buffer_write_vfstr (struct GNUNET_Buffer *buf,
  *
  * @param buf buffer to write to
  * @param data data to read from
- * @param len number of bytes to copy from @a data to @a buf
+ * @param data_len number of bytes to copy from @a data to @a buf
  */
 void
 GNUNET_buffer_write_data_encoded (struct GNUNET_Buffer *buf,
-                                  const char *data,
-                                  size_t len)
+                                  const void *data,
+                                  size_t data_len)
 {
-  size_t outlen = len * 8;
+  size_t outlen = data_len * 8;
 
   if (outlen % 5 > 0)
     outlen += 5 - outlen % 5;
   outlen /= 5;
-
-  GNUNET_buffer_ensure_remaining (buf, outlen);
+  GNUNET_buffer_ensure_remaining (buf,
+                                  outlen);
   GNUNET_assert (NULL !=
                  GNUNET_STRINGS_data_to_string (data,
-                                                len,
-                                                (buf->mem +
-                                                 buf->position),
+                                                data_len,
+                                                (buf->mem
+                                                 + buf->position),
                                                 outlen));
   buf->position += outlen;
   GNUNET_assert (buf->position <= buf->capacity);
