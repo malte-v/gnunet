@@ -2279,7 +2279,8 @@ userinfo_endpoint (struct GNUNET_REST_RequestHandle *con_handle,
   char *authorization_type;
   char *authorization_access_token;
   struct GNUNET_RECLAIM_Ticket *ticket;
-  const struct EgoEntry *ego_entry;
+  const struct EgoEntry *aud_ego;
+  const struct EgoEntry *iss_ego;
   const struct GNUNET_CRYPTO_EcdsaPrivateKey *privkey;
 
   GNUNET_CRYPTO_hash (OIDC_AUTHORIZATION_HEADER_KEY,
@@ -2340,8 +2341,9 @@ userinfo_endpoint (struct GNUNET_REST_RequestHandle *con_handle,
   ticket =
     GNUNET_CONTAINER_multihashmap_get (OIDC_access_token_map, &cache_key);
   GNUNET_assert (NULL != ticket);
-  ego_entry = find_ego (handle, &ticket->audience);
-  if (NULL == ego_entry)
+  aud_ego = find_ego (handle, &ticket->audience);
+  iss_ego = find_ego (handle, &ticket->identity);
+  if ((NULL == aud_ego) || (NULL == iss_ego))
   {
     handle->emsg = GNUNET_strdup (OIDC_ERROR_KEY_INVALID_TOKEN);
     handle->edesc = GNUNET_strdup ("The access token expired");
@@ -2355,8 +2357,9 @@ userinfo_endpoint (struct GNUNET_REST_RequestHandle *con_handle,
   handle->oidc->response = json_object ();
   json_object_set_new (handle->oidc->response,
                        "sub",
-                       json_string (ego_entry->keystring));
-  privkey = GNUNET_IDENTITY_ego_get_private_key (ego_entry->ego);
+                       json_string (iss_ego->keystring));
+  privkey = GNUNET_IDENTITY_ego_get_private_key (aud_ego->ego);
+
   handle->idp_op = GNUNET_RECLAIM_ticket_consume (handle->idp,
                                                   privkey,
                                                   ticket,
