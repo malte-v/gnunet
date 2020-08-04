@@ -239,12 +239,6 @@ static char *OIDC_ignored_parameter_array[] = { "display",
 struct GNUNET_CONTAINER_MultiHashMap *OIDC_cookie_jar_map;
 
 /**
- * Hash map that links the issued access token to the corresponding ticket and
- * ego
- */
-struct GNUNET_CONTAINER_MultiHashMap *OIDC_access_token_map;
-
-/**
  * The configuration handle
  */
 const struct GNUNET_CONFIGURATION_Handle *cfg;
@@ -1980,26 +1974,6 @@ find_ego (struct RequestHandle *handle,
 }
 
 
-static void
-persist_access_token (const struct RequestHandle *handle,
-                      const char *access_token,
-                      const struct GNUNET_RECLAIM_Ticket *ticket)
-{
-  struct GNUNET_HashCode hc;
-  struct GNUNET_RECLAIM_Ticket *ticketbuf;
-
-  GNUNET_CRYPTO_hash (access_token, strlen (access_token), &hc);
-  ticketbuf = GNUNET_new (struct GNUNET_RECLAIM_Ticket);
-  *ticketbuf = *ticket;
-  GNUNET_assert (GNUNET_SYSERR !=
-                 GNUNET_CONTAINER_multihashmap_put (
-                   OIDC_access_token_map,
-                   &hc,
-                   ticketbuf,
-                   GNUNET_CONTAINER_MULTIHASHMAPOPTION_UNIQUE_ONLY));
-}
-
-
 /**
  * Responds to token url-encoded POST request
  *
@@ -2148,13 +2122,12 @@ token_endpoint (struct GNUNET_REST_RequestHandle *con_handle,
                                 &expiration_time,
                                 (NULL != nonce) ? nonce : NULL,
                                 jwt_secret);
-  access_token = OIDC_access_token_new ();
+  access_token = OIDC_access_token_new (&ticket);
   OIDC_build_token_response (access_token,
                              id_token,
                              &expiration_time,
                              &json_response);
 
-  persist_access_token (handle, access_token, &ticket);
   resp = GNUNET_REST_create_response (json_response);
   MHD_add_response_header (resp, "Cache-Control", "no-store");
   MHD_add_response_header (resp, "Pragma", "no-cache");
@@ -2324,22 +2297,17 @@ userinfo_endpoint (struct GNUNET_REST_RequestHandle *con_handle,
     return;
   }
 
-  GNUNET_CRYPTO_hash (authorization_access_token,
-                      strlen (authorization_access_token),
-                      &cache_key);
-  if (GNUNET_NO ==
-      GNUNET_CONTAINER_multihashmap_contains (OIDC_access_token_map,
-                                              &cache_key))
+  if (GNUNET_OK != OIDC_access_token_parse (authorization_access_token,
+                                            &ticket))
   {
     handle->emsg = GNUNET_strdup (OIDC_ERROR_KEY_INVALID_TOKEN);
-    handle->edesc = GNUNET_strdup ("The access token expired");
+    handle->edesc = GNUNET_strdup ("The access token is invalid");
     handle->response_code = MHD_HTTP_UNAUTHORIZED;
     GNUNET_SCHEDULER_add_now (&do_userinfo_error, handle);
     GNUNET_free (authorization);
     return;
+
   }
-  ticket =
-    GNUNET_CONTAINER_multihashmap_get (OIDC_access_token_map, &cache_key);
   GNUNET_assert (NULL != ticket);
   aud_ego = find_ego (handle, &ticket->audience);
   iss_ego = find_ego (handle, &ticket->identity);
@@ -2523,9 +2491,6 @@ rest_identity_process_request (struct GNUNET_REST_RequestHandle *rest_handle,
   if (NULL == OIDC_cookie_jar_map)
     OIDC_cookie_jar_map = GNUNET_CONTAINER_multihashmap_create (10,
                                                                 GNUNET_NO);
-  if (NULL == OIDC_access_token_map)
-    OIDC_access_token_map =
-      GNUNET_CONTAINER_multihashmap_create (10, GNUNET_NO);
   handle->response_code = 0;
   handle->timeout = GNUNET_TIME_UNIT_FOREVER_REL;
   handle->proc_cls = proc_cls;
@@ -2606,13 +2571,6 @@ libgnunet_plugin_rest_openid_connect_done (void *cls)
   GNUNET_CONTAINER_multihashmap_iterator_destroy (hashmap_it);
   GNUNET_CONTAINER_multihashmap_destroy (OIDC_cookie_jar_map);
 
-  hashmap_it =
-    GNUNET_CONTAINER_multihashmap_iterator_create (OIDC_access_token_map);
-  while (GNUNET_YES ==
-         GNUNET_CONTAINER_multihashmap_iterator_next (hashmap_it, NULL,
-                                                      value))
-    GNUNET_free (value);
-  GNUNET_CONTAINER_multihashmap_destroy (OIDC_access_token_map);
   GNUNET_CONTAINER_multihashmap_iterator_destroy (hashmap_it);
   GNUNET_free (allow_methods);
   GNUNET_free (api);

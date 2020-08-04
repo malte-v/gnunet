@@ -757,15 +757,28 @@ OIDC_build_token_response (const char *access_token,
  * Generate a new access token
  */
 char *
-OIDC_access_token_new ()
+OIDC_access_token_new (const struct GNUNET_RECLAIM_Ticket *ticket)
 {
   char *access_token;
-  uint64_t random_number;
 
-  random_number =
-    GNUNET_CRYPTO_random_u64 (GNUNET_CRYPTO_QUALITY_NONCE, UINT64_MAX);
-  GNUNET_STRINGS_base64_encode (&random_number,
-                                sizeof(uint64_t),
+  GNUNET_STRINGS_base64_encode (ticket,
+                                sizeof(*ticket),
                                 &access_token);
   return access_token;
+}
+
+
+/**
+ * Parse an access token
+ */
+int
+OIDC_access_token_parse (const char*token,
+                         struct GNUNET_RECLAIM_Ticket **ticket)
+{
+  if (sizeof (struct GNUNET_RECLAIM_Ticket) !=
+      GNUNET_STRINGS_base64_decode (token,
+                                    strlen (token),
+                                    (void**) ticket))
+    return GNUNET_SYSERR;
+  return GNUNET_OK;
 }
