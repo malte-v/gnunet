@@ -41,10 +41,16 @@
 #include "gnunet_signatures.h"
 #include "microhttpd.h"
 #include "oidc_helper.h"
+
 /**
  * REST root namespace
  */
 #define GNUNET_REST_API_NS_OIDC "/openid"
+
+/**
+ * OIDC config
+ */
+#define GNUNET_REST_API_NS_OIDC_CONFIG "/.well-known/openid-configuration"
 
 /**
  * Authorize endpoint
@@ -2427,6 +2433,88 @@ list_ego (void *cls,
 }
 
 
+static void
+oidc_config_endpoint (struct GNUNET_REST_RequestHandle *con_handle,
+                      const char *url,
+                      void *cls)
+{
+  json_t *oidc_config;
+  json_t *auth_methods;
+  json_t *sig_algs;
+  json_t *scopes;
+  json_t *response_types;
+  json_t *sub_types;
+  json_t *claim_types;
+  char *oidc_config_str;
+  struct MHD_Response *resp;
+  struct RequestHandle *handle = cls;
+
+  oidc_config = json_object ();
+  // FIXME get from config?
+  json_object_set_new (oidc_config,
+                       "issuer", json_string ("https://api.reclaim"));
+  json_object_set_new (oidc_config,
+                       "authorization_endpoint",
+                       json_string ("https://api.reclaim/openid/authorize"));
+  json_object_set_new (oidc_config,
+                       "token_endpoint",
+                       json_string ("http://localhost:7776/openid/token"));
+  auth_methods = json_array ();
+  json_array_append_new (auth_methods,
+                         json_string ("client_secret_basic"));
+  json_array_append_new (auth_methods,
+                         json_string ("client_secret_post"));
+  json_object_set_new (oidc_config,
+                       "token_endpoint_auth_methods_supported",
+                       auth_methods);
+  sig_algs = json_array ();
+  json_array_append_new (sig_algs,
+                         json_string ("HS512"));
+  json_object_set_new (oidc_config,
+                       "id_token_signing_alg_values_supported",
+                       sig_algs);
+  json_object_set_new (oidc_config,
+                       "userinfo_endpoint",
+                       json_string ("http://localhost:7776/openid/userinfo"));
+  scopes = json_array ();
+  json_array_append_new (scopes,
+                         json_string ("openid"));
+  json_array_append_new (scopes,
+                         json_string ("profile"));
+  json_object_set_new (oidc_config,
+                       "scopes_supported",
+                       scopes);
+  response_types = json_array ();
+  json_array_append_new (response_types,
+                         json_string ("code"));
+  json_object_set_new (oidc_config,
+                       "response_types_supported",
+                       response_types);
+  sub_types = json_array ();
+  json_array_append_new (sub_types,
+                         json_string ("public"));  /* no pairwise suppport */
+  json_object_set_new (oidc_config,
+                       "subject_types_supported",
+                       sub_types);
+  claim_types = json_array ();
+  json_array_append_new (claim_types,
+                         json_string ("normal"));
+  json_array_append_new (claim_types,
+                         json_string ("aggregated"));
+  json_object_set_new (oidc_config,
+                       "claim_types_supported",
+                       claim_types);
+  json_object_set_new (oidc_config,
+                       "claims_parameter_supported",
+                       json_boolean (1));
+  oidc_config_str = json_dumps (oidc_config, JSON_INDENT (1));
+  resp = GNUNET_REST_create_response (oidc_config_str);
+  handle->proc (handle->proc_cls, resp, MHD_HTTP_OK);
+  GNUNET_free (oidc_config_str);
+  cleanup_handle (handle);
+}
+
+
 static enum GNUNET_GenericReturnValue
 rest_identity_process_request (struct GNUNET_REST_RequestHandle *rest_handle,
                                GNUNET_REST_ResultProcessor proc,
@@ -2442,6 +2530,8 @@ rest_identity_process_request (struct GNUNET_REST_RequestHandle *rest_handle,
     { MHD_HTTP_METHOD_POST, GNUNET_REST_API_NS_TOKEN, &token_endpoint },
     { MHD_HTTP_METHOD_GET, GNUNET_REST_API_NS_USERINFO, &userinfo_endpoint },
     { MHD_HTTP_METHOD_POST, GNUNET_REST_API_NS_USERINFO, &userinfo_endpoint },
+    { MHD_HTTP_METHOD_GET, GNUNET_REST_API_NS_OIDC_CONFIG,
+      &oidc_config_endpoint },
     { MHD_HTTP_METHOD_OPTIONS, GNUNET_REST_API_NS_OIDC, &options_cont },
     GNUNET_REST_HANDLER_END };
 
