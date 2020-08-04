@@ -63,6 +63,11 @@ const struct GNUNET_CONFIGURATION_Handle *cfg;
 static char *allow_methods;
 
 /**
+ * Connection to GNS
+ */
+static struct GNUNET_GNS_Handle *gns;
+
+/**
  * @brief struct returned by the initialization function of the plugin
  */
 struct Plugin
@@ -75,11 +80,6 @@ struct Plugin
  */
 struct RequestHandle
 {
-  /**
-   * Connection to GNS
-   */
-  struct GNUNET_GNS_Handle *gns;
-
   /**
    * Active GNS lookup
    */
@@ -153,12 +153,6 @@ cleanup_handle (void *cls)
     GNUNET_GNS_lookup_with_tld_cancel (handle->gns_lookup);
     handle->gns_lookup = NULL;
   }
-  if (NULL != handle->gns)
-  {
-    GNUNET_GNS_disconnect (handle->gns);
-    handle->gns = NULL;
-  }
-
   if (NULL != handle->timeout_task)
   {
     GNUNET_SCHEDULER_cancel (handle->timeout_task);
@@ -318,7 +312,7 @@ get_gns_cont (struct GNUNET_REST_RequestHandle *con_handle,
     handle->record_type = GNUNET_GNSRECORD_TYPE_ANY;
   }
 
-  handle->gns_lookup = GNUNET_GNS_lookup_with_tld (handle->gns,
+  handle->gns_lookup = GNUNET_GNS_lookup_with_tld (gns,
                                                    handle->name,
                                                    handle->record_type,
                                                    GNUNET_GNS_LO_DEFAULT,
@@ -352,29 +346,6 @@ options_cont (struct GNUNET_REST_RequestHandle *con_handle,
 
 
 /**
- * Handle rest request
- *
- * @param handle the request handle
- */
-static void
-init_cont (struct RequestHandle *handle)
-{
-  struct GNUNET_REST_RequestHandlerError err;
-  static const struct GNUNET_REST_RequestHandler handlers[] =
-  { { MHD_HTTP_METHOD_GET, GNUNET_REST_API_NS_GNS, &get_gns_cont },
-    { MHD_HTTP_METHOD_OPTIONS, GNUNET_REST_API_NS_GNS, &options_cont },
-    GNUNET_REST_HANDLER_END };
-
-  if (GNUNET_NO ==
-      GNUNET_REST_handle_request (handle->rest_handle, handlers, &err, handle))
-  {
-    handle->response_code = err.error_code;
-    GNUNET_SCHEDULER_add_now (&do_error, handle);
-  }
-}
-
-
-/**
  * Function processing the REST call
  *
  * @param method HTTP method
@@ -385,12 +356,17 @@ init_cont (struct RequestHandle *handle)
  * @param proc_cls closure for callback function
  * @return GNUNET_OK if request accepted
  */
-static void
+static enum GNUNET_GenericReturnValue
 rest_process_request (struct GNUNET_REST_RequestHandle *rest_handle,
                       GNUNET_REST_ResultProcessor proc,
                       void *proc_cls)
 {
   struct RequestHandle *handle = GNUNET_new (struct RequestHandle);
+  struct GNUNET_REST_RequestHandlerError err;
+  static const struct GNUNET_REST_RequestHandler handlers[] =
+  { { MHD_HTTP_METHOD_GET, GNUNET_REST_API_NS_GNS, &get_gns_cont },
+    { MHD_HTTP_METHOD_OPTIONS, GNUNET_REST_API_NS_GNS, &options_cont },
+    GNUNET_REST_HANDLER_END };
 
   handle->response_code = 0;
   handle->timeout =
@@ -402,14 +378,17 @@ rest_process_request (struct GNUNET_REST_RequestHandle *rest_handle,
   handle->url = GNUNET_strdup (rest_handle->url);
   if (handle->url[strlen (handle->url) - 1] == '/')
     handle->url[strlen (handle->url) - 1] = '\0';
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Connecting...\n");
-  handle->gns = GNUNET_GNS_connect (cfg);
-  init_cont (handle);
+  if (GNUNET_NO ==
+      GNUNET_REST_handle_request (handle->rest_handle, handlers, &err, handle))
+  {
+    cleanup_handle (handle);
+    return GNUNET_NO;
+  }
+
 
   handle->timeout_task =
     GNUNET_SCHEDULER_add_delayed (handle->timeout, &do_timeout, handle);
-
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Connected\n");
+  return GNUNET_YES;
 }
 
 
@@ -441,6 +420,7 @@ libgnunet_plugin_rest_gns_init (void *cls)
                    MHD_HTTP_METHOD_PUT,
                    MHD_HTTP_METHOD_DELETE,
                    MHD_HTTP_METHOD_OPTIONS);
+  gns = GNUNET_GNS_connect (cfg);
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, _ ("Gns REST API initialized\n"));
   return api;
@@ -460,6 +440,9 @@ libgnunet_plugin_rest_gns_done (void *cls)
   struct Plugin *plugin = api->cls;
 
   plugin->cfg = NULL;
+  if (NULL != gns)
+    GNUNET_GNS_disconnect (gns);
+
 
   GNUNET_free (allow_methods);
   GNUNET_free (api);

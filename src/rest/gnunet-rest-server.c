@@ -115,11 +115,6 @@ static struct MHD_Response *failure_response;
 static const struct GNUNET_CONFIGURATION_Handle *cfg;
 
 /**
- * Map of loaded plugins.
- */
-static struct GNUNET_CONTAINER_MultiHashMap *plugin_map;
-
-/**
  * Echo request Origin in CORS
  */
 static int echo_origin;
@@ -140,6 +135,38 @@ static char *allow_headers;
 static char *allow_credentials;
 
 /**
+ * Plugin list head
+ */
+static struct PluginListEntry *plugins_head;
+
+/**
+ * Plugin list tail
+ */
+static struct PluginListEntry *plugins_tail;
+
+/**
+ * A plugin list entry
+ */
+struct PluginListEntry
+{
+  /* DLL */
+  struct PluginListEntry *next;
+
+  /* DLL */
+  struct PluginListEntry *prev;
+
+  /**
+   * libname (to cleanup)
+   */
+  char *libname;
+
+  /**
+   * The plugin
+   */
+  struct GNUNET_REST_Plugin *plugin;
+};
+
+/**
  * MHD Connection handle
  */
 struct MhdConnectionHandle
@@ -147,8 +174,6 @@ struct MhdConnectionHandle
   struct MHD_Connection *con;
 
   struct MHD_Response *response;
-
-  struct GNUNET_REST_Plugin *plugin;
 
   struct GNUNET_REST_RequestHandle *data_handle;
 
@@ -322,15 +347,15 @@ post_data_iter (void *cls,
 
   GNUNET_CRYPTO_hash (key, strlen (key), &hkey);
   val = GNUNET_CONTAINER_multihashmap_get (handle->url_param_map,
-                  &hkey);
+                                           &hkey);
   if (NULL == val)
   {
     val = GNUNET_malloc (65536);
     if (GNUNET_OK != GNUNET_CONTAINER_multihashmap_put (
-        handle->url_param_map,
-        &hkey,
-        val,
-        GNUNET_CONTAINER_MULTIHASHMAPOPTION_UNIQUE_ONLY))
+          handle->url_param_map,
+          &hkey,
+          val,
+          GNUNET_CONTAINER_MULTIHASHMAPOPTION_UNIQUE_ONLY))
     {
       GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                   "Could not add url param '%s'\n",
@@ -378,39 +403,21 @@ create_response (void *cls,
                  size_t *upload_data_size,
                  void **con_cls)
 {
-  char *plugin_name;
   char *origin;
   struct GNUNET_HashCode key;
   struct MhdConnectionHandle *con_handle;
   struct GNUNET_REST_RequestHandle *rest_conndata_handle;
+  struct PluginListEntry *ple;
 
   con_handle = *con_cls;
 
   if (NULL == *con_cls)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "New connection %s\n", url);
-    char tmp_url[strlen (url) + 1];
-    strcpy (tmp_url, url);
     con_handle = GNUNET_new (struct MhdConnectionHandle);
     con_handle->con = con;
     con_handle->state = GN_REST_STATE_INIT;
     *con_cls = con_handle;
-
-    plugin_name = strtok (tmp_url, "/");
-
-    if (NULL != plugin_name)
-    {
-      GNUNET_CRYPTO_hash (plugin_name, strlen (plugin_name), &key);
-
-      con_handle->plugin = GNUNET_CONTAINER_multihashmap_get (plugin_map, &key);
-    }
-    if (NULL == con_handle->plugin)
-    {
-      GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Queueing response with MHD\n");
-      GNUNET_free (con_handle);
-      return MHD_queue_response (con, MHD_HTTP_NOT_FOUND, failure_response);
-    }
-
     return MHD_YES;
   }
   if (GN_REST_STATE_INIT == con_handle->state)
@@ -445,9 +452,18 @@ create_response (void *cls,
     MHD_destroy_post_processor (con_handle->pp);
 
     con_handle->state = GN_REST_STATE_PROCESSING;
-    con_handle->plugin->process_request (rest_conndata_handle,
-                                         &plugin_callback,
-                                         con_handle);
+    for (ple = plugins_head; NULL != ple; ple = ple->next)
+    {
+      if (GNUNET_YES == ple->plugin->process_request (rest_conndata_handle,
+                                                      &plugin_callback,
+                                                      con_handle))
+        break; /* Request handled */
+    }
+    if (NULL == ple)
+    {
+      /** Request not handled **/
+      MHD_queue_response (con, MHD_HTTP_NOT_FOUND, failure_response);
+    }
     *upload_data_size = 0;
     run_mhd_now ();
     return MHD_YES;
@@ -732,6 +748,18 @@ do_accept (void *cls)
 static void
 do_shutdown (void *cls)
 {
+  struct PluginListEntry *ple;
+
+  while (NULL != plugins_head)
+  {
+    ple = plugins_head;
+    GNUNET_CONTAINER_DLL_remove (plugins_head,
+                                 plugins_tail,
+                                 ple);
+    GNUNET_PLUGIN_unload (ple->libname, NULL);
+    GNUNET_free (ple->libname);
+    GNUNET_free (ple);
+  }
   GNUNET_log (GNUNET_ERROR_TYPE_INFO, "Shutting down...\n");
   kill_httpd ();
   GNUNET_free (allow_credentials);
@@ -820,7 +848,7 @@ static void
 load_plugin (void *cls, const char *libname, void *lib_ret)
 {
   struct GNUNET_REST_Plugin *plugin = lib_ret;
-  struct GNUNET_HashCode key;
+  struct PluginListEntry *ple;
 
   if (NULL == lib_ret)
   {
@@ -831,18 +859,12 @@ load_plugin (void *cls, const char *libname, void *lib_ret)
   }
   GNUNET_assert (1 < strlen (plugin->name));
   GNUNET_assert ('/' == *plugin->name);
-  GNUNET_CRYPTO_hash (plugin->name + 1, strlen (plugin->name + 1), &key);
-  if (GNUNET_OK != GNUNET_CONTAINER_multihashmap_put (
-        plugin_map,
-        &key,
-        plugin,
-        GNUNET_CONTAINER_MULTIHASHMAPOPTION_UNIQUE_ONLY))
-  {
-    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                "Could not load add plugin `%s'\n",
-                libname);
-    return;
-  }
+  ple = GNUNET_new (struct PluginListEntry);
+  ple->libname = GNUNET_strdup (libname);
+  ple->plugin = plugin;
+  GNUNET_CONTAINER_DLL_insert (plugins_head,
+                               plugins_tail,
+                               ple);
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Loaded plugin `%s'\n", libname);
 }
 
@@ -864,8 +886,8 @@ run (void *cls,
   char *addr_str;
 
   cfg = c;
-  plugin_map = GNUNET_CONTAINER_multihashmap_create (10, GNUNET_NO);
-
+  plugins_head = NULL;
+  plugins_tail = NULL;
   /* Get port to bind to */
   if (GNUNET_OK !=
       GNUNET_CONFIGURATION_get_value_number (cfg, "rest", "HTTP_PORT", &port))

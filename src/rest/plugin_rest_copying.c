@@ -82,24 +82,6 @@ cleanup_handle (struct RequestHandle *handle)
 
 
 /**
- * Task run on shutdown.  Cleans up everything.
- *
- * @param cls unused
- * @param tc scheduler context
- */
-static void
-do_error (void *cls)
-{
-  struct RequestHandle *handle = cls;
-  struct MHD_Response *resp;
-
-  resp = GNUNET_REST_create_response (NULL);
-  handle->proc (handle->proc_cls, resp, handle->response_code);
-  cleanup_handle (handle);
-}
-
-
-/**
  * Handle rest request
  *
  * @param handle the lookup handle
@@ -155,7 +137,7 @@ options_cont (struct GNUNET_REST_RequestHandle *con_handle,
  * @param proc_cls closure for @a proc
  * @return #GNUNET_OK if request accepted
  */
-static void
+static enum GNUNET_GenericReturnValue
 rest_copying_process_request (struct GNUNET_REST_RequestHandle *conndata_handle,
                               GNUNET_REST_ResultProcessor proc,
                               void *proc_cls)
@@ -172,14 +154,10 @@ rest_copying_process_request (struct GNUNET_REST_RequestHandle *conndata_handle,
   handle->proc = proc;
   handle->rest_handle = conndata_handle;
 
-  if (GNUNET_NO == GNUNET_REST_handle_request (conndata_handle,
-                                               handlers,
-                                               &err,
-                                               handle))
-  {
-    handle->response_code = err.error_code;
-    GNUNET_SCHEDULER_add_now (&do_error, handle);
-  }
+  return GNUNET_REST_handle_request (conndata_handle,
+                                     handlers,
+                                     &err,
+                                     handle);
 }
 
 
