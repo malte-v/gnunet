@@ -897,12 +897,14 @@ shutdown_process (struct GNUNET_OS_Process *proc)
   GNUNET_OS_process_destroy (proc);
 }
 
+
 static void
 shutdown_peerstore (void *cls)
 {
   struct GNUNET_OS_Process *proc = cls;
   shutdown_process (proc);
 }
+
 
 static void
 shutdown_communicator (void *cls)
@@ -939,8 +941,8 @@ communicator_start (
 
 
   binary = GNUNET_OS_get_libexec_binary_path (binary_name);
-  tc_h->c_proc = GNUNET_OS_start_process_s (GNUNET_YES,
-                                            GNUNET_OS_INHERIT_STD_OUT_AND_ERR,
+  tc_h->c_proc = GNUNET_OS_start_process_s (GNUNET_OS_USE_PIPE_CONTROL
+                                            | GNUNET_OS_INHERIT_STD_OUT_AND_ERR,
                                             NULL,
                                             loprefix,
                                             binary,
@@ -1026,8 +1028,8 @@ peerstore_start (
 
   LOG (GNUNET_ERROR_TYPE_DEBUG, "peerstore_start\n");
   binary = GNUNET_OS_get_libexec_binary_path ("gnunet-service-peerstore");
-  tc_h->ps_proc = GNUNET_OS_start_process (GNUNET_YES,
-                                           GNUNET_OS_INHERIT_STD_OUT_AND_ERR,
+  tc_h->ps_proc = GNUNET_OS_start_process (GNUNET_OS_USE_PIPE_CONTROL
+                                           | GNUNET_OS_INHERIT_STD_OUT_AND_ERR,
                                            NULL,
                                            NULL,
                                            NULL,
@@ -1044,6 +1046,7 @@ peerstore_start (
   LOG (GNUNET_ERROR_TYPE_INFO, "started Peerstore\n");
   GNUNET_free (binary);
 }
+
 
 /**
  * @brief Start NAT
