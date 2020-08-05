@@ -525,6 +525,11 @@ struct RequestHandle
    * Reponse code
    */
   int response_code;
+
+  /**
+   * Public client
+   */
+  int public_client;
 };
 
 
@@ -1872,6 +1877,7 @@ check_authorization (struct RequestHandle *handle,
   char *expected_pass;
   char *received_cid;
   char *received_cpw;
+  char *pkce_cv;
 
   if (GNUNET_OK == parse_credentials_basic_auth (handle,
                                                  &received_cid,
@@ -1889,9 +1895,24 @@ check_authorization (struct RequestHandle *handle,
   }
   else
   {
-    handle->emsg = GNUNET_strdup (OIDC_ERROR_KEY_INVALID_CLIENT);
-    handle->response_code = MHD_HTTP_UNAUTHORIZED;
-    return GNUNET_SYSERR;
+    /** Allow public clients with PKCE **/
+    pkce_cv = get_url_parameter_copy (handle, OIDC_CODE_VERIFIER_KEY);
+    if (NULL == pkce_cv)
+    {
+      handle->emsg = GNUNET_strdup (OIDC_ERROR_KEY_INVALID_CLIENT);
+      handle->response_code = MHD_HTTP_UNAUTHORIZED;
+      return GNUNET_SYSERR;
+    }
+    handle->public_client = GNUNET_YES;
+    GNUNET_free (pkce_cv);
+    received_cid = get_url_parameter_copy (handle, OIDC_CLIENT_ID_KEY);
+    GNUNET_STRINGS_string_to_data (received_cid,
+                                   strlen (received_cid),
+                                   cid,
+                                   sizeof(struct GNUNET_CRYPTO_EcdsaPublicKey));
+    GNUNET_free (received_cid);
+    return GNUNET_OK;
+
   }
 
   // check client password
@@ -2063,7 +2084,7 @@ token_endpoint (struct GNUNET_REST_RequestHandle *con_handle,
   }
 
   // decode code
-  if (GNUNET_OK != OIDC_parse_authz_code (privkey, code, code_verifier, &ticket,
+  if (GNUNET_OK != OIDC_parse_authz_code (&cid, code, code_verifier, &ticket,
                                           &cl, &al, &nonce))
   {
     handle->emsg = GNUNET_strdup (OIDC_ERROR_KEY_INVALID_REQUEST);
@@ -2452,7 +2473,7 @@ oidc_config_endpoint (struct GNUNET_REST_RequestHandle *con_handle,
   oidc_config = json_object ();
   // FIXME get from config?
   json_object_set_new (oidc_config,
-                       "issuer", json_string ("https://api.reclaim"));
+                       "issuer", json_string ("http://localhost:7776"));
   json_object_set_new (oidc_config,
                        "authorization_endpoint",
                        json_string ("https://api.reclaim/openid/authorize"));
@@ -2514,6 +2535,31 @@ oidc_config_endpoint (struct GNUNET_REST_RequestHandle *con_handle,
   cleanup_handle (handle);
 }
 
+/**
+ * Respond to OPTIONS request
+ *
+ * @param con_handle the connection handle
+ * @param url the url
+ * @param cls the RequestHandle
+ */
+static void
+oidc_config_cors (struct GNUNET_REST_RequestHandle *con_handle,
+              const char *url,
+              void *cls)
+{
+  struct MHD_Response *resp;
+  struct RequestHandle *handle = cls;
+
+  // For now, independent of path return all options
+  resp = GNUNET_REST_create_response (NULL);
+  MHD_add_response_header (resp, "Access-Control-Allow-Methods", allow_methods);
+  MHD_add_response_header (resp, "Access-Control-Allow-Origin", "*");
+  handle->proc (handle->proc_cls, resp, MHD_HTTP_OK);
+  cleanup_handle (handle);
+  return;
+}
+
+
 
 static enum GNUNET_GenericReturnValue
 rest_identity_process_request (struct GNUNET_REST_RequestHandle *rest_handle,
@@ -2532,6 +2578,8 @@ rest_identity_process_request (struct GNUNET_REST_RequestHandle *rest_handle,
     { MHD_HTTP_METHOD_POST, GNUNET_REST_API_NS_USERINFO, &userinfo_endpoint },
     { MHD_HTTP_METHOD_GET, GNUNET_REST_API_NS_OIDC_CONFIG,
       &oidc_config_endpoint },
+    { MHD_HTTP_METHOD_OPTIONS, GNUNET_REST_API_NS_OIDC_CONFIG,
+      &oidc_config_cors },
     { MHD_HTTP_METHOD_OPTIONS, GNUNET_REST_API_NS_OIDC, &options_cont },
     GNUNET_REST_HANDLER_END };
 
