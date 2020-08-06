@@ -1041,10 +1041,15 @@ oidc_attest_collect_finished_cb (void *cls)
 {
   struct RequestHandle *handle = cls;
   struct GNUNET_RECLAIM_AttributeList *merged_list;
+  struct GNUNET_RECLAIM_AttributeListEntry *le_m;
 
   handle->attest_it = NULL;
   merged_list = attribute_list_merge (handle->attr_idtoken_list,
                                       handle->attr_userinfo_list);
+  for (le_m = merged_list->list_head; NULL != le_m; le_m = le_m->next)
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "List Attibute in ticket to issue: %s\n",
+                le_m->attribute->name);
   handle->idp_op = GNUNET_RECLAIM_ticket_issue (idp,
                                                 &handle->priv_key,
                                                 &handle->oidc->client_pkey,
@@ -2131,13 +2136,12 @@ consume_ticket (void *cls,
   char *result_str;
   handle->idp_op = NULL;
 
-  GNUNET_log (GNUNET_ERROR_TYPE_ERROR, "Attr: %s\n", attr->name);
   if (NULL == identity)
   {
     result_str = OIDC_generate_userinfo (&handle->ticket.identity,
                                          handle->attr_userinfo_list,
                                          handle->attests_list);
-    GNUNET_log (GNUNET_ERROR_TYPE_ERROR, "Userinfo: %s\n", result_str);
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Userinfo: %s\n", result_str);
     resp = GNUNET_REST_create_response (result_str);
     handle->proc (handle->proc_cls, resp, MHD_HTTP_OK);
     GNUNET_free (result_str);
@@ -2156,6 +2160,8 @@ consume_ticket (void *cls,
   GNUNET_CONTAINER_DLL_insert (handle->attr_userinfo_list->list_head,
                                handle->attr_userinfo_list->list_tail,
                                ale);
+  if (NULL == attest)
+    return;
   for (atle = handle->attests_list->list_head; NULL != atle; atle = atle->next)
   {
     if (GNUNET_NO == GNUNET_RECLAIM_id_is_equal (&atle->attestation->id,

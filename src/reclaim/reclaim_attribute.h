@@ -28,6 +28,8 @@
 
 #include "gnunet_reclaim_service.h"
 
+GNUNET_NETWORK_STRUCT_BEGIN
+
 /**
  * Serialized claim
  */
@@ -36,12 +38,12 @@ struct Attribute
   /**
    * Attribute type
    */
-  uint32_t attribute_type;
+  uint32_t attribute_type GNUNET_PACKED;
 
   /**
    * Attribute flag
    */
-  uint32_t attribute_flag;
+  uint32_t attribute_flag GNUNET_PACKED;
 
   /**
    * Attribute ID
@@ -56,12 +58,12 @@ struct Attribute
   /**
    * Name length
    */
-  uint32_t name_len;
+  uint32_t name_len GNUNET_PACKED;
 
   /**
    * Data size
    */
-  uint32_t data_size;
+  uint32_t data_size GNUNET_PACKED;
 
   // followed by data_size Attribute value data
 };
@@ -74,12 +76,12 @@ struct Attestation
   /**
    * Attestation type
    */
-  uint32_t attestation_type;
+  uint32_t attestation_type GNUNET_PACKED;
 
   /**
    * Attestation flag
    */
-  uint32_t attestation_flag;
+  uint32_t attestation_flag GNUNET_PACKED;
 
   /**
    * Attestation ID
@@ -89,14 +91,16 @@ struct Attestation
   /**
    * Name length
    */
-  uint32_t name_len;
+  uint32_t name_len GNUNET_PACKED;
 
   /**
    * Data size
    */
-  uint32_t data_size;
+  uint32_t data_size GNUNET_PACKED;
 
   // followed by data_size Attestation value data
 };
+
+GNUNET_NETWORK_STRUCT_BEGIN
 
 #endif

@@ -65,6 +65,7 @@ extern "C" {
  */
 #define GNUNET_RECLAIM_ID_LENGTH (256 / 8)
 
+GNUNET_NETWORK_STRUCT_BEGIN
 /**
  * A reclaim identifier
  * FIXME maybe put this in a different namespace
@@ -73,6 +74,8 @@ struct GNUNET_RECLAIM_Identifier
 {
   char id[GNUNET_RECLAIM_ID_LENGTH];
 };
+
+GNUNET_NETWORK_STRUCT_END
 
 static const struct GNUNET_RECLAIM_Identifier GNUNET_RECLAIM_ID_ZERO;
 
@@ -361,11 +364,13 @@ GNUNET_RECLAIM_attribute_serialize (const struct GNUNET_RECLAIM_Attribute *attr,
  *
  * @param data the serialized attribute
  * @param data_size the length of the serialized data
+ * @param attr deserialized attribute. Will be allocated. Must be free'd
  *
- * @return a GNUNET_IDENTITY_PROVIDER_Attribute, must be free'd by caller
+ * @return number of bytes read or -1 for error
  */
-struct GNUNET_RECLAIM_Attribute *
-GNUNET_RECLAIM_attribute_deserialize (const char *data, size_t data_size);
+ssize_t
+GNUNET_RECLAIM_attribute_deserialize (const char *data, size_t data_size,
+                                      struct GNUNET_RECLAIM_Attribute **attr);
 
 
 /**

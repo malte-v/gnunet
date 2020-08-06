@@ -732,6 +732,7 @@ handle_issue_ticket_message (void *cls, const struct IssueTicketMessage *im)
   struct TicketIssueOperation *tio;
   struct IdpClient *idp = cls;
   struct GNUNET_RECLAIM_AttributeList *attrs;
+  struct GNUNET_RECLAIM_AttributeListEntry *le;
   size_t attrs_len;
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Received ISSUE_TICKET message\n");
@@ -739,6 +740,10 @@ handle_issue_ticket_message (void *cls, const struct IssueTicketMessage *im)
   attrs_len = ntohs (im->attr_len);
   attrs = GNUNET_RECLAIM_attribute_list_deserialize ((char *) &im[1],
                                                      attrs_len);
+  for (le = attrs->list_head; NULL != le; le = le->next)
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "List entry: %s\n", le->attribute->name);
+
   tio->r_id = ntohl (im->id);
   tio->client = idp;
   GNUNET_CONTAINER_DLL_insert (idp->issue_op_head, idp->issue_op_tail, tio);
@@ -1053,8 +1058,9 @@ handle_attribute_store_message (void *cls,
   data_len = ntohs (sam->attr_len);
 
   ash = GNUNET_new (struct AttributeStoreHandle);
-  ash->claim = GNUNET_RECLAIM_attribute_deserialize ((char *) &sam[1],
-                                                     data_len);
+  GNUNET_RECLAIM_attribute_deserialize ((char *) &sam[1],
+                                        data_len,
+                                        &ash->claim);
 
   ash->r_id = ntohl (sam->id);
   ash->identity = sam->identity;
@@ -1548,8 +1554,9 @@ handle_attribute_delete_message (void *cls,
   data_len = ntohs (dam->attr_len);
 
   adh = GNUNET_new (struct AttributeDeleteHandle);
-  adh->claim = GNUNET_RECLAIM_attribute_deserialize ((char *) &dam[1],
-                                                     data_len);
+  GNUNET_RECLAIM_attribute_deserialize ((char *) &dam[1],
+                                        data_len,
+                                        &adh->claim);
   adh->attest = NULL;
 
   adh->r_id = ntohl (dam->id);

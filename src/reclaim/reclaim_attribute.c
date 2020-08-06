@@ -306,7 +306,6 @@ GNUNET_RECLAIM_attribute_list_serialize_get_size (
   {
     GNUNET_assert (NULL != ale->attribute);
     len += GNUNET_RECLAIM_attribute_serialize_get_size (ale->attribute);
-    len += sizeof(struct GNUNET_RECLAIM_AttributeListEntry);
   }
   return len;
 }
@@ -355,27 +354,28 @@ GNUNET_RECLAIM_attribute_list_deserialize (const char *data, size_t data_size)
   struct GNUNET_RECLAIM_AttributeListEntry *ale;
   size_t attr_len;
   const char *read_ptr;
+  size_t left = data_size;
 
   al = GNUNET_new (struct GNUNET_RECLAIM_AttributeList);
-  if (data_size < sizeof(struct Attribute) + sizeof(struct
-                                                    GNUNET_RECLAIM_AttributeListEntry))
+  if (data_size < sizeof(struct Attribute))
     return al;
   read_ptr = data;
-  while (((data + data_size) - read_ptr) >= sizeof(struct Attribute))
+  while (left >= sizeof(struct Attribute))
   {
     ale = GNUNET_new (struct GNUNET_RECLAIM_AttributeListEntry);
-    ale->attribute =
+    attr_len =
       GNUNET_RECLAIM_attribute_deserialize (read_ptr,
-                                            data_size - (read_ptr - data));
-    if (NULL == ale->attribute)
+                                            left,
+                                            &ale->attribute);
+    if (-1 == attr_len)
     {
       GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
                   "Failed to deserialize malformed attribute.\n");
       GNUNET_free (ale);
       return al;
     }
+    left -= attr_len;
     GNUNET_CONTAINER_DLL_insert (al->list_head, al->list_tail, ale);
-    attr_len = GNUNET_RECLAIM_attribute_serialize_get_size (ale->attribute);
     read_ptr += attr_len;
   }
   return al;
@@ -503,17 +503,18 @@ GNUNET_RECLAIM_attribute_serialize (
  *
  * @return a GNUNET_IDENTITY_PROVIDER_Attribute, must be free'd by caller
  */
-struct GNUNET_RECLAIM_Attribute *
-GNUNET_RECLAIM_attribute_deserialize (const char *data, size_t data_size)
+ssize_t
+GNUNET_RECLAIM_attribute_deserialize (const char *data, size_t data_size,
+                                      struct GNUNET_RECLAIM_Attribute **attr)
 {
-  struct GNUNET_RECLAIM_Attribute *attr;
   struct Attribute *attr_ser;
+  struct GNUNET_RECLAIM_Attribute *attribute;
   size_t data_len;
   size_t name_len;
   char *write_ptr;
 
   if (data_size < sizeof(struct Attribute))
-    return NULL;
+    return -1;
 
   attr_ser = (struct Attribute *) data;
   data_len = ntohs (attr_ser->data_size);
@@ -522,25 +523,27 @@ GNUNET_RECLAIM_attribute_deserialize (const char *data, size_t data_size)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                 "Buffer too small to deserialize\n");
-    return NULL;
+    return -1;
   }
-  attr = GNUNET_malloc (sizeof(struct GNUNET_RECLAIM_Attribute)
+  attribute = GNUNET_malloc (sizeof(struct GNUNET_RECLAIM_Attribute)
                         + data_len + name_len + 1);
-  attr->type = ntohs (attr_ser->attribute_type);
-  attr->flag = ntohl (attr_ser->attribute_flag);
-  attr->id = attr_ser->attribute_id;
-  attr->attestation = attr_ser->attestation_id;
-  attr->data_size = data_len;
+  attribute->type = ntohs (attr_ser->attribute_type);
+  attribute->flag = ntohl (attr_ser->attribute_flag);
+  attribute->id = attr_ser->attribute_id;
+  attribute->attestation = attr_ser->attestation_id;
+  attribute->data_size = data_len;
 
-  write_ptr = (char *) &attr[1];
+  write_ptr = (char *) &attribute[1];
   GNUNET_memcpy (write_ptr, &attr_ser[1], name_len);
   write_ptr[name_len] = '\0';
-  attr->name = write_ptr;
+  attribute->name = write_ptr;
 
   write_ptr += name_len + 1;
-  GNUNET_memcpy (write_ptr, (char *) &attr_ser[1] + name_len, attr->data_size);
-  attr->data = write_ptr;
-  return attr;
+  GNUNET_memcpy (write_ptr, (char *) &attr_ser[1] + name_len,
+                attribute->data_size);
+  *attr = attribute;
+  attribute->data = write_ptr;
+  return sizeof(struct Attribute) + data_len + name_len;
 }
 
 

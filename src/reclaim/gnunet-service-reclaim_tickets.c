@@ -694,8 +694,9 @@ rvk_move_attr_cb (void *cls,
     {
       /** find a new place for this attribute **/
       struct GNUNET_RECLAIM_Attribute *claim;
-      claim = GNUNET_RECLAIM_attribute_deserialize (rd[i].data,
-                                                    rd[i].data_size);
+      GNUNET_RECLAIM_attribute_deserialize (rd[i].data,
+                                            rd[i].data_size,
+                                            &claim);
       GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                   "Attribute to update: Name=%s\n",
                   claim->name);
@@ -1029,8 +1030,8 @@ process_parallel_lookup_result (void *cls,
     if (GNUNET_GNSRECORD_TYPE_RECLAIM_ATTRIBUTE == rd[i].record_type)
     {
       attr_le = GNUNET_new (struct GNUNET_RECLAIM_AttributeListEntry);
-      attr_le->attribute =
-        GNUNET_RECLAIM_attribute_deserialize (rd[i].data, rd[i].data_size);
+      GNUNET_RECLAIM_attribute_deserialize (rd[i].data, rd[i].data_size,
+                                            &attr_le->attribute);
       GNUNET_CONTAINER_DLL_insert (cth->attrs->list_head,
                                    cth->attrs->list_tail,
                                    attr_le);
@@ -1298,6 +1299,9 @@ issue_ticket (struct TicketIssueHandle *ih)
   i = 0;
   for (le = ih->attrs->list_head; NULL != le; le = le->next)
   {
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "Adding list entry: %s\n", le->attribute->name);
+
     attrs_record[i].data = &le->attribute->id;
     attrs_record[i].data_size = sizeof(le->attribute->id);
     attrs_record[i].expiration_time = ticket_refresh_interval.rel_value_us;
