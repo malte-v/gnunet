@@ -154,6 +154,15 @@ struct EgoEntry
 
 struct RequestHandle
 {
+  /**
+   * DLL
+   */
+  struct RequestHandle *next;
+
+  /**
+   * DLL
+   */
+  struct RequestHandle *prev;
 
   /**
    * Selected ego
@@ -247,6 +256,17 @@ struct RequestHandle
 };
 
 /**
+ * DLL
+ */
+static struct RequestHandle *requests_head;
+
+/**
+ * DLL
+ */
+static struct RequestHandle *requests_tail;
+
+
+/**
  * Cleanup lookup handle
  * @param handle Handle to clean up
  */
@@ -272,6 +292,9 @@ cleanup_handle (void *cls)
     GNUNET_free (handle->emsg);
   if (NULL != handle->attr_list)
     GNUNET_RECLAIM_attribute_list_destroy (handle->attr_list);
+  GNUNET_CONTAINER_DLL_remove (requests_head,
+                               requests_tail,
+                               handle);
   GNUNET_free (handle);
 }
 
@@ -296,7 +319,7 @@ do_error (void *cls)
   resp = GNUNET_REST_create_response (json_error);
   MHD_add_response_header (resp, "Content-Type", "application/json");
   handle->proc (handle->proc_cls, resp, handle->response_code);
-  GNUNET_SCHEDULER_add_now (&cleanup_handle, handle);
+  cleanup_handle (handle);
   GNUNET_free (json_error);
 }
 
@@ -319,7 +342,7 @@ do_timeout (void *cls)
 static void
 collect_error_cb (void *cls)
 {
-  do_error (cls);
+  GNUNET_SCHEDULER_add_now (&do_error, cls);
 }
 
 
@@ -329,6 +352,7 @@ finished_cont (void *cls, int32_t success, const char *emsg)
   struct RequestHandle *handle = cls;
   struct MHD_Response *resp;
 
+  handle->idp_op = NULL;
   resp = GNUNET_REST_create_response (emsg);
   MHD_add_response_header (resp, "Content-Type", "application/json");
   MHD_add_response_header (resp, "Access-Control-Allow-Methods", allow_methods);
@@ -1429,7 +1453,9 @@ rest_identity_process_request (struct GNUNET_REST_RequestHandle *rest_handle,
     handle->url[strlen (handle->url) - 1] = '\0';
   handle->timeout_task =
     GNUNET_SCHEDULER_add_delayed (handle->timeout, &do_timeout, handle);
-
+  GNUNET_CONTAINER_DLL_insert (requests_head,
+                               requests_tail,
+                               handle);
   if (GNUNET_NO ==
       GNUNET_REST_handle_request (handle->rest_handle, handlers, &err, handle))
   {
@@ -1489,10 +1515,13 @@ libgnunet_plugin_rest_reclaim_done (void *cls)
 {
   struct GNUNET_REST_Plugin *api = cls;
   struct Plugin *plugin = api->cls;
+  struct RequestHandle *request;
   struct EgoEntry *ego_entry;
   struct EgoEntry *ego_tmp;
 
   plugin->cfg = NULL;
+  while (NULL != (request = requests_head))
+    do_error (request);
   if (NULL != idp)
     GNUNET_RECLAIM_disconnect (idp);
   if (NULL != identity_handle)

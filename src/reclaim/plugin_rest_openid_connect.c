@@ -393,6 +393,15 @@ struct EgoEntry
 
 struct RequestHandle
 {
+  /**
+   * DLL
+   */
+  struct RequestHandle *next;
+
+  /**
+   * DLL
+   */
+  struct RequestHandle *prev;
 
   /**
    * Selected ego
@@ -528,6 +537,16 @@ struct RequestHandle
   int public_client;
 };
 
+/**
+ * DLL
+ */
+static struct RequestHandle *requests_head;
+
+/**
+ * DLL
+ */
+static struct RequestHandle *requests_tail;
+
 
 /**
  * Cleanup lookup handle
@@ -573,15 +592,10 @@ cleanup_handle (struct RequestHandle *handle)
     GNUNET_RECLAIM_attribute_list_destroy (handle->attr_userinfo_list);
   if (NULL!=handle->attests_list)
     GNUNET_RECLAIM_attestation_list_destroy (handle->attests_list);
-
+  GNUNET_CONTAINER_DLL_remove (requests_head,
+                               requests_tail,
+                               handle);
   GNUNET_free (handle);
-}
-
-
-static void
-cleanup_handle_delayed (void *cls)
-{
-  cleanup_handle (cls);
 }
 
 
@@ -613,7 +627,7 @@ do_error (void *cls)
                            MHD_HTTP_HEADER_CONTENT_TYPE,
                            "application/json");
   handle->proc (handle->proc_cls, resp, handle->response_code);
-  GNUNET_SCHEDULER_add_now (&cleanup_handle_delayed, handle);
+  cleanup_handle (handle);
   GNUNET_free (json_error);
 }
 
@@ -640,7 +654,7 @@ do_userinfo_error (void *cls)
   resp = GNUNET_REST_create_response ("");
   MHD_add_response_header (resp, MHD_HTTP_HEADER_WWW_AUTHENTICATE, "Bearer");
   handle->proc (handle->proc_cls, resp, handle->response_code);
-  GNUNET_SCHEDULER_add_now (&cleanup_handle_delayed, handle);
+  cleanup_handle (handle);
   GNUNET_free (error);
 }
 
@@ -667,7 +681,7 @@ do_redirect_error (void *cls)
   resp = GNUNET_REST_create_response ("");
   MHD_add_response_header (resp, "Location", redirect);
   handle->proc (handle->proc_cls, resp, MHD_HTTP_FOUND);
-  GNUNET_SCHEDULER_add_now (&cleanup_handle_delayed, handle);
+  cleanup_handle (handle);
   GNUNET_free (redirect);
 }
 
@@ -897,7 +911,7 @@ login_redirect (void *cls)
   }
   handle->proc (handle->proc_cls, resp, MHD_HTTP_FOUND);
   GNUNET_free (new_redirect);
-  GNUNET_SCHEDULER_add_now (&cleanup_handle_delayed, handle);
+  cleanup_handle (handle);
 }
 
 
@@ -974,7 +988,7 @@ oidc_ticket_issue_cb (void *cls, const struct GNUNET_RECLAIM_Ticket *ticket)
   resp = GNUNET_REST_create_response ("");
   MHD_add_response_header (resp, "Location", redirect_uri);
   handle->proc (handle->proc_cls, resp, MHD_HTTP_FOUND);
-  GNUNET_SCHEDULER_add_now (&cleanup_handle_delayed, handle);
+  cleanup_handle (handle);
   GNUNET_free (redirect_uri);
   GNUNET_free (ticket_str);
   GNUNET_free (code_string);
@@ -1337,7 +1351,7 @@ build_redirect (void *cls)
     resp = GNUNET_REST_create_response ("");
     MHD_add_response_header (resp, "Location", redirect_uri);
     handle->proc (handle->proc_cls, resp, MHD_HTTP_FOUND);
-    GNUNET_SCHEDULER_add_now (&cleanup_handle_delayed, handle);
+    cleanup_handle (handle);
     GNUNET_free (redirect_uri);
     return;
   }
@@ -1714,7 +1728,7 @@ login_cont (struct GNUNET_REST_RequestHandle *con_handle,
                 term_data);
     handle->proc (handle->proc_cls, resp, MHD_HTTP_BAD_REQUEST);
     json_decref (root);
-    GNUNET_SCHEDULER_add_now (&cleanup_handle_delayed, handle);
+    cleanup_handle (handle);
     return;
   }
   GNUNET_asprintf (&cookie, "Identity=%s", json_string_value (identity));
@@ -1744,7 +1758,7 @@ login_cont (struct GNUNET_REST_RequestHandle *con_handle,
   GNUNET_free (cookie);
   GNUNET_free (header_val);
   json_decref (root);
-  GNUNET_SCHEDULER_add_now (&cleanup_handle_delayed, handle);
+  cleanup_handle (handle);
 }
 
 
@@ -2114,7 +2128,7 @@ token_endpoint (struct GNUNET_REST_RequestHandle *con_handle,
   GNUNET_free (access_token);
   GNUNET_free (json_response);
   GNUNET_free (id_token);
-  GNUNET_SCHEDULER_add_now (&cleanup_handle_delayed, handle);
+  cleanup_handle (handle);
 }
 
 
@@ -2543,14 +2557,17 @@ rest_identity_process_request (struct GNUNET_REST_RequestHandle *rest_handle,
   handle->proc = proc;
   handle->rest_handle = rest_handle;
   handle->url = GNUNET_strdup (rest_handle->url);
+  handle->timeout_task =
+    GNUNET_SCHEDULER_add_delayed (handle->timeout, &do_timeout, handle);
+  GNUNET_CONTAINER_DLL_insert (requests_head,
+                               requests_tail,
+                               handle);
   if (handle->url[strlen (handle->url) - 1] == '/')
     handle->url[strlen (handle->url) - 1] = '\0';
   if (GNUNET_NO ==
       GNUNET_REST_handle_request (handle->rest_handle, handlers, &err, handle))
     return GNUNET_NO;
 
-  handle->timeout_task =
-    GNUNET_SCHEDULER_add_delayed (handle->timeout, &do_timeout, handle);
   return GNUNET_YES;
 }
 
@@ -2615,7 +2632,8 @@ libgnunet_plugin_rest_openid_connect_done (void *cls)
   struct EgoEntry *ego_entry;
 
   plugin->cfg = NULL;
-
+  while (NULL != requests_head)
+    cleanup_handle (requests_head);
   if (NULL != OIDC_cookie_jar_map)
   {
     GNUNET_CONTAINER_multihashmap_iterate (OIDC_cookie_jar_map,

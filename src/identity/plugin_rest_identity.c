@@ -191,6 +191,16 @@ struct EgoEntry
 struct RequestHandle
 {
   /**
+   * DLL
+   */
+  struct RequestHandle *next;
+
+  /**
+   * DLL
+   */
+  struct RequestHandle *prev;
+
+  /**
    * The data from the REST request
    */
   const char *data;
@@ -252,6 +262,16 @@ struct RequestHandle
 };
 
 /**
+ * DLL
+ */
+static struct RequestHandle *requests_head;
+
+/**
+ * DLL
+ */
+static struct RequestHandle *requests_tail;
+
+/**
  * Cleanup lookup handle
  * @param handle Handle to clean up
  */
@@ -273,7 +293,9 @@ cleanup_handle (void *cls)
     GNUNET_free (handle->emsg);
   if (NULL != handle->name)
     GNUNET_free (handle->name);
-
+  GNUNET_CONTAINER_DLL_remove (requests_head,
+                               requests_tail,
+                               handle);
   GNUNET_free (handle);
 }
 
@@ -1310,6 +1332,11 @@ rest_process_request (struct GNUNET_REST_RequestHandle *rest_handle,
   handle->url = GNUNET_strdup (rest_handle->url);
   if (handle->url[strlen (handle->url) - 1] == '/')
     handle->url[strlen (handle->url) - 1] = '\0';
+  handle->timeout_task =
+    GNUNET_SCHEDULER_add_delayed (handle->timeout, &do_error, handle);
+  GNUNET_CONTAINER_DLL_insert (requests_head,
+                               requests_tail,
+                               handle);
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Connecting...\n");
   if (GNUNET_NO ==
       GNUNET_REST_handle_request (handle->rest_handle, handlers, &err, handle))
@@ -1318,8 +1345,6 @@ rest_process_request (struct GNUNET_REST_RequestHandle *rest_handle,
     return GNUNET_NO;
   }
 
-  handle->timeout_task =
-    GNUNET_SCHEDULER_add_delayed (handle->timeout, &do_error, handle);
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Connected\n");
   return GNUNET_YES;
 }
@@ -1376,6 +1401,8 @@ libgnunet_plugin_rest_identity_done (void *cls)
   struct EgoEntry *ego_tmp;
 
   plugin->cfg = NULL;
+  while (NULL != requests_head)
+    cleanup_handle (requests_head);
   if (NULL != identity_handle)
     GNUNET_IDENTITY_disconnect (identity_handle);
 

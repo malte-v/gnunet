@@ -180,6 +180,16 @@ static struct PrintContext *pc_tail;
 struct RequestHandle
 {
   /**
+   * DLL
+   */
+  struct RequestHandle *next;
+
+  /**
+   * DLL
+   */
+  struct RequestHandle *prev;
+
+  /**
    * JSON temporary array
    */
   json_t *temp_array;
@@ -251,6 +261,15 @@ struct RequestHandle
   int response_code;
 };
 
+/**
+ * DLL
+ */
+static struct RequestHandle *requests_head;
+
+/**
+ * DLL
+ */
+static struct RequestHandle *requests_tail;
 
 /**
  * Cleanup lookup handle
@@ -300,7 +319,9 @@ cleanup_handle (void *cls)
     GNUNET_PEERINFO_disconnect (peerinfo_handle);
     peerinfo_handle = NULL;
   }
-
+  GNUNET_CONTAINER_DLL_remove (requests_head,
+                               requests_tail,
+                               handle);
   GNUNET_free (handle);
 }
 
@@ -733,6 +754,13 @@ rest_process_request (struct GNUNET_REST_RequestHandle *rest_handle,
   handle->url = GNUNET_strdup (rest_handle->url);
   if (handle->url[strlen (handle->url) - 1] == '/')
     handle->url[strlen (handle->url) - 1] = '\0';
+  handle->timeout_task =
+    GNUNET_SCHEDULER_add_delayed (handle->timeout,
+                                  &do_error,
+                                  handle);
+  GNUNET_CONTAINER_DLL_insert (requests_head,
+                               requests_tail,
+                               handle);
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Connecting...\n");
   if (GNUNET_NO == GNUNET_REST_handle_request (handle->rest_handle,
                                                handlers,
@@ -742,10 +770,6 @@ rest_process_request (struct GNUNET_REST_RequestHandle *rest_handle,
     cleanup_handle (handle);
     return GNUNET_NO;
   }
-  handle->timeout_task =
-    GNUNET_SCHEDULER_add_delayed (handle->timeout,
-                                  &do_error,
-                                  handle);
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Connected\n");
   return GNUNET_YES;
 }
@@ -800,6 +824,8 @@ libgnunet_plugin_rest_peerinfo_done (void *cls)
   struct Plugin *plugin = api->cls;
 
   plugin->cfg = NULL;
+  while (NULL != requests_head)
+    cleanup_handle (requests_head);
   if (NULL != peerinfo_handle)
     GNUNET_PEERINFO_disconnect (peerinfo_handle);
 
