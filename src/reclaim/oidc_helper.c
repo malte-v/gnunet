@@ -162,8 +162,6 @@ generate_userinfo_json(const struct GNUNET_CRYPTO_EcdsaPublicKey *sub_key,
   struct GNUNET_RECLAIM_AttributeListEntry *le;
   struct GNUNET_RECLAIM_AttestationListEntry *ale;
   char *subject;
-  char *aggr_names_str;
-  char *aggr_sources_str;
   char *source_name;
   char *attr_val_str;
   char *attest_val_str;
@@ -171,7 +169,7 @@ generate_userinfo_json(const struct GNUNET_CRYPTO_EcdsaPublicKey *sub_key,
   json_t *aggr_names;
   json_t *aggr_sources;
   json_t *aggr_sources_jwt;
-  json_t *addr_claim;
+  json_t *addr_claim = NULL;
   int num_attestations = 0;
   for (le = attrs->list_head; NULL != le; le = le->next)
   {
@@ -194,8 +192,6 @@ generate_userinfo_json(const struct GNUNET_CRYPTO_EcdsaPublicKey *sub_key,
   // sub REQUIRED public key identity, not exceed 255 ASCII  length
   json_object_set_new (body, "sub", json_string (subject));
   attest_val_str = NULL;
-  aggr_names_str = NULL;
-  aggr_sources_str = NULL;
   source_name = NULL;
   int i = 0;
   for (ale = attests->list_head; NULL != ale; ale = ale->next)
@@ -237,8 +233,6 @@ generate_userinfo_json(const struct GNUNET_CRYPTO_EcdsaPublicKey *sub_key,
         if (NULL == addr_claim)
         {
           addr_claim = json_object ();
-          json_object_set_new (body, "address",
-                               addr_claim);
         }
         json_object_set_new (addr_claim, le->attribute->name,
                              json_string (attr_val_str));
@@ -273,21 +267,17 @@ generate_userinfo_json(const struct GNUNET_CRYPTO_EcdsaPublicKey *sub_key,
       GNUNET_free (source_name);
     }
   }
+  if (NULL != addr_claim)
+    json_object_set_new (body, "address", addr_claim);
 
   if (NULL != attest_val_str)
     GNUNET_free (attest_val_str);
   if (0 != i)
   {
-    aggr_names_str = json_dumps (aggr_names, JSON_INDENT (0) | JSON_COMPACT);
-    aggr_sources_str = json_dumps (aggr_sources, JSON_INDENT (0)
-                                   | JSON_COMPACT);
-    json_object_set_new (body, "_claim_names", json_string (aggr_names_str));
-    json_object_set_new (body, "_claim_sources", json_string (
-                           aggr_sources_str));
+    json_object_set_new (body, "_claim_names", aggr_names);
+    json_object_set_new (body, "_claim_sources", aggr_sources);
   }
 
-  json_decref (aggr_names);
-  json_decref (aggr_sources);
   return body;
 }
 
@@ -611,7 +601,6 @@ OIDC_parse_authz_code (const struct GNUNET_CRYPTO_EcdsaPublicKey *audience,
     GNUNET_STRINGS_base64url_decode (code, strlen (code),
                                      (void **) &code_payload);
   if (code_payload_len < sizeof(struct GNUNET_CRYPTO_EccSignaturePurpose)
-      + sizeof(struct GNUNET_CRYPTO_EcdhePublicKey)
       + sizeof(struct OIDC_Parameters)
       + sizeof(struct GNUNET_CRYPTO_EcdsaSignature))
   {
@@ -624,8 +613,6 @@ OIDC_parse_authz_code (const struct GNUNET_CRYPTO_EcdsaPublicKey *audience,
   plaintext_len = code_payload_len;
   plaintext_len -= sizeof(struct GNUNET_CRYPTO_EccSignaturePurpose);
   ptr = (char *) &purpose[1];
-  plaintext_len -= sizeof(struct GNUNET_CRYPTO_EcdhePublicKey);
-
   plaintext_len -= sizeof(struct GNUNET_CRYPTO_EcdsaSignature);
   plaintext = ptr;
   ptr += plaintext_len;
@@ -683,8 +670,8 @@ OIDC_parse_authz_code (const struct GNUNET_CRYPTO_EcdsaPublicKey *audience,
   if (0 != GNUNET_memcmp (audience, &ticket->audience))
   {
     GNUNET_free (code_payload);
-    if (NULL != nonce_str)
-      GNUNET_free (nonce_str);
+    if (NULL != *nonce_str)
+      GNUNET_free (*nonce_str);
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                 "Audience in ticket does not match client!\n");
     return GNUNET_SYSERR;
@@ -696,8 +683,8 @@ OIDC_parse_authz_code (const struct GNUNET_CRYPTO_EcdsaPublicKey *audience,
                                    &ticket->identity))
   {
     GNUNET_free (code_payload);
-    if (NULL != nonce_str)
-      GNUNET_free (nonce_str);
+    if (NULL != *nonce_str)
+      GNUNET_free (*nonce_str);
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR, "Signature of AuthZ code invalid!\n");
     return GNUNET_SYSERR;
   }
@@ -768,7 +755,7 @@ OIDC_access_token_new (const struct GNUNET_RECLAIM_Ticket *ticket)
  * Parse an access token
  */
 int
-OIDC_access_token_parse (const char*token,
+OIDC_access_token_parse (const char *token,
                          struct GNUNET_RECLAIM_Ticket **ticket)
 {
   if (sizeof (struct GNUNET_RECLAIM_Ticket) !=

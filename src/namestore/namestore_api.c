@@ -373,6 +373,8 @@ handle_record_store_response (void *cls,
     emsg = _ ("Namestore failed to store record\n");
   else
     emsg = NULL;
+  if (NULL == qe)
+    return;
   if (NULL != qe->cont)
     qe->cont (qe->cont_cls, res, emsg);
   free_qe (qe);

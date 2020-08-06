@@ -184,6 +184,42 @@ struct MhdConnectionHandle
   int state;
 };
 
+/**
+ * Accepted requests
+ */
+struct AcceptedRequest
+{
+  /**
+   * DLL
+   */
+  struct AcceptedRequest *next;
+
+  /**
+   * DLL
+   */
+  struct AcceptedRequest *prev;
+
+  /**
+   * Socket
+   */
+  struct GNUNET_NETWORK_Handle *sock;
+
+  /**
+   * Connection
+   */
+  struct MhdConnectionHandle *con_handle;
+};
+
+/**
+ * AcceptedRequest list head
+ */
+static struct AcceptedRequest *req_list_head;
+
+/**
+ * AcceptedRequest list tail
+ */
+static struct AcceptedRequest *req_list_tail;
+
 /* ************************* Global helpers ********************* */
 
 
@@ -238,7 +274,6 @@ cleanup_url_map (void *cls, const struct GNUNET_HashCode *key, void *value)
   return GNUNET_YES;
 }
 
-
 static void
 cleanup_handle (struct MhdConnectionHandle *handle)
 {
@@ -268,6 +303,19 @@ cleanup_handle (struct MhdConnectionHandle *handle)
   GNUNET_free (handle);
 }
 
+static void
+cleanup_ar (struct AcceptedRequest *ar)
+{
+  if (NULL != ar->con_handle)
+  {
+    cleanup_handle (ar->con_handle);
+  }
+  GNUNET_NETWORK_socket_free_memory_only_ (ar->sock);
+  GNUNET_CONTAINER_DLL_remove (req_list_head,
+                               req_list_tail,
+                               ar);
+  GNUNET_free (ar);
+}
 
 static int
 header_iterator (void *cls,
@@ -404,22 +452,29 @@ create_response (void *cls,
                  void **con_cls)
 {
   char *origin;
+  struct AcceptedRequest *ar;
   struct GNUNET_HashCode key;
   struct MhdConnectionHandle *con_handle;
   struct GNUNET_REST_RequestHandle *rest_conndata_handle;
   struct PluginListEntry *ple;
 
-  con_handle = *con_cls;
+  ar = *con_cls;
+  if (NULL == ar)
+  {
+    GNUNET_break (0);
+    return MHD_NO;
+  }
 
-  if (NULL == *con_cls)
+  if (NULL == ar->con_handle)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "New connection %s\n", url);
     con_handle = GNUNET_new (struct MhdConnectionHandle);
     con_handle->con = con;
     con_handle->state = GN_REST_STATE_INIT;
-    *con_cls = con_handle;
+    ar->con_handle = con_handle;
     return MHD_YES;
   }
+  con_handle = ar->con_handle;
   if (GN_REST_STATE_INIT == con_handle->state)
   {
     rest_conndata_handle = GNUNET_new (struct GNUNET_REST_RequestHandle);
@@ -535,34 +590,13 @@ create_response (void *cls,
     MHD_RESULT ret = MHD_queue_response (con,
                                          con_handle->status,
                                          con_handle->response);
-    cleanup_handle (con_handle);
+    //cleanup_handle (con_handle);
     return ret;
   }
 }
 
 
 /* ******************** MHD HTTP setup and event loop ******************** */
-
-/**
- * Function called when MHD decides that we are done with a connection.
- *
- * @param cls NULL
- * @param connection connection handle
- * @param con_cls value as set by the last call to
- *        the MHD_AccessHandlerCallback, should be our handle
- * @param toe reason for request termination (ignored)
- */
-static void
-mhd_completed_cb (void *cls,
-                  struct MHD_Connection *connection,
-                  void **con_cls,
-                  enum MHD_RequestTerminationCode toe)
-{
-  if (MHD_REQUEST_TERMINATED_COMPLETED_OK != toe)
-    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                "MHD encountered error handling request: %d\n",
-                toe);
-}
 
 
 /**
@@ -671,6 +705,135 @@ schedule_httpd ()
     GNUNET_NETWORK_fdset_destroy (wws);
 }
 
+/**
+ * Function called when MHD first processes an incoming connection.
+ * Gives us the respective URI information.
+ *
+ * We use this to associate the `struct MHD_Connection` with our
+ * internal `struct AcceptedRequest` data structure (by checking
+ * for matching sockets).
+ *
+ * @param cls the HTTP server handle (a `struct MhdHttpList`)
+ * @param url the URL that is being requested
+ * @param connection MHD connection object for the request
+ * @return the `struct Socks5Request` that this @a connection is for
+ */
+static void *
+mhd_log_callback (void *cls,
+                  const char *url,
+                  struct MHD_Connection *connection)
+{
+  struct AcceptedRequest *ar;
+  const union MHD_ConnectionInfo *ci;
+
+  ci = MHD_get_connection_info (connection,
+                                MHD_CONNECTION_INFO_SOCKET_CONTEXT);
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Processing %s\n", url);
+  if (NULL == ci)
+  {
+    GNUNET_break (0);
+    return NULL;
+  }
+  ar = ci->socket_context;
+  return ar;
+}
+
+
+
+/**
+ * Function called when MHD decides that we are done with a connection.
+ *
+ * @param cls NULL
+ * @param connection connection handle
+ * @param con_cls value as set by the last call to
+ *        the MHD_AccessHandlerCallback, should be our handle
+ * @param toe reason for request termination (ignored)
+ */
+static void
+mhd_completed_cb (void *cls,
+                  struct MHD_Connection *connection,
+                  void **con_cls,
+                  enum MHD_RequestTerminationCode toe)
+{
+  struct AcceptedRequest *ar = *con_cls;
+  if (MHD_REQUEST_TERMINATED_COMPLETED_OK != toe)
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                "MHD encountered error handling request: %d\n",
+                toe);
+  if (NULL == ar)
+    return;
+  if (NULL != ar->con_handle)
+  {
+    cleanup_handle (ar->con_handle);
+    ar->con_handle = NULL;
+  }
+  schedule_httpd ();
+  *con_cls = NULL;
+}
+
+/**
+ * Function called when MHD connection is opened or closed.
+ *
+ * @param cls NULL
+ * @param connection connection handle
+ * @param con_cls value as set by the last call to
+ *        the MHD_AccessHandlerCallback, should be our `struct Socks5Request *`
+ * @param toe connection notification type
+ */
+static void
+mhd_connection_cb (void *cls,
+                   struct MHD_Connection *connection,
+                   void **con_cls,
+                   enum MHD_ConnectionNotificationCode cnc)
+{
+  struct AcceptedRequest *ar;
+  const union MHD_ConnectionInfo *ci;
+  int sock;
+
+  switch (cnc)
+  {
+  case MHD_CONNECTION_NOTIFY_STARTED:
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Connection started...\n");
+    ci = MHD_get_connection_info (connection,
+                                  MHD_CONNECTION_INFO_CONNECTION_FD);
+    if (NULL == ci)
+    {
+      GNUNET_break (0);
+      return;
+    }
+    sock = ci->connect_fd;
+    for (ar = req_list_head; NULL != ar; ar = ar->next)
+    {
+      if (GNUNET_NETWORK_get_fd (ar->sock) == sock)
+      {
+        GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                    "Context set...\n");
+        *con_cls = ar;
+        break;
+      }
+    }
+    break;
+
+  case MHD_CONNECTION_NOTIFY_CLOSED:
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "Connection closed... cleaning up\n");
+    ar = *con_cls;
+    if (NULL == ar)
+    {
+      GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                  "Connection stale!\n");
+      return;
+    }
+    cleanup_ar (ar);
+    *con_cls = NULL;
+    break;
+
+  default:
+    GNUNET_break (0);
+  }
+}
+
+
 
 /**
  * Task run whenever HTTP server operations are pending.
@@ -696,7 +859,7 @@ static void
 do_accept (void *cls)
 {
   struct GNUNET_NETWORK_Handle *lsock = cls;
-  struct GNUNET_NETWORK_Handle *s;
+  struct AcceptedRequest *ar;
   int fd;
   const struct sockaddr *addr;
   socklen_t len;
@@ -718,24 +881,30 @@ do_accept (void *cls)
   }
   else
     GNUNET_assert (0);
-  s = GNUNET_NETWORK_socket_accept (lsock, NULL, NULL);
-  if (NULL == s)
+  ar = GNUNET_new (struct AcceptedRequest);
+  ar->sock = GNUNET_NETWORK_socket_accept (lsock, NULL, NULL);
+  if (NULL == ar->sock)
   {
+    GNUNET_free (ar);
     GNUNET_log_strerror (GNUNET_ERROR_TYPE_ERROR, "accept");
     return;
   }
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Got an inbound connection, waiting for data\n");
-  fd = GNUNET_NETWORK_get_fd (s);
-  addr = GNUNET_NETWORK_get_addr (s);
-  len = GNUNET_NETWORK_get_addrlen (s);
+  fd = GNUNET_NETWORK_get_fd (ar->sock);
+  addr = GNUNET_NETWORK_get_addr (ar->sock);
+  len = GNUNET_NETWORK_get_addrlen (ar->sock);
+  GNUNET_CONTAINER_DLL_insert (req_list_head,
+                               req_list_tail,
+                               ar);
   if (MHD_YES != MHD_add_connection (httpd, fd, addr, len))
   {
+    GNUNET_NETWORK_socket_close (ar->sock);
+    GNUNET_free (ar);
     GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
                 _ ("Failed to pass client to MHD\n"));
     return;
   }
-  GNUNET_free (s);
   schedule_httpd ();
 }
 
@@ -1032,6 +1201,12 @@ run (void *cls,
                             NULL,
                             MHD_OPTION_CONNECTION_TIMEOUT,
                             (unsigned int) 16,
+                            MHD_OPTION_NOTIFY_CONNECTION,
+                            &mhd_connection_cb,
+                            NULL,
+                            MHD_OPTION_URI_LOG_CALLBACK,
+                            mhd_log_callback,
+                            NULL,
                             MHD_OPTION_NOTIFY_COMPLETED,
                             &mhd_completed_cb,
                             NULL,

@@ -631,6 +631,8 @@ do_userinfo_error (void *cls)
   struct MHD_Response *resp;
   char *error;
 
+  GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+              "Error: %s\n", handle->edesc);
   GNUNET_asprintf (&error,
                    "error=\"%s\", error_description=\"%s\"",
                    handle->emsg,
@@ -2129,12 +2131,13 @@ consume_ticket (void *cls,
   char *result_str;
   handle->idp_op = NULL;
 
+  GNUNET_log (GNUNET_ERROR_TYPE_ERROR, "Attr: %s\n", attr->name);
   if (NULL == identity)
   {
     result_str = OIDC_generate_userinfo (&handle->ticket.identity,
                                          handle->attr_userinfo_list,
                                          handle->attests_list);
-    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Userinfo: %s\n", result_str);
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR, "Userinfo: %s\n", result_str);
     resp = GNUNET_REST_create_response (result_str);
     handle->proc (handle->proc_cls, resp, MHD_HTTP_OK);
     GNUNET_free (result_str);
@@ -2198,6 +2201,7 @@ userinfo_endpoint (struct GNUNET_REST_RequestHandle *con_handle,
   const struct EgoEntry *aud_ego;
   const struct GNUNET_CRYPTO_EcdsaPrivateKey *privkey;
 
+  GNUNET_log (GNUNET_ERROR_TYPE_ERROR, "Getting userinfo\n");
   GNUNET_CRYPTO_hash (OIDC_AUTHORIZATION_HEADER_KEY,
                       strlen (OIDC_AUTHORIZATION_HEADER_KEY),
                       &cache_key);
@@ -2263,7 +2267,7 @@ userinfo_endpoint (struct GNUNET_REST_RequestHandle *con_handle,
     GNUNET_free (authorization);
     return;
   }
-
+  GNUNET_log (GNUNET_ERROR_TYPE_ERROR, "Consuming ticket\n");
   privkey = GNUNET_IDENTITY_ego_get_private_key (aud_ego->ego);
   handle->attr_userinfo_list =
     GNUNET_new (struct GNUNET_RECLAIM_AttributeList);
