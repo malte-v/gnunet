@@ -69,10 +69,12 @@ struct GNUNET_REST_Plugin
    * @param data_size the length of the data
    * @param proc the callback for result
    * @param proc_cls closure for callback
+   * @return GNUNET_YES if the request was processed
    */
-  void (*process_request) (struct GNUNET_REST_RequestHandle *handle,
-                           GNUNET_REST_ResultProcessor proc,
-                           void *proc_cls);
+  enum GNUNET_GenericReturnValue (*process_request)(
+    struct GNUNET_REST_RequestHandle *handle,
+    GNUNET_REST_ResultProcessor proc,
+    void *proc_cls);
 };
 
 

@@ -1572,6 +1572,8 @@ GNUNET_RECLAIM_ticket_consume (
   ctm->ticket = *ticket;
   if (NULL != h->mq)
     GNUNET_MQ_send_copy (h->mq, op->env);
+  else
+    reconnect(h);
   return op;
 }
 

@@ -39,6 +39,10 @@
 #define WANTB(a, b, l) if (0 != memcmp (a, b, l)) { GNUNET_break (0); return 1; \
 } else { }
 
+#define URLENCODE_TEST_VECTOR_PLAIN "Asbjlaw=ljsdlasjd?人aslkdsa"
+
+#define URLENCODE_TEST_VECTOR_ENCODED "Asbjlaw\%3Dljsdlasjd\%3F\%E4\%BA\%BAaslkdsa"
+
 int
 main (int argc, char *argv[])
 {
@@ -137,6 +141,16 @@ main (int argc, char *argv[])
                  GNUNET_STRINGS_fancy_time_to_relative ("15 m", &rtx));
   GNUNET_assert (rt.rel_value_us == rtx.rel_value_us);
 
+  GNUNET_assert (0 != GNUNET_STRINGS_urlencode (URLENCODE_TEST_VECTOR_PLAIN,
+                                                strlen (URLENCODE_TEST_VECTOR_PLAIN),
+                                                &b));
+  WANT (URLENCODE_TEST_VECTOR_ENCODED, b);
+  GNUNET_free (b);
+  GNUNET_assert (0 != GNUNET_STRINGS_urldecode (URLENCODE_TEST_VECTOR_ENCODED,
+                                                strlen (URLENCODE_TEST_VECTOR_ENCODED),
+                                                &b));
+  WANT (URLENCODE_TEST_VECTOR_PLAIN, b);
+  GNUNET_free (b);
   return 0;
 }
 

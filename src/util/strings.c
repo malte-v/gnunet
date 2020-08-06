@@ -29,6 +29,7 @@
 #include <iconv.h>
 #endif
 #include "gnunet_crypto_lib.h"
+#include "gnunet_buffer_lib.h"
 #include "gnunet_strings_lib.h"
 #include <unicase.h>
 #include <unistr.h>
@@ -2085,6 +2086,163 @@ GNUNET_STRINGS_base64url_decode (const char *data, size_t len, void **out)
   ret = GNUNET_STRINGS_base64_decode (s, len, out);
   GNUNET_free (s);
   return ret;
+}
+
+
+/**
+ * url/percent encode (RFC3986).
+ *
+ * @param data the data to encode
+ * @param len the length of the input
+ * @param output where to write the output (*output should be NULL,
+ *   is allocated)
+ * @return the size of the output
+ */
+size_t
+GNUNET_STRINGS_urldecode (const char *data, size_t len, char **out)
+{
+  const char *rpos = data;
+  *out = GNUNET_malloc (len + 1); /* output should always fit into input */
+  char *wpos = *out;
+  size_t resl = 0;
+
+  while ('\0' != *rpos)
+  {
+    unsigned int num;
+    switch (*rpos)
+    {
+    case '%':
+      if (1 != sscanf (rpos + 1, "%2x", &num))
+        break;
+      *wpos = (char) ((unsigned char) num);
+      wpos++;
+      resl++;
+      rpos += 3;
+      break;
+    /* TODO: add bad sequence handling */
+    /* intentional fall through! */
+    default:
+      *wpos = *rpos;
+      wpos++;
+      resl++;
+      rpos++;
+    }
+  }
+  *wpos = '\0'; /* add 0-terminator */
+  return resl;
+}
+
+
+/**
+ * url/percent encode (RFC3986).
+ *
+ * @param data the data to decode
+ * @param len the length of the input
+ * @param output where to write the output (*output should be NULL,
+ *   is allocated)
+ * @return the size of the output
+ */
+size_t
+GNUNET_STRINGS_urlencode (const char *data, size_t len, char **out)
+{
+  struct GNUNET_Buffer buf = { 0 };
+  const uint8_t *i8 = (uint8_t *) data;
+
+  while (0 != *i8)
+  {
+    if (0 == (0x80 & *i8))
+    {
+      /* traditional ASCII */
+      if (isalnum (*i8) || (*i8 == '-') || (*i8 == '_') || (*i8 == '.') ||
+          (*i8 == '~') )
+        GNUNET_buffer_write (&buf, (const char*) i8, 1);
+      else if (*i8 == ' ')
+        GNUNET_buffer_write (&buf, "+", 1);
+      else
+        GNUNET_buffer_write_fstr (&buf,
+                                  "%%%X%X",
+                                  *i8 >> 4,
+                                  *i8 & 15);
+      i8++;
+      continue;
+    }
+    if (0x80 + 0x40 == ((0x80 + 0x40 + 0x20) & *i8))
+    {
+      /* 2-byte value, percent-encode */
+      GNUNET_buffer_write_fstr (&buf,
+                                "%%%X%X",
+                                *i8 >> 4,
+                                *i8 & 15);
+      i8++;
+      GNUNET_buffer_write_fstr (&buf,
+                                "%%%X%X",
+                                *i8 >> 4,
+                                *i8 & 15);
+      i8++;
+      continue;
+    }
+    if (0x80 + 0x40 + 0x20 == ((0x80 + 0x40 + 0x20 + 0x10) & *i8))
+    {
+      /* 3-byte value, percent-encode */
+      for (unsigned int i = 0; i<3; i++)
+      {
+        GNUNET_buffer_write_fstr (&buf,
+                                  "%%%X%X",
+                                  *i8 >> 4,
+                                  *i8 & 15);
+        i8++;
+      }
+      continue;
+    }
+    if (0x80 + 0x40 + 0x20 + 0x10 == ((0x80 + 0x40 + 0x20 + 0x10 + 0x08) & *i8))
+    {
+      /* 4-byte value, percent-encode */
+      for (unsigned int i = 0; i<4; i++)
+      {
+        GNUNET_buffer_write_fstr (&buf,
+                                  "%%%X%X",
+                                  *i8 >> 4,
+                                  *i8 & 15);
+        i8++;
+      }
+      continue;
+    }
+    if (0x80 + 0x40 + 0x20 + 0x10 + 0x08 == ((0x80 + 0x40 + 0x20 + 0x10 + 0x08
+                                              + 0x04) & *i8))
+    {
+      /* 5-byte value, percent-encode (outside of UTF-8 modern standard, but so what) */
+      for (unsigned int i = 0; i<5; i++)
+      {
+        GNUNET_buffer_write_fstr (&buf,
+                                  "%%%X%X",
+                                  *i8 >> 4,
+                                  *i8 & 15);
+        i8++;
+      }
+      continue;
+    }
+    if (0x80 + 0x40 + 0x20 + 0x10 + 0x08 + 0x04 == ((0x80 + 0x40 + 0x20 + 0x10
+                                                     + 0x08 + 0x04 + 0x02)
+                                                    & *i8))
+    {
+      /* 6-byte value, percent-encode (outside of UTF-8 modern standard, but so what) */
+      for (unsigned int i = 0; i<6; i++)
+      {
+        GNUNET_buffer_write_fstr (&buf,
+                                  "%%%X%X",
+                                  *i8 >> 4,
+                                  *i8 & 15);
+        i8++;
+      }
+      continue;
+    }
+    /* really, really invalid UTF-8: fail */
+    GNUNET_break (0);
+    GNUNET_buffer_clear (&buf);
+    return 0;
+  }
+  *out = GNUNET_buffer_reap_str (&buf);
+  return strlen (*out);
 }
 
 

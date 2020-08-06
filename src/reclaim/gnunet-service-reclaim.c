@@ -850,8 +850,8 @@ consume_result_cb (void *cls,
   struct ConsumeTicketResultMessage *crm;
   struct GNUNET_MQ_Envelope *env;
   char *data_tmp;
-  size_t attrs_len;
-  size_t attests_len;
+  size_t attrs_len = 0;
+  size_t attests_len = 0;
 
   if (GNUNET_OK != success)
   {

@@ -347,7 +347,7 @@ options_cont (struct GNUNET_REST_RequestHandle *con_handle,
  * @param proc_cls closure for @a proc
  * @return #GNUNET_OK if request accepted
  */
-static void
+static enum GNUNET_GenericReturnValue
 rest_config_process_request (struct GNUNET_REST_RequestHandle *conndata_handle,
                              GNUNET_REST_ResultProcessor proc,
                              void *proc_cls)
@@ -371,9 +371,10 @@ rest_config_process_request (struct GNUNET_REST_RequestHandle *conndata_handle,
   if (GNUNET_NO ==
       GNUNET_REST_handle_request (conndata_handle, handlers, &err, handle))
   {
-    handle->response_code = err.error_code;
-    GNUNET_SCHEDULER_add_now (&do_error, handle);
+    cleanup_handle (handle);
+    return GNUNET_NO;
   }
+  return GNUNET_YES;
 }
 
 

@@ -350,6 +350,18 @@ GNUNET_STRINGS_base64_encode (const void *in,
 
 
 /**
+ * url/percent encode (RFC3986).
+ *
+ * @param data the data to decode
+ * @param len the length of the input
+ * @param output where to write the output (*output should be NULL,
+ *   is allocated)
+ * @return the size of the output
+ */
+size_t
+GNUNET_STRINGS_urlencode (const char *data, size_t len, char **out);
+
+/**
  * Encode into Base64url. RFC7515
  *
  * @param in the data to encode
@@ -388,6 +400,18 @@ GNUNET_STRINGS_base64_decode (const char *data,
  */
 size_t
 GNUNET_STRINGS_base64url_decode (const char *data, size_t len, void **out);
+
+/**
+ * url/percent encode (RFC3986).
+ *
+ * @param data the data to encode
+ * @param len the length of the input
+ * @param output where to write the output (*output should be NULL,
+ *   is allocated)
+ * @return the size of the output
+ */
+size_t
+GNUNET_STRINGS_urldecode (const char *data, size_t len, char **out);
 
 
 /**

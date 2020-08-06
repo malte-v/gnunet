@@ -85,6 +85,31 @@ const struct GNUNET_CONFIGURATION_Handle *cfg;
 static char *allow_methods;
 
 /**
+ * Ego list
+ */
+static struct EgoEntry *ego_head;
+
+/**
+ * Ego list
+ */
+static struct EgoEntry *ego_tail;
+
+/**
+ * The processing state
+ */
+static int state;
+
+/**
+ * Handle to NAMESTORE
+ */
+static struct GNUNET_NAMESTORE_Handle *ns_handle;
+
+/**
+ * Handle to Identity service.
+ */
+static struct GNUNET_IDENTITY_Handle *identity_handle;
+
+/**
  * @brief struct returned by the initialization function of the plugin
  */
 struct Plugin
@@ -170,15 +195,6 @@ struct RequestHandle
    */
   json_t *resp_object;
 
-  /**
-   * The processing state
-   */
-  int state;
-
-  /**
-   * Handle to NAMESTORE
-   */
-  struct GNUNET_NAMESTORE_Handle *ns_handle;
 
   /**
    * Handle to NAMESTORE it
@@ -196,24 +212,9 @@ struct RequestHandle
   struct EgoEntry *ego_entry;
 
   /**
-   * Ego list
-   */
-  struct EgoEntry *ego_head;
-
-  /**
-   * Ego list
-   */
-  struct EgoEntry *ego_tail;
-
-  /**
    * IDENTITY Operation
    */
   struct GNUNET_IDENTITY_Operation *op;
-
-  /**
-   * Handle to Identity service.
-   */
-  struct GNUNET_IDENTITY_Handle *identity_handle;
 
   /**
    * Rest connection
@@ -264,8 +265,6 @@ static void
 cleanup_handle (void *cls)
 {
   struct RequestHandle *handle = cls;
-  struct EgoEntry *ego_entry;
-  struct EgoEntry *ego_tmp;
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Cleaning up\n");
   if (NULL != handle->timeout_task)
@@ -294,21 +293,6 @@ cleanup_handle (void *cls)
     GNUNET_NAMESTORE_zone_iteration_stop (handle->list_it);
   if (NULL != handle->ns_qe)
     GNUNET_NAMESTORE_cancel (handle->ns_qe);
-  if (NULL != handle->identity_handle)
-    GNUNET_IDENTITY_disconnect (handle->identity_handle);
-  if (NULL != handle->ns_handle)
-  {
-    GNUNET_NAMESTORE_disconnect (handle->ns_handle);
-  }
-
-  for (ego_entry = handle->ego_head; NULL != ego_entry;)
-  {
-    ego_tmp = ego_entry;
-    ego_entry = ego_entry->next;
-    GNUNET_free (ego_tmp->identifier);
-    GNUNET_free (ego_tmp->keystring);
-    GNUNET_free (ego_tmp);
-  }
 
   if (NULL != handle->resp_object)
   {
@@ -368,7 +352,7 @@ get_egoentry_namestore (struct RequestHandle *handle, char *name)
   if (NULL == name)
     return NULL;
   tmp = strtok (copy, "/");
-  for (ego_entry = handle->ego_head; NULL != ego_entry;
+  for (ego_entry = ego_head; NULL != ego_entry;
        ego_entry = ego_entry->next)
   {
     if (0 != strcasecmp (tmp, ego_entry->identifier))
@@ -647,7 +631,7 @@ namestore_get (struct GNUNET_REST_RequestHandle *con_handle,
   if (1 >= strlen (labelname))
   {
     handle->list_it =
-      GNUNET_NAMESTORE_zone_iteration_start (handle->ns_handle,
+      GNUNET_NAMESTORE_zone_iteration_start (ns_handle,
                                              handle->zone_pkey,
                                              &namestore_iteration_error,
                                              handle,
@@ -664,7 +648,7 @@ namestore_get (struct GNUNET_REST_RequestHandle *con_handle,
     return;
   }
   handle->record_name = GNUNET_strdup (labelname + 1);
-  handle->ns_qe = GNUNET_NAMESTORE_records_lookup (handle->ns_handle,
+  handle->ns_qe = GNUNET_NAMESTORE_records_lookup (ns_handle,
                                                    handle->zone_pkey,
                                                    handle->record_name,
                                                    &ns_lookup_error_cb,
@@ -699,7 +683,7 @@ ns_lookup_cb (void *cls,
   }
   for (j = 0; j < handle->rd_count; j++)
     rd_new[i + j] = handle->rd[j];
-  handle->ns_qe = GNUNET_NAMESTORE_records_store (handle->ns_handle,
+  handle->ns_qe = GNUNET_NAMESTORE_records_store (ns_handle,
                                                   handle->zone_pkey,
                                                   handle->record_name,
                                                   i + j,
@@ -791,7 +775,7 @@ namestore_add_or_update (struct GNUNET_REST_RequestHandle *con_handle,
     return;
   }
   handle->zone_pkey = GNUNET_IDENTITY_ego_get_private_key (ego_entry->ego);
-  handle->ns_qe = GNUNET_NAMESTORE_records_lookup (handle->ns_handle,
+  handle->ns_qe = GNUNET_NAMESTORE_records_lookup (ns_handle,
                                                    handle->zone_pkey,
                                                    handle->record_name,
                                                    &ns_lookup_error_cb,
@@ -892,7 +876,7 @@ namestore_delete (struct GNUNET_REST_RequestHandle *con_handle,
   }
 
   handle->record_name = GNUNET_strdup (labelname + 1);
-  handle->ns_qe = GNUNET_NAMESTORE_records_store (handle->ns_handle,
+  handle->ns_qe = GNUNET_NAMESTORE_records_store (ns_handle,
                                                   handle->zone_pkey,
                                                   handle->record_name,
                                                   0,
@@ -932,90 +916,79 @@ options_cont (struct GNUNET_REST_RequestHandle *con_handle,
 }
 
 
-/**
- * Handle rest request
- *
- * @param handle the request handle
- */
 static void
-init_cont (struct RequestHandle *handle)
+list_ego (void *cls,
+          struct GNUNET_IDENTITY_Ego *ego,
+          void **ctx,
+          const char *identifier)
 {
-  struct GNUNET_REST_RequestHandlerError err;
-  static const struct GNUNET_REST_RequestHandler handlers[] =
-  { { MHD_HTTP_METHOD_GET, GNUNET_REST_API_NS_NAMESTORE, &namestore_get },
-    { MHD_HTTP_METHOD_POST, GNUNET_REST_API_NS_NAMESTORE, &namestore_add },
-    { MHD_HTTP_METHOD_PUT, GNUNET_REST_API_NS_NAMESTORE, &namestore_update },
-    { MHD_HTTP_METHOD_DELETE, GNUNET_REST_API_NS_NAMESTORE, &namestore_delete },
-    { MHD_HTTP_METHOD_OPTIONS, GNUNET_REST_API_NS_NAMESTORE, &options_cont },
-    GNUNET_REST_HANDLER_END };
-
-  if (GNUNET_NO ==
-      GNUNET_REST_handle_request (handle->rest_handle, handlers, &err, handle))
-  {
-    handle->response_code = err.error_code;
-    GNUNET_SCHEDULER_add_now (&do_error, handle);
-  }
-}
-
-
-/**
- * This function is initially called for all egos and then again
- * whenever a ego's identifier changes or if it is deleted.  At the
- * end of the initial pass over all egos, the function is once called
- * with 'NULL' for 'ego'. That does NOT mean that the callback won't
- * be invoked in the future or that there was an error.
- *
- * When used with 'GNUNET_IDENTITY_create' or 'GNUNET_IDENTITY_get',
- * this function is only called ONCE, and 'NULL' being passed in
- * 'ego' does indicate an error (i.e. name is taken or no default
- * value is known).  If 'ego' is non-NULL and if '*ctx'
- * is set in those callbacks, the value WILL be passed to a subsequent
- * call to the identity callback of 'GNUNET_IDENTITY_connect' (if
- * that one was not NULL).
- *
- * When an identity is renamed, this function is called with the
- * (known) ego but the NEW identifier.
- *
- * When an identity is deleted, this function is called with the
- * (known) ego and "NULL" for the 'identifier'.  In this case,
- * the 'ego' is henceforth invalid (and the 'ctx' should also be
- * cleaned up).
- *
- * @param cls closure
- * @param ego ego handle
- * @param ctx context for application to store data for this ego
- *                 (during the lifetime of this process, initially NULL)
- * @param name identifier assigned by the user for this ego,
- *                   NULL if the user just deleted the ego and it
- *                   must thus no longer be used
- */
-static void
-id_connect_cb (void *cls,
-               struct GNUNET_IDENTITY_Ego *ego,
-               void **ctx,
-               const char *name)
-{
-  struct RequestHandle *handle = cls;
   struct EgoEntry *ego_entry;
   struct GNUNET_CRYPTO_EcdsaPublicKey pk;
 
-  if ((NULL == ego) && (ID_REST_STATE_INIT == handle->state))
+  if ((NULL == ego) && (ID_REST_STATE_INIT == state))
   {
-    handle->state = ID_REST_STATE_POST_INIT;
-    init_cont (handle);
+    state = ID_REST_STATE_POST_INIT;
     return;
   }
-  if (ID_REST_STATE_INIT == handle->state)
+  if (ID_REST_STATE_INIT == state)
   {
     ego_entry = GNUNET_new (struct EgoEntry);
     GNUNET_IDENTITY_ego_get_public_key (ego, &pk);
     ego_entry->keystring = GNUNET_CRYPTO_ecdsa_public_key_to_string (&pk);
     ego_entry->ego = ego;
-    GNUNET_asprintf (&ego_entry->identifier, "%s", name);
-    GNUNET_CONTAINER_DLL_insert_tail (handle->ego_head,
-                                      handle->ego_tail,
+    ego_entry->identifier = GNUNET_strdup (identifier);
+    GNUNET_CONTAINER_DLL_insert_tail (ego_head,
+                                      ego_tail,
                                       ego_entry);
   }
+  /* Ego renamed or added */
+  if (identifier != NULL)
+  {
+    for (ego_entry = ego_head; NULL != ego_entry;
+         ego_entry = ego_entry->next)
+    {
+      if (ego_entry->ego == ego)
+      {
+        /* Rename */
+        GNUNET_free (ego_entry->identifier);
+        ego_entry->identifier = GNUNET_strdup (identifier);
+        break;
+      }
+    }
+    if (NULL == ego_entry)
+    {
+      /* Add */
+      ego_entry = GNUNET_new (struct EgoEntry);
+      GNUNET_IDENTITY_ego_get_public_key (ego, &pk);
+      ego_entry->keystring = GNUNET_CRYPTO_ecdsa_public_key_to_string (&pk);
+      ego_entry->ego = ego;
+      ego_entry->identifier = GNUNET_strdup (identifier);
+      GNUNET_CONTAINER_DLL_insert_tail (ego_head,
+                                        ego_tail,
+                                        ego_entry);
+    }
+  }
+  else
+  {
+    /* Delete */
+    for (ego_entry = ego_head; NULL != ego_entry;
+         ego_entry = ego_entry->next)
+    {
+      if (ego_entry->ego == ego)
+        break;
+    }
+    if (NULL == ego_entry)
+      return; /* Not found */
+
+    GNUNET_CONTAINER_DLL_remove (ego_head,
+                                 ego_tail,
+                                 ego_entry);
+    GNUNET_free (ego_entry->identifier);
+    GNUNET_free (ego_entry->keystring);
+    GNUNET_free (ego_entry);
+    return;
+  }
+
 }
 
 
@@ -1030,12 +1003,20 @@ id_connect_cb (void *cls,
  * @param proc_cls closure for callback function
  * @return GNUNET_OK if request accepted
  */
-static void
+static enum GNUNET_GenericReturnValue
 rest_process_request (struct GNUNET_REST_RequestHandle *rest_handle,
                       GNUNET_REST_ResultProcessor proc,
                       void *proc_cls)
 {
   struct RequestHandle *handle = GNUNET_new (struct RequestHandle);
+  struct GNUNET_REST_RequestHandlerError err;
+  static const struct GNUNET_REST_RequestHandler handlers[] =
+  { { MHD_HTTP_METHOD_GET, GNUNET_REST_API_NS_NAMESTORE, &namestore_get },
+    { MHD_HTTP_METHOD_POST, GNUNET_REST_API_NS_NAMESTORE, &namestore_add },
+    { MHD_HTTP_METHOD_PUT, GNUNET_REST_API_NS_NAMESTORE, &namestore_update },
+    { MHD_HTTP_METHOD_DELETE, GNUNET_REST_API_NS_NAMESTORE, &namestore_delete },
+    { MHD_HTTP_METHOD_OPTIONS, GNUNET_REST_API_NS_NAMESTORE, &options_cont },
+    GNUNET_REST_HANDLER_END };
 
   handle->response_code = 0;
   handle->timeout = GNUNET_TIME_UNIT_FOREVER_REL;
@@ -1048,14 +1029,18 @@ rest_process_request (struct GNUNET_REST_RequestHandle *rest_handle,
   if (handle->url[strlen (handle->url) - 1] == '/')
     handle->url[strlen (handle->url) - 1] = '\0';
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Connecting...\n");
+  if (GNUNET_NO ==
+      GNUNET_REST_handle_request (handle->rest_handle, handlers, &err, handle))
+  {
+    cleanup_handle (handle);
+    return GNUNET_NO;
+  }
 
-  handle->ns_handle = GNUNET_NAMESTORE_connect (cfg);
-  handle->identity_handle =
-    GNUNET_IDENTITY_connect (cfg, &id_connect_cb, handle);
   handle->timeout_task =
     GNUNET_SCHEDULER_add_delayed (handle->timeout, &do_error, handle);
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Connected\n");
+  return GNUNET_YES;
 }
 
 
@@ -1087,6 +1072,8 @@ libgnunet_plugin_rest_namestore_init (void *cls)
                    MHD_HTTP_METHOD_PUT,
                    MHD_HTTP_METHOD_DELETE,
                    MHD_HTTP_METHOD_OPTIONS);
+  ns_handle = GNUNET_NAMESTORE_connect (cfg);
+  identity_handle = GNUNET_IDENTITY_connect (cfg, &list_ego, NULL);
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, _ ("Namestore REST API initialized\n"));
   return api;
@@ -1104,8 +1091,23 @@ libgnunet_plugin_rest_namestore_done (void *cls)
 {
   struct GNUNET_REST_Plugin *api = cls;
   struct Plugin *plugin = api->cls;
+  struct EgoEntry *ego_entry;
+  struct EgoEntry *ego_tmp;
 
   plugin->cfg = NULL;
+  if (NULL != identity_handle)
+    GNUNET_IDENTITY_disconnect (identity_handle);
+  if (NULL != ns_handle)
+    GNUNET_NAMESTORE_disconnect (ns_handle);
+
+  for (ego_entry = ego_head; NULL != ego_entry;)
+  {
+    ego_tmp = ego_entry;
+    ego_entry = ego_entry->next;
+    GNUNET_free (ego_tmp->identifier);
+    GNUNET_free (ego_tmp->keystring);
+    GNUNET_free (ego_tmp);
+  }
 
   GNUNET_free (allow_methods);
   GNUNET_free (api);

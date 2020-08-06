@@ -1023,11 +1023,7 @@ peerstore_start (
 {
   char *binary;
 
-  LOG (GNUNET_ERROR_TYPE_DEBUG, "peerstore_start\n");
   binary = GNUNET_OS_get_libexec_binary_path ("gnunet-service-peerstore");
-  LOG (GNUNET_ERROR_TYPE_DEBUG, "peerstore_start binary %s\n",
-       binary);
-  LOG (GNUNET_ERROR_TYPE_DEBUG, "peerstore_start 2\n");
   tc_h->ps_proc = GNUNET_OS_start_process (GNUNET_OS_INHERIT_STD_OUT_AND_ERR,
                                            NULL,
                                            NULL,
@@ -1037,7 +1033,6 @@ peerstore_start (
                                            "-c",
                                            tc_h->cfg_filename,
                                            NULL);
-  LOG (GNUNET_ERROR_TYPE_DEBUG, "peerstore_start 3\n");
   if (NULL == tc_h->ps_proc)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR, "Failed to start Peerstore!");
@@ -1059,8 +1054,6 @@ nat_start (
 
   LOG (GNUNET_ERROR_TYPE_DEBUG, "nat_start\n");
   binary = GNUNET_OS_get_libexec_binary_path ("gnunet-service-nat");
-  LOG (GNUNET_ERROR_TYPE_DEBUG, "nat_start binary %s\n",
-       binary);
   tc_h->nat_proc = GNUNET_OS_start_process (GNUNET_OS_INHERIT_STD_OUT_AND_ERR
                                             | GNUNET_OS_USE_PIPE_CONTROL,
                                             NULL,
@@ -1158,8 +1151,6 @@ void
 GNUNET_TRANSPORT_TESTING_transport_communicator_service_stop (
   struct GNUNET_TRANSPORT_TESTING_TransportCommunicatorHandle *tc_h)
 {
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "transport communicator service stop\n");
   shutdown_communicator (tc_h->c_proc);
   shutdown_service (tc_h->sh);
   shutdown_nat (tc_h->nat_proc);
