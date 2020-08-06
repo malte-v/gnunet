@@ -1971,7 +1971,6 @@ token_endpoint (struct GNUNET_REST_RequestHandle *con_handle,
   struct GNUNET_RECLAIM_AttestationList *al = NULL;
   struct GNUNET_RECLAIM_Ticket ticket;
   struct GNUNET_CRYPTO_EcdsaPublicKey cid;
-  const struct GNUNET_CRYPTO_EcdsaPrivateKey *privkey;
   struct GNUNET_HashCode cache_key;
   struct MHD_Response *resp;
   char *grant_type;
@@ -2043,7 +2042,6 @@ token_endpoint (struct GNUNET_REST_RequestHandle *con_handle,
     GNUNET_SCHEDULER_add_now (&do_error, handle);
     return;
   }
-  privkey = GNUNET_IDENTITY_ego_get_private_key (ego_entry->ego);
 
   // REQUIRED code verifier
   code_verifier = get_url_parameter_copy (handle, OIDC_CODE_VERIFIER_KEY);
@@ -2590,6 +2588,12 @@ libgnunet_plugin_rest_openid_connect_init (void *cls)
   return api;
 }
 
+static int
+cleanup_hashmap (void *cls, const struct GNUNET_HashCode *key, void *value)
+{
+  GNUNET_free (value);
+  return GNUNET_YES;
+}
 
 /**
    * Exit point from the plugin.
@@ -2606,18 +2610,13 @@ libgnunet_plugin_rest_openid_connect_done (void *cls)
 
   plugin->cfg = NULL;
 
-  struct GNUNET_CONTAINER_MultiHashMapIterator *hashmap_it;
-  void *value = NULL;
-  hashmap_it =
-    GNUNET_CONTAINER_multihashmap_iterator_create (OIDC_cookie_jar_map);
-  while (GNUNET_YES ==
-         GNUNET_CONTAINER_multihashmap_iterator_next (hashmap_it, NULL,
-                                                      value))
-    GNUNET_free (value);
-  GNUNET_CONTAINER_multihashmap_iterator_destroy (hashmap_it);
-  GNUNET_CONTAINER_multihashmap_destroy (OIDC_cookie_jar_map);
-
-  GNUNET_CONTAINER_multihashmap_iterator_destroy (hashmap_it);
+  if (NULL != OIDC_cookie_jar_map)
+  {
+    GNUNET_CONTAINER_multihashmap_iterate (OIDC_cookie_jar_map,
+                                           &cleanup_hashmap,
+                                           NULL);
+    GNUNET_CONTAINER_multihashmap_destroy (OIDC_cookie_jar_map);
+  }
   GNUNET_free (allow_methods);
   if (NULL != gns_handle)
     GNUNET_GNS_disconnect (gns_handle);

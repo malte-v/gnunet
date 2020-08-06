@@ -1422,12 +1422,14 @@ rest_identity_process_request (struct GNUNET_REST_RequestHandle *rest_handle,
   handle->timeout = GNUNET_TIME_UNIT_FOREVER_REL;
   handle->proc_cls = proc_cls;
   handle->proc = proc;
-  state = ID_REST_STATE_INIT;
   handle->rest_handle = rest_handle;
 
   handle->url = GNUNET_strdup (rest_handle->url);
   if (handle->url[strlen (handle->url) - 1] == '/')
     handle->url[strlen (handle->url) - 1] = '\0';
+  handle->timeout_task =
+    GNUNET_SCHEDULER_add_delayed (handle->timeout, &do_timeout, handle);
+
   if (GNUNET_NO ==
       GNUNET_REST_handle_request (handle->rest_handle, handlers, &err, handle))
   {
@@ -1435,8 +1437,6 @@ rest_identity_process_request (struct GNUNET_REST_RequestHandle *rest_handle,
     return GNUNET_NO;
   }
 
-  handle->timeout_task =
-    GNUNET_SCHEDULER_add_delayed (handle->timeout, &do_timeout, handle);
   return GNUNET_YES;
 }
 
@@ -1470,6 +1470,7 @@ libgnunet_plugin_rest_reclaim_init (void *cls)
                    MHD_HTTP_METHOD_DELETE,
                    MHD_HTTP_METHOD_OPTIONS);
   identity_handle = GNUNET_IDENTITY_connect (cfg, &list_ego, NULL);
+  state = ID_REST_STATE_INIT;
   idp = GNUNET_RECLAIM_connect (cfg);
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               _ ("Identity Provider REST API initialized\n"));

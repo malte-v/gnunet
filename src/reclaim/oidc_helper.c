@@ -621,6 +621,7 @@ OIDC_parse_authz_code (const struct GNUNET_CRYPTO_EcdsaPublicKey *audience,
 
   // cmp code_challenge code_verifier
   code_challenge_len = ntohl (params->code_challenge_len);
+  code_challenge = ((char *) &params[1]);
   if (0 != code_challenge_len) /* Only check if this code requires a CV */
   {
     if (NULL == code_verifier)
@@ -639,7 +640,6 @@ OIDC_parse_authz_code (const struct GNUNET_CRYPTO_EcdsaPublicKey *audience,
     // encode code verifier
     GNUNET_STRINGS_base64url_encode (code_verifier_hash, 256 / 8,
                                      &expected_code_challenge);
-    code_challenge = ((char *) &params[1]);
     GNUNET_free (code_verifier_hash);
     if (0 !=
         strncmp (expected_code_challenge, code_challenge, code_challenge_len))

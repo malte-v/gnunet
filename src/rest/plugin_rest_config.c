@@ -392,15 +392,13 @@ libgnunet_plugin_rest_config_init (void *cls)
   cfg = cls;
   struct GNUNET_REST_Plugin *api;
 
-  if (NULL != plugin.cfg)
-    return NULL; /* can only initialize once! */
   memset (&plugin, 0, sizeof(struct Plugin));
   plugin.cfg = cfg;
   api = GNUNET_new (struct GNUNET_REST_Plugin);
   api->cls = &plugin;
   api->name = GNUNET_REST_API_NS_CONFIG;
   api->process_request = &rest_config_process_request;
-  GNUNET_log (GNUNET_ERROR_TYPE_INFO, _ ("CONFIG REST API initialized\n"));
+  GNUNET_log (GNUNET_ERROR_TYPE_INFO, _("CONFIG REST API initialized\n"));
   return api;
 }
 
@@ -415,7 +413,9 @@ void *
 libgnunet_plugin_rest_config_done (void *cls)
 {
   struct GNUNET_REST_Plugin *api = cls;
-  struct Plugin *plugin = api->cls;
+  struct Plugin *plugin;
+
+  plugin = api->cls;
 
   plugin->cfg = NULL;
   GNUNET_free (api);

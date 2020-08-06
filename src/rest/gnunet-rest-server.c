@@ -937,7 +937,7 @@ do_shutdown (void *cls)
     GNUNET_CONTAINER_DLL_remove (plugins_head,
                                  plugins_tail,
                                  ple);
-    GNUNET_PLUGIN_unload (ple->libname, NULL);
+    GNUNET_PLUGIN_unload (ple->libname, ple->plugin);
     GNUNET_free (ple->libname);
     GNUNET_free (ple);
   }

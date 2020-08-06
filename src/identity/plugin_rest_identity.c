@@ -1353,6 +1353,7 @@ libgnunet_plugin_rest_identity_init (void *cls)
                    MHD_HTTP_METHOD_PUT,
                    MHD_HTTP_METHOD_DELETE,
                    MHD_HTTP_METHOD_OPTIONS);
+  state = ID_REST_STATE_INIT;
   identity_handle = GNUNET_IDENTITY_connect (cfg, &list_ego, NULL);
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, _ ("Identity REST API initialized\n"));

@@ -800,6 +800,8 @@ libgnunet_plugin_rest_peerinfo_done (void *cls)
   struct Plugin *plugin = api->cls;
 
   plugin->cfg = NULL;
+  if (NULL != peerinfo_handle)
+    GNUNET_PEERINFO_disconnect (peerinfo_handle);
 
   GNUNET_free (allow_methods);
   GNUNET_free (api);

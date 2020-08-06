@@ -405,8 +405,6 @@ libgnunet_plugin_rest_gns_init (void *cls)
   struct GNUNET_REST_Plugin *api;
 
   cfg = cls;
-  if (NULL != plugin.cfg)
-    return NULL; /* can only initialize once! */
   memset (&plugin, 0, sizeof(struct Plugin));
   plugin.cfg = cfg;
   api = GNUNET_new (struct GNUNET_REST_Plugin);
@@ -437,12 +435,14 @@ void *
 libgnunet_plugin_rest_gns_done (void *cls)
 {
   struct GNUNET_REST_Plugin *api = cls;
-  struct Plugin *plugin = api->cls;
+  struct Plugin *plugin;
 
-  plugin->cfg = NULL;
   if (NULL != gns)
     GNUNET_GNS_disconnect (gns);
 
+  plugin = api->cls;
+
+  plugin->cfg = NULL;
 
   GNUNET_free (allow_methods);
   GNUNET_free (api);

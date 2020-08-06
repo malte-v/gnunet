@@ -1065,6 +1065,7 @@ libgnunet_plugin_rest_namestore_init (void *cls)
   api->cls = &plugin;
   api->name = GNUNET_REST_API_NS_NAMESTORE;
   api->process_request = &rest_process_request;
+  state = ID_REST_STATE_INIT;
   GNUNET_asprintf (&allow_methods,
                    "%s, %s, %s, %s, %s",
                    MHD_HTTP_METHOD_GET,
