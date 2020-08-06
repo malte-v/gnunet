@@ -2446,6 +2446,12 @@ oidc_config_endpoint (struct GNUNET_REST_RequestHandle *con_handle,
                          json_string ("openid"));
   json_array_append_new (scopes,
                          json_string ("profile"));
+  json_array_append_new (scopes,
+                         json_string ("email"));
+  json_array_append_new (scopes,
+                         json_string ("address"));
+  json_array_append_new (scopes,
+                         json_string ("phone"));
   json_object_set_new (oidc_config,
                        "scopes_supported",
                        scopes);
