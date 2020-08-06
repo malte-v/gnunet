@@ -69,6 +69,51 @@ struct OIDC_Parameters
 
 GNUNET_NETWORK_STRUCT_END
 
+/**
+ * Standard claims represented by the "profile" scope in OIDC
+ */
+static char OIDC_profile_claims[14][32] = {
+  "name", "family_name", "given_name", "middle_name", "nickname",
+  "preferred_username", "profile", "picture", "website", "gender", "birthdate",
+  "zoneinfo", "locale", "updated_at"
+};
+
+/**
+ * Standard claims represented by the "email" scope in OIDC
+ */
+static char OIDC_email_claims[2][16] = {
+  "email", "email_verified"
+};
+
+/**
+ * Standard claims represented by the "phone" scope in OIDC
+ */
+static char OIDC_phone_claims[2][32] = {
+  "phone_number", "phone_number_verified"
+};
+
+/**
+ * Standard claims represented by the "address" scope in OIDC
+ */
+static char OIDC_address_claims[5][32] = {
+  "street_address", "locality", "region", "postal_code", "country"
+};
+
+static enum GNUNET_GenericReturnValue
+is_claim_in_address_scope (const char *claim)
+{
+  int i;
+  for (i = 0; i < 5; i++)
+  {
+    if (0 == strcmp (claim, OIDC_address_claims[i]))
+    {
+      return GNUNET_YES;
+    }
+  }
+  return GNUNET_NO;
+}
+
+
 static char *
 create_jwt_header (void)
 {
@@ -109,49 +154,24 @@ fix_base64 (char *str)
   replace_char (str, '/', '_');
 }
 
-
-/**
- * Create a JWT from attributes
- *
- * @param aud_key the public of the audience
- * @param sub_key the public key of the subject
- * @param attrs the attribute list
- * @param expiration_time the validity of the token
- * @param secret_key the key used to sign the JWT
- * @return a new base64-encoded JWT string.
- */
-char *
-OIDC_id_token_new (const struct GNUNET_CRYPTO_EcdsaPublicKey *aud_key,
-                   const struct GNUNET_CRYPTO_EcdsaPublicKey *sub_key,
-                   struct GNUNET_RECLAIM_AttributeList *attrs,
-                   struct GNUNET_RECLAIM_AttestationList *attests,
-                   const struct GNUNET_TIME_Relative *expiration_time,
-                   const char *nonce,
-                   const char *secret_key)
+static json_t*
+generate_userinfo_json(const struct GNUNET_CRYPTO_EcdsaPublicKey *sub_key,
+                       struct GNUNET_RECLAIM_AttributeList *attrs,
+                       struct GNUNET_RECLAIM_AttestationList *attests)
 {
   struct GNUNET_RECLAIM_AttributeListEntry *le;
   struct GNUNET_RECLAIM_AttestationListEntry *ale;
-  struct GNUNET_HashCode signature;
-  struct GNUNET_TIME_Absolute exp_time;
-  struct GNUNET_TIME_Absolute time_now;
-  char *audience;
   char *subject;
-  char *header;
-  char *body_str;
   char *aggr_names_str;
   char *aggr_sources_str;
   char *source_name;
-  char *result;
-  char *header_base64;
-  char *body_base64;
-  char *signature_target;
-  char *signature_base64;
   char *attr_val_str;
   char *attest_val_str;
   json_t *body;
   json_t *aggr_names;
   json_t *aggr_sources;
   json_t *aggr_sources_jwt;
+  json_t *addr_claim;
   int num_attestations = 0;
   for (le = attrs->list_head; NULL != le; le = le->next)
   {
@@ -159,22 +179,10 @@ OIDC_id_token_new (const struct GNUNET_CRYPTO_EcdsaPublicKey *aud_key,
       num_attestations++;
   }
 
-  // iat REQUIRED time now
-  time_now = GNUNET_TIME_absolute_get ();
-  // exp REQUIRED time expired from config
-  exp_time = GNUNET_TIME_absolute_add (time_now, *expiration_time);
-  // auth_time only if max_age
-  // nonce only if nonce
-  // OPTIONAL acr,amr,azp
   subject =
     GNUNET_STRINGS_data_to_string_alloc (sub_key,
                                          sizeof(struct
                                                 GNUNET_CRYPTO_EcdsaPublicKey));
-  audience =
-    GNUNET_STRINGS_data_to_string_alloc (aud_key,
-                                         sizeof(struct
-                                                GNUNET_CRYPTO_EcdsaPublicKey));
-  header = create_jwt_header ();
   body = json_object ();
   aggr_names = json_object ();
   aggr_sources = json_object ();
@@ -185,23 +193,6 @@ OIDC_id_token_new (const struct GNUNET_CRYPTO_EcdsaPublicKey *aud_key,
   json_object_set_new (body, "iss", json_string (SERVER_ADDRESS));
   // sub REQUIRED public key identity, not exceed 255 ASCII  length
   json_object_set_new (body, "sub", json_string (subject));
-  // aud REQUIRED public key client_id must be there
-  json_object_set_new (body, "aud", json_string (audience));
-  // iat
-  json_object_set_new (body,
-                       "iat",
-                       json_integer (time_now.abs_value_us / (1000 * 1000)));
-  // exp
-  json_object_set_new (body,
-                       "exp",
-                       json_integer (exp_time.abs_value_us / (1000 * 1000)));
-  // nbf
-  json_object_set_new (body,
-                       "nbf",
-                       json_integer (time_now.abs_value_us / (1000 * 1000)));
-  // nonce
-  if (NULL != nonce)
-    json_object_set_new (body, "nonce", json_string (nonce));
   attest_val_str = NULL;
   aggr_names_str = NULL;
   aggr_sources_str = NULL;
@@ -236,8 +227,28 @@ OIDC_id_token_new (const struct GNUNET_CRYPTO_EcdsaPublicKey *aud_key,
         GNUNET_RECLAIM_attribute_value_to_string (le->attribute->type,
                                                   le->attribute->data,
                                                   le->attribute->data_size);
-      json_object_set_new (body, le->attribute->name,
-                           json_string (attr_val_str));
+      /**
+       * There is this wierd quirk that the individual address claim(s) must be
+       * inside a JSON object of the "address" claim.
+       * FIXME: Possibly include formatted claim here
+       */
+      if (GNUNET_YES == is_claim_in_address_scope (le->attribute->name))
+      {
+        if (NULL == addr_claim)
+        {
+          addr_claim = json_object ();
+          json_object_set_new (body, "address",
+                               addr_claim);
+        }
+        json_object_set_new (addr_claim, le->attribute->name,
+                             json_string (attr_val_str));
+
+      }
+      else
+      {
+        json_object_set_new (body, le->attribute->name,
+                             json_string (attr_val_str));
+      }
       GNUNET_free (attr_val_str);
     }
     else
@@ -277,6 +288,102 @@ OIDC_id_token_new (const struct GNUNET_CRYPTO_EcdsaPublicKey *aud_key,
 
   json_decref (aggr_names);
   json_decref (aggr_sources);
+  return body;
+}
+
+/**
+ * Generate userinfo JSON as string
+ *
+ * @param sub_key the subject (user)
+ * @param attrs user attribute list
+ * @param attests user attribute attestation list (may be empty)
+ * @return Userinfo JSON
+ */
+char *
+OIDC_generate_userinfo (const struct GNUNET_CRYPTO_EcdsaPublicKey *sub_key,
+                        struct GNUNET_RECLAIM_AttributeList *attrs,
+                        struct GNUNET_RECLAIM_AttestationList *attests)
+{
+  char *body_str;
+  json_t* body = generate_userinfo_json (sub_key,
+                                         attrs,
+                                         attests);
+  body_str = json_dumps (body, JSON_INDENT (0) | JSON_COMPACT);
+  json_decref (body);
+  return body_str;
+}
+
+
+/**
+ * Create a JWT from attributes
+ *
+ * @param aud_key the public of the audience
+ * @param sub_key the public key of the subject
+ * @param attrs the attribute list
+ * @param expiration_time the validity of the token
+ * @param secret_key the key used to sign the JWT
+ * @return a new base64-encoded JWT string.
+ */
+char *
+OIDC_generate_id_token (const struct GNUNET_CRYPTO_EcdsaPublicKey *aud_key,
+                        const struct GNUNET_CRYPTO_EcdsaPublicKey *sub_key,
+                        struct GNUNET_RECLAIM_AttributeList *attrs,
+                        struct GNUNET_RECLAIM_AttestationList *attests,
+                        const struct GNUNET_TIME_Relative *expiration_time,
+                        const char *nonce,
+                        const char *secret_key)
+{
+  struct GNUNET_HashCode signature;
+  struct GNUNET_TIME_Absolute exp_time;
+  struct GNUNET_TIME_Absolute time_now;
+  char *audience;
+  char *subject;
+  char *header;
+  char *body_str;
+  char *result;
+  char *header_base64;
+  char *body_base64;
+  char *signature_target;
+  char *signature_base64;
+  json_t *body;
+
+  body = generate_userinfo_json (sub_key,
+                                 attrs,
+                                 attests);
+  // iat REQUIRED time now
+  time_now = GNUNET_TIME_absolute_get ();
+  // exp REQUIRED time expired from config
+  exp_time = GNUNET_TIME_absolute_add (time_now, *expiration_time);
+  // auth_time only if max_age
+  // nonce only if nonce
+  // OPTIONAL acr,amr,azp
+  subject =
+    GNUNET_STRINGS_data_to_string_alloc (sub_key,
+                                         sizeof(struct
+                                                GNUNET_CRYPTO_EcdsaPublicKey));
+  audience =
+    GNUNET_STRINGS_data_to_string_alloc (aud_key,
+                                         sizeof(struct
+                                                GNUNET_CRYPTO_EcdsaPublicKey));
+  header = create_jwt_header ();
+
+  // aud REQUIRED public key client_id must be there
+  json_object_set_new (body, "aud", json_string (audience));
+  // iat
+  json_object_set_new (body,
+                       "iat",
+                       json_integer (time_now.abs_value_us / (1000 * 1000)));
+  // exp
+  json_object_set_new (body,
+                       "exp",
+                       json_integer (exp_time.abs_value_us / (1000 * 1000)));
+  // nbf
+  json_object_set_new (body,
+                       "nbf",
+                       json_integer (time_now.abs_value_us / (1000 * 1000)));
+  // nonce
+  if (NULL != nonce)
+    json_object_set_new (body, "nonce", json_string (nonce));
 
   body_str = json_dumps (body, JSON_INDENT (0) | JSON_COMPACT);
   json_decref (body);
@@ -315,10 +422,6 @@ OIDC_id_token_new (const struct GNUNET_CRYPTO_EcdsaPublicKey *aud_key,
   GNUNET_free (signature_target);
   GNUNET_free (header);
   GNUNET_free (body_str);
-  if (NULL != aggr_sources_str)
-    GNUNET_free (aggr_sources_str);
-  if (NULL != aggr_names_str)
-    GNUNET_free (aggr_names_str);
   GNUNET_free (signature_base64);
   GNUNET_free (body_base64);
   GNUNET_free (header_base64);
@@ -552,7 +655,7 @@ OIDC_parse_authz_code (const struct GNUNET_CRYPTO_EcdsaPublicKey *audience,
     code_challenge = ((char *) &params[1]);
     GNUNET_free (code_verifier_hash);
     if (0 !=
-         strncmp (expected_code_challenge, code_challenge, code_challenge_len))
+        strncmp (expected_code_challenge, code_challenge, code_challenge_len))
     {
       GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                   "Invalid code verifier! Expected: %s, Got: %.*s\n",
@@ -575,8 +678,8 @@ OIDC_parse_authz_code (const struct GNUNET_CRYPTO_EcdsaPublicKey *audience,
 
   // Ticket
   memcpy (ticket, &params->ticket, sizeof(params->ticket));
-    // Signature
-  //GNUNET_CRYPTO_ecdsa_key_get_public (ecdsa_priv, &ecdsa_pub);
+  // Signature
+  // GNUNET_CRYPTO_ecdsa_key_get_public (ecdsa_priv, &ecdsa_pub);
   if (0 != GNUNET_memcmp (audience, &ticket->audience))
   {
     GNUNET_free (code_payload);
@@ -674,4 +777,78 @@ OIDC_access_token_parse (const char*token,
                                     (void**) ticket))
     return GNUNET_SYSERR;
   return GNUNET_OK;
+}
+
+
+/**
+ * Checks if a claim is implicitly requested through standard
+ * scope(s)
+ *
+ * @param scopes the scopes which have been requested
+ * @param attr the attribute name to check
+ * @return GNUNET_YES if attribute is implcitly requested
+ */
+enum GNUNET_GenericReturnValue
+OIDC_check_scopes_for_claim_request (const char*scopes,
+                                     const char*attr)
+{
+  char *scope_variables;
+  char *scope_variable;
+  char delimiter[] = " ";
+  int i;
+
+  scope_variables = GNUNET_strdup (scopes);
+  scope_variable = strtok (scope_variables, delimiter);
+  while (NULL != scope_variable)
+  {
+    if (0 == strcmp ("profile", scope_variable))
+    {
+      for (i = 0; i < 14; i++)
+      {
+        if (0 == strcmp (attr, OIDC_profile_claims[i]))
+        {
+          GNUNET_free (scope_variables);
+          return GNUNET_YES;
+        }
+      }
+    }
+    else if (0 == strcmp ("address", scope_variable))
+    {
+      for (i = 0; i < 5; i++)
+      {
+        if (0 == strcmp (attr, OIDC_address_claims[i]))
+        {
+          GNUNET_free (scope_variables);
+          return GNUNET_YES;
+        }
+      }
+    }
+    else if (0 == strcmp ("email", scope_variable))
+    {
+      for (i = 0; i < 2; i++)
+      {
+        if (0 == strcmp (attr, OIDC_email_claims[i]))
+        {
+          GNUNET_free (scope_variables);
+          return GNUNET_YES;
+        }
+      }
+    }
+    else if (0 == strcmp ("phone", scope_variable))
+    {
+      for (i = 0; i < 2; i++)
+      {
+        if (0 == strcmp (attr, OIDC_phone_claims[i]))
+        {
+          GNUNET_free (scope_variables);
+          return GNUNET_YES;
+        }
+      }
+
+    }
+    scope_variable = strtok (NULL, delimiter);
+  }
+  GNUNET_free (scope_variables);
+  return GNUNET_NO;
+
 }

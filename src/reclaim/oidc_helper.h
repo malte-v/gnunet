@@ -49,7 +49,7 @@
  * @return a new base64-encoded JWT string.
  */
 char*
-OIDC_id_token_new (const struct GNUNET_CRYPTO_EcdsaPublicKey *aud_key,
+OIDC_generate_id_token (const struct GNUNET_CRYPTO_EcdsaPublicKey *aud_key,
                    const struct GNUNET_CRYPTO_EcdsaPublicKey *sub_key,
                    struct GNUNET_RECLAIM_AttributeList *attrs,
                    struct GNUNET_RECLAIM_AttestationList *attests,
@@ -125,4 +125,32 @@ OIDC_access_token_new (const struct GNUNET_RECLAIM_Ticket *ticket);
 int
 OIDC_access_token_parse (const char* token,
                          struct GNUNET_RECLAIM_Ticket **ticket);
+
+
+/**
+ * Checks if a claim is implicitly requested through standard
+ * scope(s)
+ *
+ * @param scopes the scopes which have been requested
+ * @param attr the attribute name to check
+ * @return GNUNET_YES if attribute is implcitly requested
+ */
+enum GNUNET_GenericReturnValue
+OIDC_check_scopes_for_claim_request (const char*scopes,
+                                     const char*attr);
+
+
+/**
+ * Generate userinfo JSON as string
+ *
+ * @param sub_key the subject (user)
+ * @param attrs user attribute list
+ * @param attests user attribute attestation list (may be empty)
+ * @return Userinfo JSON
+ */
+char *
+OIDC_generate_userinfo (const struct GNUNET_CRYPTO_EcdsaPublicKey *sub_key,
+                        struct GNUNET_RECLAIM_AttributeList *attrs,
+                        struct GNUNET_RECLAIM_AttestationList *attests);
+
 #endif
