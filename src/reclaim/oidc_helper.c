@@ -769,7 +769,7 @@ OIDC_access_token_parse (const char *token,
 
 /**
  * Checks if a claim is implicitly requested through standard
- * scope(s)
+ * scope(s) or explicitly through non-standard scope.
  *
  * @param scopes the scopes which have been requested
  * @param attr the attribute name to check
@@ -832,6 +832,11 @@ OIDC_check_scopes_for_claim_request (const char*scopes,
         }
       }
 
+    } else if (0 == strcmp (attr, scope_variable))
+    {
+      /** attribute matches requested scope **/
+      GNUNET_free (scope_variables);
+      return GNUNET_YES;
     }
     scope_variable = strtok (NULL, delimiter);
   }

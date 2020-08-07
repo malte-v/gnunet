@@ -1155,7 +1155,7 @@ attr_in_claims_request (struct RequestHandle *handle,
   const char *key;
   json_t *value;
 
-  /** Check if attribute is requested through standard scope **/
+  /** Check if attribute is requested through a scope **/
   if (GNUNET_YES == OIDC_check_scopes_for_claim_request (handle->oidc->scope,
                                                          attr_name))
     return GNUNET_YES;
