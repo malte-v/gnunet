@@ -1404,12 +1404,11 @@ AS_IF([test "$mysql" = "true" -a "x$enable_mysql_version_check" = "xyes"],
   AC_MSG_CHECKING(mysql version)
   AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
     [[
-      #include <mysql/mysql.h>]],
+      #include <mysql/mysql_version.h>]],
     [[
       #if (MYSQL_VERSION_ID < 40100)
       #error needs at least version >= 4.1
       #endif
-      int main () { return 0; }
     ]])
     ],
     [mysql=true],
@@ -1423,6 +1422,21 @@ AS_IF([test "$mysql" = "true" -a "x$enable_mysql_version_check" = "xyes"],
     mysqlfail=false
     AC_MSG_RESULT(ok)
    ])
+  AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
+    [[
+      #include <mysql/mysql_version.h>]],
+    [[
+      #if (MYSQL_VERSION_ID < 80000)
+      #error needs at least version >= 4.1
+      #endif
+    ]])
+    ],
+    [mysql8=true],
+    [mysql8=false])
+  AS_IF([test x$mysql8 = xtrue],
+   [
+    AC_DEFINE([HAVE_MYSQL8],[1],[Have mysql8])
+   ],[])
 ])
 
 AM_CONDITIONAL(HAVE_MYSQL, test x$mysql = xtrue)
