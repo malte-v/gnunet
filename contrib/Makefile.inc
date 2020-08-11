@@ -3,6 +3,12 @@
 # itself.
 
 BUILDCOMMON_SHLIB_FILES = \
+    build-common/sh/bin.sh/python.sh \
+    build-common/sh/lib.sh/existence.sh \
+    build-common/sh/lib.sh/existence_python.sh \
+    build-common/sh/lib.sh/msg.sh \
+    build-common/sh/lib.sh/progname.sh \
+    build-common/sh/lib.sh/version_gnunet.sh \
     build-common/LICENSE
 
 BUILDCOMMON_CONF_FILES = \
