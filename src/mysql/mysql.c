@@ -26,12 +26,6 @@
 #include <mysql/mysql.h>
 #include "gnunet_mysql_lib.h"
 
-#ifdef HAVE_MYSQL8
-  typedef bool MYSQL_BOOL;
-#else
-  typedef my_bool MYSQL_BOOL; //MySQL < 8 wants this
-#endif
-
 /**
  * Maximum number of supported parameters for a prepared
  * statement.  Increase if needed.
