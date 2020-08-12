@@ -496,7 +496,7 @@ handle_address_list (void *cls,
     return; /* was canceled */
 
   memset (&allzeros, '\0', sizeof(allzeros));
-  if ((0 == GNUNET_is_zero (&pi->peer)) &&
+  if ((GNUNET_YES == GNUNET_is_zero (&pi->peer)) &&
       (0 == plugin_name_length) &&
       (0 == plugin_address_length))
   {
