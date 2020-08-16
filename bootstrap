@@ -79,8 +79,8 @@ check_libtool()
        existence libtoolize || \
        existence glibtoolize || \
        existence slibtool; then
-        autoreconf -if
-        . "bin/pogen.sh"
+        autoreconf -if || exit 1
+        . "bin/pogen.sh" || exit 1
     else
         echo "*** No libtoolize (libtool) or libtool found, please install it ***" >&2;
         exit 1
