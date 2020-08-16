@@ -1937,6 +1937,8 @@ src/scalarproduct/Makefile
 src/scalarproduct/scalarproduct.conf
 src/set/Makefile
 src/set/set.conf
+src/setu/Makefile
+src/setu/setu.conf
 src/sq/Makefile
 src/statistics/Makefile
 src/statistics/statistics.conf
