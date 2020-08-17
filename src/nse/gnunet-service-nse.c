@@ -113,6 +113,11 @@ static struct GNUNET_BIO_WriteHandle *histogram;
 
 #endif
 
+/**
+ * Salt for PoW calcualations.
+ */
+static struct GNUNET_CRYPTO_PowSalt salt = { "gnunet-nse-proof" };
+
 
 /**
  * Per-peer information.
@@ -806,7 +811,7 @@ check_proof_of_work (const struct GNUNET_CRYPTO_EddsaPublicKey *pkey,
   GNUNET_memcpy (&buf[sizeof(val)],
                  pkey,
                  sizeof(struct GNUNET_CRYPTO_EddsaPublicKey));
-  GNUNET_CRYPTO_pow_hash ("gnunet-nse-proof",
+  GNUNET_CRYPTO_pow_hash (&salt,
                           buf,
                           sizeof(buf),
                           &result);
@@ -861,7 +866,7 @@ find_proof (void *cls)
   while ((counter != UINT64_MAX) && (i < ROUND_SIZE))
   {
     GNUNET_memcpy (buf, &counter, sizeof(uint64_t));
-    GNUNET_CRYPTO_pow_hash ("gnunet-nse-proof",
+    GNUNET_CRYPTO_pow_hash (&salt,
                             buf,
                             sizeof(buf),
                             &result);

@@ -26,6 +26,13 @@
 #include "gnunet_util_lib.h"
 #include <gcrypt.h>
 
+
+/**
+ * Salt for PoW calcualations.
+ */
+static struct GNUNET_CRYPTO_PowSalt salt = { "gnunet-nse-proof" };
+
+
 /**
  * Amount of work required (W-bit collisions) for NSE proofs, in collision-bits.
  */
@@ -117,7 +124,7 @@ find_proof (void *cls)
   while ((counter != UINT64_MAX) && (i < ROUND_SIZE))
   {
     GNUNET_memcpy (buf, &counter, sizeof(uint64_t));
-    GNUNET_CRYPTO_pow_hash ("gnunet-nse-proof",
+    GNUNET_CRYPTO_pow_hash (&salt,
                             buf,
                             sizeof(buf),
                             &result);
