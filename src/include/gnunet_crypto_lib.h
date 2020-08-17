@@ -673,7 +673,7 @@ GNUNET_CRYPTO_hash (const void *block,
  */
 struct GNUNET_CRYPTO_PowSalt
 {
-  uint8_t salt[crypto_pwhash_argon2id_SALTBYTES];
+  char salt[crypto_pwhash_argon2id_SALTBYTES];
 };
 
 
