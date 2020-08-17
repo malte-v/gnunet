@@ -142,9 +142,11 @@ AS_CASE(["$host_os"],
      UNIXONLY="#"
   ],
   [*openbsd*],[
-     LIBS=`echo $LIBS | sed -e "s/-ldl//"`
+     # We need to explicitly link libc
+     LDFLAGS="$LDFLAGS -Wl,-lc"
+     # We also need to enable PIC
+     CFLAGS="-fPIC $CFLAGS"
      build_target="openbsd"
-     use_openbsd_libtool=true
      LIBPREFIX=
      DLLDIR=lib
      UNIXONLY="#"
