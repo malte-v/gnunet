@@ -50,6 +50,7 @@ extern "C" {
 #endif
 #endif
 
+#include <sodium.h>
 
 /**
  * The identity of the host (wraps the signing key of the peer).
@@ -668,6 +669,15 @@ GNUNET_CRYPTO_hash (const void *block,
 
 
 /**
+ * Value for a salt for #GNUNET_CRYPTO_pow_hash().
+ */
+struct GNUNET_CRYPTO_PowSalt
+{
+  char salt[crypto_pwhash_argon2id_SALTBYTES];
+};
+
+
+/**
  * Calculate the 'proof-of-work' hash (an expensive hash).
  *
  * @param salt salt for the hash. Must be crypto_pwhash_argon2id_SALTBYTES long.
@@ -676,7 +686,7 @@ GNUNET_CRYPTO_hash (const void *block,
  * @param result where to write the resulting hash
  */
 void
-GNUNET_CRYPTO_pow_hash (const char *salt,
+GNUNET_CRYPTO_pow_hash (const struct GNUNET_CRYPTO_PowSalt *salt,
                         const void *buf,
                         size_t buf_len,
                         struct GNUNET_HashCode *result);
