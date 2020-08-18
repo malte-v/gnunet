@@ -561,7 +561,7 @@ op_get_element (struct Operation *op,
   ibf_key = get_ibf_key (element_hash);
   ret = GNUNET_CONTAINER_multihashmap32_get_multiple (op->state->key_to_element,
                                                       (uint32_t) ibf_key.key_val,
-                                                      op_get_element_iterator,
+                                                      &op_get_element_iterator,
                                                       &ctx);
 
   /* was the iteration aborted because we found the element? */
@@ -1649,7 +1649,8 @@ handle_union_p2p_elements (void *cls,
 
   op->state->received_total++;
 
-  ke = op_get_element (op, &ee->element_hash);
+  ke = op_get_element (op,
+                       &ee->element_hash);
   if (NULL != ke)
   {
     /* Got repeated element.  Should not happen since
@@ -1745,7 +1746,8 @@ handle_union_p2p_full_element (void *cls,
 
   op->state->received_total++;
 
-  ke = op_get_element (op, &ee->element_hash);
+  ke = op_get_element (op,
+                       &ee->element_hash);
   if (NULL != ke)
   {
     /* Got repeated element.  Should not happen since
@@ -1818,8 +1820,7 @@ check_union_p2p_inquiry (void *cls,
 
 
 /**
- * Send offers (for GNUNET_Hash-es) in response
- * to inquiries (for IBF_Key-s).
+ * Send offers (for GNUNET_Hash-es) in response to inquiries (for IBF_Key-s).
  *
  * @param cls the union operation
  * @param msg the message
@@ -1853,8 +1854,8 @@ handle_union_p2p_inquiry (void *cls,
 
 
 /**
- * Iterator over hash map entries, called to
- * destroy the linked list of colliding ibf key entries.
+ * Iterator over hash map entries, called to destroy the linked list of
+ * colliding ibf key entries.
  *
  * @param cls closure
  * @param key current key code
