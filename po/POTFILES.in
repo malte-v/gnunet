@@ -333,6 +333,11 @@ src/set/ibf.c
 src/set/ibf_sim.c
 src/set/plugin_block_set_test.c
 src/set/set_api.c
+src/seti/gnunet-service-set_intersection.c
+src/seti/gnunet-service-seti.c
+src/seti/gnunet-seti-profiler.c
+src/seti/plugin_block_seti_test.c
+src/seti/setu_api.c
 src/setu/gnunet-service-setu.c
 src/setu/gnunet-service-setu_strata_estimator.c
 src/setu/gnunet-setu-ibf-profiler.c

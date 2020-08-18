@@ -1713,80 +1713,146 @@ extern "C" {
  * Demand the whole element from the other
  * peer, given only the hash code.
  */
-#define GNUNET_MESSAGE_TYPE_SETU_P2P_REQUEST_FULL 565
+#define GNUNET_MESSAGE_TYPE_SETU_P2P_REQUEST_FULL 559
 
 /**
  * Demand the whole element from the other
  * peer, given only the hash code.
  */
-#define GNUNET_MESSAGE_TYPE_SETU_P2P_DEMAND 566
+#define GNUNET_MESSAGE_TYPE_SETU_P2P_DEMAND 560
 
 /**
  * Tell the other peer to send us a list of
  * hashes that match an IBF key.
  */
-#define GNUNET_MESSAGE_TYPE_SETU_P2P_INQUIRY 567
+#define GNUNET_MESSAGE_TYPE_SETU_P2P_INQUIRY 561
 
 /**
  * Tell the other peer which hashes match a
  * given IBF key.
  */
-#define GNUNET_MESSAGE_TYPE_SETU_P2P_OFFER 568
+#define GNUNET_MESSAGE_TYPE_SETU_P2P_OFFER 562
 
 /**
  * Request a set union operation from a remote peer.
  */
-#define GNUNET_MESSAGE_TYPE_SETU_P2P_OPERATION_REQUEST 581
+#define GNUNET_MESSAGE_TYPE_SETU_P2P_OPERATION_REQUEST 563
 
 /**
  * Strata estimator.
  */
-#define GNUNET_MESSAGE_TYPE_SETU_P2P_SE 582
+#define GNUNET_MESSAGE_TYPE_SETU_P2P_SE 564
 
 /**
  * Invertible bloom filter.
  */
-#define GNUNET_MESSAGE_TYPE_SETU_P2P_IBF 583
+#define GNUNET_MESSAGE_TYPE_SETU_P2P_IBF 565
 
 /**
  * Actual set elements.
  */
-#define GNUNET_MESSAGE_TYPE_SETU_P2P_ELEMENTS 584
+#define GNUNET_MESSAGE_TYPE_SETU_P2P_ELEMENTS 566
 
 /**
  * Requests for the elements with the given hashes.
  */
-#define GNUNET_MESSAGE_TYPE_SETU_P2P_ELEMENT_REQUESTS 585
+#define GNUNET_MESSAGE_TYPE_SETU_P2P_ELEMENT_REQUESTS 567
 
 /**
  * Set operation is done.
  */
-#define GNUNET_MESSAGE_TYPE_SETU_P2P_DONE 586
+#define GNUNET_MESSAGE_TYPE_SETU_P2P_DONE 568
 
 /**
  * Compressed strata estimator.
  */
-#define GNUNET_MESSAGE_TYPE_SETU_P2P_SEC 590
+#define GNUNET_MESSAGE_TYPE_SETU_P2P_SEC 569
 
 /**
  * Request all missing elements from the other peer,
  * based on their sets and the elements we previously sent
  * with #GNUNET_MESSAGE_TYPE_SET_P2P_ELEMENTS.
  */
-#define GNUNET_MESSAGE_TYPE_SETU_P2P_FULL_DONE 597
+#define GNUNET_MESSAGE_TYPE_SETU_P2P_FULL_DONE 570
 
 /**
  * Send a set element, not as response to a demand but because
  * we're sending the full set.
  */
-#define GNUNET_MESSAGE_TYPE_SETU_P2P_FULL_ELEMENT 598
+#define GNUNET_MESSAGE_TYPE_SETU_P2P_FULL_ELEMENT 571
 
 /**
  * Request all missing elements from the other peer,
  * based on their sets and the elements we previously sent
  * with #GNUNET_MESSAGE_TYPE_SET_P2P_ELEMENTS.
  */
-#define GNUNET_MESSAGE_TYPE_SETU_P2P_OVER 599
+#define GNUNET_MESSAGE_TYPE_SETU_P2P_OVER 572
+
+
+/*******************************************************************************
+ * SETI message types
+ ******************************************************************************/
+
+
+/**
+ * Cancel a set operation
+ */
+#define GNUNET_MESSAGE_TYPE_SETI_CANCEL 580
+
+/**
+ * Add element to set.
+ */
+#define GNUNET_MESSAGE_TYPE_SETI_ADD 581
+
+/**
+ * Create a new local set
+ */
+#define GNUNET_MESSAGE_TYPE_SETI_CREATE 582
+
+/**
+ * Handle result message from operation
+ */
+#define GNUNET_MESSAGE_TYPE_SETI_RESULT 583
+
+/**
+ * Evaluate a set operation
+ */
+#define GNUNET_MESSAGE_TYPE_SETI_EVALUATE 584
+
+/**
+ * Listen for operation requests
+ */
+#define GNUNET_MESSAGE_TYPE_SETI_LISTEN 585
+
+/**
+ * Reject a set request.
+ */
+#define GNUNET_MESSAGE_TYPE_SETI_REJECT 586
+
+/**
+ * Accept an incoming set request
+ */
+#define GNUNET_MESSAGE_TYPE_SETI_ACCEPT 587
+
+/**
+ * Notify the client of an incoming request from a remote peer
+ */
+#define GNUNET_MESSAGE_TYPE_SETI_REQUEST 588
+
+/**
+ * Information about the element count for intersection
+ */
+#define GNUNET_MESSAGE_TYPE_SETI_P2P_ELEMENT_INFO 591
+
+/**
+ * Bloom filter message for intersection exchange started by Bob.
+ */
+#define GNUNET_MESSAGE_TYPE_SETI_P2P_BF 592
+
+/**
+ * Intersection operation is done.
+ */
+#define GNUNET_MESSAGE_TYPE_SETI_P2P_DONE 593
 
 
 /*******************************************************************************

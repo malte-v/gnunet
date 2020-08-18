@@ -1939,6 +1939,8 @@ src/scalarproduct/Makefile
 src/scalarproduct/scalarproduct.conf
 src/set/Makefile
 src/set/set.conf
+src/seti/Makefile
+src/seti/seti.conf
 src/setu/Makefile
 src/setu/setu.conf
 src/sq/Makefile

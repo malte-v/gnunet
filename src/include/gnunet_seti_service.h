@@ -22,16 +22,16 @@
  * @author Christian Grothoff
  *
  * @file
- * Two-peer set union operations
+ * Two-peer set intersection operations
  *
- * @defgroup set  Set union service
+ * @defgroup set  Set intersection service
  * Two-peer set operations
  *
  * @{
  */
 
-#ifndef GNUNET_SETU_SERVICE_H
-#define GNUNET_SETU_SERVICE_H
+#ifndef GNUNET_SETI_SERVICE_H
+#define GNUNET_SETI_SERVICE_H
 
 #ifdef __cplusplus
 extern "C"
@@ -49,58 +49,64 @@ extern "C"
 /**
  * Maximum size of a context message for set operation requests.
  */
-#define GNUNET_SETU_CONTEXT_MESSAGE_MAX_SIZE ((1 << 16) - 1024)
+#define GNUNET_SETI_CONTEXT_MESSAGE_MAX_SIZE ((1 << 16) - 1024)
 
 /**
  * Opaque handle to a set.
  */
-struct GNUNET_SETU_Handle;
+struct GNUNET_SETI_Handle;
 
 /**
  * Opaque handle to a set operation request from another peer.
  */
-struct GNUNET_SETU_Request;
+struct GNUNET_SETI_Request;
 
 /**
  * Opaque handle to a listen operation.
  */
-struct GNUNET_SETU_ListenHandle;
+struct GNUNET_SETI_ListenHandle;
 
 /**
  * Opaque handle to a set operation.
  */
-struct GNUNET_SETU_OperationHandle;
+struct GNUNET_SETI_OperationHandle;
 
 
 /**
  * Status for the result callback
  */
-enum GNUNET_SETU_Status
+enum GNUNET_SETI_Status
 {
 
   /**
    * Element should be added to the result set of the local peer, i.e. the
-   * local peer is missing an element.
+   * element is in the intersection.
    */
-  GNUNET_SETU_STATUS_ADD_LOCAL,
+  GNUNET_SETI_STATUS_ADD_LOCAL,
+
+  /**
+   * Element should be delete from the result set of the local peer, i.e. the
+   * local peer is having an element that is not in the intersection.
+   */
+  GNUNET_SETI_STATUS_DEL_LOCAL,
 
   /**
    * The other peer refused to do the operation with us, or something went
    * wrong.
    */
-  GNUNET_SETU_STATUS_FAILURE,
+  GNUNET_SETI_STATUS_FAILURE,
 
   /**
    * Success, all elements have been sent (and received).
    */
-  GNUNET_SETU_STATUS_DONE
+  GNUNET_SETI_STATUS_DONE
 };
 
 
 /**
  * Element stored in a set.
  */
-struct GNUNET_SETU_Element
+struct GNUNET_SETI_Element
 {
   /**
    * Number of bytes in the buffer pointed to by data.
@@ -122,48 +128,33 @@ struct GNUNET_SETU_Element
 /**
  * Possible options to pass to a set operation.
  *
- * Used as tag for struct #GNUNET_SETU_Option.
+ * Used as tag for struct #GNUNET_SETI_Option.
  */
-enum GNUNET_SETU_OptionType
+enum GNUNET_SETI_OptionType
 {
   /**
    * List terminator.
    */
-  GNUNET_SETU_OPTION_END=0,
+  GNUNET_SETI_OPTION_END = 0,
 
   /**
-   * Fail set operations when the other peer shows weird behavior
-   * that might by a Byzantine fault.
-   *
-   * For set union, 'v.num' is a lower bound on elements that the other peer
-   * must have in common with us.
+   * Return the elements remaining in the intersection
+   * (#GNUNET_SETI_STATUS_ADD_LOCAL). If not given, the default is to return a
+   * list of the elements to be removed (#GNUNET_SETI_STATUS_DEL_LOCAL).
    */
-  GNUNET_SETU_OPTION_BYZANTINE=1,
-
-  /**
-   * Do not use the optimized set operation, but send full sets.  Might
-   * trigger Byzantine fault detection.
-   */
-  GNUNET_SETU_OPTION_FORCE_FULL=2,
-
-  /**
-   * Only use optimized set operations, even though for this particular set
-   * operation they might be much slower.  Might trigger Byzantine fault
-   * detection.
-   */
-  GNUNET_SETU_OPTION_FORCE_DELTA=4,
+  GNUNET_SETI_OPTION_RETURN_INTERSECTION = 1,
 };
 
 
 /**
  * Option for set operations.
  */
-struct GNUNET_SETU_Option
+struct GNUNET_SETI_Option
 {
   /**
    * Type of the option.
    */
-  enum GNUNET_SETU_OptionType type;
+  enum GNUNET_SETI_OptionType type;
 
   /**
    * Value for the option, only used with some options.
@@ -180,15 +171,15 @@ struct GNUNET_SETU_Option
  * in the result set.
  *
  * @param cls closure
- * @param element a result element, only valid if status is #GNUNET_SETU_STATUS_OK
+ * @param element a result element, only valid if status is #GNUNET_SETI_STATUS_OK
  * @param current_size current set size
- * @param status see `enum GNUNET_SETU_Status`
+ * @param status see `enum GNUNET_SETI_Status`
  */
 typedef void
-(*GNUNET_SETU_ResultIterator) (void *cls,
-                               const struct GNUNET_SETU_Element *element,
+(*GNUNET_SETI_ResultIterator) (void *cls,
+                               const struct GNUNET_SETI_Element *element,
                                uint64_t current_size,
-                               enum GNUNET_SETU_Status status);
+                               enum GNUNET_SETI_Status status);
 
 
 /**
@@ -199,7 +190,7 @@ typedef void
  * @param other_peer the other peer
  * @param context_msg message with application specific information from
  *        the other peer
- * @param request request from the other peer (never NULL), use GNUNET_SETU_accept()
+ * @param request request from the other peer (never NULL), use GNUNET_SETI_accept()
  *        to accept it, otherwise the request will be refused
  *        Note that we can't just return value from the listen callback,
  *        as it is also necessary to specify the set we want to do the
@@ -207,10 +198,10 @@ typedef void
  *        message. It's necessary to specify the timeout.
  */
 typedef void
-(*GNUNET_SETU_ListenCallback) (void *cls,
+(*GNUNET_SETI_ListenCallback) (void *cls,
                                const struct GNUNET_PeerIdentity *other_peer,
                                const struct GNUNET_MessageHeader *context_msg,
-                               struct GNUNET_SETU_Request *request);
+                               struct GNUNET_SETI_Request *request);
 
 
 /**
@@ -220,8 +211,8 @@ typedef void
  *        set service
  * @return a handle to the set
  */
-struct GNUNET_SETU_Handle *
-GNUNET_SETU_create (const struct GNUNET_CONFIGURATION_Handle *cfg);
+struct GNUNET_SETI_Handle *
+GNUNET_SETI_create (const struct GNUNET_CONFIGURATION_Handle *cfg);
 
 
 /**
@@ -235,8 +226,8 @@ GNUNET_SETU_create (const struct GNUNET_CONFIGURATION_Handle *cfg);
  *         set is invalid (e.g. the set service crashed)
  */
 int
-GNUNET_SETU_add_element (struct GNUNET_SETU_Handle *set,
-                         const struct GNUNET_SETU_Element *element,
+GNUNET_SETI_add_element (struct GNUNET_SETI_Handle *set,
+                         const struct GNUNET_SETI_Element *element,
                          GNUNET_SCHEDULER_TaskCallback cb,
                          void *cb_cls);
 
@@ -248,13 +239,13 @@ GNUNET_SETU_add_element (struct GNUNET_SETU_Handle *set,
  * @param set set to destroy
  */
 void
-GNUNET_SETU_destroy (struct GNUNET_SETU_Handle *set);
+GNUNET_SETI_destroy (struct GNUNET_SETI_Handle *set);
 
 
 /**
  * Prepare a set operation to be evaluated with another peer.  The evaluation
  * will not start until the client provides a local set with
- * GNUNET_SETU_commit().
+ * GNUNET_SETI_commit().
  *
  * @param other_peer peer with the other set
  * @param app_id hash for the application using the set
@@ -264,12 +255,12 @@ GNUNET_SETU_destroy (struct GNUNET_SETU_Handle *set);
  * @param result_cls closure for @a result_cb
  * @return a handle to cancel the operation
  */
-struct GNUNET_SETU_OperationHandle *
-GNUNET_SETU_prepare (const struct GNUNET_PeerIdentity *other_peer,
+struct GNUNET_SETI_OperationHandle *
+GNUNET_SETI_prepare (const struct GNUNET_PeerIdentity *other_peer,
                      const struct GNUNET_HashCode *app_id,
                      const struct GNUNET_MessageHeader *context_msg,
-                     const struct GNUNET_SETU_Option options[],
-                     GNUNET_SETU_ResultIterator result_cb,
+                     const struct GNUNET_SETI_Option options[],
+                     GNUNET_SETI_ResultIterator result_cb,
                      void *result_cls);
 
 
@@ -286,10 +277,10 @@ GNUNET_SETU_prepare (const struct GNUNET_PeerIdentity *other_peer,
  * @param listen_cls handle for @a listen_cb
  * @return a handle that can be used to cancel the listen operation
  */
-struct GNUNET_SETU_ListenHandle *
-GNUNET_SETU_listen (const struct GNUNET_CONFIGURATION_Handle *cfg,
+struct GNUNET_SETI_ListenHandle *
+GNUNET_SETI_listen (const struct GNUNET_CONFIGURATION_Handle *cfg,
                     const struct GNUNET_HashCode *app_id,
-                    GNUNET_SETU_ListenCallback listen_cb,
+                    GNUNET_SETI_ListenCallback listen_cb,
                     void *listen_cls);
 
 
@@ -302,14 +293,14 @@ GNUNET_SETU_listen (const struct GNUNET_CONFIGURATION_Handle *cfg,
  * @param lh handle for the listen operation
  */
 void
-GNUNET_SETU_listen_cancel (struct GNUNET_SETU_ListenHandle *lh);
+GNUNET_SETI_listen_cancel (struct GNUNET_SETI_ListenHandle *lh);
 
 
 /**
- * Accept a request we got via GNUNET_SETU_listen().  Must be called during
- * GNUNET_SETU_listen(), as the `struct GNUNET_SETU_Request` becomes invalid
+ * Accept a request we got via GNUNET_SETI_listen().  Must be called during
+ * GNUNET_SETI_listen(), as the `struct GNUNET_SETI_Request` becomes invalid
  * afterwards.
- * Call GNUNET_SETU_commit() to provide the local set to use for the operation,
+ * Call GNUNET_SETI_commit() to provide the local set to use for the operation,
  * and to begin the exchange with the remote peer.
  *
  * @param request request to accept
@@ -318,10 +309,10 @@ GNUNET_SETU_listen_cancel (struct GNUNET_SETU_ListenHandle *lh);
  * @param result_cls closure for @a result_cb
  * @return a handle to cancel the operation
  */
-struct GNUNET_SETU_OperationHandle *
-GNUNET_SETU_accept (struct GNUNET_SETU_Request *request,
-                    const struct GNUNET_SETU_Option options[],
-                    GNUNET_SETU_ResultIterator result_cb,
+struct GNUNET_SETI_OperationHandle *
+GNUNET_SETI_accept (struct GNUNET_SETI_Request *request,
+                    const struct GNUNET_SETI_Option options[],
+                    GNUNET_SETI_ResultIterator result_cb,
                     void *result_cls);
 
 
@@ -339,19 +330,19 @@ GNUNET_SETU_accept (struct GNUNET_SETU_Request *request,
  *         set is invalid (e.g. the set service crashed)
  */
 int
-GNUNET_SETU_commit (struct GNUNET_SETU_OperationHandle *oh,
-                    struct GNUNET_SETU_Handle *set);
+GNUNET_SETI_commit (struct GNUNET_SETI_OperationHandle *oh,
+                    struct GNUNET_SETI_Handle *set);
 
 
 /**
  * Cancel the given set operation.  May not be called after the operation's
- * `GNUNET_SETU_ResultIterator` has been called with a status of
- * #GNUNET_SETU_STATUS_FAILURE or #GNUNET_SETU_STATUS_DONE.
+ * `GNUNET_SETI_ResultIterator` has been called with a status of
+ * #GNUNET_SETI_STATUS_FAILURE or #GNUNET_SETI_STATUS_DONE.
  *
  * @param oh set operation to cancel
  */
 void
-GNUNET_SETU_operation_cancel (struct GNUNET_SETU_OperationHandle *oh);
+GNUNET_SETI_operation_cancel (struct GNUNET_SETI_OperationHandle *oh);
 
 
 /**
@@ -362,7 +353,7 @@ GNUNET_SETU_operation_cancel (struct GNUNET_SETU_OperationHandle *oh);
  *        should be stored
  */
 void
-GNUNET_SETU_element_hash (const struct GNUNET_SETU_Element *element,
+GNUNET_SETI_element_hash (const struct GNUNET_SETI_Element *element,
                           struct GNUNET_HashCode *ret_hash);
 
 
