@@ -519,8 +519,11 @@ send_client_removed_element (struct Operation *op,
   struct GNUNET_MQ_Envelope *ev;
   struct GNUNET_SETI_ResultMessage *rm;
 
-  if (GNUNET_NO != op->return_intersection)
+  if (GNUNET_YES == op->return_intersection)
+  {
+    GNUNET_break (0);
     return; /* Wrong mode for transmitting removed elements */
+  }
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Sending removed element (size %u) to client\n",
               element->size);
@@ -1096,6 +1099,11 @@ send_remaining_elements (void *cls)
   const struct GNUNET_SETI_Element *element;
   int res;
 
+  if (GNUNET_NO == op->return_intersection)
+  {
+    GNUNET_break (0);
+    return; /* Wrong mode for transmitting removed elements */
+  }
   res = GNUNET_CONTAINER_multihashmap_iterator_next (
     op->full_result_iter,
     NULL,
@@ -2191,6 +2199,7 @@ handle_client_evaluate (void *cls,
   op->salt = GNUNET_CRYPTO_random_u32 (GNUNET_CRYPTO_QUALITY_NONCE,
                                        UINT32_MAX);
   op->peer = msg->target_peer;
+  op->return_intersection = htonl (msg->return_intersection);
   op->client_request_id = ntohl (msg->request_id);
   context = GNUNET_MQ_extract_nested_mh (msg);
 
@@ -2354,9 +2363,14 @@ handle_client_accept (void *cls,
               (uint32_t) ntohl (msg->accept_reject_id));
   listener = op->listener;
   op->listener = NULL;
-  GNUNET_CONTAINER_DLL_remove (listener->op_head, listener->op_tail, op);
+  op->return_intersection = htonl (msg->return_intersection);
+  GNUNET_CONTAINER_DLL_remove (listener->op_head,
+                               listener->op_tail,
+                               op);
   op->set = set;
-  GNUNET_CONTAINER_DLL_insert (set->ops_head, set->ops_tail, op);
+  GNUNET_CONTAINER_DLL_insert (set->ops_head,
+                               set->ops_tail,
+                               op);
   op->client_request_id = ntohl (msg->request_id);
 
   /* Advance generation values, so that future mutations do not

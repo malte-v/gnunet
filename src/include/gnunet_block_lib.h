@@ -137,6 +137,19 @@ enum GNUNET_BLOCK_Type
    * Contains either special marker elements or a nested block.
    */
   GNUNET_BLOCK_TYPE_CONSENSUS_ELEMENT = 25,
+
+  /**
+   * Block for testing set intersection.  If first byte of the block
+   * is non-zero, the block is considered invalid.
+   */
+  GNUNET_BLOCK_TYPE_SETI_TEST = 24,
+
+  /**
+   * Block for testing set union.  If first byte of the block
+   * is non-zero, the block is considered invalid.
+   */
+  GNUNET_BLOCK_TYPE_SETU_TEST = 24,
+
 };
 
 

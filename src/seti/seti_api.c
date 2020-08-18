@@ -411,7 +411,7 @@ GNUNET_SETI_create (const struct GNUNET_CONFIGURATION_Handle *cfg)
 
   set->cfg = cfg;
   set->mq = GNUNET_CLIENT_connect (cfg,
-                                   "set",
+                                   "seti",
                                    mq_handlers,
                                    &handle_client_set_error,
                                    set);
@@ -549,7 +549,7 @@ GNUNET_SETI_prepare (const struct GNUNET_PeerIdentity *other_peer,
     switch (opt->type)
     {
     case GNUNET_SETI_OPTION_RETURN_INTERSECTION:
-      msg->return_intersection = GNUNET_YES;
+      msg->return_intersection = htonl (GNUNET_YES);
       break;
     default:
       LOG (GNUNET_ERROR_TYPE_ERROR,
@@ -687,7 +687,7 @@ listen_connect (void *cls)
   lh->reconnect_task = NULL;
   GNUNET_assert (NULL == lh->mq);
   lh->mq = GNUNET_CLIENT_connect (lh->cfg,
-                                  "set",
+                                  "seti",
                                   mq_handlers,
                                   &handle_client_listener_error,
                                   lh);
@@ -806,7 +806,7 @@ GNUNET_SETI_accept (struct GNUNET_SETI_Request *request,
     switch (opt->type)
     {
     case GNUNET_SETI_OPTION_RETURN_INTERSECTION:
-      oh->return_intersection = GNUNET_YES;
+      oh->return_intersection = htonl (GNUNET_YES);
       break;
     default:
       LOG (GNUNET_ERROR_TYPE_ERROR,
