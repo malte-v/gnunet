@@ -1988,13 +1988,13 @@ as a guide.
 @node reclaimID Identity Provider
 @section reclaimID Identity Provider
 
-The reclaimID Identity Provider (IdP) is a decentralized IdP service.
+The re:claimID Identity Provider (IdP) is a decentralized IdP service.
 It allows its users to manage and authorize third parties to access
 their identity attributes such as email or shipping addresses.
 
 It basically mimics the concepts of centralized IdPs, such as those
 offered by Google or Facebook.
-Like other IdPs, reclaimID features an (optional) OpenID-Connect
+Like other IdPs, reclaimID features an (optional) OpenID Connect
 1.0-compliant protocol layer that can be used for websites to
 integrate reclaimID as an Identity Provider with little effort.
 
@@ -2038,30 +2038,37 @@ In the future there might be more value types such as X.509 certificate credenti
 If you want to allow a third party such as a website or friend to access to your attributes (or a subset thereof) execute:
 
 @example
-$ gnunet-reclaim -e "user" -r "PKEY" -i "attribute1,attribute2,..."
+$ TICKET=$(gnunet-reclaim -e "user" -r "$RP_KEY" -i "attribute1,attribute2,...")
 @end example
 
-Where "PKEY" is the public key of the third party and "attribute1,attribute2,..." is a comma-separated list of attribute names, such as "email,name,...", that you want to share.
-
 The command will return a "ticket" string.
-You must give this "ticket" to the requesting third party.
+You must give $TICKET to the requesting third party.
+
+$RP_KEY is the public key of the third party and "attribute1,attribute2,..." is a comma-separated list of attribute names, such as "email,name,...", that you want to share.
+
+The third party may retrieve the key in string format for use in the above
+call using "gnunet-identity":
+
+@example
+$ RP_KEY=$(gnunet-identity -d grep "relyingparty" | awk '@{print $3@}')
+@end example
 
 The third party can then retrieve your shared identity attributes using:
 
 @example
-$ gnunet-reclaim -e "friend" -C "ticket"
+$ gnunet-reclaim -e "relyingparty" -C "ticket"
 @end example
 
-Where "friend" is the name for "user" that the requesting party is using.
+Where "relyingparty" is the name for the identity behind $RP_KEY that the
+requesting party is using.
 This will retrieve and list the shared identity attributes.
 The above command will also work if the user is currently offline since the attributes are retrieved from GNS.
-Further, the "ticket" can be re-used later to retrieve up-to-date attributes in case "friend" has changed the value(s). For instance, because his email address changed.
+Further, $TICKET can be re-used later to retrieve up-to-date attributes in case "friend" has changed the value(s). For instance, because his email address changed.
 
 To list all given authorizations (tickets) you can execute:
 @example
-$ gnunet-reclaim -e "friend" -T (TODO there is only a C and REST API for this at this time)
+$ gnunet-reclaim -e "user" -T
 @end example
-
 
 @node Revoking Authorizations of Third Parties
 @subsection Revoking Authorizations of Third Parties
@@ -2069,7 +2076,7 @@ $ gnunet-reclaim -e "friend" -T (TODO there is only a C and REST API for this at
 If you want to revoke the access of a third party to your attributes you can execute:
 
 @example
-$ gnunet-reclaim -e "user" -R "ticket"
+$ gnunet-reclaim -e "user" -R $TICKET
 @end example
 
 This will prevent the third party from accessing the attribute in the future.
@@ -2080,30 +2087,26 @@ This behaviour is _exactly the same_ as with other IdPs.
 @node OpenID Connect
 @subsection OpenID Connect
 
-There is an OpenID Connect API for use with reclaimID.
+There is an @uref{OpenID Connect, https://openid.net/specs/openid-connect-core-1_0.html} API for use with re:claimID.
 However, its use is quite complicated to setup.
-As a proof-of-concept, you can look at https://gitlab.com/reclaimid.
-
-In the PoC and by convention for reclaimID, the OpenID Connect Endpoints are
-found at:
 
 @example
-http://api.reclaim/openid/authorize
-http://api.reclaim/openid/token
-http://api.reclaim/openid/userinfo
-http://api.reclaim/openid/login
+https://api.reclaim/openid/authorize
+http://localhost:7776/openid/token
+http://localhost:7776/openid/userinfo
+http://localhost:7776/openid/login
 @end example
 
 The token endpoint is protected using HTTP basic authentication.
 You can authenticate using any username and the password configured under:
 
 @example
-$ gnunet-config -s reclaim-rest-plugin -o PSW
+$ gnunet-config -s reclaim-rest-plugin -o OIDC_CLIENT_SECRET
 @end example
 
 The authorize endpoint is protected using a Cookie which can be obtained through
 a request against the login endpoint.
-This flow is meant to be used in the context of the OpenID Connect authorization
+This functionality is meant to be used in the context of the OpenID Connect authorization
 flow to collect user consent interactively.
 Without a Cookie, the authorize endpoint redirects to a URI configured under:
 
@@ -2111,17 +2114,22 @@ Without a Cookie, the authorize endpoint redirects to a URI configured under:
 $ gnunet-config -s reclaim-rest-plugin -o ADDRESS
 @end example
 
-Our PoC includes a user interface (https://gitlab.com/reclaimid) which
-integrates this process is an OpenID Connect compatible fashion.
-
 The token endpoint is protected using OAuth2 and expects the grant
 which is retrieved from the authorization endpoint according to the standard.
 
 The userinfo endpoint is protected using OAuth2 and expects a bearer access
 token which is retrieved from a token request.
 
-In order to create and register a client you need to execute the following
-steps:
+In order to make use of OpenID Connect flows as a user, you need to install
+the browser plugin:
+
+@itemize @bullet
+@item @uref{https://addons.mozilla.org/addon/reclaimid/, Firefox Add-on}
+@item @uref{https://chrome.google.com/webstore/detail/reclaimid/jiogompmdejcnacmlnjhnaicgkefcfll, Chrome Web Store}
+@end itemize
+
+In order to create and register an OpenID Connect client as a relying party,
+you need to execute the following steps:
 
 @example
 $ gnunet-identity -C <client_name>
@@ -2129,16 +2137,23 @@ $ gnunet-namestore -z <client_name> -a -n "@@" -t RECLAIM_OIDC_REDIRECT -V <redi
 $ gnunet-namestore -z <client_name> -a -n "@@" -t RECLAIM_OIDC_CLIENT -V "My OIDC Client" -e 1d -p
 @end example
 
-The client_id will be the public key of the client.
-As a redirect URI, you may use any globally unique DNS or GNS URI.
-The client description will be displayed to the user on authorization.
+The "client_id" for use in OpenID Connect is the public key of the client as
+displayed using:
+@example
+$ gnunet-identity -d grep "relyingparty" | awk '@{print $3@}'
+@end example
 
-Any website or relying party must use the endpoint
-https://api.reclaim/openid/authorize in its authorization redirects, e.g.
+The RECLAIM_OIDC_REDIRECT record contains your website redirect URI.
+You may use any globally unique DNS or GNS URI.
+The RECLAIM_OIDC_CLIENT record represents the client description which whill
+be displayed to users in an authorization request.
+
+Any website or relying party must use the authorization endpoint
+@uref{https://api.reclaim/openid/authorize} in its authorization redirects, e.g.
 
 @example
 <a href="https://api.reclaim/openid/authorize?client_id=<PKEY>\
-                                             &scope=email\
+                                             &scope=openid email\
                                              &redirect_uri=<redirect_uri>\
                                              &nonce=<random>">Login</a>
 @end example
@@ -2146,7 +2161,17 @@ https://api.reclaim/openid/authorize in its authorization redirects, e.g.
 This will direct the user's browser onto his local reclaimID instance.
 After giving consent, you will be provided with the OpenID Connect authorization
 code according to the specifications at your provided redirect URI.
-The example code for the PoC website can be found at https://gitlab.com/reclaimid/demo.
+
+The ID Tokens issues by the token endpoints are signed using HS512 with the
+shared secret configured under:
+
+@example
+$ gnunet-config -s reclaim-rest-plugin -o JWT_SECRET
+@end example
+
+The authorization code flow optionally supports @uref{https://tools.ietf.org/html/rfc7636, Proof Key for Code Exchange}.
+If PKCE is used, the client does not need to authenticate against the token
+endpoint.
 
 @node Using the Virtual Public Network
 @section Using the Virtual Public Network
