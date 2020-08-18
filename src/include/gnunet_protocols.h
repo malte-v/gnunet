@@ -1854,6 +1854,11 @@ extern "C" {
  */
 #define GNUNET_MESSAGE_TYPE_SETI_P2P_DONE 593
 
+/**
+ * Request to begin set intersection operation.
+ */
+#define GNUNET_MESSAGE_TYPE_SETI_P2P_OPERATION_REQUEST 594
+
 
 /*******************************************************************************
  * SET message types
