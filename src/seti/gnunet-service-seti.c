@@ -108,28 +108,6 @@ struct Operation;
 
 
 /**
- * MutationEvent gives information about changes
- * to an element (removal / addition) in a set content.
- */
-struct MutationEvent
-{
-  /**
-   * First generation affected by this mutation event.
-   *
-   * If @a generation is 0, this mutation event is a list
-   * sentinel element.
-   */
-  unsigned int generation;
-
-  /**
-   * If @a added is #GNUNET_YES, then this is a
-   * `remove` event, otherwise it is an `add` event.
-   */
-  int added;
-};
-
-
-/**
  * Information about an element element in the set.  All elements are
  * stored in a hash-table from their hash-code to their `struct
  * Element`, so that the remove and add operations are reasonably
@@ -150,20 +128,9 @@ struct ElementEntry
   struct GNUNET_HashCode element_hash;
 
   /**
-   * If @a mutations is not NULL, it contains
-   * a list of mutations, ordered by increasing generation.
-   * The list is terminated by a sentinel event with `generation`
-   * set to 0.
-   *
-   * If @a mutations is NULL, then this element exists in all generations
-   * of the respective set content this element belongs to.
+   * Generation in which the element was added.
    */
-  struct MutationEvent *mutations;
-
-  /**
-   * Number of elements in the array @a mutations.
-   */
-  unsigned int mutations_size;
+  unsigned int generation_added;
 
   /**
    * #GNUNET_YES if the element is a remote element, and does not belong
@@ -285,7 +252,13 @@ struct Operation
   /**
    * When are elements sent to the client, and which elements are sent?
    */
-  enum GNUNET_SET_ResultMode result_mode;
+  int return_intersection;
+
+  /**
+   * Lower bound for the set size, used only when
+   * byzantine mode is enabled.
+   */
+  int byzantine_lower_bound;
 
   /**
    * Always use delta operation instead of sending full sets,
@@ -306,12 +279,6 @@ struct Operation
   int byzantine;
 
   /**
-   * Lower bound for the set size, used only when
-   * byzantine mode is enabled.
-   */
-  int byzantine_lower_bound;
-
-  /**
    * Unique request id for the request from a remote peer, sent to the
    * client, which will accept or reject the request.  Set to '0' iff
    * the request has not been suggested yet.
@@ -319,8 +286,7 @@ struct Operation
   uint32_t suggest_id;
 
   /**
-   * Generation in which the operation handle
-   * was created.
+   * Generation in which the operation handle was created.
    */
   unsigned int generation_created;
 };
@@ -338,20 +304,6 @@ struct SetContent
   struct GNUNET_CONTAINER_MultiHashMap *elements;
 
   /**
-   * Mutations requested by the client that we're
-   * unable to execute right now because we're iterating
-   * over the underlying hash map of elements.
-   */
-  struct PendingMutation *pending_mutations_head;
-
-  /**
-   * Mutations requested by the client that we're
-   * unable to execute right now because we're iterating
-   * over the underlying hash map of elements.
-   */
-  struct PendingMutation *pending_mutations_tail;
-
-  /**
    * Number of references to the content.
    */
   unsigned int refcount;
@@ -365,49 +317,6 @@ struct SetContent
    * Number of concurrently active iterators.
    */
   int iterator_count;
-};
-
-
-struct GenerationRange
-{
-  /**
-   * First generation that is excluded.
-   */
-  unsigned int start;
-
-  /**
-   * Generation after the last excluded generation.
-   */
-  unsigned int end;
-};
-
-
-/**
- * Information about a mutation to apply to a set.
- */
-struct PendingMutation
-{
-  /**
-   * Mutations are kept in a DLL.
-   */
-  struct PendingMutation *prev;
-
-  /**
-   * Mutations are kept in a DLL.
-   */
-  struct PendingMutation *next;
-
-  /**
-   * Set this mutation is about.
-   */
-  struct Set *set;
-
-  /**
-   * Message that describes the desired mutation.
-   * May only be a #GNUNET_MESSAGE_TYPE_SET_ADD or
-   * #GNUNET_MESSAGE_TYPE_SET_REMOVE.
-   */
-  struct GNUNET_SET_ElementMessage *msg;
 };
 
 
@@ -444,12 +353,6 @@ struct Set
   struct SetState *state;
 
   /**
-   * Current state of iterating elements for the client.
-   * NULL if we are not currently iterating.
-   */
-  struct GNUNET_CONTAINER_MultiHashMapIterator *iter;
-
-  /**
    * Evaluate operations are held in a linked list.
    */
   struct Operation *ops_head;
@@ -460,36 +363,11 @@ struct Set
   struct Operation *ops_tail;
 
   /**
-   * List of generations we have to exclude, due to lazy copies.
-   */
-  struct GenerationRange *excluded_generations;
-
-  /**
    * Current generation, that is, number of previously executed
    * operations and lazy copies on the underlying set content.
    */
   unsigned int current_generation;
 
-  /**
-   * Number of elements in array @a excluded_generations.
-   */
-  unsigned int excluded_generations_size;
-
-  /**
-   * Type of operation supported for this set
-   */
-  enum GNUNET_SET_OperationType operation;
-
-  /**
-   * Generation we're currently iteration over.
-   */
-  unsigned int iter_generation;
-
-  /**
-   * Each @e iter is assigned a unique number, so that the client
-   * can distinguish iterations.
-   */
-  uint16_t iteration_id;
 };
 
 
@@ -724,7 +602,7 @@ send_client_removed_element (struct Operation *op,
   struct GNUNET_MQ_Envelope *ev;
   struct GNUNET_SET_ResultMessage *rm;
 
-  if (GNUNET_SET_RESULT_REMOVED != op->result_mode)
+  if (GNUNET_NO != op->return_intersection)
     return; /* Wrong mode for transmitting removed elements */
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Sending removed element (size %u) to client\n",
@@ -736,13 +614,13 @@ send_client_removed_element (struct Operation *op,
   GNUNET_assert (0 != op->client_request_id);
   ev = GNUNET_MQ_msg_extra (rm,
                             element->size,
-                            GNUNET_MESSAGE_TYPE_SET_RESULT);
+                            GNUNET_MESSAGE_TYPE_SETI_RESULT);
   if (NULL == ev)
   {
     GNUNET_break (0);
     return;
   }
-  rm->result_status = htons (GNUNET_SET_STATUS_OK);
+  rm->result_status = htons (GNUNET_SET_STATUS_DEL_LOCAL);
   rm->request_id = htonl (op->client_request_id);
   rm->element_type = element->element_type;
   GNUNET_memcpy (&rm[1],
@@ -769,7 +647,6 @@ filtered_map_initialization (void *cls,
   struct Operation *op = cls;
   struct ElementEntry *ee = value;
   struct GNUNET_HashCode mutated_hash;
-
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "FIMA called for %s:%u\n",
@@ -934,8 +811,8 @@ fail_intersection_operation (struct Operation *op)
     op->state->my_elements = NULL;
   }
   ev = GNUNET_MQ_msg (msg,
-                      GNUNET_MESSAGE_TYPE_SET_RESULT);
-  msg->result_status = htons (GNUNET_SET_STATUS_FAILURE);
+                      GNUNET_MESSAGE_TYPE_SETI_RESULT);
+  msg->result_status = htons (GNUNET_SETI_STATUS_FAILURE);
   msg->request_id = htonl (op->client_request_id);
   msg->element_type = htons (0);
   GNUNET_MQ_send (op->set->cs->mq,
@@ -999,7 +876,7 @@ send_bloomfilter (struct Operation *op)
     chunk_size = bf_size;
     ev = GNUNET_MQ_msg_extra (msg,
                               chunk_size,
-                              GNUNET_MESSAGE_TYPE_SET_INTERSECTION_P2P_BF);
+                              GNUNET_MESSAGE_TYPE_SETI_INTERSECTION_P2P_BF);
     GNUNET_assert (GNUNET_SYSERR !=
                    GNUNET_CONTAINER_bloomfilter_get_raw_data (
                      op->state->local_bf,
@@ -1028,7 +905,7 @@ send_bloomfilter (struct Operation *op)
         chunk_size = bf_size - offset;
       ev = GNUNET_MQ_msg_extra (msg,
                                 chunk_size,
-                                GNUNET_MESSAGE_TYPE_SET_INTERSECTION_P2P_BF);
+                                GNUNET_MESSAGE_TYPE_SETI_INTERSECTION_P2P_BF);
       GNUNET_memcpy (&msg[1],
                      &bf_data[offset],
                      chunk_size);
@@ -1067,7 +944,7 @@ send_client_done_and_destroy (void *cls)
                             1,
                             GNUNET_NO);
   ev = GNUNET_MQ_msg (rm,
-                      GNUNET_MESSAGE_TYPE_SET_RESULT);
+                      GNUNET_MESSAGE_TYPE_SETI_RESULT);
   rm->request_id = htonl (op->client_request_id);
   rm->result_status = htons (GNUNET_SET_STATUS_DONE);
   rm->element_type = htons (0);
@@ -1114,7 +991,7 @@ send_p2p_done (struct Operation *op)
   GNUNET_assert (PHASE_MUST_SEND_DONE == op->state->phase);
   GNUNET_assert (GNUNET_NO == op->state->channel_death_expected);
   ev = GNUNET_MQ_msg (idm,
-                      GNUNET_MESSAGE_TYPE_SET_INTERSECTION_P2P_DONE);
+                      GNUNET_MESSAGE_TYPE_SETI_INTERSECTION_P2P_DONE);
   idm->final_element_count = htonl (op->state->my_element_count);
   idm->element_xor_hash = op->state->my_xor;
   GNUNET_MQ_notify_sent (ev,
@@ -1176,7 +1053,7 @@ send_remaining_elements (void *cls)
   GNUNET_assert (0 != op->client_request_id);
   ev = GNUNET_MQ_msg_extra (rm,
                             element->size,
-                            GNUNET_MESSAGE_TYPE_SET_RESULT);
+                            GNUNET_MESSAGE_TYPE_SETI_RESULT);
   GNUNET_assert (NULL != ev);
   rm->result_status = htons (GNUNET_SET_STATUS_OK);
   rm->request_id = htonl (op->client_request_id);
@@ -1243,7 +1120,7 @@ send_element_count (struct Operation *op)
               "Sending our element count (%u)\n",
               op->state->my_element_count);
   ev = GNUNET_MQ_msg (msg,
-                      GNUNET_MESSAGE_TYPE_SET_INTERSECTION_P2P_ELEMENT_INFO);
+                      GNUNET_MESSAGE_TYPE_SETI_INTERSECTION_P2P_ELEMENT_INFO);
   msg->sender_element_count = htonl (op->state->my_element_count);
   GNUNET_MQ_send (op->mq, ev);
 }
@@ -1273,7 +1150,7 @@ begin_bf_exchange (struct Operation *op)
  * @param cls the intersection operation
  * @param mh the header of the message
  */
-void
+static void
 handle_intersection_p2p_element_info (void *cls,
                                       const struct
                                       IntersectionElementInfoMessage *msg)
@@ -1327,7 +1204,6 @@ process_bf (struct Operation *op)
     GNUNET_break_op (0);
     fail_intersection_operation (op);
     return;
-
   case PHASE_COUNT_SENT:
     /* This is the first BF being sent, build our initial map with
        filtering in place */
@@ -1336,24 +1212,20 @@ process_bf (struct Operation *op)
                                            &filtered_map_initialization,
                                            op);
     break;
-
   case PHASE_BF_EXCHANGE:
     /* Update our set by reduction */
     GNUNET_CONTAINER_multihashmap_iterate (op->state->my_elements,
                                            &iterator_bf_reduce,
                                            op);
     break;
-
   case PHASE_MUST_SEND_DONE:
     GNUNET_break_op (0);
     fail_intersection_operation (op);
     return;
-
   case PHASE_DONE_RECEIVED:
     GNUNET_break_op (0);
     fail_intersection_operation (op);
     return;
-
   case PHASE_FINISHED:
     GNUNET_break_op (0);
     fail_intersection_operation (op);
@@ -1420,7 +1292,7 @@ check_intersection_p2p_bf (void *cls,
  * @param cls the intersection operation
  * @param msg the header of the message
  */
-static
+static void
 handle_intersection_p2p_bf (void *cls,
                             const struct BFMessage *msg)
 {
@@ -1613,214 +1485,6 @@ handle_intersection_p2p_done (void *cls,
 
 
 /**
- * Initiate a set intersection operation with a remote peer.
- *
- * @param op operation that is created, should be initialized to
- *        begin the evaluation
- * @param opaque_context message to be transmitted to the listener
- *        to convince it to accept, may be NULL
- * @return operation-specific state to keep in @a op
- */
-static struct OperationState *
-intersection_evaluate (struct Operation *op,
-                       const struct GNUNET_MessageHeader *opaque_context)
-{
-  struct OperationState *state;
-  struct GNUNET_MQ_Envelope *ev;
-  struct OperationRequestMessage *msg;
-
-  ev = GNUNET_MQ_msg_nested_mh (msg,
-                                GNUNET_MESSAGE_TYPE_SET_P2P_OPERATION_REQUEST,
-                                opaque_context);
-  if (NULL == ev)
-  {
-    /* the context message is too large!? */
-    GNUNET_break (0);
-    return NULL;
-  }
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "Initiating intersection operation evaluation\n");
-  state = GNUNET_new (struct OperationState);
-  /* we started the operation, thus we have to send the operation request */
-  state->phase = PHASE_INITIAL;
-  state->my_element_count = op->set->state->current_set_element_count;
-  state->my_elements
-    = GNUNET_CONTAINER_multihashmap_create (state->my_element_count,
-                                            GNUNET_YES);
-
-  msg->operation = htonl (GNUNET_SET_OPERATION_INTERSECTION);
-  msg->element_count = htonl (state->my_element_count);
-  GNUNET_MQ_send (op->mq,
-                  ev);
-  state->phase = PHASE_COUNT_SENT;
-  if (NULL != opaque_context)
-    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                "Sent op request with context message\n");
-  else
-    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                "Sent op request without context message\n");
-  return state;
-}
-
-
-/**
- * Accept an intersection operation request from a remote peer.  Only
- * initializes the private operation state.
- *
- * @param op operation that will be accepted as an intersection operation
- */
-static struct OperationState *
-intersection_accept (struct Operation *op)
-{
-  struct OperationState *state;
-
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "Accepting set intersection operation\n");
-  state = GNUNET_new (struct OperationState);
-  state->phase = PHASE_INITIAL;
-  state->my_element_count
-    = op->set->state->current_set_element_count;
-  state->my_elements
-    = GNUNET_CONTAINER_multihashmap_create (GNUNET_MIN (state->my_element_count,
-                                                        op->remote_element_count),
-                                            GNUNET_YES);
-  op->state = state;
-  if (op->remote_element_count < state->my_element_count)
-  {
-    /* If the other peer (Alice) has fewer elements than us (Bob),
-       we just send the count as Alice should send the first BF */
-    send_element_count (op);
-    state->phase = PHASE_COUNT_SENT;
-    return state;
-  }
-  /* We have fewer elements, so we start with the BF */
-  begin_bf_exchange (op);
-  return state;
-}
-
-
-/**
- * Destroy the intersection operation.  Only things specific to the
- * intersection operation are destroyed.
- *
- * @param op intersection operation to destroy
- */
-static void
-intersection_op_cancel (struct Operation *op)
-{
-  /* check if the op was canceled twice */
-  GNUNET_assert (NULL != op->state);
-  if (NULL != op->state->remote_bf)
-  {
-    GNUNET_CONTAINER_bloomfilter_free (op->state->remote_bf);
-    op->state->remote_bf = NULL;
-  }
-  if (NULL != op->state->local_bf)
-  {
-    GNUNET_CONTAINER_bloomfilter_free (op->state->local_bf);
-    op->state->local_bf = NULL;
-  }
-  if (NULL != op->state->my_elements)
-  {
-    GNUNET_CONTAINER_multihashmap_destroy (op->state->my_elements);
-    op->state->my_elements = NULL;
-  }
-  if (NULL != op->state->full_result_iter)
-  {
-    GNUNET_CONTAINER_multihashmap_iterator_destroy (
-      op->state->full_result_iter);
-    op->state->full_result_iter = NULL;
-  }
-  GNUNET_free (op->state);
-  op->state = NULL;
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "Destroying intersection op state done\n");
-}
-
-
-/**
- * Create a new set supporting the intersection operation.
- *
- * @return the newly created set
- */
-static struct SetState *
-intersection_set_create ()
-{
-  struct SetState *set_state;
-
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "Intersection set created\n");
-  set_state = GNUNET_new (struct SetState);
-  set_state->current_set_element_count = 0;
-
-  return set_state;
-}
-
-
-/**
- * Add the element from the given element message to the set.
- *
- * @param set_state state of the set want to add to
- * @param ee the element to add to the set
- */
-static void
-intersection_add (struct SetState *set_state,
-                  struct ElementEntry *ee)
-{
-  set_state->current_set_element_count++;
-}
-
-
-/**
- * Destroy a set that supports the intersection operation
- *
- * @param set_state the set to destroy
- */
-static void
-intersection_set_destroy (struct SetState *set_state)
-{
-  GNUNET_free (set_state);
-}
-
-
-/**
- * Remove the element given in the element message from the set.
- *
- * @param set_state state of the set to remove from
- * @param element set element to remove
- */
-static void
-intersection_remove (struct SetState *set_state,
-                     struct ElementEntry *element)
-{
-  GNUNET_assert (0 < set_state->current_set_element_count);
-  set_state->current_set_element_count--;
-}
-
-
-/**
- * Callback for channel death for the intersection operation.
- *
- * @param op operation that lost the channel
- */
-static void
-intersection_channel_death (struct Operation *op)
-{
-  if (GNUNET_YES == op->state->channel_death_expected)
-  {
-    /* oh goodie, we are done! */
-    send_client_done_and_destroy (op);
-  }
-  else
-  {
-    /* sorry, channel went down early, too bad. */
-    _GSS_operation_destroy (op,
-                            GNUNET_YES);
-  }
-}
-
-
-/**
  * Get the incoming socket associated with the given id.
  *
  * @param listener the listener to look in
@@ -1870,184 +1534,17 @@ incoming_destroy (struct Operation *op)
 
 
 /**
- * Context for the #garbage_collect_cb().
- */
-struct GarbageContext
-{
-  /**
-   * Map for which we are garbage collecting removed elements.
-   */
-  struct GNUNET_CONTAINER_MultiHashMap *map;
-
-  /**
-   * Lowest generation for which an operation is still pending.
-   */
-  unsigned int min_op_generation;
-
-  /**
-   * Largest generation for which an operation is still pending.
-   */
-  unsigned int max_op_generation;
-};
-
-
-/**
- * Function invoked to check if an element can be removed from
- * the set's history because it is no longer needed.
- *
- * @param cls the `struct GarbageContext *`
- * @param key key of the element in the map
- * @param value the `struct ElementEntry *`
- * @return #GNUNET_OK (continue to iterate)
- */
-static int
-garbage_collect_cb (void *cls, const struct GNUNET_HashCode *key, void *value)
-{
-  // struct GarbageContext *gc = cls;
-  // struct ElementEntry *ee = value;
-
-  // if (GNUNET_YES != ee->removed)
-  //  return GNUNET_OK;
-  // if ( (gc->max_op_generation < ee->generation_added) ||
-  //     (ee->generation_removed > gc->min_op_generation) )
-  // {
-  //  GNUNET_assert (GNUNET_YES ==
-  //                 GNUNET_CONTAINER_multihashmap_remove (gc->map,
-  //                                                       key,
-  //                                                       ee));
-  //  GNUNET_free (ee);
-  // }
-  return GNUNET_OK;
-}
-
-
-/**
- * Collect and destroy elements that are not needed anymore, because
- * their lifetime (as determined by their generation) does not overlap
- * with any active set operation.
- *
- * @param set set to garbage collect
- */
-static void
-collect_generation_garbage (struct Set *set)
-{
-  struct GarbageContext gc;
-
-  gc.min_op_generation = UINT_MAX;
-  gc.max_op_generation = 0;
-  for (struct Operation *op = set->ops_head; NULL != op; op = op->next)
-  {
-    gc.min_op_generation =
-      GNUNET_MIN (gc.min_op_generation, op->generation_created);
-    gc.max_op_generation =
-      GNUNET_MAX (gc.max_op_generation, op->generation_created);
-  }
-  gc.map = set->content->elements;
-  GNUNET_CONTAINER_multihashmap_iterate (set->content->elements,
-                                         &garbage_collect_cb,
-                                         &gc);
-}
-
-
-/**
- * Is @a generation in the range of exclusions?
- *
- * @param generation generation to query
- * @param excluded array of generations where the element is excluded
- * @param excluded_size length of the @a excluded array
- * @return #GNUNET_YES if @a generation is in any of the ranges
- */
-static int
-is_excluded_generation (unsigned int generation,
-                        struct GenerationRange *excluded,
-                        unsigned int excluded_size)
-{
-  for (unsigned int i = 0; i < excluded_size; i++)
-    if ((generation >= excluded[i].start) && (generation < excluded[i].end))
-      return GNUNET_YES;
-  return GNUNET_NO;
-}
-
-
-/**
- * Is element @a ee part of the set during @a query_generation?
- *
- * @param ee element to test
- * @param query_generation generation to query
- * @param excluded array of generations where the element is excluded
- * @param excluded_size length of the @a excluded array
- * @return #GNUNET_YES if the element is in the set, #GNUNET_NO if not
- */
-static int
-is_element_of_generation (struct ElementEntry *ee,
-                          unsigned int query_generation,
-                          struct GenerationRange *excluded,
-                          unsigned int excluded_size)
-{
-  struct MutationEvent *mut;
-  int is_present;
-
-  GNUNET_assert (NULL != ee->mutations);
-  if (GNUNET_YES ==
-      is_excluded_generation (query_generation, excluded, excluded_size))
-  {
-    GNUNET_break (0);
-    return GNUNET_NO;
-  }
-
-  is_present = GNUNET_NO;
-
-  /* Could be made faster with binary search, but lists
-     are small, so why bother. */
-  for (unsigned int i = 0; i < ee->mutations_size; i++)
-  {
-    mut = &ee->mutations[i];
-
-    if (mut->generation > query_generation)
-    {
-      /* The mutation doesn't apply to our generation
-         anymore.  We can'b break here, since mutations aren't
-         sorted by generation. */
-      continue;
-    }
-
-    if (GNUNET_YES ==
-        is_excluded_generation (mut->generation, excluded, excluded_size))
-    {
-      /* The generation is excluded (because it belongs to another
-         fork via a lazy copy) and thus mutations aren't considered
-         for membership testing. */
-      continue;
-    }
-
-    /* This would be an inconsistency in how we manage mutations. */
-    if ((GNUNET_YES == is_present) && (GNUNET_YES == mut->added))
-      GNUNET_assert (0);
-    /* Likewise. */
-    if ((GNUNET_NO == is_present) && (GNUNET_NO == mut->added))
-      GNUNET_assert (0);
-
-    is_present = mut->added;
-  }
-
-  return is_present;
-}
-
-
-/**
  * Is element @a ee part of the set used by @a op?
  *
  * @param ee element to test
  * @param op operation the defines the set and its generation
  * @return #GNUNET_YES if the element is in the set, #GNUNET_NO if not
  */
-int
-_GSS_is_element_of_operation (struct ElementEntry *ee, struct Operation *op)
+static int
+_GSS_is_element_of_operation (struct ElementEntry *ee,
+                              struct Operation *op)
 {
-  return is_element_of_generation (ee,
-                                   op->generation_created,
-                                   op->set->excluded_generations,
-                                   op->set->excluded_generations_size);
+  return op->generation_created >= ee->generation_added;
 }
 
 
@@ -2062,10 +1559,9 @@ _GSS_is_element_of_operation (struct ElementEntry *ee, struct Operation *op)
  * as there may be multiple operations per set.
  *
  * @param op operation to destroy
- * @param gc #GNUNET_YES to perform garbage collection on the set
  */
-void
-_GSS_operation_destroy (struct Operation *op, int gc)
+static void
+_GSS_operation_destroy (struct Operation *op)
 {
   struct Set *set = op->set;
   struct GNUNET_CADET_Channel *channel;
@@ -2074,12 +1570,39 @@ _GSS_operation_destroy (struct Operation *op, int gc)
   GNUNET_assert (NULL == op->listener);
   if (NULL != op->state)
   {
-    intersection_cancel (op); // FIXME: inline
+    /* check if the op was canceled twice */
+    GNUNET_assert (NULL != op->state);
+    if (NULL != op->state->remote_bf)
+    {
+      GNUNET_CONTAINER_bloomfilter_free (op->state->remote_bf);
+      op->state->remote_bf = NULL;
+    }
+    if (NULL != op->state->local_bf)
+    {
+      GNUNET_CONTAINER_bloomfilter_free (op->state->local_bf);
+      op->state->local_bf = NULL;
+    }
+    if (NULL != op->state->my_elements)
+    {
+      GNUNET_CONTAINER_multihashmap_destroy (op->state->my_elements);
+      op->state->my_elements = NULL;
+    }
+    if (NULL != op->state->full_result_iter)
+    {
+      GNUNET_CONTAINER_multihashmap_iterator_destroy (
+        op->state->full_result_iter);
+      op->state->full_result_iter = NULL;
+    }
+    GNUNET_free (op->state);
     op->state = NULL;
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "Destroying intersection op state done\n");
   }
   if (NULL != set)
   {
-    GNUNET_CONTAINER_DLL_remove (set->ops_head, set->ops_tail, op);
+    GNUNET_CONTAINER_DLL_remove (set->ops_head,
+                                 set->ops_tail,
+                                 op);
     op->set = NULL;
   }
   if (NULL != op->context_msg)
@@ -2094,8 +1617,6 @@ _GSS_operation_destroy (struct Operation *op, int gc)
     op->channel = NULL;
     GNUNET_CADET_channel_destroy (channel);
   }
-  if ((NULL != set) && (GNUNET_YES == gc))
-    collect_generation_garbage (set);
   /* We rely on the channel end handler to free 'op'. When 'op->channel' was NULL,
    * there was a channel end handler that will free 'op' on the call stack. */
 }
@@ -2166,8 +1687,6 @@ client_disconnect_cb (void *cls,
   if (NULL != (set = cs->set))
   {
     struct SetContent *content = set->content;
-    struct PendingMutation *pm;
-    struct PendingMutation *pm_current;
 
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Destroying client's set\n");
     /* Destroy pending set operations */
@@ -2176,8 +1695,7 @@ client_disconnect_cb (void *cls,
 
     /* Destroy operation-specific state */
     GNUNET_assert (NULL != set->state);
-    intersection_set_destroy (set->state); // FIXME: inline
-    set->state = NULL;
+    GNUNET_free (set->state);
 
     /* Clean up ongoing iterations */
     if (NULL != set->iter)
@@ -2185,21 +1703,6 @@ client_disconnect_cb (void *cls,
       GNUNET_CONTAINER_multihashmap_iterator_destroy (set->iter);
       set->iter = NULL;
       set->iteration_id++;
-    }
-
-    /* discard any pending mutations that reference this set */
-    pm = content->pending_mutations_head;
-    while (NULL != pm)
-    {
-      pm_current = pm;
-      pm = pm->next;
-      if (pm_current->set == set)
-      {
-        GNUNET_CONTAINER_DLL_remove (content->pending_mutations_head,
-                                     content->pending_mutations_tail,
-                                     pm_current);
-        GNUNET_free (pm_current);
-      }
     }
 
     /* free set content (or at least decrement RC) */
@@ -2260,7 +1763,8 @@ client_disconnect_cb (void *cls,
  *         #GNUNET_SYSERR to destroy the channel
  */
 static int
-check_incoming_msg (void *cls, const struct OperationRequestMessage *msg)
+check_incoming_msg (void *cls,
+                    const struct OperationRequestMessage *msg)
 {
   struct Operation *op = cls;
   struct Listener *listener = op->listener;
@@ -2313,7 +1817,8 @@ check_incoming_msg (void *cls, const struct OperationRequestMessage *msg)
  *         #GNUNET_SYSERR to destroy the channel
  */
 static void
-handle_incoming_msg (void *cls, const struct OperationRequestMessage *msg)
+handle_incoming_msg (void *cls,
+                     const struct OperationRequestMessage *msg)
 {
   struct Operation *op = cls;
   struct Listener *listener = op->listener;
@@ -2354,121 +1859,6 @@ handle_incoming_msg (void *cls, const struct OperationRequestMessage *msg)
   GNUNET_MQ_send (listener->cs->mq, env);
   /* NOTE: GNUNET_CADET_receive_done() will be called in
    #handle_client_accept() */
-}
-
-
-/**
- * Add an element to @a set as specified by @a msg
- *
- * @param set set to manipulate
- * @param msg message specifying the change
- */
-static void
-execute_add (struct Set *set, const struct GNUNET_SET_ElementMessage *msg)
-{
-  struct GNUNET_SET_Element el;
-  struct ElementEntry *ee;
-  struct GNUNET_HashCode hash;
-
-  GNUNET_assert (GNUNET_MESSAGE_TYPE_SETI_ADD == ntohs (msg->header.type));
-  el.size = ntohs (msg->header.size) - sizeof(*msg);
-  el.data = &msg[1];
-  el.element_type = ntohs (msg->element_type);
-  GNUNET_SET_element_hash (&el, &hash);
-  ee = GNUNET_CONTAINER_multihashmap_get (set->content->elements, &hash);
-  if (NULL == ee)
-  {
-    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                "Client inserts element %s of size %u\n",
-                GNUNET_h2s (&hash),
-                el.size);
-    ee = GNUNET_malloc (el.size + sizeof(*ee));
-    ee->element.size = el.size;
-    GNUNET_memcpy (&ee[1], el.data, el.size);
-    ee->element.data = &ee[1];
-    ee->element.element_type = el.element_type;
-    ee->remote = GNUNET_NO;
-    ee->mutations = NULL;
-    ee->mutations_size = 0;
-    ee->element_hash = hash;
-    GNUNET_break (GNUNET_YES ==
-                  GNUNET_CONTAINER_multihashmap_put (
-                    set->content->elements,
-                    &ee->element_hash,
-                    ee,
-                    GNUNET_CONTAINER_MULTIHASHMAPOPTION_UNIQUE_ONLY));
-  }
-  else if (GNUNET_YES ==
-           is_element_of_generation (ee,
-                                     set->current_generation,
-                                     set->excluded_generations,
-                                     set->excluded_generations_size))
-  {
-    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                "Client inserted element %s of size %u twice (ignored)\n",
-                GNUNET_h2s (&hash),
-                el.size);
-
-    /* same element inserted twice */
-    return;
-  }
-
-  {
-    struct MutationEvent mut = { .generation = set->current_generation,
-                                 .added = GNUNET_YES };
-    GNUNET_array_append (ee->mutations, ee->mutations_size, mut);
-  }
-  // FIXME: inline
-  intersection_add (set->state,
-                    ee);
-}
-
-
-/**
- * Perform a mutation on a set as specified by the @a msg
- *
- * @param set the set to mutate
- * @param msg specification of what to change
- */
-static void
-execute_mutation (struct Set *set, const struct GNUNET_SET_ElementMessage *msg)
-{
-  switch (ntohs (msg->header.type))
-  {
-  case GNUNET_MESSAGE_TYPE_SETI_ADD: // FIXME: inline!
-    execute_add (set, msg);
-    break;
-  default:
-    GNUNET_break (0);
-  }
-}
-
-
-/**
- * Execute mutations that were delayed on a set because of
- * pending operations.
- *
- * @param set the set to execute mutations on
- */
-static void
-execute_delayed_mutations (struct Set *set)
-{
-  struct PendingMutation *pm;
-
-  if (0 != set->content->iterator_count)
-    return; /* still cannot do this */
-  while (NULL != (pm = set->content->pending_mutations_head))
-  {
-    GNUNET_CONTAINER_DLL_remove (set->content->pending_mutations_head,
-                                 set->content->pending_mutations_tail,
-                                 pm);
-    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                "Executing pending mutation on %p.\n",
-                pm->set);
-    execute_mutation (pm->set, pm->msg);
-    GNUNET_free (pm->msg);
-    GNUNET_free (pm);
-  }
 }
 
 
@@ -2542,7 +1932,8 @@ send_client_element (struct Set *set)
  * @param m message sent by the client
  */
 static void
-handle_client_iterate (void *cls, const struct GNUNET_MessageHeader *m)
+handle_client_iterate (void *cls,
+                       const struct GNUNET_MessageHeader *m)
 {
   struct ClientState *cs = cls;
   struct Set *set;
@@ -2584,7 +1975,8 @@ handle_client_iterate (void *cls, const struct GNUNET_MessageHeader *m)
  * @param m message sent by the client
  */
 static void
-handle_client_create_set (void *cls, const struct GNUNET_SET_CreateMessage *msg)
+handle_client_create_set (void *cls,
+                          const struct GNUNET_SET_CreateMessage *msg)
 {
   struct ClientState *cs = cls;
   struct Set *set;
@@ -2600,24 +1992,18 @@ handle_client_create_set (void *cls, const struct GNUNET_SET_CreateMessage *msg)
     return;
   }
   set = GNUNET_new (struct Set);
-  switch (ntohl (msg->operation))
   {
-  case GNUNET_SET_OPERATION_INTERSECTION:
-    set->vt = _GSS_intersection_vt ();
-    break;
+    struct SetState *set_state;
 
-  case GNUNET_SET_OPERATION_UNION:
-    set->vt = _GSS_union_vt ();
-    break;
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "Intersection set created\n");
+    set_state = GNUNET_new (struct SetState);
+    set_state->current_set_element_count = 0;
 
-  default:
-    GNUNET_free (set);
-    GNUNET_break (0);
-    GNUNET_SERVICE_client_drop (cs->client);
-    return;
+    set->state = set_state;
   }
-  set->operation = (enum GNUNET_SET_OperationType) ntohl (msg->operation);
-  set->state = intersection_set_create (); // FIXME: inline
+
+
   if (NULL == set->state)
   {
     /* initialization failed (i.e. out of memory) */
@@ -2627,7 +2013,8 @@ handle_client_create_set (void *cls, const struct GNUNET_SET_CreateMessage *msg)
   }
   set->content = GNUNET_new (struct SetContent);
   set->content->refcount = 1;
-  set->content->elements = GNUNET_CONTAINER_multihashmap_create (1, GNUNET_YES);
+  set->content->elements = GNUNET_CONTAINER_multihashmap_create (1,
+                                                                 GNUNET_YES);
   set->cs = cs;
   cs->set = set;
   GNUNET_SERVICE_client_continue (cs->client);
@@ -2679,17 +2066,21 @@ channel_new_cb (void *cls,
   struct Listener *listener = cls;
   struct Operation *op;
 
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "New incoming channel\n");
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "New incoming channel\n");
   op = GNUNET_new (struct Operation);
   op->listener = listener;
   op->peer = *source;
   op->channel = channel;
   op->mq = GNUNET_CADET_get_mq (op->channel);
-  op->salt = GNUNET_CRYPTO_random_u32 (GNUNET_CRYPTO_QUALITY_NONCE, UINT32_MAX);
+  op->salt = GNUNET_CRYPTO_random_u32 (GNUNET_CRYPTO_QUALITY_NONCE,
+                                       UINT32_MAX);
   op->timeout_task = GNUNET_SCHEDULER_add_delayed (INCOMING_CHANNEL_TIMEOUT,
                                                    &incoming_timeout_cb,
                                                    op);
-  GNUNET_CONTAINER_DLL_insert (listener->op_head, listener->op_tail, op);
+  GNUNET_CONTAINER_DLL_insert (listener->op_head,
+                               listener->op_tail,
+                               op);
   return op;
 }
 
@@ -2711,7 +2102,8 @@ channel_new_cb (void *cls,
  * @param channel connection to the other end (henceforth invalid)
  */
 static void
-channel_end_cb (void *channel_ctx, const struct GNUNET_CADET_Channel *channel)
+channel_end_cb (void *channel_ctx,
+                const struct GNUNET_CADET_Channel *channel)
 {
   struct Operation *op = channel_ctx;
 
@@ -2725,12 +2117,13 @@ channel_end_cb (void *channel_ctx, const struct GNUNET_CADET_Channel *channel)
  * and be replaced by inlining more specific
  * logic in the various places where it is called.
  */
-void
+static void
 _GSS_operation_destroy2 (struct Operation *op)
 {
   struct GNUNET_CADET_Channel *channel;
 
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "channel_end_cb called\n");
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "channel_end_cb called\n");
   if (NULL != (channel = op->channel))
   {
     /* This will free op; called conditionally as this helper function
@@ -2744,9 +2137,22 @@ _GSS_operation_destroy2 (struct Operation *op)
     return;
   }
   if (NULL != op->set)
-    intersection_channel_death (op); // FIXME: inline
+  {
+    if (GNUNET_YES == op->state->channel_death_expected)
+    {
+      /* oh goodie, we are done! */
+      send_client_done_and_destroy (op);
+    }
+    else
+    {
+      /* sorry, channel went down early, too bad. */
+      _GSS_operation_destroy (op,
+                              GNUNET_YES);
+    }
+  }
   else
-    _GSS_operation_destroy (op, GNUNET_YES);
+    _GSS_operation_destroy (op,
+                            GNUNET_YES);
   GNUNET_free (op);
 }
 
@@ -2781,7 +2187,8 @@ channel_window_cb (void *cls,
  * @param msg message sent by the client
  */
 static void
-handle_client_listen (void *cls, const struct GNUNET_SET_ListenMessage *msg)
+handle_client_listen (void *cls,
+                      const struct GNUNET_SET_ListenMessage *msg)
 {
   struct ClientState *cs = cls;
   struct GNUNET_MQ_MessageHandler cadet_handlers[] =
@@ -2816,7 +2223,9 @@ handle_client_listen (void *cls, const struct GNUNET_SET_ListenMessage *msg)
   cs->listener = listener;
   listener->app_id = msg->app_id;
   listener->operation = (enum GNUNET_SET_OperationType) ntohl (msg->operation);
-  GNUNET_CONTAINER_DLL_insert (listener_head, listener_tail, listener);
+  GNUNET_CONTAINER_DLL_insert (listener_head,
+                               listener_tail,
+                               listener);
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "New listener created (op %u, port %s)\n",
               listener->operation,
@@ -2840,7 +2249,8 @@ handle_client_listen (void *cls, const struct GNUNET_SET_ListenMessage *msg)
  * @param msg message sent by the client
  */
 static void
-handle_client_reject (void *cls, const struct GNUNET_SET_RejectMessage *msg)
+handle_client_reject (void *cls,
+                      const struct GNUNET_SET_RejectMessage *msg)
 {
   struct ClientState *cs = cls;
   struct Operation *op;
@@ -2872,7 +2282,8 @@ handle_client_reject (void *cls, const struct GNUNET_SET_RejectMessage *msg)
  * @param msg message sent by the client
  */
 static int
-check_client_mutation (void *cls, const struct GNUNET_SET_ElementMessage *msg)
+check_client_mutation (void *cls,
+                       const struct GNUNET_SET_ElementMessage *msg)
 {
   /* NOTE: Technically, we should probably check with the
      block library whether the element we are given is well-formed */
@@ -2881,16 +2292,20 @@ check_client_mutation (void *cls, const struct GNUNET_SET_ElementMessage *msg)
 
 
 /**
- * Called when a client wants to add or remove an element to a set it inhabits.
+ * Called when a client wants to add an element to a set it inhabits.
  *
  * @param cls client that sent the message
  * @param msg message sent by the client
  */
 static void
-handle_client_mutation (void *cls, const struct GNUNET_SET_ElementMessage *msg)
+handle_client_set_add (void *cls,
+                       const struct GNUNET_SET_ElementMessage *msg)
 {
   struct ClientState *cs = cls;
   struct Set *set;
+  struct GNUNET_SET_Element el;
+  struct ElementEntry *ee;
+  struct GNUNET_HashCode hash;
 
   if (NULL == (set = cs->set))
   {
@@ -2900,23 +2315,45 @@ handle_client_mutation (void *cls, const struct GNUNET_SET_ElementMessage *msg)
     return;
   }
   GNUNET_SERVICE_client_continue (cs->client);
-
-  if (0 != set->content->iterator_count)
+  el.size = ntohs (msg->header.size) - sizeof(*msg);
+  el.data = &msg[1];
+  el.element_type = ntohs (msg->element_type);
+  GNUNET_ISET_element_hash (&el,
+                            &hash);
+  ee = GNUNET_CONTAINER_multihashmap_get (set->content->elements,
+                                          &hash);
+  if (NULL == ee)
   {
-    struct PendingMutation *pm;
-
-    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Scheduling mutation on set\n");
-    pm = GNUNET_new (struct PendingMutation);
-    pm->msg =
-      (struct GNUNET_SET_ElementMessage *) GNUNET_copy_message (&msg->header);
-    pm->set = set;
-    GNUNET_CONTAINER_DLL_insert_tail (set->content->pending_mutations_head,
-                                      set->content->pending_mutations_tail,
-                                      pm);
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "Client inserts element %s of size %u\n",
+                GNUNET_h2s (&hash),
+                el.size);
+    ee = GNUNET_malloc (el.size + sizeof(*ee));
+    ee->element.size = el.size;
+    GNUNET_memcpy (&ee[1], el.data, el.size);
+    ee->element.data = &ee[1];
+    ee->element.element_type = el.element_type;
+    ee->remote = GNUNET_NO;
+    ee->mutations = NULL;
+    ee->mutations_size = 0;
+    ee->element_hash = hash;
+    GNUNET_break (GNUNET_YES ==
+                  GNUNET_CONTAINER_multihashmap_put (
+                    set->content->elements,
+                    &ee->element_hash,
+                    ee,
+                    GNUNET_CONTAINER_MULTIHASHMAPOPTION_UNIQUE_ONLY));
+  }
+  else
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "Client inserted element %s of size %u twice (ignored)\n",
+                GNUNET_h2s (&hash),
+                el.size);
+    /* same element inserted twice */
     return;
   }
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Executing mutation on set\n");
-  execute_mutation (set, msg);
+  set->state->current_set_element_count++;
 }
 
 
@@ -2929,24 +2366,13 @@ handle_client_mutation (void *cls, const struct GNUNET_SET_ElementMessage *msg)
 static void
 advance_generation (struct Set *set)
 {
-  struct GenerationRange r;
-
   if (set->current_generation == set->content->latest_generation)
   {
     set->content->latest_generation++;
     set->current_generation++;
     return;
   }
-
   GNUNET_assert (set->current_generation < set->content->latest_generation);
-
-  r.start = set->current_generation + 1;
-  r.end = set->content->latest_generation + 1;
-  set->content->latest_generation = r.end;
-  set->current_generation = r.end;
-  GNUNET_array_append (set->excluded_generations,
-                       set->excluded_generations_size,
-                       r);
 }
 
 
@@ -2960,7 +2386,8 @@ advance_generation (struct Set *set)
  * @return #GNUNET_OK if the message is well-formed
  */
 static int
-check_client_evaluate (void *cls, const struct GNUNET_SET_EvaluateMessage *msg)
+check_client_evaluate (void *cls,
+                       const struct GNUNET_SET_EvaluateMessage *msg)
 {
   /* FIXME: suboptimal, even if the context below could be NULL,
      there are malformed messages this does not check for... */
@@ -2977,7 +2404,8 @@ check_client_evaluate (void *cls, const struct GNUNET_SET_EvaluateMessage *msg)
  * @param msg message sent by the client
  */
 static void
-handle_client_evaluate (void *cls, const struct GNUNET_SET_EvaluateMessage *msg)
+handle_client_evaluate (void *cls,
+                        const struct GNUNET_SET_EvaluateMessage *msg)
 {
   struct ClientState *cs = cls;
   struct Operation *op = GNUNET_new (struct Operation);
@@ -3010,7 +2438,8 @@ handle_client_evaluate (void *cls, const struct GNUNET_SET_EvaluateMessage *msg)
     GNUNET_SERVICE_client_drop (cs->client);
     return;
   }
-  op->salt = GNUNET_CRYPTO_random_u32 (GNUNET_CRYPTO_QUALITY_NONCE, UINT32_MAX);
+  op->salt = GNUNET_CRYPTO_random_u32 (GNUNET_CRYPTO_QUALITY_NONCE,
+                                       UINT32_MAX);
   op->peer = msg->target_peer;
   op->result_mode = ntohl (msg->result_mode);
   op->client_request_id = ntohl (msg->request_id);
@@ -3025,7 +2454,9 @@ handle_client_evaluate (void *cls, const struct GNUNET_SET_EvaluateMessage *msg)
   op->set = set;
   op->generation_created = set->current_generation;
   advance_generation (set);
-  GNUNET_CONTAINER_DLL_insert (set->ops_head, set->ops_tail, op);
+  GNUNET_CONTAINER_DLL_insert (set->ops_head,
+                               set->ops_tail,
+                               op);
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Creating new CADET channel to port %s for set operation type %u\n",
               GNUNET_h2s (&msg->app_id),
@@ -3038,12 +2469,42 @@ handle_client_evaluate (void *cls, const struct GNUNET_SET_EvaluateMessage *msg)
                                              &channel_end_cb,
                                              cadet_handlers);
   op->mq = GNUNET_CADET_get_mq (op->channel);
-  op->state = intersection_evaluate (op, context); // FIXME: inline!
-  if (NULL == op->state)
   {
-    GNUNET_break (0);
-    GNUNET_SERVICE_client_drop (cs->client);
-    return;
+    struct OperationState *state;
+    struct GNUNET_MQ_Envelope *ev;
+    struct OperationRequestMessage *msg;
+
+    ev = GNUNET_MQ_msg_nested_mh (msg,
+                                  GNUNET_MESSAGE_TYPE_SETI_P2P_OPERATION_REQUEST,
+                                  context);
+    if (NULL == ev)
+    {
+      /* the context message is too large!? */
+      GNUNET_break (0);
+      GNUNET_SERVICE_client_drop (cs->client);
+      return;
+    }
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "Initiating intersection operation evaluation\n");
+    state = GNUNET_new (struct OperationState);
+    /* we started the operation, thus we have to send the operation request */
+    state->phase = PHASE_INITIAL;
+    state->my_element_count = op->set->state->current_set_element_count;
+    state->my_elements
+      = GNUNET_CONTAINER_multihashmap_create (state->my_element_count,
+                                              GNUNET_YES);
+
+    msg->element_count = htonl (state->my_element_count);
+    GNUNET_MQ_send (op->mq,
+                    ev);
+    state->phase = PHASE_COUNT_SENT;
+    if (NULL != opaque_context)
+      GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                  "Sent op request with context message\n");
+    else
+      GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                  "Sent op request without context message\n");
+    op->state = state;
   }
   GNUNET_SERVICE_client_continue (cs->client);
 }
@@ -3056,7 +2517,8 @@ handle_client_evaluate (void *cls, const struct GNUNET_SET_EvaluateMessage *msg)
  * @param msg the message
  */
 static void
-handle_client_cancel (void *cls, const struct GNUNET_SET_CancelMessage *msg)
+handle_client_cancel (void *cls,
+                      const struct GNUNET_SET_CancelMessage *msg)
 {
   struct ClientState *cs = cls;
   struct Set *set;
@@ -3085,7 +2547,8 @@ handle_client_cancel (void *cls, const struct GNUNET_SET_CancelMessage *msg)
      * the other peer disconnecting.  The client may not know about this
      * yet and try to cancel the (just barely non-existent) operation.
      * So this is not a hard error.
-     */GNUNET_log (GNUNET_ERROR_TYPE_INFO,
+     *///
+    GNUNET_log (GNUNET_ERROR_TYPE_INFO,
                 "Client canceled non-existent op %u\n",
                 (uint32_t) ntohl (msg->request_id));
   }
@@ -3109,7 +2572,8 @@ handle_client_cancel (void *cls, const struct GNUNET_SET_CancelMessage *msg)
  * @param msg the message
  */
 static void
-handle_client_accept (void *cls, const struct GNUNET_SET_AcceptMessage *msg)
+handle_client_accept (void *cls,
+                      const struct GNUNET_SET_AcceptMessage *msg)
 {
   struct ClientState *cs = cls;
   struct Set *set;
@@ -3136,7 +2600,8 @@ handle_client_accept (void *cls, const struct GNUNET_SET_AcceptMessage *msg)
       cs,
       ntohl (msg->accept_reject_id),
       cs->listener);
-    ev = GNUNET_MQ_msg (result_message, GNUNET_MESSAGE_TYPE_SETI_RESULT);
+    ev = GNUNET_MQ_msg (result_message,
+                        GNUNET_MESSAGE_TYPE_SETI_RESULT);
     result_message->request_id = msg->request_id;
     result_message->result_status = htons (GNUNET_SET_STATUS_FAILURE);
     GNUNET_MQ_send (set->cs->mq, ev);
@@ -3163,12 +2628,34 @@ handle_client_accept (void *cls, const struct GNUNET_SET_AcceptMessage *msg)
   op->generation_created = set->current_generation;
   advance_generation (set);
   GNUNET_assert (NULL == op->state);
-  op->state = intersection_accept (op); // FIXME: inline
-  if (NULL == op->state)
   {
-    GNUNET_break (0);
-    GNUNET_SERVICE_client_drop (cs->client);
-    return;
+    struct OperationState *state;
+
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "Accepting set intersection operation\n");
+    state = GNUNET_new (struct OperationState);
+    state->phase = PHASE_INITIAL;
+    state->my_element_count
+      = op->set->state->current_set_element_count;
+    state->my_elements
+      = GNUNET_CONTAINER_multihashmap_create (
+          GNUNET_MIN (state->my_element_count,
+                      op->remote_element_count),
+          GNUNET_YES);
+    op->state = state;
+    if (op->remote_element_count < state->my_element_count)
+    {
+      /* If the other peer (Alice) has fewer elements than us (Bob),
+         we just send the count as Alice should send the first BF */
+      send_element_count (op);
+      state->phase = PHASE_COUNT_SENT;
+    }
+    else
+    {
+      /* We have fewer elements, so we start with the BF */
+      begin_bf_exchange (op);
+    }
+    op->state = state;
   }
   /* Now allow CADET to continue, as we did not do this in
    #handle_incoming_msg (as we wanted to first see if the
@@ -3196,8 +2683,10 @@ shutdown_task (void *cls)
       cadet = NULL;
     }
   }
-  GNUNET_STATISTICS_destroy (_GSS_statistics, GNUNET_YES);
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "handled shutdown request\n");
+  GNUNET_STATISTICS_destroy (_GSS_statistics,
+                             GNUNET_YES);
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "handled shutdown request\n");
 }
 
 
@@ -3217,8 +2706,10 @@ run (void *cls,
   /* FIXME: need to modify SERVICE (!) API to allow
      us to run a shutdown task *after* clients were
      forcefully disconnected! */
-  GNUNET_SCHEDULER_add_shutdown (&shutdown_task, NULL);
-  _GSS_statistics = GNUNET_STATISTICS_create ("set", cfg);
+  GNUNET_SCHEDULER_add_shutdown (&shutdown_task,
+                                 NULL);
+  _GSS_statistics = GNUNET_STATISTICS_create ("seti",
+                                              cfg);
   cadet = GNUNET_CADET_connect (cfg);
   if (NULL == cadet)
   {
@@ -3234,7 +2725,7 @@ run (void *cls,
  * Define "main" method using service macro.
  */
 GNUNET_SERVICE_MAIN (
-  "set",
+  "seti",
   GNUNET_SERVICE_OPTION_NONE,
   &run,
   &client_connect_cb,
@@ -3244,7 +2735,7 @@ GNUNET_SERVICE_MAIN (
                            GNUNET_MESSAGE_TYPE_SETI_ACCEPT,
                            struct GNUNET_SET_AcceptMessage,
                            NULL),
-  GNUNET_MQ_hd_var_size (client_mutation,
+  GNUNET_MQ_hd_var_size (client_set_add,
                          GNUNET_MESSAGE_TYPE_SETI_ADD,
                          struct GNUNET_SET_ElementMessage,
                          NULL),
