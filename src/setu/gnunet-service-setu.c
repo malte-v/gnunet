@@ -462,7 +462,7 @@ fail_union_operation (struct Operation *op)
 
   LOG (GNUNET_ERROR_TYPE_WARNING,
        "union operation failed\n");
-  ev = GNUNET_MQ_msg (msg, GNUNET_MESSAGE_TYPE_SET_RESULT);
+  ev = GNUNET_MQ_msg (msg, GNUNET_MESSAGE_TYPE_SETU_RESULT);
   msg->result_status = htons (GNUNET_SETU_STATUS_FAILURE);
   msg->request_id = htonl (op->client_request_id);
   msg->element_type = htons (0);
@@ -801,7 +801,7 @@ send_ibf (struct Operation *op,
 
     ev = GNUNET_MQ_msg_extra (msg,
                               buckets_in_message * IBF_BUCKET_SIZE,
-                              GNUNET_MESSAGE_TYPE_SET_UNION_P2P_IBF);
+                              GNUNET_MESSAGE_TYPE_SETU_P2P_IBF);
     msg->reserved1 = 0;
     msg->reserved2 = 0;
     msg->order = ibf_order;
@@ -872,7 +872,7 @@ send_full_element_iterator (void *cls,
        GNUNET_h2s (key));
   ev = GNUNET_MQ_msg_extra (emsg,
                             el->size,
-                            GNUNET_MESSAGE_TYPE_SET_UNION_P2P_FULL_ELEMENT);
+                            GNUNET_MESSAGE_TYPE_SETU_P2P_FULL_ELEMENT);
   emsg->element_type = htons (el->element_type);
   GNUNET_memcpy (&emsg[1],
                  el->data,
@@ -901,7 +901,7 @@ send_full_set (struct Operation *op)
   (void) GNUNET_CONTAINER_multihashmap_iterate (op->set->content->elements,
                                                 &send_full_element_iterator,
                                                 op);
-  ev = GNUNET_MQ_msg_header (GNUNET_MESSAGE_TYPE_SET_UNION_P2P_FULL_DONE);
+  ev = GNUNET_MQ_msg_header (GNUNET_MESSAGE_TYPE_SETU_P2P_FULL_DONE);
   GNUNET_MQ_send (op->mq,
                   ev);
 }
@@ -926,7 +926,7 @@ check_union_p2p_strata_estimator (void *cls,
     GNUNET_break (0);
     return GNUNET_SYSERR;
   }
-  is_compressed = (GNUNET_MESSAGE_TYPE_SET_UNION_P2P_SEC == htons (
+  is_compressed = (GNUNET_MESSAGE_TYPE_SETU_P2P_SEC == htons (
                      msg->header.type));
   len = ntohs (msg->header.size) - sizeof(struct StrataEstimatorMessage);
   if ((GNUNET_NO == is_compressed) &&
@@ -956,7 +956,7 @@ handle_union_p2p_strata_estimator (void *cls,
   size_t len;
   int is_compressed;
 
-  is_compressed = (GNUNET_MESSAGE_TYPE_SET_UNION_P2P_SEC == htons (
+  is_compressed = (GNUNET_MESSAGE_TYPE_SETU_P2P_SEC == htons (
                      msg->header.type));
   GNUNET_STATISTICS_update (_GSS_statistics,
                             "# bytes of SE received",
@@ -1045,7 +1045,7 @@ handle_union_p2p_strata_estimator (void *cls,
            "Telling other peer that we expect its full set\n");
       op->state->phase = PHASE_EXPECT_IBF;
       ev = GNUNET_MQ_msg_header (
-        GNUNET_MESSAGE_TYPE_SET_UNION_P2P_REQUEST_FULL);
+        GNUNET_MESSAGE_TYPE_SETU_P2P_REQUEST_FULL);
       GNUNET_MQ_send (op->mq,
                       ev);
     }
@@ -1095,7 +1095,7 @@ send_offers_iterator (void *cls,
 
   ev = GNUNET_MQ_msg_header_extra (mh,
                                    sizeof(struct GNUNET_HashCode),
-                                   GNUNET_MESSAGE_TYPE_SET_UNION_P2P_OFFER);
+                                   GNUNET_MESSAGE_TYPE_SETU_P2P_OFFER);
 
   GNUNET_assert (NULL != ev);
   *(struct GNUNET_HashCode *) &mh[1] = ke->element->element_hash;
@@ -1246,7 +1246,7 @@ decode_and_send (struct Operation *op)
 
       LOG (GNUNET_ERROR_TYPE_DEBUG,
            "transmitted all values, sending DONE\n");
-      ev = GNUNET_MQ_msg_header (GNUNET_MESSAGE_TYPE_SET_UNION_P2P_DONE);
+      ev = GNUNET_MQ_msg_header (GNUNET_MESSAGE_TYPE_SETU_P2P_DONE);
       GNUNET_MQ_send (op->mq, ev);
       /* We now wait until we get a DONE message back
        * and then wait for our MQ to be flushed and all our
@@ -1272,7 +1272,7 @@ decode_and_send (struct Operation *op)
        * the effort additional complexity. */
       ev = GNUNET_MQ_msg_extra (msg,
                                 sizeof(struct IBF_Key),
-                                GNUNET_MESSAGE_TYPE_SET_UNION_P2P_INQUIRY);
+                                GNUNET_MESSAGE_TYPE_SETU_P2P_INQUIRY);
       msg->salt = htonl (op->state->salt_receive);
       GNUNET_memcpy (&msg[1],
                      &key,
@@ -1452,7 +1452,7 @@ send_client_element (struct Operation *op,
   GNUNET_assert (0 != op->client_request_id);
   ev = GNUNET_MQ_msg_extra (rm,
                             element->size,
-                            GNUNET_MESSAGE_TYPE_SET_RESULT);
+                            GNUNET_MESSAGE_TYPE_SETU_RESULT);
   if (NULL == ev)
   {
     GNUNET_MQ_discard (ev);
@@ -1498,7 +1498,7 @@ send_client_done (void *cls)
                               "# Union operations failed",
                               1,
                               GNUNET_NO);
-    ev = GNUNET_MQ_msg (rm, GNUNET_MESSAGE_TYPE_SET_RESULT);
+    ev = GNUNET_MQ_msg (rm, GNUNET_MESSAGE_TYPE_SETU_RESULT);
     rm->result_status = htons (GNUNET_SETU_STATUS_FAILURE);
     rm->request_id = htonl (op->client_request_id);
     rm->element_type = htons (0);
@@ -1516,7 +1516,7 @@ send_client_done (void *cls)
   LOG (GNUNET_ERROR_TYPE_INFO,
        "Signalling client that union operation is done\n");
   ev = GNUNET_MQ_msg (rm,
-                      GNUNET_MESSAGE_TYPE_SET_RESULT);
+                      GNUNET_MESSAGE_TYPE_SETU_RESULT);
   rm->request_id = htonl (op->client_request_id);
   rm->result_status = htons (GNUNET_SETU_STATUS_DONE);
   rm->element_type = htons (0);
@@ -1550,7 +1550,7 @@ maybe_finish (struct Operation *op)
       struct GNUNET_MQ_Envelope *ev;
 
       op->state->phase = PHASE_DONE;
-      ev = GNUNET_MQ_msg_header (GNUNET_MESSAGE_TYPE_SET_UNION_P2P_DONE);
+      ev = GNUNET_MQ_msg_header (GNUNET_MESSAGE_TYPE_SETU_P2P_DONE);
       GNUNET_MQ_send (op->mq,
                       ev);
       /* We now wait until the other peer sends P2P_OVER
@@ -1877,7 +1877,7 @@ send_missing_full_elements_iter (void *cls,
     return GNUNET_YES;
   ev = GNUNET_MQ_msg_extra (emsg,
                             ee->element.size,
-                            GNUNET_MESSAGE_TYPE_SET_UNION_P2P_FULL_ELEMENT);
+                            GNUNET_MESSAGE_TYPE_SETU_P2P_FULL_ELEMENT);
   GNUNET_memcpy (&emsg[1],
                  ee->element.data,
                  ee->element.size);
@@ -1942,7 +1942,7 @@ handle_union_p2p_full_done (void *cls,
                                                &send_missing_full_elements_iter,
                                                op);
 
-      ev = GNUNET_MQ_msg_header (GNUNET_MESSAGE_TYPE_SET_UNION_P2P_FULL_DONE);
+      ev = GNUNET_MQ_msg_header (GNUNET_MESSAGE_TYPE_SETU_P2P_FULL_DONE);
       GNUNET_MQ_send (op->mq,
                       ev);
       op->state->phase = PHASE_DONE;
@@ -2044,7 +2044,7 @@ handle_union_p2p_demand (void *cls,
       return;
     }
     ev = GNUNET_MQ_msg_extra (emsg, ee->element.size,
-                              GNUNET_MESSAGE_TYPE_SET_P2P_ELEMENTS);
+                              GNUNET_MESSAGE_TYPE_SETU_P2P_ELEMENTS);
     GNUNET_memcpy (&emsg[1], ee->element.data, ee->element.size);
     emsg->reserved = htons (0);
     emsg->element_type = htons (ee->element.element_type);
@@ -2148,7 +2148,7 @@ handle_union_p2p_offer (void *cls,
          (void *) op, GNUNET_h2s (hash));
     ev = GNUNET_MQ_msg_header_extra (demands,
                                      sizeof(struct GNUNET_HashCode),
-                                     GNUNET_MESSAGE_TYPE_SET_UNION_P2P_DEMAND);
+                                     GNUNET_MESSAGE_TYPE_SETU_P2P_DEMAND);
     GNUNET_memcpy (&demands[1],
                    hash,
                    sizeof(struct GNUNET_HashCode));
@@ -2242,7 +2242,7 @@ union_evaluate (struct Operation *op,
   struct OperationRequestMessage *msg;
 
   ev = GNUNET_MQ_msg_nested_mh (msg,
-                                GNUNET_MESSAGE_TYPE_SET_P2P_OPERATION_REQUEST,
+                                GNUNET_MESSAGE_TYPE_SETU_P2P_OPERATION_REQUEST,
                                 opaque_context);
   if (NULL == ev)
   {
@@ -2693,7 +2693,7 @@ handle_client_create_set (void *cls,
  * Timeout happens iff:
  *  - we suggested an operation to our listener,
  *    but did not receive a response in time
- *  - we got the channel from a peer but no #GNUNET_MESSAGE_TYPE_SET_P2P_OPERATION_REQUEST
+ *  - we got the channel from a peer but no #GNUNET_MESSAGE_TYPE_SETU_P2P_OPERATION_REQUEST
  *
  * @param cls channel context
  * @param tc context information (why was this task triggered now)
@@ -3004,7 +3004,6 @@ handle_client_set_add (void *cls,
   }
   GNUNET_SERVICE_client_continue (cs->client);
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Executing mutation on set\n");
-  GNUNET_assert (GNUNET_MESSAGE_TYPE_SET_ADD == ntohs (msg->header.type));
   el.size = ntohs (msg->header.size) - sizeof(*msg);
   el.data = &msg[1];
   el.element_type = ntohs (msg->element_type);
@@ -3096,55 +3095,55 @@ handle_client_evaluate (void *cls,
   struct Operation *op = GNUNET_new (struct Operation);
   const struct GNUNET_MQ_MessageHandler cadet_handlers[] = {
     GNUNET_MQ_hd_var_size (incoming_msg,
-                           GNUNET_MESSAGE_TYPE_SET_P2P_OPERATION_REQUEST,
+                           GNUNET_MESSAGE_TYPE_SETU_P2P_OPERATION_REQUEST,
                            struct OperationRequestMessage,
                            op),
     GNUNET_MQ_hd_var_size (union_p2p_ibf,
-                           GNUNET_MESSAGE_TYPE_SET_UNION_P2P_IBF,
+                           GNUNET_MESSAGE_TYPE_SETU_P2P_IBF,
                            struct IBFMessage,
                            op),
     GNUNET_MQ_hd_var_size (union_p2p_elements,
-                           GNUNET_MESSAGE_TYPE_SET_P2P_ELEMENTS,
+                           GNUNET_MESSAGE_TYPE_SETU_P2P_ELEMENTS,
                            struct GNUNET_SETU_ElementMessage,
                            op),
     GNUNET_MQ_hd_var_size (union_p2p_offer,
-                           GNUNET_MESSAGE_TYPE_SET_UNION_P2P_OFFER,
+                           GNUNET_MESSAGE_TYPE_SETU_P2P_OFFER,
                            struct GNUNET_MessageHeader,
                            op),
     GNUNET_MQ_hd_var_size (union_p2p_inquiry,
-                           GNUNET_MESSAGE_TYPE_SET_UNION_P2P_INQUIRY,
+                           GNUNET_MESSAGE_TYPE_SETU_P2P_INQUIRY,
                            struct InquiryMessage,
                            op),
     GNUNET_MQ_hd_var_size (union_p2p_demand,
-                           GNUNET_MESSAGE_TYPE_SET_UNION_P2P_DEMAND,
+                           GNUNET_MESSAGE_TYPE_SETU_P2P_DEMAND,
                            struct GNUNET_MessageHeader,
                            op),
     GNUNET_MQ_hd_fixed_size (union_p2p_done,
-                             GNUNET_MESSAGE_TYPE_SET_UNION_P2P_DONE,
+                             GNUNET_MESSAGE_TYPE_SETU_P2P_DONE,
                              struct GNUNET_MessageHeader,
                              op),
     GNUNET_MQ_hd_fixed_size (union_p2p_over,
-                             GNUNET_MESSAGE_TYPE_SET_UNION_P2P_OVER,
+                             GNUNET_MESSAGE_TYPE_SETU_P2P_OVER,
                              struct GNUNET_MessageHeader,
                              op),
     GNUNET_MQ_hd_fixed_size (union_p2p_full_done,
-                             GNUNET_MESSAGE_TYPE_SET_UNION_P2P_FULL_DONE,
+                             GNUNET_MESSAGE_TYPE_SETU_P2P_FULL_DONE,
                              struct GNUNET_MessageHeader,
                              op),
     GNUNET_MQ_hd_fixed_size (union_p2p_request_full,
-                             GNUNET_MESSAGE_TYPE_SET_UNION_P2P_REQUEST_FULL,
+                             GNUNET_MESSAGE_TYPE_SETU_P2P_REQUEST_FULL,
                              struct GNUNET_MessageHeader,
                              op),
     GNUNET_MQ_hd_var_size (union_p2p_strata_estimator,
-                           GNUNET_MESSAGE_TYPE_SET_UNION_P2P_SE,
+                           GNUNET_MESSAGE_TYPE_SETU_P2P_SE,
                            struct StrataEstimatorMessage,
                            op),
     GNUNET_MQ_hd_var_size (union_p2p_strata_estimator,
-                           GNUNET_MESSAGE_TYPE_SET_UNION_P2P_SEC,
+                           GNUNET_MESSAGE_TYPE_SETU_P2P_SEC,
                            struct StrataEstimatorMessage,
                            op),
     GNUNET_MQ_hd_var_size (union_p2p_full_element,
-                           GNUNET_MESSAGE_TYPE_SET_UNION_P2P_FULL_ELEMENT,
+                           GNUNET_MESSAGE_TYPE_SETU_P2P_FULL_ELEMENT,
                            struct GNUNET_SETU_ElementMessage,
                            op),
     GNUNET_MQ_handler_end ()
@@ -3290,7 +3289,7 @@ handle_client_accept (void *cls,
       ntohl (msg->accept_reject_id),
       cs->listener);
     ev = GNUNET_MQ_msg (result_message,
-                        GNUNET_MESSAGE_TYPE_SET_RESULT);
+                        GNUNET_MESSAGE_TYPE_SETU_RESULT);
     result_message->request_id = msg->request_id;
     result_message->result_status = htons (GNUNET_SETU_STATUS_FAILURE);
     GNUNET_MQ_send (set->cs->mq, ev);
@@ -3356,9 +3355,9 @@ handle_client_accept (void *cls,
     len = strata_estimator_write (se,
                                   buf);
     if (len < se->strata_count * IBF_BUCKET_SIZE * se->ibf_size)
-      type = GNUNET_MESSAGE_TYPE_SET_UNION_P2P_SEC;
+      type = GNUNET_MESSAGE_TYPE_SETU_P2P_SEC;
     else
-      type = GNUNET_MESSAGE_TYPE_SET_UNION_P2P_SE;
+      type = GNUNET_MESSAGE_TYPE_SETU_P2P_SE;
     ev = GNUNET_MQ_msg_extra (strata_msg,
                               len,
                               type);
