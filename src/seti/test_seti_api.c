@@ -19,7 +19,7 @@
  */
 
 /**
- * @file set/test_set_intersection_result_full.c
+ * @file set/test_seti_api.c
  * @brief testcase for full result mode of the intersection set operation
  * @author Christian Fuchs
  * @author Christian Grothoff
@@ -27,7 +27,7 @@
 #include "platform.h"
 #include "gnunet_util_lib.h"
 #include "gnunet_testing_lib.h"
-#include "gnunet_set_service.h"
+#include "gnunet_seti_service.h"
 
 
 static int ret;
@@ -36,28 +36,26 @@ static struct GNUNET_PeerIdentity local_id;
 
 static struct GNUNET_HashCode app_id;
 
-static struct GNUNET_SET_Handle *set1;
+static struct GNUNET_SETI_Handle *set1;
 
-static struct GNUNET_SET_Handle *set2;
+static struct GNUNET_SETI_Handle *set2;
 
-static struct GNUNET_SET_ListenHandle *listen_handle;
+static struct GNUNET_SETI_ListenHandle *listen_handle;
 
 static const struct GNUNET_CONFIGURATION_Handle *config;
 
-static int iter_count;
-
 static struct GNUNET_SCHEDULER_Task *tt;
 
-static struct GNUNET_SET_OperationHandle *oh1;
+static struct GNUNET_SETI_OperationHandle *oh1;
 
-static struct GNUNET_SET_OperationHandle *oh2;
+static struct GNUNET_SETI_OperationHandle *oh2;
 
 
 static void
 result_cb_set1 (void *cls,
-                const struct GNUNET_SET_Element *element,
+                const struct GNUNET_SETI_Element *element,
                 uint64_t current_size,
-                enum GNUNET_SET_Status status)
+                enum GNUNET_SETI_Status status)
 {
   static int count;
 
@@ -66,19 +64,17 @@ result_cb_set1 (void *cls,
               status);
   switch (status)
   {
-  case GNUNET_SET_STATUS_OK:
+  case GNUNET_SETI_STATUS_ADD_LOCAL:
     count++;
     break;
-
-  case GNUNET_SET_STATUS_FAILURE:
+  case GNUNET_SETI_STATUS_FAILURE:
     oh1 = NULL;
     ret = 1;
     break;
-
-  case GNUNET_SET_STATUS_DONE:
+  case GNUNET_SETI_STATUS_DONE:
     oh1 = NULL;
     GNUNET_assert (1 == count);
-    GNUNET_SET_destroy (set1);
+    GNUNET_SETI_destroy (set1);
     set1 = NULL;
     if (NULL == set2)
       GNUNET_SCHEDULER_shutdown ();
@@ -92,9 +88,9 @@ result_cb_set1 (void *cls,
 
 static void
 result_cb_set2 (void *cls,
-                const struct GNUNET_SET_Element *element,
+                const struct GNUNET_SETI_Element *element,
                 uint64_t current_size,
-                enum GNUNET_SET_Status status)
+                enum GNUNET_SETI_Status status)
 {
   static int count;
 
@@ -103,24 +99,21 @@ result_cb_set2 (void *cls,
               status);
   switch (status)
   {
-  case GNUNET_SET_STATUS_OK:
+  case GNUNET_SETI_STATUS_ADD_LOCAL:
     count++;
     break;
-
-  case GNUNET_SET_STATUS_FAILURE:
+  case GNUNET_SETI_STATUS_FAILURE:
     oh2 = NULL;
     ret = 1;
     break;
-
-  case GNUNET_SET_STATUS_DONE:
+  case GNUNET_SETI_STATUS_DONE:
     oh2 = NULL;
     GNUNET_assert (1 == count);
-    GNUNET_SET_destroy (set2);
+    GNUNET_SETI_destroy (set2);
     set2 = NULL;
     if (NULL == set1)
       GNUNET_SCHEDULER_shutdown ();
     break;
-
   default:
     GNUNET_assert (0);
   }
@@ -131,19 +124,23 @@ static void
 listen_cb (void *cls,
            const struct GNUNET_PeerIdentity *other_peer,
            const struct GNUNET_MessageHeader *context_msg,
-           struct GNUNET_SET_Request *request)
+           struct GNUNET_SETI_Request *request)
 {
+  struct GNUNET_SETI_Option opts[] = {
+    { .type = GNUNET_SETI_OPTION_RETURN_INTERSECTION },
+    { .type = GNUNET_SETI_OPTION_END }
+  };
+
   GNUNET_log (GNUNET_ERROR_TYPE_INFO,
               "starting intersection by accepting and committing\n");
   GNUNET_assert (NULL != context_msg);
   GNUNET_assert (ntohs (context_msg->type) == GNUNET_MESSAGE_TYPE_DUMMY);
-  oh2 = GNUNET_SET_accept (request,
-                           GNUNET_SET_RESULT_FULL,
-                           (struct GNUNET_SET_Option[]) { 0 },
-                           &result_cb_set2,
-                           NULL);
-  GNUNET_SET_commit (oh2,
-                     set2);
+  oh2 = GNUNET_SETI_accept (request,
+                            opts,
+                            &result_cb_set2,
+                            NULL);
+  GNUNET_SETI_commit (oh2,
+                      set2);
 }
 
 
@@ -156,25 +153,27 @@ static void
 start (void *cls)
 {
   struct GNUNET_MessageHeader context_msg;
+  struct GNUNET_SETI_Option opts[] = {
+    { .type = GNUNET_SETI_OPTION_RETURN_INTERSECTION },
+    { .type = GNUNET_SETI_OPTION_END }
+  };
 
   GNUNET_log (GNUNET_ERROR_TYPE_INFO,
               "starting listener\n");
-  context_msg.size = htons (sizeof context_msg);
+  context_msg.size = htons (sizeof (context_msg));
   context_msg.type = htons (GNUNET_MESSAGE_TYPE_DUMMY);
-  listen_handle = GNUNET_SET_listen (config,
-                                     GNUNET_SET_OPERATION_INTERSECTION,
-                                     &app_id,
-                                     &listen_cb,
-                                     NULL);
-  oh1 = GNUNET_SET_prepare (&local_id,
-                            &app_id,
-                            &context_msg,
-                            GNUNET_SET_RESULT_FULL,
-                            (struct GNUNET_SET_Option[]) { 0 },
-                            &result_cb_set1,
-                            NULL);
-  GNUNET_SET_commit (oh1,
-                     set1);
+  listen_handle = GNUNET_SETI_listen (config,
+                                      &app_id,
+                                      &listen_cb,
+                                      NULL);
+  oh1 = GNUNET_SETI_prepare (&local_id,
+                             &app_id,
+                             &context_msg,
+                             opts,
+                             &result_cb_set1,
+                             NULL);
+  GNUNET_SETI_commit (oh1,
+                      set1);
 }
 
 
@@ -186,29 +185,29 @@ start (void *cls)
 static void
 init_set2 (void *cls)
 {
-  struct GNUNET_SET_Element element;
+  struct GNUNET_SETI_Element element;
 
   GNUNET_log (GNUNET_ERROR_TYPE_INFO,
               "initializing set 2\n");
   element.element_type = 0;
   element.data = "hello";
   element.size = strlen (element.data);
-  GNUNET_SET_add_element (set2,
-                          &element,
-                          NULL,
-                          NULL);
+  GNUNET_SETI_add_element (set2,
+                           &element,
+                           NULL,
+                           NULL);
   element.data = "quux";
   element.size = strlen (element.data);
-  GNUNET_SET_add_element (set2,
-                          &element,
-                          NULL,
-                          NULL);
+  GNUNET_SETI_add_element (set2,
+                           &element,
+                           NULL,
+                           NULL);
   element.data = "baz";
   element.size = strlen (element.data);
-  GNUNET_SET_add_element (set2,
-                          &element,
-                          &start,
-                          NULL);
+  GNUNET_SETI_add_element (set2,
+                           &element,
+                           &start,
+                           NULL);
 }
 
 
@@ -218,71 +217,23 @@ init_set2 (void *cls)
 static void
 init_set1 (void)
 {
-  struct GNUNET_SET_Element element;
+  struct GNUNET_SETI_Element element;
 
   GNUNET_log (GNUNET_ERROR_TYPE_INFO,
               "initializing set 1\n");
   element.element_type = 0;
   element.data = "hello";
   element.size = strlen (element.data);
-  GNUNET_SET_add_element (set1,
-                          &element,
-                          NULL,
-                          NULL);
+  GNUNET_SETI_add_element (set1,
+                           &element,
+                           NULL,
+                           NULL);
   element.data = "bar";
   element.size = strlen (element.data);
-  GNUNET_SET_add_element (set1,
-                          &element,
-                          &init_set2,
-                          NULL);
-}
-
-
-static int
-iter_cb (void *cls,
-         const struct GNUNET_SET_Element *element)
-{
-  if (NULL == element)
-  {
-    GNUNET_assert (iter_count == 3);
-    GNUNET_SET_destroy (cls);
-    return GNUNET_YES;
-  }
-  iter_count++;
-  return GNUNET_YES;
-}
-
-
-static void
-test_iter ()
-{
-  struct GNUNET_SET_Element element;
-  struct GNUNET_SET_Handle *iter_set;
-
-  iter_set = GNUNET_SET_create (config,
-                                GNUNET_SET_OPERATION_INTERSECTION);
-  element.element_type = 0;
-  element.data = "hello";
-  element.size = strlen (element.data);
-  GNUNET_SET_add_element (iter_set,
-                          &element,
-                          NULL,
-                          NULL);
-  element.data = "bar";
-  element.size = strlen (element.data);
-  GNUNET_SET_add_element (iter_set,
-                          &element,
-                          NULL,
-                          NULL);
-  element.data = "quux";
-  element.size = strlen (element.data);
-  GNUNET_SET_add_element (iter_set,
-                          &element,
-                          NULL,
-                          NULL);
-  GNUNET_SET_iterate (iter_set,
-                      &iter_cb,
-                      iter_set);
+  GNUNET_SETI_add_element (set1,
+                           &element,
+                           &init_set2,
+                           NULL);
 }
 
 
@@ -301,27 +252,27 @@ do_shutdown (void *cls)
   }
   if (NULL != oh1)
   {
-    GNUNET_SET_operation_cancel (oh1);
+    GNUNET_SETI_operation_cancel (oh1);
     oh1 = NULL;
   }
   if (NULL != oh2)
   {
-    GNUNET_SET_operation_cancel (oh2);
+    GNUNET_SETI_operation_cancel (oh2);
     oh2 = NULL;
   }
   if (NULL != set1)
   {
-    GNUNET_SET_destroy (set1);
+    GNUNET_SETI_destroy (set1);
     set1 = NULL;
   }
   if (NULL != set2)
   {
-    GNUNET_SET_destroy (set2);
+    GNUNET_SETI_destroy (set2);
     set2 = NULL;
   }
   if (NULL != listen_handle)
   {
-    GNUNET_SET_listen_cancel (listen_handle);
+    GNUNET_SETI_listen_cancel (listen_handle);
     listen_handle = NULL;
   }
 }
@@ -359,20 +310,16 @@ run (void *cls,
   config = cfg;
   GNUNET_TESTING_peer_get_identity (peer,
                                     &local_id);
-  if (0)
-    test_iter ();
-
-  tt = GNUNET_SCHEDULER_add_delayed (GNUNET_TIME_relative_multiply (
-                                       GNUNET_TIME_UNIT_SECONDS, 5),
-                                     &timeout_fail,
-                                     NULL);
+  tt = GNUNET_SCHEDULER_add_delayed (
+    GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_SECONDS,
+                                   5),
+    &timeout_fail,
+    NULL);
   GNUNET_SCHEDULER_add_shutdown (&do_shutdown,
                                  NULL);
 
-  set1 = GNUNET_SET_create (cfg,
-                            GNUNET_SET_OPERATION_INTERSECTION);
-  set2 = GNUNET_SET_create (cfg,
-                            GNUNET_SET_OPERATION_INTERSECTION);
+  set1 = GNUNET_SETI_create (cfg);
+  set2 = GNUNET_SETI_create (cfg);
   GNUNET_CRYPTO_hash_create_random (GNUNET_CRYPTO_QUALITY_WEAK,
                                     &app_id);
 
@@ -385,9 +332,10 @@ int
 main (int argc,
       char **argv)
 {
-  if (0 != GNUNET_TESTING_peer_run ("test_set_intersection_result_full",
-                                    "test_set.conf",
-                                    &run, NULL))
+  if (0 != GNUNET_TESTING_peer_run ("test_seti_api",
+                                    "test_seti.conf",
+                                    &run,
+                                    NULL))
     return 1;
   return ret;
 }
