@@ -26,15 +26,18 @@
 #include "platform.h"
 #include "gnunet_util_lib.h"
 #include "gnunet_statistics_service.h"
-#include "gnunet-service-setu.h"
 #include "ibf.h"
+#include "gnunet_protocols.h"
+#include "gnunet_applications.h"
+#include "gnunet_cadet_service.h"
 #include "gnunet-service-setu_strata_estimator.h"
 #include "gnunet-service-setu_protocol.h"
 #include "gnunet_statistics_service.h"
 #include <gcrypt.h>
+#include "gnunet_setu_service.h"
+#include "setu.h"
 
-
-#define LOG(kind, ...) GNUNET_log_from (kind, "set-union", __VA_ARGS__)
+#define LOG(kind, ...) GNUNET_log_from (kind, "setu", __VA_ARGS__)
 
 /**
  * How long do we hold on to an incoming channel if there is
@@ -142,10 +145,119 @@ enum UnionOperationPhase
 
 
 /**
- * State of an evaluate operation with another peer.
+ * Information about an element element in the set.  All elements are
+ * stored in a hash-table from their hash-code to their `struct
+ * Element`, so that the remove and add operations are reasonably
+ * fast.
  */
-struct OperationState
+struct ElementEntry
 {
+  /**
+   * The actual element. The data for the element
+   * should be allocated at the end of this struct.
+   */
+  struct GNUNET_SETU_Element element;
+
+  /**
+   * Hash of the element.  For set union: Will be used to derive the
+   * different IBF keys for different salts.
+   */
+  struct GNUNET_HashCode element_hash;
+
+  /**
+   * First generation that includes this element.
+   */
+  unsigned int generation;
+
+  /**
+   * #GNUNET_YES if the element is a remote element, and does not belong
+   * to the operation's set.
+   */
+  int remote;
+};
+
+
+/**
+ * A listener is inhabited by a client, and waits for evaluation
+ * requests from remote peers.
+ */
+struct Listener;
+
+
+/**
+ * A set that supports a specific operation with other peers.
+ */
+struct Set;
+
+
+/**
+ * State we keep per client.
+ */
+struct ClientState
+{
+  /**
+   * Set, if associated with the client, otherwise NULL.
+   */
+  struct Set *set;
+
+  /**
+   * Listener, if associated with the client, otherwise NULL.
+   */
+  struct Listener *listener;
+
+  /**
+   * Client handle.
+   */
+  struct GNUNET_SERVICE_Client *client;
+
+  /**
+   * Message queue.
+   */
+  struct GNUNET_MQ_Handle *mq;
+};
+
+
+/**
+ * Operation context used to execute a set operation.
+ */
+struct Operation
+{
+  /**
+   * Kept in a DLL of the listener, if @e listener is non-NULL.
+   */
+  struct Operation *next;
+
+  /**
+   * Kept in a DLL of the listener, if @e listener is non-NULL.
+   */
+  struct Operation *prev;
+
+  /**
+   * Channel to the peer.
+   */
+  struct GNUNET_CADET_Channel *channel;
+
+  /**
+   * Port this operation runs on.
+   */
+  struct Listener *listener;
+
+  /**
+   * Message queue for the channel.
+   */
+  struct GNUNET_MQ_Handle *mq;
+
+  /**
+   * Context message, may be NULL.
+   */
+  struct GNUNET_MessageHeader *context_msg;
+
+  /**
+   * Set associated with the operation, NULL until the spec has been
+   * associated with a set.
+   */
+  struct Set *set;
+
   /**
    * Copy of the set's strata estimator at the time of
    * creation of this operation.
@@ -215,6 +327,152 @@ struct OperationState
    * the operation started.
    */
   uint64_t initial_size;
+
+  /**
+   * The identity of the requesting peer.  Needs to
+   * be stored here as the op spec might not have been created yet.
+   */
+  struct GNUNET_PeerIdentity peer;
+
+  /**
+   * Timeout task, if the incoming peer has not been accepted
+   * after the timeout, it will be disconnected.
+   */
+  struct GNUNET_SCHEDULER_Task *timeout_task;
+
+  /**
+   * Salt to use for the operation.
+   */
+  uint32_t salt;
+
+  /**
+   * Remote peers element count
+   */
+  uint32_t remote_element_count;
+
+  /**
+   * ID used to identify an operation between service and client
+   */
+  uint32_t client_request_id;
+
+  /**
+   * Always use delta operation instead of sending full sets,
+   * even it it's less efficient.
+   */
+  int force_delta;
+
+  /**
+   * Always send full sets, even if delta operations would
+   * be more efficient.
+   */
+  int force_full;
+
+  /**
+   * #GNUNET_YES to fail operations where Byzantine faults
+   * are suspected
+   */
+  int byzantine;
+
+  /**
+   * Lower bound for the set size, used only when
+   * byzantine mode is enabled.
+   */
+  int byzantine_lower_bound;
+
+  /**
+   * Unique request id for the request from a remote peer, sent to the
+   * client, which will accept or reject the request.  Set to '0' iff
+   * the request has not been suggested yet.
+   */
+  uint32_t suggest_id;
+
+  /**
+   * Generation in which the operation handle
+   * was created.
+   */
+  unsigned int generation_created;
+};
+
+
+/**
+ * SetContent stores the actual set elements, which may be shared by
+ * multiple generations derived from one set.
+ */
+struct SetContent
+{
+  /**
+   * Maps `struct GNUNET_HashCode *` to `struct ElementEntry *`.
+   */
+  struct GNUNET_CONTAINER_MultiHashMap *elements;
+
+  /**
+   * Number of references to the content.
+   */
+  unsigned int refcount;
+
+  /**
+   * FIXME: document!
+   */
+  unsigned int latest_generation;
+
+  /**
+   * Number of concurrently active iterators.
+   */
+  int iterator_count;
+};
+
+
+/**
+ * A set that supports a specific operation with other peers.
+ */
+struct Set
+{
+  /**
+   * Sets are held in a doubly linked list (in `sets_head` and `sets_tail`).
+   */
+  struct Set *next;
+
+  /**
+   * Sets are held in a doubly linked list.
+   */
+  struct Set *prev;
+
+  /**
+   * Client that owns the set.  Only one client may own a set,
+   * and there can only be one set per client.
+   */
+  struct ClientState *cs;
+
+  /**
+   * Content, possibly shared by multiple sets,
+   * and thus reference counted.
+   */
+  struct SetContent *content;
+
+  /**
+   * The strata estimator is only generated once for
+   * each set.
+   * The IBF keys are derived from the element hashes with
+   * salt=0.
+   */
+  struct StrataEstimator *se;
+
+  /**
+   * Evaluate operations are held in a linked list.
+   */
+  struct Operation *ops_head;
+
+  /**
+   * Evaluate operations are held in a linked list.
+   */
+  struct Operation *ops_tail;
+
+  /**
+   * Current generation, that is, number of previously executed
+   * operations and lazy copies on the underlying set content.
+   */
+  unsigned int current_generation;
+
 };
 
 
@@ -263,21 +521,6 @@ struct SendElementClosure
    * should be sent.
    */
   struct Operation *op;
-};
-
-
-/**
- * Extra state required for efficient set union.
- */
-struct SetState
-{
-  /**
-   * The strata estimator is only generated once for
-   * each set.
-   * The IBF keys are derived from the element hashes with
-   * salt=0.
-   */
-  struct StrataEstimator *se;
 };
 
 
@@ -340,7 +583,7 @@ static struct GNUNET_CADET_Handle *cadet;
 /**
  * Statistics handle.
  */
-struct GNUNET_STATISTICS_Handle *_GSS_statistics;
+static struct GNUNET_STATISTICS_Handle *_GSS_statistics;
 
 /**
  * Listeners are held in a doubly linked list.
@@ -412,39 +655,205 @@ union_op_cancel (struct Operation *op)
   LOG (GNUNET_ERROR_TYPE_DEBUG,
        "destroying union op\n");
   /* check if the op was canceled twice */
-  GNUNET_assert (NULL != op->state);
-  if (NULL != op->state->remote_ibf)
+  if (NULL != op->remote_ibf)
   {
-    ibf_destroy (op->state->remote_ibf);
-    op->state->remote_ibf = NULL;
+    ibf_destroy (op->remote_ibf);
+    op->remote_ibf = NULL;
   }
-  if (NULL != op->state->demanded_hashes)
+  if (NULL != op->demanded_hashes)
   {
-    GNUNET_CONTAINER_multihashmap_destroy (op->state->demanded_hashes);
-    op->state->demanded_hashes = NULL;
+    GNUNET_CONTAINER_multihashmap_destroy (op->demanded_hashes);
+    op->demanded_hashes = NULL;
   }
-  if (NULL != op->state->local_ibf)
+  if (NULL != op->local_ibf)
   {
-    ibf_destroy (op->state->local_ibf);
-    op->state->local_ibf = NULL;
+    ibf_destroy (op->local_ibf);
+    op->local_ibf = NULL;
   }
-  if (NULL != op->state->se)
+  if (NULL != op->se)
   {
-    strata_estimator_destroy (op->state->se);
-    op->state->se = NULL;
+    strata_estimator_destroy (op->se);
+    op->se = NULL;
   }
-  if (NULL != op->state->key_to_element)
+  if (NULL != op->key_to_element)
   {
-    GNUNET_CONTAINER_multihashmap32_iterate (op->state->key_to_element,
+    GNUNET_CONTAINER_multihashmap32_iterate (op->key_to_element,
                                              &destroy_key_to_element_iter,
                                              NULL);
-    GNUNET_CONTAINER_multihashmap32_destroy (op->state->key_to_element);
-    op->state->key_to_element = NULL;
+    GNUNET_CONTAINER_multihashmap32_destroy (op->key_to_element);
+    op->key_to_element = NULL;
   }
-  GNUNET_free (op->state);
-  op->state = NULL;
   LOG (GNUNET_ERROR_TYPE_DEBUG,
        "destroying union op done\n");
+}
+
+
+/**
+ * Signal to the client that the operation has finished and
+ * destroy the operation.
+ *
+ * @param cls operation to destroy
+ */
+static void
+send_client_done (void *cls)
+{
+  struct Operation *op = cls;
+  struct GNUNET_MQ_Envelope *ev;
+  struct GNUNET_SETU_ResultMessage *rm;
+
+  if (GNUNET_YES == op->client_done_sent)
+    return;
+  if (PHASE_DONE != op->phase)
+  {
+    LOG (GNUNET_ERROR_TYPE_WARNING,
+         "Union operation failed\n");
+    GNUNET_STATISTICS_update (_GSS_statistics,
+                              "# Union operations failed",
+                              1,
+                              GNUNET_NO);
+    ev = GNUNET_MQ_msg (rm, GNUNET_MESSAGE_TYPE_SETU_RESULT);
+    rm->result_status = htons (GNUNET_SETU_STATUS_FAILURE);
+    rm->request_id = htonl (op->client_request_id);
+    rm->element_type = htons (0);
+    GNUNET_MQ_send (op->set->cs->mq,
+                    ev);
+    return;
+  }
+
+  op->client_done_sent = GNUNET_YES;
+
+  GNUNET_STATISTICS_update (_GSS_statistics,
+                            "# Union operations succeeded",
+                            1,
+                            GNUNET_NO);
+  LOG (GNUNET_ERROR_TYPE_INFO,
+       "Signalling client that union operation is done\n");
+  ev = GNUNET_MQ_msg (rm,
+                      GNUNET_MESSAGE_TYPE_SETU_RESULT);
+  rm->request_id = htonl (op->client_request_id);
+  rm->result_status = htons (GNUNET_SETU_STATUS_DONE);
+  rm->element_type = htons (0);
+  rm->current_size = GNUNET_htonll (GNUNET_CONTAINER_multihashmap32_size (
+                                      op->key_to_element));
+  GNUNET_MQ_send (op->set->cs->mq,
+                  ev);
+}
+
+
+/* FIXME: the destroy logic is a mess and should be cleaned up! */
+
+/**
+ * Destroy the given operation.  Used for any operation where both
+ * peers were known and that thus actually had a vt and channel.  Must
+ * not be used for operations where 'listener' is still set and we do
+ * not know the other peer.
+ *
+ * Call the implementation-specific cancel function of the operation.
+ * Disconnects from the remote peer.  Does not disconnect the client,
+ * as there may be multiple operations per set.
+ *
+ * @param op operation to destroy
+ */
+static void
+_GSS_operation_destroy (struct Operation *op)
+{
+  struct Set *set = op->set;
+  struct GNUNET_CADET_Channel *channel;
+
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "Destroying operation %p\n",
+              op);
+  GNUNET_assert (NULL == op->listener);
+  // FIXME: inline?
+  union_op_cancel (op);
+  if (NULL != set)
+  {
+    GNUNET_CONTAINER_DLL_remove (set->ops_head,
+                                 set->ops_tail,
+                                 op);
+    op->set = NULL;
+  }
+  if (NULL != op->context_msg)
+  {
+    GNUNET_free (op->context_msg);
+    op->context_msg = NULL;
+  }
+  if (NULL != (channel = op->channel))
+  {
+    /* This will free op; called conditionally as this helper function
+       is also called from within the channel disconnect handler. */
+    op->channel = NULL;
+    GNUNET_CADET_channel_destroy (channel);
+  }
+  /* We rely on the channel end handler to free 'op'. When 'op->channel' was NULL,
+   * there was a channel end handler that will free 'op' on the call stack. */
+}
+
+
+/**
+ * This function probably should not exist
+ * and be replaced by inlining more specific
+ * logic in the various places where it is called.
+ */
+static void
+_GSS_operation_destroy2 (struct Operation *op);
+
+
+/**
+ * Destroy an incoming request from a remote peer
+ *
+ * @param op remote request to destroy
+ */
+static void
+incoming_destroy (struct Operation *op)
+{
+  struct Listener *listener;
+
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "Destroying incoming operation %p\n",
+              op);
+  if (NULL != (listener = op->listener))
+  {
+    GNUNET_CONTAINER_DLL_remove (listener->op_head,
+                                 listener->op_tail,
+                                 op);
+    op->listener = NULL;
+  }
+  if (NULL != op->timeout_task)
+  {
+    GNUNET_SCHEDULER_cancel (op->timeout_task);
+    op->timeout_task = NULL;
+  }
+  _GSS_operation_destroy2 (op);
+}
+
+
+/**
+ * This function probably should not exist
+ * and be replaced by inlining more specific
+ * logic in the various places where it is called.
+ */
+static void
+_GSS_operation_destroy2 (struct Operation *op)
+{
+  struct GNUNET_CADET_Channel *channel;
+
+  if (NULL != (channel = op->channel))
+  {
+    /* This will free op; called conditionally as this helper function
+       is also called from within the channel disconnect handler. */
+    op->channel = NULL;
+    GNUNET_CADET_channel_destroy (channel);
+  }
+  if (NULL != op->listener)
+  {
+    incoming_destroy (op);
+    return;
+  }
+  if (NULL != op->set)
+    send_client_done (op);
+  _GSS_operation_destroy (op);
+  GNUNET_free (op);
 }
 
 
@@ -559,7 +968,7 @@ op_get_element (struct Operation *op,
   ctx.hash = *element_hash;
 
   ibf_key = get_ibf_key (element_hash);
-  ret = GNUNET_CONTAINER_multihashmap32_get_multiple (op->state->key_to_element,
+  ret = GNUNET_CONTAINER_multihashmap32_get_multiple (op->key_to_element,
                                                       (uint32_t) ibf_key.key_val,
                                                       &op_get_element_iterator,
                                                       &ctx);
@@ -602,7 +1011,7 @@ op_register_element (struct Operation *op,
   k->ibf_key = ibf_key;
   k->received = received;
   GNUNET_assert (GNUNET_OK ==
-                 GNUNET_CONTAINER_multihashmap32_put (op->state->key_to_element,
+                 GNUNET_CONTAINER_multihashmap32_put (op->key_to_element,
                                                       (uint32_t) ibf_key.key_val,
                                                       k,
                                                       GNUNET_CONTAINER_MULTIHASHMAPOPTION_MULTIPLE));
@@ -664,10 +1073,25 @@ prepare_ibf_iterator (void *cls,
        (unsigned long) ke->ibf_key.key_val,
        GNUNET_h2s (&ke->element->element_hash));
   salt_key (&ke->ibf_key,
-            op->state->salt_send,
+            op->salt_send,
             &salted_key);
-  ibf_insert (op->state->local_ibf, salted_key);
+  ibf_insert (op->local_ibf, salted_key);
   return GNUNET_YES;
+}
+
+
+/**
+ * Is element @a ee part of the set used by @a op?
+ *
+ * @param ee element to test
+ * @param op operation the defines the set and its generation
+ * @return #GNUNET_YES if the element is in the set, #GNUNET_NO if not
+ */
+static int
+_GSS_is_element_of_operation (struct ElementEntry *ee,
+                              struct Operation *op)
+{
+  return ee->generation >= op->generation_created;
 }
 
 
@@ -714,9 +1138,9 @@ initialize_key_to_element (struct Operation *op)
 {
   unsigned int len;
 
-  GNUNET_assert (NULL == op->state->key_to_element);
+  GNUNET_assert (NULL == op->key_to_element);
   len = GNUNET_CONTAINER_multihashmap_size (op->set->content->elements);
-  op->state->key_to_element = GNUNET_CONTAINER_multihashmap32_create (len + 1);
+  op->key_to_element = GNUNET_CONTAINER_multihashmap32_create (len + 1);
   GNUNET_CONTAINER_multihashmap_iterate (op->set->content->elements,
                                          &init_key_to_element_iterator,
                                          op);
@@ -735,18 +1159,18 @@ static int
 prepare_ibf (struct Operation *op,
              uint32_t size)
 {
-  GNUNET_assert (NULL != op->state->key_to_element);
+  GNUNET_assert (NULL != op->key_to_element);
 
-  if (NULL != op->state->local_ibf)
-    ibf_destroy (op->state->local_ibf);
-  op->state->local_ibf = ibf_create (size, SE_IBF_HASH_NUM);
-  if (NULL == op->state->local_ibf)
+  if (NULL != op->local_ibf)
+    ibf_destroy (op->local_ibf);
+  op->local_ibf = ibf_create (size, SE_IBF_HASH_NUM);
+  if (NULL == op->local_ibf)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                 "Failed to allocate local IBF\n");
     return GNUNET_SYSERR;
   }
-  GNUNET_CONTAINER_multihashmap32_iterate (op->state->key_to_element,
+  GNUNET_CONTAINER_multihashmap32_iterate (op->key_to_element,
                                            &prepare_ibf_iterator,
                                            op);
   return GNUNET_OK;
@@ -786,7 +1210,7 @@ send_ibf (struct Operation *op,
     GNUNET_STATISTICS_update (_GSS_statistics, name, 1, GNUNET_NO);
   }
 
-  ibf = op->state->local_ibf;
+  ibf = op->local_ibf;
 
   while (buckets_sent < (1 << ibf_order))
   {
@@ -806,7 +1230,7 @@ send_ibf (struct Operation *op,
     msg->reserved2 = 0;
     msg->order = ibf_order;
     msg->offset = htonl (buckets_sent);
-    msg->salt = htonl (op->state->salt_send);
+    msg->salt = htonl (op->salt_send);
     ibf_write_slice (ibf, buckets_sent,
                      buckets_in_message, &msg[1]);
     buckets_sent += buckets_in_message;
@@ -820,7 +1244,7 @@ send_ibf (struct Operation *op,
 
   /* The other peer must decode the IBF, so
    * we're passive. */
-  op->state->phase = PHASE_INVENTORY_PASSIVE;
+  op->phase = PHASE_INVENTORY_PASSIVE;
   return GNUNET_OK;
 }
 
@@ -893,7 +1317,7 @@ send_full_set (struct Operation *op)
 {
   struct GNUNET_MQ_Envelope *ev;
 
-  op->state->phase = PHASE_FULL_SENDING;
+  op->phase = PHASE_FULL_SENDING;
   LOG (GNUNET_ERROR_TYPE_DEBUG,
        "Dedicing to transmit the full set\n");
   /* FIXME: use a more memory-friendly way of doing this with an
@@ -921,7 +1345,7 @@ check_union_p2p_strata_estimator (void *cls,
   int is_compressed;
   size_t len;
 
-  if (op->state->phase != PHASE_EXPECT_SE)
+  if (op->phase != PHASE_EXPECT_SE)
   {
     GNUNET_break (0);
     return GNUNET_SYSERR;
@@ -984,16 +1408,16 @@ handle_union_p2p_strata_estimator (void *cls,
     fail_union_operation (op);
     return;
   }
-  GNUNET_assert (NULL != op->state->se);
+  GNUNET_assert (NULL != op->se);
   diff = strata_estimator_difference (remote_se,
-                                      op->state->se);
+                                      op->se);
 
   if (diff > 200)
     diff = diff * 3 / 2;
 
   strata_estimator_destroy (remote_se);
-  strata_estimator_destroy (op->state->se);
-  op->state->se = NULL;
+  strata_estimator_destroy (op->se);
+  op->se = NULL;
   LOG (GNUNET_ERROR_TYPE_DEBUG,
        "got se diff=%d, using ibf size %d\n",
        diff,
@@ -1021,18 +1445,18 @@ handle_union_p2p_strata_estimator (void *cls,
   }
 
   if ((GNUNET_YES == op->force_full) ||
-      (diff > op->state->initial_size / 4) ||
+      (diff > op->initial_size / 4) ||
       (0 == other_size))
   {
     LOG (GNUNET_ERROR_TYPE_DEBUG,
          "Deciding to go for full set transmission (diff=%d, own set=%u)\n",
          diff,
-         op->state->initial_size);
+         op->initial_size);
     GNUNET_STATISTICS_update (_GSS_statistics,
                               "# of full sends",
                               1,
                               GNUNET_NO);
-    if ((op->state->initial_size <= other_size) ||
+    if ((op->initial_size <= other_size) ||
         (0 == other_size))
     {
       send_full_set (op);
@@ -1043,7 +1467,7 @@ handle_union_p2p_strata_estimator (void *cls,
 
       LOG (GNUNET_ERROR_TYPE_DEBUG,
            "Telling other peer that we expect its full set\n");
-      op->state->phase = PHASE_EXPECT_IBF;
+      op->phase = PHASE_EXPECT_IBF;
       ev = GNUNET_MQ_msg_header (
         GNUNET_MESSAGE_TYPE_SETU_P2P_REQUEST_FULL);
       GNUNET_MQ_send (op->mq,
@@ -1123,7 +1547,7 @@ send_offers_for_key (struct Operation *op,
   send_cls.ibf_key = ibf_key;
   send_cls.op = op;
   (void) GNUNET_CONTAINER_multihashmap32_get_multiple (
-    op->state->key_to_element,
+    op->key_to_element,
     (uint32_t) ibf_key.
     key_val,
     &send_offers_iterator,
@@ -1147,22 +1571,22 @@ decode_and_send (struct Operation *op)
   unsigned int num_decoded;
   struct InvertibleBloomFilter *diff_ibf;
 
-  GNUNET_assert (PHASE_INVENTORY_ACTIVE == op->state->phase);
+  GNUNET_assert (PHASE_INVENTORY_ACTIVE == op->phase);
 
   if (GNUNET_OK !=
       prepare_ibf (op,
-                   op->state->remote_ibf->size))
+                   op->remote_ibf->size))
   {
     GNUNET_break (0);
     /* allocation failed */
     return GNUNET_SYSERR;
   }
-  diff_ibf = ibf_dup (op->state->local_ibf);
+  diff_ibf = ibf_dup (op->local_ibf);
   ibf_subtract (diff_ibf,
-                op->state->remote_ibf);
+                op->remote_ibf);
 
-  ibf_destroy (op->state->remote_ibf);
-  op->state->remote_ibf = NULL;
+  ibf_destroy (op->remote_ibf);
+  op->remote_ibf = NULL;
 
   LOG (GNUNET_ERROR_TYPE_DEBUG,
        "decoding IBF (size=%u)\n",
@@ -1213,7 +1637,7 @@ decode_and_send (struct Operation *op)
                                   "# of IBF retries",
                                   1,
                                   GNUNET_NO);
-        op->state->salt_send++;
+        op->salt_send++;
         if (GNUNET_OK !=
             send_ibf (op, next_order))
         {
@@ -1258,7 +1682,7 @@ decode_and_send (struct Operation *op)
       struct IBF_Key unsalted_key;
 
       unsalt_key (&key,
-                  op->state->salt_receive,
+                  op->salt_receive,
                   &unsalted_key);
       send_offers_for_key (op,
                            unsalted_key);
@@ -1273,7 +1697,7 @@ decode_and_send (struct Operation *op)
       ev = GNUNET_MQ_msg_extra (msg,
                                 sizeof(struct IBF_Key),
                                 GNUNET_MESSAGE_TYPE_SETU_P2P_INQUIRY);
-      msg->salt = htonl (op->state->salt_receive);
+      msg->salt = htonl (op->salt_receive);
       GNUNET_memcpy (&msg[1],
                      &key,
                      sizeof(struct IBF_Key));
@@ -1322,26 +1746,26 @@ check_union_p2p_ibf (void *cls,
     GNUNET_break_op (0);
     return GNUNET_SYSERR;
   }
-  if (op->state->phase == PHASE_EXPECT_IBF_CONT)
+  if (op->phase == PHASE_EXPECT_IBF_CONT)
   {
-    if (ntohl (msg->offset) != op->state->ibf_buckets_received)
+    if (ntohl (msg->offset) != op->ibf_buckets_received)
     {
       GNUNET_break_op (0);
       return GNUNET_SYSERR;
     }
-    if (1 << msg->order != op->state->remote_ibf->size)
+    if (1 << msg->order != op->remote_ibf->size)
     {
       GNUNET_break_op (0);
       return GNUNET_SYSERR;
     }
-    if (ntohl (msg->salt) != op->state->salt_receive)
+    if (ntohl (msg->salt) != op->salt_receive)
     {
       GNUNET_break_op (0);
       return GNUNET_SYSERR;
     }
   }
-  else if ((op->state->phase != PHASE_INVENTORY_PASSIVE) &&
-           (op->state->phase != PHASE_EXPECT_IBF))
+  else if ((op->phase != PHASE_INVENTORY_PASSIVE) &&
+           (op->phase != PHASE_EXPECT_IBF))
   {
     GNUNET_break_op (0);
     return GNUNET_SYSERR;
@@ -1369,27 +1793,27 @@ handle_union_p2p_ibf (void *cls,
 
   buckets_in_message = (ntohs (msg->header.size) - sizeof *msg)
                        / IBF_BUCKET_SIZE;
-  if ((op->state->phase == PHASE_INVENTORY_PASSIVE) ||
-      (op->state->phase == PHASE_EXPECT_IBF))
+  if ((op->phase == PHASE_INVENTORY_PASSIVE) ||
+      (op->phase == PHASE_EXPECT_IBF))
   {
-    op->state->phase = PHASE_EXPECT_IBF_CONT;
-    GNUNET_assert (NULL == op->state->remote_ibf);
+    op->phase = PHASE_EXPECT_IBF_CONT;
+    GNUNET_assert (NULL == op->remote_ibf);
     LOG (GNUNET_ERROR_TYPE_DEBUG,
          "Creating new ibf of size %u\n",
          1 << msg->order);
-    op->state->remote_ibf = ibf_create (1 << msg->order, SE_IBF_HASH_NUM);
-    op->state->salt_receive = ntohl (msg->salt);
+    op->remote_ibf = ibf_create (1 << msg->order, SE_IBF_HASH_NUM);
+    op->salt_receive = ntohl (msg->salt);
     LOG (GNUNET_ERROR_TYPE_DEBUG,
          "Receiving new IBF with salt %u\n",
-         op->state->salt_receive);
-    if (NULL == op->state->remote_ibf)
+         op->salt_receive);
+    if (NULL == op->remote_ibf)
     {
       GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                   "Failed to parse remote IBF, closing connection\n");
       fail_union_operation (op);
       return;
     }
-    op->state->ibf_buckets_received = 0;
+    op->ibf_buckets_received = 0;
     if (0 != ntohl (msg->offset))
     {
       GNUNET_break_op (0);
@@ -1399,23 +1823,23 @@ handle_union_p2p_ibf (void *cls,
   }
   else
   {
-    GNUNET_assert (op->state->phase == PHASE_EXPECT_IBF_CONT);
+    GNUNET_assert (op->phase == PHASE_EXPECT_IBF_CONT);
     LOG (GNUNET_ERROR_TYPE_DEBUG,
          "Received more of IBF\n");
   }
-  GNUNET_assert (NULL != op->state->remote_ibf);
+  GNUNET_assert (NULL != op->remote_ibf);
 
   ibf_read_slice (&msg[1],
-                  op->state->ibf_buckets_received,
+                  op->ibf_buckets_received,
                   buckets_in_message,
-                  op->state->remote_ibf);
-  op->state->ibf_buckets_received += buckets_in_message;
+                  op->remote_ibf);
+  op->ibf_buckets_received += buckets_in_message;
 
-  if (op->state->ibf_buckets_received == op->state->remote_ibf->size)
+  if (op->ibf_buckets_received == op->remote_ibf->size)
   {
     LOG (GNUNET_ERROR_TYPE_DEBUG,
          "received full ibf\n");
-    op->state->phase = PHASE_INVENTORY_ACTIVE;
+    op->phase = PHASE_INVENTORY_ACTIVE;
     if (GNUNET_OK !=
         decode_and_send (op))
     {
@@ -1463,65 +1887,10 @@ send_client_element (struct Operation *op,
   rm->request_id = htonl (op->client_request_id);
   rm->element_type = htons (element->element_type);
   rm->current_size = GNUNET_htonll (GNUNET_CONTAINER_multihashmap32_size (
-                                      op->state->key_to_element));
+                                      op->key_to_element));
   GNUNET_memcpy (&rm[1],
                  element->data,
                  element->size);
-  GNUNET_MQ_send (op->set->cs->mq,
-                  ev);
-}
-
-
-/**
- * Signal to the client that the operation has finished and
- * destroy the operation.
- *
- * @param cls operation to destroy
- */
-static void
-send_client_done (void *cls)
-{
-  struct Operation *op = cls;
-  struct GNUNET_MQ_Envelope *ev;
-  struct GNUNET_SETU_ResultMessage *rm;
-
-  if (GNUNET_YES == op->state->client_done_sent)
-  {
-    return;
-  }
-
-  if (PHASE_DONE != op->state->phase)
-  {
-    LOG (GNUNET_ERROR_TYPE_WARNING,
-         "Union operation failed\n");
-    GNUNET_STATISTICS_update (_GSS_statistics,
-                              "# Union operations failed",
-                              1,
-                              GNUNET_NO);
-    ev = GNUNET_MQ_msg (rm, GNUNET_MESSAGE_TYPE_SETU_RESULT);
-    rm->result_status = htons (GNUNET_SETU_STATUS_FAILURE);
-    rm->request_id = htonl (op->client_request_id);
-    rm->element_type = htons (0);
-    GNUNET_MQ_send (op->set->cs->mq,
-                    ev);
-    return;
-  }
-
-  op->state->client_done_sent = GNUNET_YES;
-
-  GNUNET_STATISTICS_update (_GSS_statistics,
-                            "# Union operations succeeded",
-                            1,
-                            GNUNET_NO);
-  LOG (GNUNET_ERROR_TYPE_INFO,
-       "Signalling client that union operation is done\n");
-  ev = GNUNET_MQ_msg (rm,
-                      GNUNET_MESSAGE_TYPE_SETU_RESULT);
-  rm->request_id = htonl (op->client_request_id);
-  rm->result_status = htons (GNUNET_SETU_STATUS_DONE);
-  rm->element_type = htons (0);
-  rm->current_size = GNUNET_htonll (GNUNET_CONTAINER_multihashmap32_size (
-                                      op->state->key_to_element));
   GNUNET_MQ_send (op->set->cs->mq,
                   ev);
 }
@@ -1538,9 +1907,9 @@ maybe_finish (struct Operation *op)
   unsigned int num_demanded;
 
   num_demanded = GNUNET_CONTAINER_multihashmap_size (
-    op->state->demanded_hashes);
+    op->demanded_hashes);
 
-  if (PHASE_FINISH_WAITING == op->state->phase)
+  if (PHASE_FINISH_WAITING == op->phase)
   {
     LOG (GNUNET_ERROR_TYPE_DEBUG,
          "In PHASE_FINISH_WAITING, pending %u demands\n",
@@ -1549,7 +1918,7 @@ maybe_finish (struct Operation *op)
     {
       struct GNUNET_MQ_Envelope *ev;
 
-      op->state->phase = PHASE_DONE;
+      op->phase = PHASE_DONE;
       ev = GNUNET_MQ_msg_header (GNUNET_MESSAGE_TYPE_SETU_P2P_DONE);
       GNUNET_MQ_send (op->mq,
                       ev);
@@ -1557,14 +1926,14 @@ maybe_finish (struct Operation *op)
        * after it got all elements from us. */
     }
   }
-  if (PHASE_FINISH_CLOSING == op->state->phase)
+  if (PHASE_FINISH_CLOSING == op->phase)
   {
     LOG (GNUNET_ERROR_TYPE_DEBUG,
          "In PHASE_FINISH_CLOSING, pending %u demands\n",
          num_demanded);
     if (0 == num_demanded)
     {
-      op->state->phase = PHASE_DONE;
+      op->phase = PHASE_DONE;
       send_client_done (op);
       _GSS_operation_destroy2 (op);
     }
@@ -1584,7 +1953,7 @@ check_union_p2p_elements (void *cls,
 {
   struct Operation *op = cls;
 
-  if (0 == GNUNET_CONTAINER_multihashmap_size (op->state->demanded_hashes))
+  if (0 == GNUNET_CONTAINER_multihashmap_size (op->demanded_hashes))
   {
     GNUNET_break_op (0);
     return GNUNET_SYSERR;
@@ -1623,7 +1992,7 @@ handle_union_p2p_elements (void *cls,
   GNUNET_SETU_element_hash (&ee->element,
                             &ee->element_hash);
   if (GNUNET_NO ==
-      GNUNET_CONTAINER_multihashmap_remove (op->state->demanded_hashes,
+      GNUNET_CONTAINER_multihashmap_remove (op->demanded_hashes,
                                             &ee->element_hash,
                                             NULL))
   {
@@ -1647,7 +2016,7 @@ handle_union_p2p_elements (void *cls,
                             1,
                             GNUNET_NO);
 
-  op->state->received_total++;
+  op->received_total++;
 
   ke = op_get_element (op,
                        &ee->element_hash);
@@ -1666,7 +2035,7 @@ handle_union_p2p_elements (void *cls,
   {
     LOG (GNUNET_ERROR_TYPE_DEBUG,
          "Registering new element from remote peer\n");
-    op->state->received_fresh++;
+    op->received_fresh++;
     op_register_element (op, ee, GNUNET_YES);
     /* only send results immediately if the client wants it */
     send_client_element (op,
@@ -1674,8 +2043,8 @@ handle_union_p2p_elements (void *cls,
                          GNUNET_SETU_STATUS_ADD_LOCAL);
   }
 
-  if ((op->state->received_total > 8) &&
-      (op->state->received_fresh < op->state->received_total / 3))
+  if ((op->received_total > 8) &&
+      (op->received_fresh < op->received_total / 3))
   {
     /* The other peer gave us lots of old elements, there's something wrong. */
     GNUNET_break_op (0);
@@ -1744,7 +2113,7 @@ handle_union_p2p_full_element (void *cls,
                             1,
                             GNUNET_NO);
 
-  op->state->received_total++;
+  op->received_total++;
 
   ke = op_get_element (op,
                        &ee->element_hash);
@@ -1763,7 +2132,7 @@ handle_union_p2p_full_element (void *cls,
   {
     LOG (GNUNET_ERROR_TYPE_DEBUG,
          "Registering new element from remote peer\n");
-    op->state->received_fresh++;
+    op->received_fresh++;
     op_register_element (op, ee, GNUNET_YES);
     /* only send results immediately if the client wants it */
     send_client_element (op,
@@ -1772,14 +2141,14 @@ handle_union_p2p_full_element (void *cls,
   }
 
   if ((GNUNET_YES == op->byzantine) &&
-      (op->state->received_total > 384 + op->state->received_fresh * 4) &&
-      (op->state->received_fresh < op->state->received_total / 6))
+      (op->received_total > 384 + op->received_fresh * 4) &&
+      (op->received_fresh < op->received_total / 6))
   {
     /* The other peer gave us lots of old elements, there's something wrong. */
     LOG (GNUNET_ERROR_TYPE_ERROR,
          "Other peer sent only %llu/%llu fresh elements, failing operation\n",
-         (unsigned long long) op->state->received_fresh,
-         (unsigned long long) op->state->received_total);
+         (unsigned long long) op->received_fresh,
+         (unsigned long long) op->received_total);
     GNUNET_break_op (0);
     fail_union_operation (op);
     return;
@@ -1802,7 +2171,7 @@ check_union_p2p_inquiry (void *cls,
   struct Operation *op = cls;
   unsigned int num_keys;
 
-  if (op->state->phase != PHASE_INVENTORY_PASSIVE)
+  if (op->phase != PHASE_INVENTORY_PASSIVE)
   {
     GNUNET_break_op (0);
     return GNUNET_SYSERR;
@@ -1903,7 +2272,7 @@ handle_union_p2p_request_full (void *cls,
 
   LOG (GNUNET_ERROR_TYPE_DEBUG,
        "Received request for full set transmission\n");
-  if (PHASE_EXPECT_IBF != op->state->phase)
+  if (PHASE_EXPECT_IBF != op->phase)
   {
     GNUNET_break_op (0);
     fail_union_operation (op);
@@ -1929,7 +2298,7 @@ handle_union_p2p_full_done (void *cls,
 {
   struct Operation *op = cls;
 
-  switch (op->state->phase)
+  switch (op->phase)
   {
   case PHASE_EXPECT_IBF:
     {
@@ -1939,14 +2308,14 @@ handle_union_p2p_full_done (void *cls,
            "got FULL DONE, sending elements that other peer is missing\n");
 
       /* send all the elements that did not come from the remote peer */
-      GNUNET_CONTAINER_multihashmap32_iterate (op->state->key_to_element,
+      GNUNET_CONTAINER_multihashmap32_iterate (op->key_to_element,
                                                &send_missing_full_elements_iter,
                                                op);
 
       ev = GNUNET_MQ_msg_header (GNUNET_MESSAGE_TYPE_SETU_P2P_FULL_DONE);
       GNUNET_MQ_send (op->mq,
                       ev);
-      op->state->phase = PHASE_DONE;
+      op->phase = PHASE_DONE;
       /* we now wait until the other peer sends us the OVER message*/
     }
     break;
@@ -1956,7 +2325,7 @@ handle_union_p2p_full_done (void *cls,
       LOG (GNUNET_ERROR_TYPE_DEBUG,
            "got FULL DONE, finishing\n");
       /* We sent the full set, and got the response for that.  We're done. */
-      op->state->phase = PHASE_DONE;
+      op->phase = PHASE_DONE;
       GNUNET_CADET_receive_done (op->channel);
       send_client_done (op);
       _GSS_operation_destroy2 (op);
@@ -1967,7 +2336,7 @@ handle_union_p2p_full_done (void *cls,
   default:
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                 "Handle full done phase is %u\n",
-                (unsigned) op->state->phase);
+                (unsigned) op->phase);
     GNUNET_break_op (0);
     fail_union_operation (op);
     return;
@@ -2079,8 +2448,8 @@ check_union_p2p_offer (void *cls,
   unsigned int num_hashes;
 
   /* look up elements and send them */
-  if ((op->state->phase != PHASE_INVENTORY_PASSIVE) &&
-      (op->state->phase != PHASE_INVENTORY_ACTIVE))
+  if ((op->phase != PHASE_INVENTORY_PASSIVE) &&
+      (op->phase != PHASE_INVENTORY_ACTIVE))
   {
     GNUNET_break_op (0);
     return GNUNET_SYSERR;
@@ -2129,7 +2498,7 @@ handle_union_p2p_offer (void *cls,
         continue;
 
     if (GNUNET_YES ==
-        GNUNET_CONTAINER_multihashmap_contains (op->state->demanded_hashes,
+        GNUNET_CONTAINER_multihashmap_contains (op->demanded_hashes,
                                                 hash))
     {
       LOG (GNUNET_ERROR_TYPE_DEBUG,
@@ -2139,7 +2508,7 @@ handle_union_p2p_offer (void *cls,
 
     GNUNET_assert (GNUNET_OK ==
                    GNUNET_CONTAINER_multihashmap_put (
-                     op->state->demanded_hashes,
+                     op->demanded_hashes,
                      hash,
                      NULL,
                      GNUNET_CONTAINER_MULTIHASHMAPOPTION_UNIQUE_FAST));
@@ -2171,12 +2540,11 @@ handle_union_p2p_done (void *cls,
 {
   struct Operation *op = cls;
 
-  switch (op->state->phase)
+  switch (op->phase)
   {
   case PHASE_INVENTORY_PASSIVE:
     /* We got all requests, but still have to send our elements in response. */
-    op->state->phase = PHASE_FINISH_WAITING;
-
+    op->phase = PHASE_FINISH_WAITING;
     LOG (GNUNET_ERROR_TYPE_DEBUG,
          "got DONE (as passive partner), waiting for our demands to be satisfied\n");
     /* The active peer is done sending offers
@@ -2190,7 +2558,6 @@ handle_union_p2p_done (void *cls,
      */GNUNET_CADET_receive_done (op->channel);
     maybe_finish (op);
     return;
-
   case PHASE_INVENTORY_ACTIVE:
     LOG (GNUNET_ERROR_TYPE_DEBUG,
          "got DONE (as active partner), waiting to finish\n");
@@ -2200,11 +2567,10 @@ handle_union_p2p_done (void *cls,
      *
      * We'll close the channel
      * to the other peer once our demands are met.
-     */op->state->phase = PHASE_FINISH_CLOSING;
+     */op->phase = PHASE_FINISH_CLOSING;
     GNUNET_CADET_receive_done (op->channel);
     maybe_finish (op);
     return;
-
   default:
     GNUNET_break_op (0);
     fail_union_operation (op);
@@ -2230,15 +2596,15 @@ handle_union_p2p_over (void *cls,
 /**
  * Initiate operation to evaluate a set union with a remote peer.
  *
- * @param op operation to perform (to be initialized)
+ * @param[in,out] op operation to perform (to be initialized)
  * @param opaque_context message to be transmitted to the listener
  *        to convince it to accept, may be NULL
+ * @return #GNUNET_OK on success, #GNUNET_SYSERR on failure
  */
-static struct OperationState *
+static int
 union_evaluate (struct Operation *op,
                 const struct GNUNET_MessageHeader *opaque_context)
 {
-  struct OperationState *state;
   struct GNUNET_MQ_Envelope *ev;
   struct OperationRequestMessage *msg;
 
@@ -2249,16 +2615,15 @@ union_evaluate (struct Operation *op,
   {
     /* the context message is too large */
     GNUNET_break (0);
-    return NULL;
+    return GNUNET_SYSERR;
   }
-  state = GNUNET_new (struct OperationState);
-  state->demanded_hashes = GNUNET_CONTAINER_multihashmap_create (32,
-                                                                 GNUNET_NO);
+  op->demanded_hashes = GNUNET_CONTAINER_multihashmap_create (32,
+                                                              GNUNET_NO);
   /* copy the current generation's strata estimator for this operation */
-  state->se = strata_estimator_dup (op->set->state->se);
+  op->se = strata_estimator_dup (op->set->se);
   /* we started the operation, thus we have to send the operation request */
-  state->phase = PHASE_EXPECT_SE;
-  state->salt_receive = state->salt_send = 42; // FIXME?????
+  op->phase = PHASE_EXPECT_SE;
+  op->salt_receive = op->salt_send = 42; // FIXME?????
   LOG (GNUNET_ERROR_TYPE_DEBUG,
        "Initiating union operation evaluation\n");
   GNUNET_STATISTICS_update (_GSS_statistics,
@@ -2278,12 +2643,9 @@ union_evaluate (struct Operation *op,
   else
     LOG (GNUNET_ERROR_TYPE_DEBUG,
          "sent op request without context message\n");
-
-  op->state = state;
   initialize_key_to_element (op);
-  state->initial_size = GNUNET_CONTAINER_multihashmap32_size (
-    state->key_to_element);
-  return state;
+  op->initial_size = GNUNET_CONTAINER_multihashmap32_size (op->key_to_element);
+  return GNUNET_OK;
 }
 
 
@@ -2309,100 +2671,6 @@ get_incoming (uint32_t id)
         return op;
   }
   return NULL;
-}
-
-
-/**
- * Destroy an incoming request from a remote peer
- *
- * @param op remote request to destroy
- */
-static void
-incoming_destroy (struct Operation *op)
-{
-  struct Listener *listener;
-
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "Destroying incoming operation %p\n",
-              op);
-  if (NULL != (listener = op->listener))
-  {
-    GNUNET_CONTAINER_DLL_remove (listener->op_head,
-                                 listener->op_tail,
-                                 op);
-    op->listener = NULL;
-  }
-  if (NULL != op->timeout_task)
-  {
-    GNUNET_SCHEDULER_cancel (op->timeout_task);
-    op->timeout_task = NULL;
-  }
-  _GSS_operation_destroy2 (op);
-}
-
-
-/**
- * Is element @a ee part of the set used by @a op?
- *
- * @param ee element to test
- * @param op operation the defines the set and its generation
- * @return #GNUNET_YES if the element is in the set, #GNUNET_NO if not
- */
-int
-_GSS_is_element_of_operation (struct ElementEntry *ee,
-                              struct Operation *op)
-{
-  return ee->generation >= op->generation_created;
-}
-
-
-/**
- * Destroy the given operation.  Used for any operation where both
- * peers were known and that thus actually had a vt and channel.  Must
- * not be used for operations where 'listener' is still set and we do
- * not know the other peer.
- *
- * Call the implementation-specific cancel function of the operation.
- * Disconnects from the remote peer.  Does not disconnect the client,
- * as there may be multiple operations per set.
- *
- * @param op operation to destroy
- */
-void
-_GSS_operation_destroy (struct Operation *op)
-{
-  struct Set *set = op->set;
-  struct GNUNET_CADET_Channel *channel;
-
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "Destroying operation %p\n", op);
-  GNUNET_assert (NULL == op->listener);
-  if (NULL != op->state)
-  {
-    union_op_cancel (op);
-    op->state = NULL;
-  }
-  if (NULL != set)
-  {
-    GNUNET_CONTAINER_DLL_remove (set->ops_head,
-                                 set->ops_tail,
-                                 op);
-    op->set = NULL;
-  }
-  if (NULL != op->context_msg)
-  {
-    GNUNET_free (op->context_msg);
-    op->context_msg = NULL;
-  }
-  if (NULL != (channel = op->channel))
-  {
-    /* This will free op; called conditionally as this helper function
-       is also called from within the channel disconnect handler. */
-    op->channel = NULL;
-    GNUNET_CADET_channel_destroy (channel);
-  }
-  /* We rely on the channel end handler to free 'op'. When 'op->channel' was NULL,
-   * there was a channel end handler that will free 'op' on the call stack. */
 }
 
 
@@ -2479,14 +2747,11 @@ client_disconnect_cb (void *cls,
       _GSS_operation_destroy (set->ops_head);
 
     /* Destroy operation-specific state */
-    GNUNET_assert (NULL != set->state);
-    if (NULL != set->state->se)
+    if (NULL != set->se)
     {
-      strata_estimator_destroy (set->state->se);
-      set->state->se = NULL;
+      strata_estimator_destroy (set->se);
+      set->se = NULL;
     }
-    GNUNET_free (set->state);
-
     /* free set content (or at least decrement RC) */
     set->content = NULL;
     GNUNET_assert (0 != content->refcount);
@@ -2665,12 +2930,12 @@ handle_client_create_set (void *cls,
   }
   set = GNUNET_new (struct Set);
   {
-    struct SetState *set_state;
+    struct StrataEstimator *se;
 
-    set_state = GNUNET_new (struct SetState); // FIXME: avoid this malloc, merge structs!
-    set_state->se = strata_estimator_create (SE_STRATA_COUNT,
-                                             SE_IBF_SIZE, SE_IBF_HASH_NUM);
-    if (NULL == set_state->se)
+    se = strata_estimator_create (SE_STRATA_COUNT,
+                                  SE_IBF_SIZE,
+                                  SE_IBF_HASH_NUM);
+    if (NULL == se)
     {
       GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                   "Failed to allocate strata estimator\n");
@@ -2678,7 +2943,7 @@ handle_client_create_set (void *cls,
       GNUNET_SERVICE_client_drop (cs->client);
       return;
     }
-    set->state = set_state;
+    set->se = se;
   }
   set->content = GNUNET_new (struct SetContent);
   set->content->refcount = 1;
@@ -2778,37 +3043,6 @@ channel_end_cb (void *channel_ctx,
 
   op->channel = NULL;
   _GSS_operation_destroy2 (op);
-}
-
-
-/**
- * This function probably should not exist
- * and be replaced by inlining more specific
- * logic in the various places where it is called.
- */
-void
-_GSS_operation_destroy2 (struct Operation *op)
-{
-  struct GNUNET_CADET_Channel *channel;
-
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "channel_end_cb called\n");
-  if (NULL != (channel = op->channel))
-  {
-    /* This will free op; called conditionally as this helper function
-       is also called from within the channel disconnect handler. */
-    op->channel = NULL;
-    GNUNET_CADET_channel_destroy (channel);
-  }
-  if (NULL != op->listener)
-  {
-    incoming_destroy (op);
-    return;
-  }
-  if (NULL != op->set)
-    send_client_done (op);
-  _GSS_operation_destroy (op);
-  GNUNET_free (op);
 }
 
 
@@ -3042,7 +3276,7 @@ handle_client_set_add (void *cls,
     /* same element inserted twice */
     return;
   }
-  strata_estimator_insert (set->state->se,
+  strata_estimator_insert (set->se,
                            get_ibf_key (&ee->element_hash));
 }
 
@@ -3188,8 +3422,10 @@ handle_client_evaluate (void *cls,
                                              &channel_end_cb,
                                              cadet_handlers);
   op->mq = GNUNET_CADET_get_mq (op->channel);
-  op->state = union_evaluate (op, context);
-  if (NULL == op->state)
+  // FIXME: inline!
+  if (GNUNET_OK !=
+      union_evaluate (op,
+                      context))
   {
     GNUNET_break (0);
     GNUNET_SERVICE_client_drop (cs->client);
@@ -3319,7 +3555,7 @@ handle_client_accept (void *cls,
      interfer with the running operation. */
   op->generation_created = set->current_generation;
   advance_generation (set);
-  GNUNET_assert (NULL == op->state);
+  GNUNET_assert (NULL == op->se);
 
   LOG (GNUNET_ERROR_TYPE_DEBUG,
        "accepting set union operation\n");
@@ -3332,7 +3568,6 @@ handle_client_accept (void *cls,
                             1,
                             GNUNET_NO);
   {
-    struct OperationState *state;
     const struct StrataEstimator *se;
     struct GNUNET_MQ_Envelope *ev;
     struct StrataEstimatorMessage *strata_msg;
@@ -3340,18 +3575,16 @@ handle_client_accept (void *cls,
     size_t len;
     uint16_t type;
 
-    state = GNUNET_new (struct OperationState); // FIXME: merge with 'op' to avoid malloc!
-    state->se = strata_estimator_dup (op->set->state->se);
-    state->demanded_hashes = GNUNET_CONTAINER_multihashmap_create (32,
-                                                                   GNUNET_NO);
-    state->salt_receive = state->salt_send = 42; // FIXME?????
-    op->state = state;
+    op->se = strata_estimator_dup (op->set->se);
+    op->demanded_hashes = GNUNET_CONTAINER_multihashmap_create (32,
+                                                                GNUNET_NO);
+    op->salt_receive = op->salt_send = 42; // FIXME?????
     initialize_key_to_element (op);
-    state->initial_size = GNUNET_CONTAINER_multihashmap32_size (
-      state->key_to_element);
+    op->initial_size = GNUNET_CONTAINER_multihashmap32_size (
+      op->key_to_element);
 
     /* kick off the operation */
-    se = state->se;
+    se = op->se;
     buf = GNUNET_malloc (se->strata_count * IBF_BUCKET_SIZE * se->ibf_size);
     len = strata_estimator_write (se,
                                   buf);
@@ -3371,9 +3604,7 @@ handle_client_accept (void *cls,
                          op->set->content->elements));
     GNUNET_MQ_send (op->mq,
                     ev);
-    state->phase = PHASE_EXPECT_IBF;
-
-    op->state = state;
+    op->phase = PHASE_EXPECT_IBF;
   }
   /* Now allow CADET to continue, as we did not do this in
    #handle_incoming_msg (as we wanted to first see if the
