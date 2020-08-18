@@ -70,7 +70,7 @@ test_seti_api_SOURCES = \
 test_seti_api_LDADD = \
   $(top_builddir)/src/util/libgnunetutil.la \
   $(top_builddir)/src/testing/libgnunettesting.la \
-  libgnunetset.la
+  libgnunetseti.la
 
 plugin_LTLIBRARIES = \
   libgnunet_plugin_block_seti_test.la
