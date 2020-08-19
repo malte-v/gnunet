@@ -85,6 +85,13 @@ enum GNUNET_SETU_Status
   GNUNET_SETU_STATUS_ADD_LOCAL,
 
   /**
+   * Element should be added to the result set of the remote peer, i.e. the
+   * remote peer is missing an element. Only used if
+   * #GNUNET_SETU_OPTION_SYMMETRIC is set.
+   */
+  GNUNET_SETU_STATUS_ADD_REMOTE,
+
+  /**
    * The other peer refused to do the operation with us, or something went
    * wrong.
    */
@@ -152,6 +159,12 @@ enum GNUNET_SETU_OptionType
    * detection.
    */
   GNUNET_SETU_OPTION_FORCE_DELTA=4,
+
+  /**
+   * Notify client also if we are sending a value to the other peer.
+   * FIXME: not implemented!
+   */
+  GNUNET_SETU_OPTION_SYMMETRIC = 8
 };
 
 
