@@ -45,7 +45,7 @@
 #include "gnunet_statistics_service.h"
 #include "gnunet_core_service.h"
 #include "gnunet_revocation_service.h"
-#include "gnunet_set_service.h"
+#include "gnunet_setu_service.h"
 #include "revocation.h"
 #include <gcrypt.h>
 
@@ -73,14 +73,14 @@ struct PeerEntry
   /**
    * Handle to active set union operation (over revocation sets).
    */
-  struct GNUNET_SET_OperationHandle *so;
+  struct GNUNET_SETU_OperationHandle *so;
 };
 
 
 /**
  * Set from all revocations known to us.
  */
-static struct GNUNET_SET_Handle *revocation_set;
+static struct GNUNET_SETU_Handle *revocation_set;
 
 /**
  * Hash map with all revoked keys, maps the hash of the public key
@@ -121,7 +121,7 @@ static struct GNUNET_DISK_FileHandle *revocation_db;
 /**
  * Handle for us listening to incoming revocation set union requests.
  */
-static struct GNUNET_SET_ListenHandle *revocation_union_listen_handle;
+static struct GNUNET_SETU_ListenHandle *revocation_union_listen_handle;
 
 /**
  * Amount of work required (W-bit collisions) for REVOCATION proofs, in collision-bits.
@@ -302,7 +302,7 @@ publicize_rm (const struct RevokeMessage *rm)
 {
   struct RevokeMessage *cp;
   struct GNUNET_HashCode hc;
-  struct GNUNET_SET_Element e;
+  struct GNUNET_SETU_Element e;
 
   GNUNET_CRYPTO_hash (&rm->proof_of_work.key,
                       sizeof(struct GNUNET_CRYPTO_EcdsaPublicKey),
@@ -350,10 +350,10 @@ publicize_rm (const struct RevokeMessage *rm)
   e.element_type = GNUNET_BLOCK_TYPE_REVOCATION;
   e.data = rm;
   if (GNUNET_OK !=
-      GNUNET_SET_add_element (revocation_set,
-                              &e,
-                              NULL,
-                              NULL))
+      GNUNET_SETU_add_element (revocation_set,
+                               &e,
+                               NULL,
+                               NULL))
   {
     GNUNET_break (0);
     return GNUNET_OK;
@@ -426,22 +426,22 @@ handle_p2p_revoke (void *cls,
  * validate and then add to our revocation list (and set).
  *
  * @param cls closure
- * @param element a result element, only valid if status is #GNUNET_SET_STATUS_OK
+ * @param element a result element, only valid if status is #GNUNET_SETU_STATUS_OK
  * @param current_size current set size
- * @param status see `enum GNUNET_SET_Status`
+ * @param status see `enum GNUNET_SETU_Status`
  */
 static void
 add_revocation (void *cls,
-                const struct GNUNET_SET_Element *element,
+                const struct GNUNET_SETU_Element *element,
                 uint64_t current_size,
-                enum GNUNET_SET_Status status)
+                enum GNUNET_SETU_Status status)
 {
   struct PeerEntry *peer_entry = cls;
   const struct RevokeMessage *rm;
 
   switch (status)
   {
-  case GNUNET_SET_STATUS_OK:
+  case GNUNET_SETU_STATUS_ADD_LOCAL:
     if (element->size != sizeof(struct RevokeMessage))
     {
       GNUNET_break_op (0);
@@ -464,8 +464,7 @@ add_revocation (void *cls,
                                 "# revocation messages received via set union"),
                               1, GNUNET_NO);
     break;
-
-  case GNUNET_SET_STATUS_FAILURE:
+  case GNUNET_SETU_STATUS_FAILURE:
     GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
                 _ ("Error computing revocation set union with %s\n"),
                 GNUNET_i2s (&peer_entry->id));
@@ -475,11 +474,7 @@ add_revocation (void *cls,
                               1,
                               GNUNET_NO);
     break;
-
-  case GNUNET_SET_STATUS_HALF_DONE:
-    break;
-
-  case GNUNET_SET_STATUS_DONE:
+  case GNUNET_SETU_STATUS_DONE:
     peer_entry->so = NULL;
     GNUNET_STATISTICS_update (stats,
                               gettext_noop (
@@ -487,7 +482,6 @@ add_revocation (void *cls,
                               1,
                               GNUNET_NO);
     break;
-
   default:
     GNUNET_break (0);
     break;
@@ -511,16 +505,15 @@ transmit_task_cb (void *cls)
               GNUNET_i2s (&peer_entry->id));
   peer_entry->transmit_task = NULL;
   GNUNET_assert (NULL == peer_entry->so);
-  peer_entry->so = GNUNET_SET_prepare (&peer_entry->id,
-                                       &revocation_set_union_app_id,
-                                       NULL,
-                                       GNUNET_SET_RESULT_ADDED,
-                                       (struct GNUNET_SET_Option[]) { { 0 } },
-                                       &add_revocation,
-                                       peer_entry);
+  peer_entry->so = GNUNET_SETU_prepare (&peer_entry->id,
+                                        &revocation_set_union_app_id,
+                                        NULL,
+                                        (struct GNUNET_SETU_Option[]) { { 0 } },
+                                        &add_revocation,
+                                        peer_entry);
   if (GNUNET_OK !=
-      GNUNET_SET_commit (peer_entry->so,
-                         revocation_set))
+      GNUNET_SETU_commit (peer_entry->so,
+                          revocation_set))
   {
     GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
                 _ ("SET service crashed, terminating revocation service\n"));
@@ -626,7 +619,7 @@ handle_core_disconnect (void *cls,
   }
   if (NULL != peer_entry->so)
   {
-    GNUNET_SET_operation_cancel (peer_entry->so);
+    GNUNET_SETU_operation_cancel (peer_entry->so);
     peer_entry->so = NULL;
   }
   GNUNET_free (peer_entry);
@@ -665,12 +658,12 @@ shutdown_task (void *cls)
 {
   if (NULL != revocation_set)
   {
-    GNUNET_SET_destroy (revocation_set);
+    GNUNET_SETU_destroy (revocation_set);
     revocation_set = NULL;
   }
   if (NULL != revocation_union_listen_handle)
   {
-    GNUNET_SET_listen_cancel (revocation_union_listen_handle);
+    GNUNET_SETU_listen_cancel (revocation_union_listen_handle);
     revocation_union_listen_handle = NULL;
   }
   if (NULL != core_api)
@@ -729,7 +722,7 @@ core_init (void *cls,
  * @param other_peer the other peer
  * @param context_msg message with application specific information from
  *        the other peer
- * @param request request from the other peer (never NULL), use GNUNET_SET_accept()
+ * @param request request from the other peer (never NULL), use GNUNET_SETU_accept()
  *        to accept it, otherwise the request will be refused
  *        Note that we can't just return value from the listen callback,
  *        as it is also necessary to specify the set we want to do the
@@ -740,7 +733,7 @@ static void
 handle_revocation_union_request (void *cls,
                                  const struct GNUNET_PeerIdentity *other_peer,
                                  const struct GNUNET_MessageHeader *context_msg,
-                                 struct GNUNET_SET_Request *request)
+                                 struct GNUNET_SETU_Request *request)
 {
   struct PeerEntry *peer_entry;
 
@@ -763,14 +756,13 @@ handle_revocation_union_request (void *cls,
     GNUNET_break_op (0);
     return;
   }
-  peer_entry->so = GNUNET_SET_accept (request,
-                                      GNUNET_SET_RESULT_ADDED,
-                                      (struct GNUNET_SET_Option[]) { { 0 } },
-                                      &add_revocation,
-                                      peer_entry);
+  peer_entry->so = GNUNET_SETU_accept (request,
+                                       (struct GNUNET_SETU_Option[]) { { 0 } },
+                                       &add_revocation,
+                                       peer_entry);
   if (GNUNET_OK !=
-      GNUNET_SET_commit (peer_entry->so,
-                         revocation_set))
+      GNUNET_SETU_commit (peer_entry->so,
+                          revocation_set))
   {
     GNUNET_break (0);
     GNUNET_SCHEDULER_shutdown ();
@@ -858,14 +850,12 @@ run (void *cls,
     return;
   }
 
-  revocation_set = GNUNET_SET_create (cfg,
-                                      GNUNET_SET_OPERATION_UNION);
+  revocation_set = GNUNET_SETU_create (cfg);
   revocation_union_listen_handle
-    = GNUNET_SET_listen (cfg,
-                         GNUNET_SET_OPERATION_UNION,
-                         &revocation_set_union_app_id,
-                         &handle_revocation_union_request,
-                         NULL);
+    = GNUNET_SETU_listen (cfg,
+                          &revocation_set_union_app_id,
+                          &handle_revocation_union_request,
+                          NULL);
   revocation_db = GNUNET_DISK_file_open (fn,
                                          GNUNET_DISK_OPEN_READWRITE
                                          | GNUNET_DISK_OPEN_CREATE,
