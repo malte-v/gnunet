@@ -235,8 +235,7 @@ handle_result (void *cls,
   switch (result_status)
   {
   case GNUNET_SETU_STATUS_ADD_LOCAL:
-    LOG (GNUNET_ERROR_TYPE_DEBUG,
-         "Treating result as element\n");
+  case GNUNET_SETU_STATUS_ADD_REMOTE:
     e.data = &msg[1];
     e.size = ntohs (msg->header.size)
              - sizeof(struct GNUNET_SETU_ResultMessage);
@@ -533,13 +532,16 @@ GNUNET_SETU_prepare (const struct GNUNET_PeerIdentity *other_peer,
     {
     case GNUNET_SETU_OPTION_BYZANTINE:
       msg->byzantine = GNUNET_YES;
-      msg->byzantine_lower_bound = opt->v.num;
+      msg->byzantine_lower_bound = htonl (opt->v.num);
       break;
     case GNUNET_SETU_OPTION_FORCE_FULL:
       msg->force_full = GNUNET_YES;
       break;
     case GNUNET_SETU_OPTION_FORCE_DELTA:
       msg->force_delta = GNUNET_YES;
+      break;
+    case GNUNET_SETU_OPTION_SYMMETRIC:
+      msg->symmetric = GNUNET_YES;
       break;
     default:
       LOG (GNUNET_ERROR_TYPE_ERROR,
@@ -786,6 +788,29 @@ GNUNET_SETU_accept (struct GNUNET_SETU_Request *request,
   mqm = GNUNET_MQ_msg (msg,
                        GNUNET_MESSAGE_TYPE_SETU_ACCEPT);
   msg->accept_reject_id = htonl (request->accept_id);
+  for (const struct GNUNET_SETU_Option *opt = options; opt->type != 0; opt++)
+  {
+    switch (opt->type)
+    {
+    case GNUNET_SETU_OPTION_BYZANTINE:
+      msg->byzantine = GNUNET_YES;
+      msg->byzantine_lower_bound = htonl (opt->v.num);
+      break;
+    case GNUNET_SETU_OPTION_FORCE_FULL:
+      msg->force_full = GNUNET_YES;
+      break;
+    case GNUNET_SETU_OPTION_FORCE_DELTA:
+      msg->force_delta = GNUNET_YES;
+      break;
+    case GNUNET_SETU_OPTION_SYMMETRIC:
+      msg->symmetric = GNUNET_YES;
+      break;
+    default:
+      LOG (GNUNET_ERROR_TYPE_ERROR,
+           "Option with type %d not recognized\n",
+           (int) opt->type);
+    }
+  }
   oh = GNUNET_new (struct GNUNET_SETU_OperationHandle);
   oh->result_cb = result_cb;
   oh->result_cls = result_cls;

@@ -371,6 +371,12 @@ struct Operation
   int byzantine;
 
   /**
+   * #GNUNET_YES to also send back set elements we are sending to
+   * the remote peer.
+   */
+  int symmetric;
+
+  /**
    * Lower bound for the set size, used only when
    * byzantine mode is enabled.
    */
@@ -1576,7 +1582,9 @@ decode_and_send (struct Operation *op)
 
     last_key = key;
 
-    res = ibf_decode (diff_ibf, &side, &key);
+    res = ibf_decode (diff_ibf,
+                      &side,
+                      &key);
     if (res == GNUNET_OK)
     {
       LOG (GNUNET_ERROR_TYPE_DEBUG,
@@ -1839,7 +1847,7 @@ handle_union_p2p_ibf (void *cls,
 static void
 send_client_element (struct Operation *op,
                      const struct GNUNET_SETU_Element *element,
-                     int status)
+                     enum GNUNET_SETU_Status status)
 {
   struct GNUNET_MQ_Envelope *ev;
   struct GNUNET_SETU_ResultMessage *rm;
@@ -2071,8 +2079,8 @@ handle_union_p2p_full_element (void *cls,
   ee->element.data = &ee[1];
   ee->element.element_type = ntohs (emsg->element_type);
   ee->remote = GNUNET_YES;
-  GNUNET_SETU_element_hash (&ee->element, &ee->element_hash);
-
+  GNUNET_SETU_element_hash (&ee->element,
+                            &ee->element_hash);
   LOG (GNUNET_ERROR_TYPE_DEBUG,
        "Got element (full diff, size %u, hash %s) from peer\n",
        (unsigned int) element_size,
@@ -2285,7 +2293,6 @@ handle_union_p2p_full_done (void *cls,
       GNUNET_CONTAINER_multihashmap32_iterate (op->key_to_element,
                                                &send_missing_full_elements_iter,
                                                op);
-
       ev = GNUNET_MQ_msg_header (GNUNET_MESSAGE_TYPE_SETU_P2P_FULL_DONE);
       GNUNET_MQ_send (op->mq,
                       ev);
@@ -2387,9 +2394,12 @@ handle_union_p2p_demand (void *cls,
       fail_union_operation (op);
       return;
     }
-    ev = GNUNET_MQ_msg_extra (emsg, ee->element.size,
+    ev = GNUNET_MQ_msg_extra (emsg,
+                              ee->element.size,
                               GNUNET_MESSAGE_TYPE_SETU_P2P_ELEMENTS);
-    GNUNET_memcpy (&emsg[1], ee->element.data, ee->element.size);
+    GNUNET_memcpy (&emsg[1],
+                   ee->element.data,
+                   ee->element.size);
     emsg->reserved = htons (0);
     emsg->element_type = htons (ee->element.element_type);
     LOG (GNUNET_ERROR_TYPE_DEBUG,
@@ -2402,6 +2412,10 @@ handle_union_p2p_demand (void *cls,
                               "# exchanged elements",
                               1,
                               GNUNET_NO);
+    if (op->symmetric)
+      send_client_element (op,
+                           &ee->element,
+                           GNUNET_SET_STATUS_ADD_REMOTE);
   }
   GNUNET_CADET_receive_done (op->channel);
 }
@@ -3316,9 +3330,10 @@ handle_client_evaluate (void *cls,
   op->peer = msg->target_peer;
   op->client_request_id = ntohl (msg->request_id);
   op->byzantine = msg->byzantine;
-  op->byzantine_lower_bound = msg->byzantine_lower_bound;
+  op->byzantine_lower_bound = ntohl (msg->byzantine_lower_bound);
   op->force_full = msg->force_full;
   op->force_delta = msg->force_delta;
+  op->symmetric = msg->symmetric;
   context = GNUNET_MQ_extract_nested_mh (msg);
 
   /* Advance generation values, so that
@@ -3500,9 +3515,10 @@ handle_client_accept (void *cls,
                                op);
   op->client_request_id = ntohl (msg->request_id);
   op->byzantine = msg->byzantine;
-  op->byzantine_lower_bound = msg->byzantine_lower_bound;
+  op->byzantine_lower_bound = ntohl (msg->byzantine_lower_bound);
   op->force_full = msg->force_full;
   op->force_delta = msg->force_delta;
+  op->symmetric = msg->symmetric;
 
   /* Advance generation values, so that future mutations do not
      interfer with the running operation. */

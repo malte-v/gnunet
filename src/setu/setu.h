@@ -111,10 +111,16 @@ struct GNUNET_SETU_AcceptMessage
   uint8_t byzantine;
 
   /**
+   * #GNUNET_YES to also send back set elements we are sending to
+   * the remote peer.
+   */
+  uint8_t symmetric;
+
+  /**
    * Lower bound for the set size, used only when
    * byzantine mode is enabled.
    */
-  uint8_t byzantine_lower_bound;
+  uint32_t byzantine_lower_bound;
 };
 
 
@@ -209,10 +215,15 @@ struct GNUNET_SETU_EvaluateMessage
   uint8_t byzantine;
 
   /**
+   * Also return set elements we are sending to the remote peer.
+   */
+  uint8_t symmetric;
+
+  /**
    * Lower bound for the set size, used only when
    * byzantine mode is enabled.
    */
-  uint8_t byzantine_lower_bound;
+  uint32_t byzantine_lower_bound;
 
   /* rest: context message, that is, application-specific
      message to convince listener to pick up */
