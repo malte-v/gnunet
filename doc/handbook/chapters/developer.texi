@@ -6930,24 +6930,24 @@ arbitrary binary @emph{data}.
 The size of an element's data is limited to around 62 KB.
 
 @menu
-* Local Sets::
-* Set Modifications::
-* Set Operations::
-* Result Elements::
+* Intersection Sets::
+* Set Intersection Modifications::
+* Set Intersection Operations::
+* Intersection Result Elements::
 * libgnunetseti::
 * The SETI Client-Service Protocol::
 * The SETI Intersection Peer-to-Peer Protocol::
 @end menu
 
-@node Local Sets
-@subsection Local Sets
+@node Intersection Sets
+@subsection Intersection Sets
 
 Sets created by a local client can be modified (by adding additional elements)
 and reused for multiple operations.  If elements are to be removed, a fresh
 set must be created by the client.
 
-@node Set Modifications
-@subsection Set Modifications
+@node Set Intersection Modifications
+@subsection Set Intersection Modifications
 
 Even when set operations are active, one can add elements
 to a set.
@@ -6957,8 +6957,8 @@ only sees a snapshot of the set from the time the operation was started.
 This mechanism is @emph{not} implemented by copying the whole set, but by
 attaching @emph{generation information} to each element and operation.
 
-@node Set Operations
-@subsection Set Operations
+@node Set Intersection Operations
+@subsection Set Intersection Operations
 
 Set operations can be started in two ways: Either by accepting an
 operation request from a remote peer, or by requesting a set operation
@@ -6972,8 +6972,8 @@ type and application id.
 Once notified of an incoming set request, the client can accept the set
 request (providing a local set for the operation) or reject it.
 
-@node Result Elements
-@subsection Result Elements
+@node Intersection Result Elements
+@subsection Intersection Result Elements
 
 The SET service has two @emph{result modes} that determine how an
 operation's result set is delivered to the client:
@@ -6990,15 +6990,15 @@ peer's initial set but not in the intersection are returned.
 @subsection libgnunetseti
 
 @menu
-* Sets::
-* Listeners::
-* Operations::
-* Supplying a Set::
-* The Result Callback::
+* Intersection Set API::
+* Intersection Listeners::
+* Intersection Operations::
+* Supplying a Set for Intersection::
+* The Intersection Result Callback::
 @end menu
 
-@node Sets
-@subsubsection Sets
+@node Intersection Set API
+@subsubsection Intersection Set API
 
 New sets are created with @code{GNUNET_SETI_create}. Only the local peer's
 configuration (as each set has its own client connection) must be provided.
@@ -7009,8 +7009,8 @@ functions dealing with sets. This return value must always be checked.
 
 Elements are added with @code{GNUNET_SET_add_element}.
 
-@node Listeners
-@subsubsection Listeners
+@node Intersection Listeners
+@subsubsection Intersection Listeners
 
 Listeners are created with @code{GNUNET_SET_listen}. Each time time a
 remote peer suggests a set operation with an application id and operation
@@ -7020,16 +7020,16 @@ or @code{GNUNET_SET_reject}. Note that the operation will not be started
 until the client calls @code{GNUNET_SET_commit}
 (see Section "Supplying a Set").
 
-@node Operations
-@subsubsection Operations
+@node Intersection Operations
+@subsubsection Intersection Operations
 
 Operations to be initiated by the local peer are created with
 @code{GNUNET_SET_prepare}. Note that the operation will not be started
 until the client calls @code{GNUNET_SET_commit}
 (see Section "Supplying a Set").
 
-@node Supplying a Set
-@subsubsection Supplying a Set
+@node Supplying a Set for  Intersection
+@subsubsection Supplying a Set for Intersection
 
 To create symmetry between the two ways of starting a set operation
 (accepting and initiating it), the operation handles returned by
@@ -7040,8 +7040,8 @@ The client must call @code{GNUNET_SET_commit} to specify a set to use for
 an operation. @code{GNUNET_SET_commit} may only be called once per set
 operation.
 
-@node The Result Callback
-@subsubsection The Result Callback
+@node The Intersection Result Callback
+@subsubsection The Intersection Result Callback
 
 Clients must specify both a result mode and a result callback with
 @code{GNUNET_SET_accept} and @code{GNUNET_SET_prepare}. The result
@@ -7056,15 +7056,15 @@ or if it is in the difference between the original set and the final set.
 @subsection The SETI Client-Service Protocol
 
 @menu
-* Creating Sets::
-* Listeners2::
-* Initiating Operations::
-* Modifying Sets::
-* Results and Operation Status::
+* Creating Intersection Sets::
+* Listeners for Intersection::
+* Initiating Intersection Operations::
+* Modifying Intersection Sets::
+* Intersection Results and Operation Status::
 @end menu
 
-@node Creating Sets
-@subsubsection Creating Sets
+@node Creating Intersection Sets
+@subsubsection Creating Intersection Sets
 
 For each set of a client, there exists a client connection to the service.
 Sets are created by sending the @code{GNUNET_SERVICE_SETI_CREATE} message
@@ -7072,10 +7072,8 @@ over a new client connection. Multiple operations for one set are
 multiplexed over one client connection, using a request id supplied by
 the client.
 
-@node Listeners2
-@subsubsection Listeners2
-
-
+@node Listeners for Intersection
+@subsubsection Listeners for Intersection
 
 Each listener also requires a seperate client connection. By sending the
 @code{GNUNET_SERVICE_SETI_LISTEN} message, the client notifies the service
@@ -7086,15 +7084,15 @@ In contrast, when accepting an incoming request, a
 @code{GNUNET_SERVICE_SETI_ACCEPT} message must be sent over the@ set that
 is supplied for the set operation.
 
-@node Initiating Operations
-@subsubsection Initiating Operations
+@node Initiating Intersection Operations
+@subsubsection Initiating Intersection Operations
 
 Operations with remote peers are initiated by sending a
 @code{GNUNET_SERVICE_SETI_EVALUATE} message to the service. The@ client
 connection that this message is sent by determines the set to use.
 
-@node Modifying Sets
-@subsubsection Modifying Sets
+@node Modifying Intersection Sets
+@subsubsection Modifying Intersection Sets
 
 Sets are modified with the @code{GNUNET_SERVICE_SETI_ADD} message.
 
@@ -7104,8 +7102,8 @@ Sets are modified with the @code{GNUNET_SERVICE_SETI_ADD} message.
 @c %* Iterating Sets::
 @c %@end menu
 
-@node Results and Operation Status
-@subsubsection Results and Operation Status
+@node Intersection Results and Operation Status
+@subsubsection Intersection Results and Operation Status
 
 The service notifies the client of result elements and success/failure of
 a set operation with the @code{GNUNET_SERVICE_SETI_RESULT} message.
@@ -7136,12 +7134,12 @@ just the initial handshake.
 
 
 @menu
-* The Bloom filter exchange::
-* Salt::
+* The Bloom filter exchange in SETI::
+* Intersection Salt::
 @end menu
 
-@node The Bloom filter exchange
-@subsubsection The Bloom filter exchange
+@node The Bloom filter exchange in SETI
+@subsubsection The Bloom filter exchange in SETI
 
 In this phase, each peer transmits a Bloom filter over the remaining
 keys of the local set to the other peer using a
@@ -7165,10 +7163,10 @@ that the latest set is the final result.
 Otherwise, the receiver starts another Bloom filter exchange, except
 this time as the sender.
 
-@node Salt
-@subsubsection Salt
+@node Intersection Salt
+@subsubsection Intersection Salt
 
-Bloomfilter operations are probabilistic: With some non-zero probability
+Bloom filter operations are probabilistic: With some non-zero probability
 the test may incorrectly say an element is in the set, even though it is
 not.
 
@@ -7194,24 +7192,24 @@ arbitrary binary @emph{data}.  The size of an element's data is limited to
 around 62 KB.
 
 @menu
-* Local Sets::
-* Set Modifications::
-* Set Operations::
-* Result Elements::
+* Union Sets::
+* Set Union Modifications::
+* Set Union Operations::
+* Union Result Elements::
 * libgnunetsetu::
 * The SETU Client-Service Protocol::
 * The SETU Union Peer-to-Peer Protocol::
 @end menu
 
-@node Local Sets
-@subsection Local Sets
+@node Union Sets
+@subsection Union Sets
 
 Sets created by a local client can be modified (by adding additional elements)
 and reused for multiple operations.  If elements are to be removed, a fresh
 set must be created by the client.
 
-@node Set Modifications
-@subsection Set Modifications
+@node Set Union Modifications
+@subsection Set Union Modifications
 
 Even when set operations are active, one can add elements
 to a set.
@@ -7221,8 +7219,8 @@ only sees a snapshot of the set from the time the operation was started.
 This mechanism is @emph{not} implemented by copying the whole set, but by
 attaching @emph{generation information} to each element and operation.
 
-@node Set Operations
-@subsection Set Operations
+@node Set Union Operations
+@subsection Set Union Operations
 
 Set operations can be started in two ways: Either by accepting an
 operation request from a remote peer, or by requesting a set operation
@@ -7236,8 +7234,8 @@ type and application id.
 Once notified of an incoming set request, the client can accept the set
 request (providing a local set for the operation) or reject it.
 
-@node Result Elements
-@subsection Result Elements
+@node Union Result Elements
+@subsection Union Result Elements
 
 The SET service has three @emph{result modes} that determine how an
 operation's result set is delivered to the client:
@@ -7257,15 +7255,15 @@ the @code{GNUNET_SETU_OPTION_SYMMETRIC} option.
 @subsection libgnunetsetu
 
 @menu
-* Sets::
-* Listeners::
-* Operations::
-* Supplying a Set::
-* The Result Callback::
+* Union Set API::
+* Union Listeners::
+* Union Operations::
+* Supplying a Set for Union::
+* The Union Result Callback::
 @end menu
 
-@node Sets
-@subsubsection Sets
+@node Union Set API
+@subsubsection Union Set API
 
 New sets are created with @code{GNUNET_SETU_create}. Only the local peer's
 configuration (as each set has its own client connection) must be provided.
@@ -7276,8 +7274,8 @@ functions dealing with sets. This return value must always be checked.
 
 Elements are added with @code{GNUNET_SETU_add_element}.
 
-@node Listeners
-@subsubsection Listeners
+@node Union Listeners
+@subsubsection Union Listeners
 
 Listeners are created with @code{GNUNET_SETU_listen}. Each time time a
 remote peer suggests a set operation with an application id and operation
@@ -7287,16 +7285,16 @@ or @code{GNUNET_SETU_reject}. Note that the operation will not be started
 until the client calls @code{GNUNET_SETU_commit}
 (see Section "Supplying a Set").
 
-@node Operations
-@subsubsection Operations
+@node Union Operations
+@subsubsection Union Operations
 
 Operations to be initiated by the local peer are created with
 @code{GNUNET_SETU_prepare}. Note that the operation will not be started
 until the client calls @code{GNUNET_SETU_commit}
 (see Section "Supplying a Set").
 
-@node Supplying a Set
-@subsubsection Supplying a Set
+@node Supplying a Set for Union
+@subsubsection Supplying a Set for Union
 
 To create symmetry between the two ways of starting a set operation
 (accepting and initiating it), the operation handles returned by
@@ -7307,8 +7305,8 @@ The client must call @code{GNUNET_SETU_commit} to specify a set to use for
 an operation. @code{GNUNET_SETU_commit} may only be called once per set
 operation.
 
-@node The Result Callback
-@subsubsection The Result Callback
+@node The Union Result Callback
+@subsubsection The Union Result Callback
 
 Clients must specify both a result mode and a result callback with
 @code{GNUNET_SETU_accept} and @code{GNUNET_SETU_prepare}. The result
@@ -7320,16 +7318,15 @@ if the operation failed or ultimately succeeded.
 @subsection The SETU Client-Service Protocol
 
 @menu
-* Creating Sets::
-* Listeners2::
-* Initiating Operations::
-* Modifying Sets::
-* Results and Operation Status::
-* Iterating Sets::
+* Creating Union Sets::
+* Listeners for Union::
+* Initiating Union Operations::
+* Modifying Union Sets::
+* Union Results and Operation Status::
 @end menu
 
-@node Creating Sets
-@subsubsection Creating Sets
+@node Creating Union Sets
+@subsubsection Creating Union Sets
 
 For each set of a client, there exists a client connection to the service.
 Sets are created by sending the @code{GNUNET_SERVICE_SETU_CREATE} message
@@ -7337,8 +7334,8 @@ over a new client connection. Multiple operations for one set are
 multiplexed over one client connection, using a request id supplied by
 the client.
 
-@node Listeners2
-@subsubsection Listeners2
+@node Listeners for Union
+@subsubsection Listeners for Union
 
 Each listener also requires a seperate client connection. By sending the
 @code{GNUNET_SERVICE_SETU_LISTEN} message, the client notifies the service
@@ -7349,8 +7346,8 @@ In contrast, when accepting an incoming request, a
 @code{GNUNET_SERVICE_SETU_ACCEPT} message must be sent over the@ set that
 is supplied for the set operation.
 
-@node Initiating Operations
-@subsubsection Initiating Operations
+@node Initiating Union Operations
+@subsubsection Initiating Union Operations
 
 
 
@@ -7358,10 +7355,8 @@ Operations with remote peers are initiated by sending a
 @code{GNUNET_SERVICE_SETU_EVALUATE} message to the service. The@ client
 connection that this message is sent by determines the set to use.
 
-@node Modifying Sets
-@subsubsection Modifying Sets
-
-
+@node Modifying Union Sets
+@subsubsection Modifying Union Sets
 
 Sets are modified with the @code{GNUNET_SERVICE_SETU_ADD} message.
 
@@ -7371,8 +7366,8 @@ Sets are modified with the @code{GNUNET_SERVICE_SETU_ADD} message.
 @c %* Iterating Sets::
 @c %@end menu
 
-@node Results and Operation Status
-@subsubsection Results and Operation Status
+@node Union Results and Operation Status
+@subsubsection Union Results and Operation Status
 
 The service notifies the client of result elements and success/failure of
 a set operation with the @code{GNUNET_SERVICE_SETU_RESULT} message.
