@@ -6935,8 +6935,8 @@ The size of an element's data is limited to around 62 KB.
 * Set Operations::
 * Result Elements::
 * libgnunetseti::
-* The SET Client-Service Protocol::
-* The SET Intersection Peer-to-Peer Protocol::
+* The SETI Client-Service Protocol::
+* The SETI Intersection Peer-to-Peer Protocol::
 @end menu
 
 @node Local Sets
@@ -7110,8 +7110,8 @@ Sets are modified with the @code{GNUNET_SERVICE_SETI_ADD} message.
 The service notifies the client of result elements and success/failure of
 a set operation with the @code{GNUNET_SERVICE_SETI_RESULT} message.
 
-@node The SET Intersection Peer-to-Peer Protocol
-@subsection The SET Intersection Peer-to-Peer Protocol
+@node The SETI Intersection Peer-to-Peer Protocol
+@subsection The SETI Intersection Peer-to-Peer Protocol
 
 The intersection protocol operates over CADET and starts with a
 GNUNET_MESSAGE_TYPE_SETI_P2P_OPERATION_REQUEST being sent by the peer
@@ -7198,10 +7198,9 @@ around 62 KB.
 * Set Modifications::
 * Set Operations::
 * Result Elements::
-* libgnunetset::
-* The SET Client-Service Protocol::
-* The SET Intersection Peer-to-Peer Protocol::
-* The SET Union Peer-to-Peer Protocol::
+* libgnunetsetu::
+* The SETU Client-Service Protocol::
+* The SETU Union Peer-to-Peer Protocol::
 @end menu
 
 @node Local Sets
@@ -7379,8 +7378,8 @@ The service notifies the client of result elements and success/failure of
 a set operation with the @code{GNUNET_SERVICE_SETU_RESULT} message.
 
 
-@node The SET Union Peer-to-Peer Protocol
-@subsection The SET Union Peer-to-Peer Protocol
+@node The SETU Union Peer-to-Peer Protocol
+@subsection The SETU Union Peer-to-Peer Protocol
 
 
 The SET union protocol is based on Eppstein's efficient set reconciliation
