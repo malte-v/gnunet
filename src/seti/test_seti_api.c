@@ -1,6 +1,6 @@
 /*
      This file is part of GNUnet.
-     Copyright (C) 2012-2014 GNUnet e.V.
+     Copyright (C) 2012-2014, 2020 GNUnet e.V.
 
      GNUnet is free software: you can redistribute it and/or modify it
      under the terms of the GNU Affero General Public License as published
@@ -108,14 +108,18 @@ result_cb_set2 (void *cls,
     break;
   case GNUNET_SETI_STATUS_DONE:
     oh2 = NULL;
-    GNUNET_assert (1 == count);
+    GNUNET_break (1 == count);
+    if (1 != count)
+      ret |= 2;
     GNUNET_SETI_destroy (set2);
     set2 = NULL;
     if (NULL == set1)
       GNUNET_SCHEDULER_shutdown ();
     break;
-  default:
-    GNUNET_assert (0);
+  case GNUNET_SETI_STATUS_DEL_LOCAL:
+    /* unexpected! */
+    ret = 1;
+    break;
   }
 }
 

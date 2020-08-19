@@ -2200,6 +2200,9 @@ handle_client_evaluate (void *cls,
                                        UINT32_MAX);
   op->peer = msg->target_peer;
   op->return_intersection = htonl (msg->return_intersection);
+  fprintf (stderr,
+           "Return intersection for evaluate is %d\n",
+           op->return_intersection);
   op->client_request_id = ntohl (msg->request_id);
   context = GNUNET_MQ_extract_nested_mh (msg);
 
@@ -2364,6 +2367,9 @@ handle_client_accept (void *cls,
   listener = op->listener;
   op->listener = NULL;
   op->return_intersection = htonl (msg->return_intersection);
+  fprintf (stderr,
+           "Return intersection for accept is %d\n",
+           op->return_intersection);
   GNUNET_CONTAINER_DLL_remove (listener->op_head,
                                listener->op_tail,
                                op);

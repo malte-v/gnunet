@@ -806,7 +806,8 @@ GNUNET_SETI_accept (struct GNUNET_SETI_Request *request,
     switch (opt->type)
     {
     case GNUNET_SETI_OPTION_RETURN_INTERSECTION:
-      oh->return_intersection = htonl (GNUNET_YES);
+      oh->return_intersection = GNUNET_YES;
+      msg->return_intersection = htonl (GNUNET_YES);
       break;
     default:
       LOG (GNUNET_ERROR_TYPE_ERROR,
