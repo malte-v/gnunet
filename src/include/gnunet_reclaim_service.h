@@ -92,7 +92,21 @@ struct GNUNET_RECLAIM_Ticket
  * @param ticket the ticket
  */
 typedef void (*GNUNET_RECLAIM_TicketCallback) (
-  void *cls, const struct GNUNET_RECLAIM_Ticket *ticket);
+  void *cls,
+  const struct GNUNET_RECLAIM_Ticket *ticket);
+
+/**
+ * Method called when a token has been issued.
+ * On success returns a ticket that can be given to a relying party
+ * in order for it retrive identity attributes
+ *
+ * @param cls closure
+ * @param ticket the ticket
+ */
+typedef void (*GNUNET_RECLAIM_IssueTicketCallback) (
+  void *cls,
+  const struct GNUNET_RECLAIM_Ticket *ticket,
+  const struct GNUNET_RECLAIM_PresentationList *presentations);
 
 
 /**
@@ -369,7 +383,7 @@ GNUNET_RECLAIM_ticket_issue (
   const struct GNUNET_CRYPTO_EcdsaPrivateKey *iss,
   const struct GNUNET_CRYPTO_EcdsaPublicKey *rp,
   const struct GNUNET_RECLAIM_AttributeList *attrs,
-  GNUNET_RECLAIM_TicketCallback cb, void *cb_cls);
+  GNUNET_RECLAIM_IssueTicketCallback cb, void *cb_cls);
 
 
 /**

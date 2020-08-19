@@ -92,6 +92,11 @@ struct GNUNET_RECLAIM_Operation
   GNUNET_RECLAIM_TicketCallback tr_cb;
 
   /**
+   * Ticket issue result callback
+   */
+  GNUNET_RECLAIM_IssueTicketCallback ti_cb;
+
+  /**
    * Envelope with the message for this queue entry.
    */
   struct GNUNET_MQ_Envelope *env;
@@ -866,6 +871,30 @@ handle_credential_result (void *cls, const struct
   GNUNET_assert (0);
 }
 
+/**
+   * Handle an incoming message of type
+   * #GNUNET_MESSAGE_TYPE_RECLAIM_TICKET_RESULT
+   *
+   * @param cls
+   * @param msg the message we received
+   * @return #GNUNET_OK on success, #GNUNET_SYSERR on error
+   */
+static int
+check_ticket_result (void *cls, const struct TicketResultMessage *msg)
+{
+  size_t msg_len;
+  size_t pres_len;
+
+  msg_len = ntohs (msg->header.size);
+  pres_len = ntohs (msg->presentations_len);
+  if (msg_len != sizeof(struct TicketResultMessage) + pres_len)
+  {
+    GNUNET_break (0);
+    return GNUNET_SYSERR;
+  }
+  return GNUNET_OK;
+}
+
 
 /**
  * Handle an incoming message of type
@@ -880,8 +909,10 @@ handle_ticket_result (void *cls, const struct TicketResultMessage *msg)
   struct GNUNET_RECLAIM_Handle *handle = cls;
   struct GNUNET_RECLAIM_Operation *op;
   struct GNUNET_RECLAIM_TicketIterator *it;
+  struct GNUNET_RECLAIM_PresentationList *pres;
   uint32_t r_id = ntohl (msg->id);
   static const struct GNUNET_RECLAIM_Ticket ticket;
+  uint32_t pres_len = ntohs (msg->presentations_len);
 
   for (op = handle->op_head; NULL != op; op = op->next)
     if (op->r_id == r_id)
@@ -893,18 +924,25 @@ handle_ticket_result (void *cls, const struct TicketResultMessage *msg)
     return;
   if (NULL != op)
   {
+    if (0 < pres_len)
+      pres = GNUNET_RECLAIM_presentation_list_deserialize ((char*)&msg[1],
+                                                           pres_len);
     GNUNET_CONTAINER_DLL_remove (handle->op_head, handle->op_tail, op);
     if (0 ==
         memcmp (&msg->ticket, &ticket, sizeof(struct GNUNET_RECLAIM_Ticket)))
     {
-      if (NULL != op->tr_cb)
-        op->tr_cb (op->cls, NULL);
+      if (NULL != op->ti_cb)
+        op->ti_cb (op->cls, NULL, NULL);
     }
     else
     {
-      if (NULL != op->tr_cb)
-        op->tr_cb (op->cls, &msg->ticket);
+      if (NULL != op->ti_cb)
+        op->ti_cb (op->cls,
+                   &msg->ticket,
+                   (0 < pres_len) ? pres : NULL);
     }
+    if (0 < pres_len)
+      GNUNET_RECLAIM_presentation_list_destroy (pres);
     free_op (op);
     return;
   }
@@ -989,10 +1027,10 @@ reconnect (struct GNUNET_RECLAIM_Handle *h)
                            GNUNET_MESSAGE_TYPE_RECLAIM_CREDENTIAL_RESULT,
                            struct CredentialResultMessage,
                            h),
-    GNUNET_MQ_hd_fixed_size (ticket_result,
-                             GNUNET_MESSAGE_TYPE_RECLAIM_TICKET_RESULT,
-                             struct TicketResultMessage,
-                             h),
+    GNUNET_MQ_hd_var_size (ticket_result,
+                           GNUNET_MESSAGE_TYPE_RECLAIM_TICKET_RESULT,
+                           struct TicketResultMessage,
+                           h),
     GNUNET_MQ_hd_var_size (consume_ticket_result,
                            GNUNET_MESSAGE_TYPE_RECLAIM_CONSUME_TICKET_RESULT,
                            struct ConsumeTicketResultMessage,
@@ -1506,7 +1544,7 @@ GNUNET_RECLAIM_ticket_issue (
   const struct GNUNET_CRYPTO_EcdsaPrivateKey *iss,
   const struct GNUNET_CRYPTO_EcdsaPublicKey *rp,
   const struct GNUNET_RECLAIM_AttributeList *attrs,
-  GNUNET_RECLAIM_TicketCallback cb,
+  GNUNET_RECLAIM_IssueTicketCallback cb,
   void *cb_cls)
 {
   struct GNUNET_RECLAIM_Operation *op;
@@ -1516,7 +1554,7 @@ GNUNET_RECLAIM_ticket_issue (
   fprintf (stderr, "Issuing ticket\n");
   op = GNUNET_new (struct GNUNET_RECLAIM_Operation);
   op->h = h;
-  op->tr_cb = cb;
+  op->ti_cb = cb;
   op->cls = cb_cls;
   op->r_id = h->r_id_gen++;
   GNUNET_CONTAINER_DLL_insert_tail (h->op_head, h->op_tail, op);

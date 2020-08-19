@@ -165,9 +165,9 @@ GNUNET_RECLAIM_credential_number_to_typename (uint32_t type)
  */
 int
 GNUNET_RECLAIM_credential_string_to_value (uint32_t type,
-                                            const char *s,
-                                            void **data,
-                                            size_t *data_size)
+                                           const char *s,
+                                           void **data,
+                                           size_t *data_size)
 {
   unsigned int i;
   struct Plugin *plugin;
@@ -197,8 +197,8 @@ GNUNET_RECLAIM_credential_string_to_value (uint32_t type,
  */
 char *
 GNUNET_RECLAIM_credential_value_to_string (uint32_t type,
-                                            const void *data,
-                                            size_t data_size)
+                                           const void *data,
+                                           size_t data_size)
 {
   unsigned int i;
   struct Plugin *plugin;
@@ -229,9 +229,9 @@ GNUNET_RECLAIM_credential_value_to_string (uint32_t type,
    */
 struct GNUNET_RECLAIM_Credential *
 GNUNET_RECLAIM_credential_new (const char *attr_name,
-                                uint32_t type,
-                                const void *data,
-                                size_t data_size)
+                               uint32_t type,
+                               const void *data,
+                               size_t data_size)
 {
   struct GNUNET_RECLAIM_Credential *attr;
   char *write_ptr;
@@ -335,7 +335,7 @@ GNUNET_RECLAIM_credential_list_deserialize (const char *data, size_t data_size)
     ale = GNUNET_new (struct GNUNET_RECLAIM_CredentialListEntry);
     ale->credential =
       GNUNET_RECLAIM_credential_deserialize (read_ptr,
-                                              data_size - (read_ptr - data));
+                                             data_size - (read_ptr - data));
     if (NULL == ale->credential)
     {
       GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
@@ -371,9 +371,9 @@ GNUNET_RECLAIM_credential_list_dup (
     GNUNET_assert (NULL != ale->credential);
     result_ale->credential =
       GNUNET_RECLAIM_credential_new (ale->credential->name,
-                                      ale->credential->type,
-                                      ale->credential->data,
-                                      ale->credential->data_size);
+                                     ale->credential->type,
+                                     ale->credential->data,
+                                     ale->credential->data_size);
     result_ale->credential->id = ale->credential->id;
     GNUNET_CONTAINER_DLL_insert (result->list_head,
                                  result->list_tail,
@@ -490,7 +490,7 @@ GNUNET_RECLAIM_credential_deserialize (const char *data, size_t data_size)
     return NULL;
   }
   credential = GNUNET_malloc (sizeof(struct GNUNET_RECLAIM_Credential)
-                               + data_len + name_len + 1);
+                              + data_len + name_len + 1);
   credential->type = ntohs (atts->credential_type);
   credential->flag = ntohl (atts->credential_flag);
   credential->id = atts->credential_id;
@@ -511,7 +511,7 @@ GNUNET_RECLAIM_credential_deserialize (const char *data, size_t data_size)
 
 struct GNUNET_RECLAIM_AttributeList*
 GNUNET_RECLAIM_credential_get_attributes (const struct
-                                           GNUNET_RECLAIM_Credential *credential)
+                                          GNUNET_RECLAIM_Credential *credential)
 {
   unsigned int i;
   struct Plugin *plugin;
@@ -531,7 +531,7 @@ GNUNET_RECLAIM_credential_get_attributes (const struct
 
 char*
 GNUNET_RECLAIM_credential_get_issuer (const struct
-                                       GNUNET_RECLAIM_Credential *credential)
+                                      GNUNET_RECLAIM_Credential *credential)
 {
   unsigned int i;
   struct Plugin *plugin;
@@ -551,8 +551,8 @@ GNUNET_RECLAIM_credential_get_issuer (const struct
 
 int
 GNUNET_RECLAIM_credential_get_expiration (const struct
-                                           GNUNET_RECLAIM_Credential *credential,
-                                           struct GNUNET_TIME_Absolute*exp)
+                                          GNUNET_RECLAIM_Credential *credential,
+                                          struct GNUNET_TIME_Absolute*exp)
 {
   unsigned int i;
   struct Plugin *plugin;
@@ -568,3 +568,470 @@ GNUNET_RECLAIM_credential_get_expiration (const struct
   }
   return GNUNET_SYSERR;
 }
+
+
+/**
+ * Convert an presentation type name to the corresponding number
+ *
+ * @param typename name to convert
+ * @return corresponding number, UINT32_MAX on error
+ */
+uint32_t
+GNUNET_RECLAIM_presentation_typename_to_number (const char *typename)
+{
+  unsigned int i;
+  struct Plugin *plugin;
+  uint32_t ret;
+  init ();
+  for (i = 0; i < num_plugins; i++)
+  {
+    plugin = credential_plugins[i];
+    if (UINT32_MAX !=
+        (ret = plugin->api->typename_to_number_p (plugin->api->cls,
+                                                  typename)))
+      return ret;
+  }
+  return UINT32_MAX;
+}
+
+
+/**
+ * Convert an presentation type number to the corresponding presentation type string
+ *
+ * @param type number of a type
+ * @return corresponding typestring, NULL on error
+ */
+const char *
+GNUNET_RECLAIM_presentation_number_to_typename (uint32_t type)
+{
+  unsigned int i;
+  struct Plugin *plugin;
+  const char *ret;
+
+  init ();
+  for (i = 0; i < num_plugins; i++)
+  {
+    plugin = credential_plugins[i];
+    if (NULL !=
+        (ret = plugin->api->number_to_typename_p (plugin->api->cls, type)))
+      return ret;
+  }
+  return NULL;
+}
+
+
+/**
+ * Convert human-readable version of a 'claim' of an presentation to the binary
+ * representation
+ *
+ * @param type type of the claim
+ * @param s human-readable string
+ * @param data set to value in binary encoding (will be allocated)
+ * @param data_size set to number of bytes in @a data
+ * @return #GNUNET_OK on success
+ */
+int
+GNUNET_RECLAIM_presentation_string_to_value (uint32_t type,
+                                             const char *s,
+                                             void **data,
+                                             size_t *data_size)
+{
+  unsigned int i;
+  struct Plugin *plugin;
+
+  init ();
+  for (i = 0; i < num_plugins; i++)
+  {
+    plugin = credential_plugins[i];
+    if (GNUNET_OK == plugin->api->string_to_value_p (plugin->api->cls,
+                                                     type,
+                                                     s,
+                                                     data,
+                                                     data_size))
+      return GNUNET_OK;
+  }
+  return GNUNET_SYSERR;
+}
+
+
+/**
+ * Convert the 'claim' of an presentation to a string
+ *
+ * @param type the type of presentation
+ * @param data claim in binary encoding
+ * @param data_size number of bytes in @a data
+ * @return NULL on error, otherwise human-readable representation of the claim
+ */
+char *
+GNUNET_RECLAIM_presentation_value_to_string (uint32_t type,
+                                             const void *data,
+                                             size_t data_size)
+{
+  unsigned int i;
+  struct Plugin *plugin;
+  char *ret;
+
+  init ();
+  for (i = 0; i < num_plugins; i++)
+  {
+    plugin = credential_plugins[i];
+    if (NULL != (ret = plugin->api->value_to_string_p (plugin->api->cls,
+                                                       type,
+                                                       data,
+                                                       data_size)))
+      return ret;
+  }
+  return NULL;
+}
+
+
+struct GNUNET_RECLAIM_Presentation *
+GNUNET_RECLAIM_presentation_new (uint32_t type,
+                                 const void *data,
+                                 size_t data_size)
+{
+  struct GNUNET_RECLAIM_Presentation *attr;
+  char *write_ptr;
+
+  attr = GNUNET_malloc (sizeof(struct GNUNET_RECLAIM_Presentation)
+                        + data_size);
+  attr->type = type;
+  attr->data_size = data_size;
+  write_ptr = (char *) &attr[1];
+  GNUNET_memcpy (write_ptr, data, data_size);
+  attr->data = write_ptr;
+  return attr;
+}
+
+
+/**
+ * Get required size for serialization buffer
+ *
+ * @param attrs the attribute list to serialize
+ * @return the required buffer size
+ */
+size_t
+GNUNET_RECLAIM_presentation_list_serialize_get_size (
+  const struct GNUNET_RECLAIM_PresentationList *presentations)
+{
+  struct GNUNET_RECLAIM_PresentationListEntry *le;
+  size_t len = 0;
+
+  for (le = presentations->list_head; NULL != le; le = le->next)
+  {
+    GNUNET_assert (NULL != le->presentation);
+    len += GNUNET_RECLAIM_presentation_serialize_get_size (le->presentation);
+    len += sizeof(struct GNUNET_RECLAIM_PresentationListEntry);
+  }
+  return len;
+}
+
+
+/**
+ * Serialize an attribute list
+ *
+ * @param attrs the attribute list to serialize
+ * @param result the serialized attribute
+ * @return length of serialized data
+ */
+size_t
+GNUNET_RECLAIM_presentation_list_serialize (
+  const struct GNUNET_RECLAIM_PresentationList *presentations,
+  char *result)
+{
+  struct GNUNET_RECLAIM_PresentationListEntry *le;
+  size_t len;
+  size_t total_len;
+  char *write_ptr;
+  write_ptr = result;
+  total_len = 0;
+  for (le = presentations->list_head; NULL != le; le = le->next)
+  {
+    GNUNET_assert (NULL != le->presentation);
+    len = GNUNET_RECLAIM_presentation_serialize (le->presentation, write_ptr);
+    total_len += len;
+    write_ptr += len;
+  }
+  return total_len;
+}
+
+
+/**
+ * Deserialize an presentation list
+ *
+ * @param data the serialized attribute list
+ * @param data_size the length of the serialized data
+ * @return a GNUNET_IDENTITY_PROVIDER_AttributeList, must be free'd by caller
+ */
+struct GNUNET_RECLAIM_PresentationList *
+GNUNET_RECLAIM_presentation_list_deserialize (const char *data, size_t
+                                              data_size)
+{
+  struct GNUNET_RECLAIM_PresentationList *al;
+  struct GNUNET_RECLAIM_PresentationListEntry *ale;
+  size_t att_len;
+  const char *read_ptr;
+
+  al = GNUNET_new (struct GNUNET_RECLAIM_PresentationList);
+
+  if ((data_size < sizeof(struct Presentation)
+       + sizeof(struct GNUNET_RECLAIM_PresentationListEntry)))
+    return al;
+
+  read_ptr = data;
+  while (((data + data_size) - read_ptr) >= sizeof(struct Presentation))
+  {
+    ale = GNUNET_new (struct GNUNET_RECLAIM_PresentationListEntry);
+    ale->presentation =
+      GNUNET_RECLAIM_presentation_deserialize (read_ptr,
+                                               data_size - (read_ptr - data));
+    if (NULL == ale->presentation)
+    {
+      GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
+                  "Failed to deserialize malformed presentation.\n");
+      GNUNET_free (ale);
+      return al;
+    }
+    GNUNET_CONTAINER_DLL_insert (al->list_head, al->list_tail, ale);
+    att_len = GNUNET_RECLAIM_presentation_serialize_get_size (
+      ale->presentation);
+    read_ptr += att_len;
+  }
+  return al;
+}
+
+
+/**
+ * Make a (deep) copy of the presentation list
+ * @param attrs claim list to copy
+ * @return copied claim list
+ */
+struct GNUNET_RECLAIM_PresentationList *
+GNUNET_RECLAIM_presentation_list_dup (
+  const struct GNUNET_RECLAIM_PresentationList *al)
+{
+  struct GNUNET_RECLAIM_PresentationListEntry *ale;
+  struct GNUNET_RECLAIM_PresentationListEntry *result_ale;
+  struct GNUNET_RECLAIM_PresentationList *result;
+
+  result = GNUNET_new (struct GNUNET_RECLAIM_PresentationList);
+  for (ale = al->list_head; NULL != ale; ale = ale->next)
+  {
+    result_ale = GNUNET_new (struct GNUNET_RECLAIM_PresentationListEntry);
+    GNUNET_assert (NULL != ale->presentation);
+    result_ale->presentation =
+      GNUNET_RECLAIM_presentation_new (ale->presentation->type,
+                                       ale->presentation->data,
+                                       ale->presentation->data_size);
+    result_ale->presentation->credential_id = ale->presentation->credential_id;
+    GNUNET_CONTAINER_DLL_insert (result->list_head,
+                                 result->list_tail,
+                                 result_ale);
+  }
+  return result;
+}
+
+
+/**
+ * Destroy presentation list
+ *
+ * @param attrs list to destroy
+ */
+void
+GNUNET_RECLAIM_presentation_list_destroy (
+  struct GNUNET_RECLAIM_PresentationList *al)
+{
+  struct GNUNET_RECLAIM_PresentationListEntry *ale;
+  struct GNUNET_RECLAIM_PresentationListEntry *tmp_ale;
+
+  for (ale = al->list_head; NULL != ale;)
+  {
+    if (NULL != ale->presentation)
+      GNUNET_free (ale->presentation);
+    tmp_ale = ale;
+    ale = ale->next;
+    GNUNET_free (tmp_ale);
+  }
+  GNUNET_free (al);
+}
+
+
+/**
+ * Get required size for serialization buffer
+ *
+ * @param attr the presentation to serialize
+ * @return the required buffer size
+ */
+size_t
+GNUNET_RECLAIM_presentation_serialize_get_size (
+  const struct GNUNET_RECLAIM_Presentation *presentation)
+{
+  return sizeof(struct Presentation) + presentation->data_size;
+}
+
+
+/**
+ * Serialize an presentation
+ *
+ * @param attr the presentation to serialize
+ * @param result the serialized presentation
+ * @return length of serialized data
+ */
+size_t
+GNUNET_RECLAIM_presentation_serialize (
+  const struct GNUNET_RECLAIM_Presentation *presentation,
+  char *result)
+{
+  struct Presentation *atts;
+  char *write_ptr;
+
+  atts = (struct Presentation *) result;
+  atts->presentation_type = htons (presentation->type);
+  atts->credential_id = presentation->credential_id;
+  write_ptr = (char *) &atts[1];
+  GNUNET_memcpy (write_ptr, presentation->data, presentation->data_size);
+  atts->data_size = htons (presentation->data_size);
+
+  return sizeof(struct Presentation) + presentation->data_size;
+}
+
+
+/**
+ * Deserialize an presentation
+ *
+ * @param data the serialized presentation
+ * @param data_size the length of the serialized data
+ *
+ * @return a GNUNET_IDENTITY_PROVIDER_Attribute, must be free'd by caller
+ */
+struct GNUNET_RECLAIM_Presentation *
+GNUNET_RECLAIM_presentation_deserialize (const char *data, size_t data_size)
+{
+  struct GNUNET_RECLAIM_Presentation *presentation;
+  struct Presentation *atts;
+  size_t data_len;
+  char *write_ptr;
+
+  if (data_size < sizeof(struct Presentation))
+    return NULL;
+
+  atts = (struct Presentation *) data;
+  data_len = ntohs (atts->data_size);
+  if (data_size < sizeof(struct Presentation) + data_len)
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                "Buffer too small to deserialize\n");
+    return NULL;
+  }
+  presentation = GNUNET_malloc (sizeof(struct GNUNET_RECLAIM_Presentation)
+                                + data_len);
+  presentation->type = ntohs (atts->presentation_type);
+  presentation->credential_id = atts->credential_id;
+  presentation->data_size = data_len;
+
+  write_ptr = (char *) &presentation[1];
+  GNUNET_memcpy (write_ptr, &atts[1], data_len);
+  presentation->data = write_ptr;
+  return presentation;
+}
+
+
+struct GNUNET_RECLAIM_AttributeList*
+GNUNET_RECLAIM_presentation_get_attributes (const struct
+                                            GNUNET_RECLAIM_Presentation *
+                                            presentation)
+{
+  unsigned int i;
+  struct Plugin *plugin;
+  struct GNUNET_RECLAIM_AttributeList *ret;
+  init ();
+  for (i = 0; i < num_plugins; i++)
+  {
+    plugin = credential_plugins[i];
+    if (NULL !=
+        (ret = plugin->api->get_attributes_p (plugin->api->cls,
+                                              presentation)))
+      return ret;
+  }
+  return NULL;
+}
+
+
+char*
+GNUNET_RECLAIM_presentation_get_issuer (const struct
+                                        GNUNET_RECLAIM_Presentation *
+                                        presentation)
+{
+  unsigned int i;
+  struct Plugin *plugin;
+  char *ret;
+  init ();
+  for (i = 0; i < num_plugins; i++)
+  {
+    plugin = credential_plugins[i];
+    if (NULL !=
+        (ret = plugin->api->get_issuer_p (plugin->api->cls,
+                                          presentation)))
+      return ret;
+  }
+  return NULL;
+}
+
+
+int
+GNUNET_RECLAIM_presentation_get_expiration (const struct
+                                            GNUNET_RECLAIM_Presentation *
+                                            presentation,
+                                            struct GNUNET_TIME_Absolute*exp)
+{
+  unsigned int i;
+  struct Plugin *plugin;
+  init ();
+  for (i = 0; i < num_plugins; i++)
+  {
+    plugin = credential_plugins[i];
+    if (GNUNET_OK !=  plugin->api->get_expiration_p (plugin->api->cls,
+                                                     presentation,
+                                                     exp))
+      continue;
+    return GNUNET_OK;
+  }
+  return GNUNET_SYSERR;
+}
+
+/**
+ * Create a presentation from a credential and a lift of (selected)
+ * attributes in the credential.
+ * FIXME not yet implemented
+ *
+ * @param cred the credential to use
+ * @param attrs the attributes to present from the credential
+ * @return the credential presentation presenting the attributes according
+ *         to the presentation mechanism of the credential
+ *         or NULL on error.
+ */
+int
+GNUNET_RECLAIM_credential_get_presentation (
+                              const struct GNUNET_RECLAIM_Credential *cred,
+                              const struct GNUNET_RECLAIM_AttributeList *attrs,
+                              struct GNUNET_RECLAIM_Presentation **pres)
+{
+  unsigned int i;
+  struct Plugin *plugin;
+  init ();
+  for (i = 0; i < num_plugins; i++)
+  {
+    plugin = credential_plugins[i];
+    if (GNUNET_OK !=  plugin->api->create_presentation (plugin->api->cls,
+                                                        cred,
+                                                        attrs,
+                                                        pres))
+      continue;
+    (*pres)->credential_id = cred->id;
+    return GNUNET_OK;
+  }
+  return GNUNET_SYSERR;
+}
+
+
+

@@ -227,7 +227,9 @@ do_cleanup (void *cls)
 
 
 static void
-ticket_issue_cb (void *cls, const struct GNUNET_RECLAIM_Ticket *ticket)
+ticket_issue_cb (void *cls,
+                 const struct GNUNET_RECLAIM_Ticket *ticket,
+                 const struct GNUNET_RECLAIM_PresentationList *presentations)
 {
   char *ticket_str;
 
@@ -456,6 +458,7 @@ iter_finished (void *cls)
     if (NULL == attr_to_delete)
     {
       fprintf (stdout, "No such attribute ``%s''\n", attr_delete);
+      GNUNET_SCHEDULER_add_now (&do_cleanup, NULL);
       return;
     }
     reclaim_op = GNUNET_RECLAIM_attribute_delete (reclaim_handle,

@@ -301,6 +301,11 @@ typedef int (*GNUNET_RECLAIM_PresentationGetExpirationFunction) (
   const struct GNUNET_RECLAIM_Presentation *cred,
   struct GNUNET_TIME_Absolute *expiration);
 
+typedef int (*GNUNET_RECLAIM_CredentialToPresentation) (
+  void *cls,
+  const struct GNUNET_RECLAIM_Credential *cred,
+  const struct GNUNET_RECLAIM_AttributeList *attrs,
+  struct GNUNET_RECLAIM_Presentation **presentation);
 
 /**
  * Each plugin is required to return a pointer to a struct of this
@@ -415,6 +420,11 @@ struct GNUNET_RECLAIM_CredentialPluginFunctions
    * Expiration.
    */
   GNUNET_RECLAIM_PresentationGetExpirationFunction get_expiration_p;
+
+  /**
+   * Get presentation
+   */
+  GNUNET_RECLAIM_CredentialToPresentation create_presentation;
 
 };
 

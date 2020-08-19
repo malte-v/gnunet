@@ -335,16 +335,16 @@ parse_credential (void *cls, json_t *root, struct GNUNET_JSON_Specification *spe
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR, "Credential value invalid!\n");
     return GNUNET_SYSERR;
   }
-  attr = GNUNET_RECLAIM_credential_new (name_str, type, data, data_size);
+  cred = GNUNET_RECLAIM_credential_new (name_str, type, data, data_size);
   if ((NULL == id_str) || (0 == strlen (id_str)))
-    memset (&attr->id, 0, sizeof (attr->id));
+    memset (&cred->id, 0, sizeof (cred->id));
   else
     GNUNET_STRINGS_string_to_data (id_str,
                                    strlen (id_str),
-                                   &attr->id,
-                                   sizeof(attr->id));
+                                   &cred->id,
+                                   sizeof(cred->id));
 
-  *(struct GNUNET_RECLAIM_Credential **) spec->ptr = attr;
+  *(struct GNUNET_RECLAIM_Credential **) spec->ptr = cred;
   return GNUNET_OK;
 }
 
@@ -383,7 +383,7 @@ GNUNET_RECLAIM_JSON_spec_credential (struct
                                            .cleaner = &clean_credential,
                                            .cls = NULL,
                                            .field = NULL,
-                                           .ptr = attr,
+                                           .ptr = cred,
                                            .ptr_size = 0,
                                            .size_ptr = NULL };
 

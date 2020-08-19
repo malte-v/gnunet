@@ -61,4 +61,39 @@ struct Credential
   // followed by data_size Credential value data
 };
 
+
+/**
+ * Serialized presentation claim
+ */
+struct Presentation
+{
+  /**
+   * Presentation type
+   */
+  uint32_t presentation_type;
+
+  /**
+   * Presentation flag
+   */
+  uint32_t presentation_flag;
+
+  /**
+   * Credential ID
+   */
+  struct GNUNET_RECLAIM_Identifier credential_id;
+
+  /**
+   * Name length
+   */
+  uint32_t name_len;
+
+  /**
+   * Data size
+   */
+  uint32_t data_size;
+
+  // followed by data_size Presentation value data
+};
+
+
 #endif

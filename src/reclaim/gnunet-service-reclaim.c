@@ -646,19 +646,33 @@ static void
 send_ticket_result (const struct IdpClient *client,
                     uint32_t r_id,
                     const struct GNUNET_RECLAIM_Ticket *ticket,
+                    const struct GNUNET_RECLAIM_PresentationList *presentations,
                     uint32_t success)
 {
   struct TicketResultMessage *irm;
   struct GNUNET_MQ_Envelope *env;
+  size_t pres_len = 0;
 
-  env = GNUNET_MQ_msg (irm,
-                       GNUNET_MESSAGE_TYPE_RECLAIM_TICKET_RESULT);
+  if (NULL != presentations)
+  {
+    pres_len =
+      GNUNET_RECLAIM_presentation_list_serialize_get_size (presentations);
+  }
+  env = GNUNET_MQ_msg_extra (irm,
+                             pres_len,
+                             GNUNET_MESSAGE_TYPE_RECLAIM_TICKET_RESULT);
   if (NULL != ticket)
   {
     irm->ticket = *ticket;
   }
   // TODO add success member
   irm->id = htonl (r_id);
+  irm->presentations_len = htons (pres_len);
+  if (NULL != presentations)
+  {
+    GNUNET_RECLAIM_presentation_list_serialize (presentations,
+                                                (char*) &irm[1]);
+  }
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Sending TICKET_RESULT message\n");
   GNUNET_MQ_send (client->mq, env);
 }
@@ -669,12 +683,14 @@ send_ticket_result (const struct IdpClient *client,
  *
  * @param cls out ticket issue operation handle
  * @param ticket the issued ticket
+ * @param presentations newly created credential presentations (NULL on error)
  * @param success issue success status (GNUNET_OK if successful)
  * @param emsg error message (NULL of success is GNUNET_OK)
  */
 static void
 issue_ticket_result_cb (void *cls,
                         struct GNUNET_RECLAIM_Ticket *ticket,
+                        struct GNUNET_RECLAIM_PresentationList *presentations,
                         int32_t success,
                         const char *emsg)
 {
@@ -682,7 +698,7 @@ issue_ticket_result_cb (void *cls,
 
   if (GNUNET_OK != success)
   {
-    send_ticket_result (tio->client, tio->r_id, NULL, GNUNET_SYSERR);
+    send_ticket_result (tio->client, tio->r_id, NULL, NULL, GNUNET_SYSERR);
     GNUNET_CONTAINER_DLL_remove (tio->client->issue_op_head,
                                  tio->client->issue_op_tail,
                                  tio);
@@ -690,7 +706,8 @@ issue_ticket_result_cb (void *cls,
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR, "Error issuing ticket: %s\n", emsg);
     return;
   }
-  send_ticket_result (tio->client, tio->r_id, ticket, GNUNET_SYSERR);
+  send_ticket_result (tio->client, tio->r_id,
+                      ticket, presentations, GNUNET_SYSERR);
   GNUNET_CONTAINER_DLL_remove (tio->client->issue_op_head,
                                tio->client->issue_op_tail,
                                tio);
@@ -871,7 +888,7 @@ consume_result_cb (void *cls,
                              GNUNET_MESSAGE_TYPE_RECLAIM_CONSUME_TICKET_RESULT);
   crm->id = htonl (cop->r_id);
   crm->attrs_len = htons (attrs_len);
-  crm->pres_len = htons (pres_len);
+  crm->presentations_len = htons (pres_len);
   crm->identity = *identity;
   crm->result = htonl (success);
   data_tmp = (char *) &crm[1];
@@ -1152,7 +1169,7 @@ cred_add_cb (void *cls,
 
   buf_size = GNUNET_RECLAIM_credential_serialize_get_size (ash->credential);
   buf = GNUNET_malloc (buf_size);
-  GNUNET_RECLAIM_presentation_serialize (ash->credential, buf);
+  GNUNET_RECLAIM_credential_serialize (ash->credential, buf);
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Storing new credential under `%s'.\n",
               label);
@@ -1611,8 +1628,8 @@ cred_delete_cont (void *cls, int32_t success, const char *emsg)
  * @dam message to check
  */
 static int
-check_cred_delete_message (void *cls,
-                                  const struct AttributeDeleteMessage *dam)
+check_credential_delete_message (void *cls,
+                                 const struct AttributeDeleteMessage *dam)
 {
   uint16_t size;
 

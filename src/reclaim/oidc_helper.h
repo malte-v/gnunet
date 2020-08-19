@@ -52,8 +52,8 @@
 char*
 OIDC_generate_id_token (const struct GNUNET_CRYPTO_EcdsaPublicKey *aud_key,
                    const struct GNUNET_CRYPTO_EcdsaPublicKey *sub_key,
-                   struct GNUNET_RECLAIM_AttributeList *attrs,
-                   struct GNUNET_RECLAIM_PresentationList *presentations,
+                   const struct GNUNET_RECLAIM_AttributeList *attrs,
+                   const struct GNUNET_RECLAIM_PresentationList *presentations,
                    const struct GNUNET_TIME_Relative *expiration_time,
                    const char *nonce,
                    const char *secret_key);
@@ -73,8 +73,8 @@ OIDC_generate_id_token (const struct GNUNET_CRYPTO_EcdsaPublicKey *aud_key,
 char*
 OIDC_build_authz_code (const struct GNUNET_CRYPTO_EcdsaPrivateKey *issuer,
                        const struct GNUNET_RECLAIM_Ticket *ticket,
-                       struct GNUNET_RECLAIM_AttributeList *attrs,
-                       struct GNUNET_RECLAIM_PresentationList *presentations,
+                       const struct GNUNET_RECLAIM_AttributeList *attrs,
+                       const struct GNUNET_RECLAIM_PresentationList *presentations,
                        const char *nonce,
                        const char *code_challenge);
 
@@ -139,8 +139,8 @@ OIDC_access_token_parse (const char* token,
  * @return GNUNET_YES if attribute is implcitly requested
  */
 enum GNUNET_GenericReturnValue
-OIDC_check_scopes_for_claim_request (const char*scopes,
-                                     const char*attr);
+OIDC_check_scopes_for_claim_request (const char *scopes,
+                                     const char *attr);
 
 
 /**
@@ -153,7 +153,7 @@ OIDC_check_scopes_for_claim_request (const char*scopes,
  */
 char *
 OIDC_generate_userinfo (const struct GNUNET_CRYPTO_EcdsaPublicKey *sub_key,
-                        struct GNUNET_RECLAIM_AttributeList *attrs,
-                        struct GNUNET_RECLAIM_PresentationList *presentations);
+                        const struct GNUNET_RECLAIM_AttributeList *attrs,
+                        const struct GNUNET_RECLAIM_PresentationList *presentations);
 
 #endif

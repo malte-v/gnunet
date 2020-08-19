@@ -48,7 +48,7 @@ jwt_value_to_string (void *cls,
 {
   switch (type)
   {
-  case GNUNET_RECLAIM_credential_TYPE_JWT:
+  case GNUNET_RECLAIM_CREDENTIAL_TYPE_JWT:
     return GNUNET_strndup (data, data_size);
 
   default:
@@ -79,7 +79,7 @@ jwt_string_to_value (void *cls,
     return GNUNET_SYSERR;
   switch (type)
   {
-  case GNUNET_RECLAIM_credential_TYPE_JWT:
+  case GNUNET_RECLAIM_CREDENTIAL_TYPE_JWT:
     *data = GNUNET_strdup (s);
     *data_size = strlen (s);
     return GNUNET_OK;
@@ -98,8 +98,8 @@ static struct
 {
   const char *name;
   uint32_t number;
-} jwt_cred_name_map[] = { { "JWT", GNUNET_RECLAIM_credential_TYPE_JWT },
-                            { NULL, UINT32_MAX } };
+} jwt_cred_name_map[] = { { "JWT", GNUNET_RECLAIM_CREDENTIAL_TYPE_JWT },
+                          { NULL, UINT32_MAX } };
 
 /**
    * Convert a type name to the corresponding number.
@@ -135,8 +135,8 @@ jwt_number_to_typename (void *cls, uint32_t type)
 
   i = 0;
   while ((NULL != jwt_cred_name_map[i].name) && (type !=
-                                                   jwt_cred_name_map[i].
-                                                   number))
+                                                 jwt_cred_name_map[i].
+                                                 number))
     i++;
   return jwt_cred_name_map[i].name;
 }
@@ -151,7 +151,7 @@ jwt_number_to_typename (void *cls, uint32_t type)
  */
 struct GNUNET_RECLAIM_AttributeList *
 jwt_parse_attributes (void *cls,
-                      const struct GNUNET_RECLAIM_Credential *cred)
+                      const char *data)
 {
   char *jwt_string;
   struct GNUNET_RECLAIM_AttributeList *attrs;
@@ -162,17 +162,14 @@ jwt_parse_attributes (void *cls,
   json_t *json_val;
   json_error_t *json_err = NULL;
 
-  /* GNUNET_log (GNUNET_ERROR_TYPE_WARNING, "%s\n", cred->data); (not OK: 'data' is not defined as 0-terminated text, but binary) */
-  if (GNUNET_RECLAIM_credential_TYPE_JWT != cred->type)
-    return NULL;
   attrs = GNUNET_new (struct GNUNET_RECLAIM_AttributeList);
 
-  jwt_string = GNUNET_strdup (cred->data);
+  jwt_string = GNUNET_strdup (data);
   const char *jwt_body = strtok (jwt_string, delim);
   jwt_body = strtok (NULL, delim);
   GNUNET_STRINGS_base64url_decode (jwt_body, strlen (jwt_body),
                                    (void **) &decoded_jwt);
-  GNUNET_log (GNUNET_ERROR_TYPE_ERROR, "%s\n", decoded_jwt);
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Decoded JWT: %s\n", decoded_jwt);
   GNUNET_assert (NULL != decoded_jwt);
   json_val = json_loads (decoded_jwt, JSON_DECODE_ANY, json_err);
   const char *key;
@@ -203,6 +200,36 @@ jwt_parse_attributes (void *cls,
 
 
 /**
+ * Parse a JWT and return the respective claim value as Attribute
+ *
+ * @param cls the plugin
+ * @param cred the jwt credential
+ * @return a GNUNET_RECLAIM_Attribute, containing the new value
+ */
+struct GNUNET_RECLAIM_AttributeList *
+jwt_parse_attributes_c (void *cls,
+                        const struct GNUNET_RECLAIM_Credential *cred)
+{
+  return jwt_parse_attributes (cls, cred->data);
+}
+
+
+/**
+ * Parse a JWT and return the respective claim value as Attribute
+ *
+ * @param cls the plugin
+ * @param cred the jwt credential
+ * @return a GNUNET_RECLAIM_Attribute, containing the new value
+ */
+struct GNUNET_RECLAIM_AttributeList *
+jwt_parse_attributes_p (void *cls,
+                        const struct GNUNET_RECLAIM_Presentation *cred)
+{
+  return jwt_parse_attributes (cls, cred->data);
+}
+
+
+/**
  * Parse a JWT and return the issuer
  *
  * @param cls the plugin
@@ -211,7 +238,7 @@ jwt_parse_attributes (void *cls,
  */
 char *
 jwt_get_issuer (void *cls,
-                const struct GNUNET_RECLAIM_Credential *cred)
+                const char *data)
 {
   const char *jwt_body;
   char *jwt_string;
@@ -223,9 +250,7 @@ jwt_get_issuer (void *cls,
   json_t *json_val;
   json_error_t *json_err = NULL;
 
-  if (GNUNET_RECLAIM_credential_TYPE_JWT != cred->type)
-    return NULL;
-  jwt_string = GNUNET_strdup (cred->data);
+  jwt_string = GNUNET_strdup (data);
   jwt_body = strtok (jwt_string, delim);
   jwt_body = strtok (NULL, delim);
   GNUNET_STRINGS_base64url_decode (jwt_body, strlen (jwt_body),
@@ -241,6 +266,40 @@ jwt_get_issuer (void *cls,
 
 
 /**
+ * Parse a JWT and return the issuer
+ *
+ * @param cls the plugin
+ * @param cred the jwt credential
+ * @return a string, containing the isser
+ */
+char *
+jwt_get_issuer_c (void *cls,
+                  const struct GNUNET_RECLAIM_Credential *cred)
+{
+  if (GNUNET_RECLAIM_CREDENTIAL_TYPE_JWT != cred->type)
+    return NULL;
+  return jwt_get_issuer (cls, cred->data);
+}
+
+
+/**
+ * Parse a JWT and return the issuer
+ *
+ * @param cls the plugin
+ * @param cred the jwt credential
+ * @return a string, containing the isser
+ */
+char *
+jwt_get_issuer_p (void *cls,
+                  const struct GNUNET_RECLAIM_Presentation *cred)
+{
+  if (GNUNET_RECLAIM_CREDENTIAL_TYPE_JWT != cred->type)
+    return NULL;
+  return jwt_get_issuer (cls, cred->data);
+}
+
+
+/**
  * Parse a JWT and return the expiration
  *
  * @param cls the plugin
@@ -249,7 +308,7 @@ jwt_get_issuer (void *cls,
  */
 int
 jwt_get_expiration (void *cls,
-                    const struct GNUNET_RECLAIM_Credential *cred,
+                    const char *data,
                     struct GNUNET_TIME_Absolute *exp)
 {
   const char *jwt_body;
@@ -261,9 +320,7 @@ jwt_get_expiration (void *cls,
   json_t *json_val;
   json_error_t *json_err = NULL;
 
-  if (GNUNET_RECLAIM_credential_TYPE_JWT != cred->type)
-    return GNUNET_NO;
-  jwt_string = GNUNET_strdup (cred->data);
+  jwt_string = GNUNET_strdup (data);
   jwt_body = strtok (jwt_string, delim);
   jwt_body = strtok (NULL, delim);
   GNUNET_STRINGS_base64url_decode (jwt_body, strlen (jwt_body),
@@ -274,6 +331,54 @@ jwt_get_expiration (void *cls,
     return GNUNET_SYSERR;
   exp->abs_value_us = json_integer_value (exp_json) * 1000 * 1000;
   GNUNET_free (jwt_string);
+  return GNUNET_OK;
+}
+
+
+/**
+ * Parse a JWT and return the expiration
+ *
+ * @param cls the plugin
+ * @param cred the jwt credential
+ * @return a string, containing the isser
+ */
+int
+jwt_get_expiration_c (void *cls,
+                      const struct GNUNET_RECLAIM_Credential *cred,
+                      struct GNUNET_TIME_Absolute *exp)
+{
+  return jwt_get_expiration (cls, cred->data, exp);
+}
+
+
+/**
+ * Parse a JWT and return the expiration
+ *
+ * @param cls the plugin
+ * @param cred the jwt credential
+ * @return a string, containing the isser
+ */
+int
+jwt_get_expiration_p (void *cls,
+                      const struct GNUNET_RECLAIM_Presentation *cred,
+                      struct GNUNET_TIME_Absolute *exp)
+{
+  return jwt_get_expiration (cls, cred->data, exp);
+}
+
+
+int
+jwt_create_presentation (void *cls,
+                         const struct GNUNET_RECLAIM_Credential *cred,
+                         const struct GNUNET_RECLAIM_AttributeList *attrs,
+                         struct GNUNET_RECLAIM_Presentation **pres)
+{
+  // FIXME sanity checks??
+  if (GNUNET_RECLAIM_CREDENTIAL_TYPE_JWT != cred->type)
+    return GNUNET_NO;
+  *pres = GNUNET_RECLAIM_presentation_new (GNUNET_RECLAIM_CREDENTIAL_TYPE_JWT,
+                                           cred->data,
+                                           cred->data_size);
   return GNUNET_OK;
 }
 
@@ -294,9 +399,17 @@ libgnunet_plugin_reclaim_credential_jwt_init (void *cls)
   api->string_to_value = &jwt_string_to_value;
   api->typename_to_number = &jwt_typename_to_number;
   api->number_to_typename = &jwt_number_to_typename;
-  api->get_attributes = &jwt_parse_attributes;
-  api->get_issuer = &jwt_get_issuer;
-  api->get_expiration = &jwt_get_expiration;
+  api->get_attributes = &jwt_parse_attributes_c;
+  api->get_issuer = &jwt_get_issuer_c;
+  api->get_expiration = &jwt_get_expiration_c;
+  api->value_to_string_p = &jwt_value_to_string;
+  api->string_to_value_p = &jwt_string_to_value;
+  api->typename_to_number_p = &jwt_typename_to_number;
+  api->number_to_typename_p = &jwt_number_to_typename;
+  api->get_attributes_p = &jwt_parse_attributes_p;
+  api->get_issuer_p = &jwt_get_issuer_p;
+  api->get_expiration_p = &jwt_get_expiration_p;
+  api->create_presentation = &jwt_create_presentation;
   return api;
 }
 

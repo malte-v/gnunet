@@ -54,4 +54,4 @@ GNUNET_RECLAIM_JSON_spec_ticket (struct GNUNET_RECLAIM_Ticket **ticket);
     * @return JSON Specification
     */
 struct GNUNET_JSON_Specification
-GNUNET_RECLAIM_JSON_spec_credential (struct  GNUNET_RECLAIM_Attestation **cred);
+GNUNET_RECLAIM_JSON_spec_credential (struct  GNUNET_RECLAIM_Credential **cred);

@@ -114,9 +114,9 @@ struct RECLAIM_TICKETS_ConsumeHandle
   struct GNUNET_RECLAIM_AttributeList *attrs;
 
   /**
-   * Credentials
+   * Presentations
    */
-  struct GNUNET_RECLAIM_CredentialList *credentials;
+  struct GNUNET_RECLAIM_PresentationList *presentations;
 
   /**
    * Lookup time
@@ -171,6 +171,11 @@ struct TicketIssueHandle
    * Attributes to issue
    */
   struct GNUNET_RECLAIM_AttributeList *attrs;
+
+  /**
+   * Presentations to add
+   */
+  struct GNUNET_RECLAIM_PresentationList *presentations;
 
   /**
    * Issuer Key
@@ -981,8 +986,8 @@ cleanup_cth (struct RECLAIM_TICKETS_ConsumeHandle *cth)
 
   if (NULL != cth->attrs)
     GNUNET_RECLAIM_attribute_list_destroy (cth->attrs);
-  if (NULL != cth->credentials)
-    GNUNET_RECLAIM_credential_list_destroy (cth->credentials);
+  if (NULL != cth->presentations)
+    GNUNET_RECLAIM_presentation_list_destroy (cth->presentations);
   GNUNET_free (cth);
 }
 
@@ -1040,7 +1045,7 @@ process_parallel_lookup_result (void *cls,
     return; // Wait for more
   /* Else we are done */
   cth->cb (cth->cb_cls, &cth->ticket.identity,
-           cth->attrs, cth->credentials, GNUNET_OK, NULL);
+           cth->attrs, cth->presentations, GNUNET_OK, NULL);
   cleanup_cth (cth);
 }
 
@@ -1090,6 +1095,7 @@ lookup_authz_cb (void *cls,
   struct RECLAIM_TICKETS_ConsumeHandle *cth = cls;
   struct ParallelLookup *parallel_lookup;
   char *lbl;
+  struct GNUNET_RECLAIM_PresentationListEntry *ale;
 
   cth->lookup_request = NULL;
 
@@ -1113,13 +1119,12 @@ lookup_authz_cb (void *cls,
     switch (rd[i].record_type)
     {
     case GNUNET_GNSRECORD_TYPE_RECLAIM_PRESENTATION:
-      struct GNUNET_RECLAIM_CredentialListEntry *ale;
-      ale = GNUNET_new (struct GNUNET_RECLAIM_CredentialListEntry);
-      ale->credential =
-        GNUNET_RECLAIM_credential_deserialize (rd[i].data,
-                                               rd[i].data_size);
-      GNUNET_CONTAINER_DLL_insert (cth->credentials->list_head,
-                                   cth->credentials->list_tail,
+      ale = GNUNET_new (struct GNUNET_RECLAIM_PresentationListEntry);
+      ale->presentation =
+        GNUNET_RECLAIM_presentation_deserialize (rd[i].data,
+                                                 rd[i].data_size);
+      GNUNET_CONTAINER_DLL_insert (cth->presentations->list_head,
+                                   cth->presentations->list_tail,
                                    ale);
       break;
     case GNUNET_GNSRECORD_TYPE_RECLAIM_ATTRIBUTE_REF:
@@ -1162,7 +1167,7 @@ lookup_authz_cb (void *cls,
    * No references found, return empty attribute list
    */
   cth->cb (cth->cb_cls, &cth->ticket.identity,
-           cth->attrs, cth->credentials, GNUNET_OK, NULL);
+           cth->attrs, NULL, GNUNET_OK, NULL);
   cleanup_cth (cth);
 }
 
@@ -1192,7 +1197,7 @@ RECLAIM_TICKETS_consume (const struct GNUNET_CRYPTO_EcdsaPrivateKey *id,
   cth->identity = *id;
   GNUNET_CRYPTO_ecdsa_key_get_public (&cth->identity, &cth->identity_pub);
   cth->attrs = GNUNET_new (struct GNUNET_RECLAIM_AttributeList);
-  cth->credentials = GNUNET_new (struct GNUNET_RECLAIM_CredentialList);
+  cth->presentations = GNUNET_new (struct GNUNET_RECLAIM_PresentationList);
   cth->ticket = *ticket;
   cth->cb = cb;
   cth->cb_cls = cb_cls;
@@ -1230,8 +1235,8 @@ RECLAIM_TICKETS_consume_cancel (struct RECLAIM_TICKETS_ConsumeHandle *cth)
 
 
 /*******************************
-* Ticket issue
-*******************************/
+ * Ticket issue
+ *******************************/
 
 /**
  * Cleanup ticket consume handle
@@ -1264,11 +1269,15 @@ store_ticket_issue_cont (void *cls, int32_t success, const char *emsg)
   {
     handle->cb (handle->cb_cls,
                 &handle->ticket,
+                NULL,
                 GNUNET_SYSERR,
                 "Error storing AuthZ ticket in GNS");
     return;
   }
-  handle->cb (handle->cb_cls, &handle->ticket, GNUNET_OK, NULL);
+  handle->cb (handle->cb_cls,
+              &handle->ticket,
+              handle->presentations,
+              GNUNET_OK, NULL);
   cleanup_issue_handle (handle);
 }
 
@@ -1284,15 +1293,17 @@ static void
 issue_ticket (struct TicketIssueHandle *ih)
 {
   struct GNUNET_RECLAIM_AttributeListEntry *le;
+  struct GNUNET_RECLAIM_PresentationListEntry *ple;
   struct GNUNET_GNSRECORD_Data *attrs_record;
   char *label;
   int i;
+  int j;
   int attrs_count = 0;
 
   for (le = ih->attrs->list_head; NULL != le; le = le->next)
     attrs_count++;
 
-  // Worst case we have one credential per attribute
+  // Worst case we have one presentation per attribute
   attrs_record =
     GNUNET_malloc (2 * attrs_count * sizeof(struct GNUNET_GNSRECORD_Data));
   i = 0;
@@ -1309,31 +1320,65 @@ issue_ticket (struct TicketIssueHandle *ih)
     i++;
     if (GNUNET_NO == GNUNET_RECLAIM_id_is_zero (&le->attribute->credential))
     {
-      struct GNUNET_RECLAIM_Presentation *pres;
-      int j;
+      GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                  "Attribute is backed by credential. Adding...\n");
+      struct GNUNET_RECLAIM_Presentation *pres = NULL;
       for (j = 0; j < i; j++)
       {
         if (attrs_record[j].record_type
             != GNUNET_GNSRECORD_TYPE_RECLAIM_PRESENTATION)
           continue;
-        pres = attrs_record[j].data;
-        if (0 == memcmp (pres->credential_id,
+        pres = GNUNET_RECLAIM_presentation_deserialize (attrs_record[j].data,
+                                                        attrs_record[j].
+                                                        data_size);
+        if (NULL == pres)
+        {
+          GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
+                      "Failed to deserialize presentation\n");
+          continue;
+        }
+        if (0 == memcmp (&pres->credential_id,
                          &le->attribute->credential,
                          sizeof (le->attribute->credential)))
           break;
+        GNUNET_free (pres);
+        pres = NULL;
       }
-      if (j < i)
+      if (NULL != pres)
+      {
+        GNUNET_free (pres);
         continue; // Skip as we have already added this credential presentation.
-      /**
-       * FIXME: Create a new presentation from the credential.
-       */
-      attrs_record[i].data = &le->attribute->credential;
-      attrs_record[i].data_size = sizeof(le->attribute->credential);
-      attrs_record[i].expiration_time = ticket_refresh_interval.rel_value_us;
-      attrs_record[i].record_type =
-        GNUNET_GNSRECORD_TYPE_RECLAIM_PRESENTATION;
-      attrs_record[i].flags = GNUNET_GNSRECORD_RF_RELATIVE_EXPIRATION;
-      i++;
+      }
+      for (ple = ih->presentations->list_head; NULL != ple; ple = ple->next)
+      {
+        GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                    "Checking presentation....\n");
+
+        if (0 != memcmp (&le->attribute->credential,
+                         &ple->presentation->credential_id,
+                         sizeof (le->attribute->credential)))
+        {
+          GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                      "Presentation does not match credential ID.\n");
+          continue;
+        }
+        char *pres_buf;
+        size_t pres_size;
+        pres_size =
+          GNUNET_RECLAIM_presentation_serialize_get_size (ple->presentation);
+        pres_buf = GNUNET_malloc (pres_size);
+        GNUNET_RECLAIM_presentation_serialize (ple->presentation,
+                                               pres_buf);
+        attrs_record[i].data = pres_buf;
+        attrs_record[i].data_size = pres_size;
+        attrs_record[i].expiration_time =
+          ticket_refresh_interval.rel_value_us;
+        attrs_record[i].record_type =
+          GNUNET_GNSRECORD_TYPE_RECLAIM_PRESENTATION;
+        attrs_record[i].flags = GNUNET_GNSRECORD_RF_RELATIVE_EXPIRATION;
+        i++;
+        break;
+      }
     }
   }
   attrs_record[i].data = &ih->ticket;
@@ -1355,14 +1400,23 @@ issue_ticket (struct TicketIssueHandle *ih)
                                               attrs_record,
                                               &store_ticket_issue_cont,
                                               ih);
+  for (j = 0; j > i; j++)
+  {
+    if (attrs_record[j].record_type
+        != GNUNET_GNSRECORD_TYPE_RECLAIM_PRESENTATION)
+      continue;
+    // Yes, we are allowed to do this because we allocated it above
+    char *ptr = (char*) attrs_record[j].data;
+    GNUNET_free (ptr);
+  }
   GNUNET_free (attrs_record);
   GNUNET_free (label);
 }
 
 
 /*************************************************
-* Ticket iteration (finding a specific ticket)
-*************************************************/
+ * Ticket iteration (finding a specific ticket)
+ *************************************************/
 
 
 /**
@@ -1378,6 +1432,7 @@ filter_tickets_error_cb (void *cls)
   tih->ns_it = NULL;
   tih->cb (tih->cb_cls,
            &tih->ticket,
+           NULL,
            GNUNET_SYSERR,
            "Error storing AuthZ ticket in GNS");
   cleanup_issue_handle (tih);
@@ -1406,11 +1461,12 @@ filter_tickets_cb (void *cls,
   struct TicketIssueHandle *tih = cls;
   struct GNUNET_RECLAIM_Ticket *ticket = NULL;
   struct GNUNET_RECLAIM_Presentation *pres;
-
-  // figure out the number of requested attributes
+  struct GNUNET_RECLAIM_PresentationList *ticket_presentations;
+  struct GNUNET_RECLAIM_Credential *cred;
+  struct GNUNET_RECLAIM_PresentationListEntry *ple;
   struct GNUNET_RECLAIM_AttributeListEntry *le;
   unsigned int attr_cnt = 0;
-  unsigned int cred_cnt = 0;
+  unsigned int pres_cnt = 0;
 
   for (le = tih->attrs->list_head; NULL != le; le = le->next)
   {
@@ -1422,6 +1478,7 @@ filter_tickets_cb (void *cls,
   // ticket search
   unsigned int found_attrs_cnt = 0;
   unsigned int found_pres_cnt = 0;
+  ticket_presentations = GNUNET_new (struct GNUNET_RECLAIM_PresentationList);
 
   for (int i = 0; i < rd_count; i++)
   {
@@ -1450,15 +1507,65 @@ filter_tickets_cb (void *cls,
           found_attrs_cnt++;
       }
     }
+    if (GNUNET_GNSRECORD_TYPE_RECLAIM_CREDENTIAL == rd[i].record_type)
+    {
+      GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                  "Found credential...\n");
+
+      for (le = tih->attrs->list_head; NULL != le; le = le->next)
+      {
+        cred = GNUNET_RECLAIM_credential_deserialize (rd[i].data,
+                                                      rd[i].data_size);
+        if (GNUNET_YES != GNUNET_RECLAIM_id_is_equal (&cred->id,
+                                                      &le->attribute->credential))
+        {
+          GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                      "No match.\n");
+          GNUNET_free (cred);
+          continue;
+        }
+        GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                    "Match, creating presentation...\n");
+        if (GNUNET_OK != GNUNET_RECLAIM_credential_get_presentation (
+              cred,
+              tih->attrs,
+              &pres))
+        {
+          GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                      "Unable to retrieve presentation from credential\n");
+          GNUNET_free (cred);
+          continue;
+        }
+        ple = GNUNET_new (struct GNUNET_RECLAIM_PresentationListEntry);
+        ple->presentation = pres;
+        GNUNET_CONTAINER_DLL_insert (tih->presentations->list_head,
+                                     tih->presentations->list_tail,
+                                     ple);
+        GNUNET_free (cred);
+      }
+    }
     if (GNUNET_GNSRECORD_TYPE_RECLAIM_PRESENTATION == rd[i].record_type)
     {
       for (le = tih->attrs->list_head; NULL != le; le = le->next)
       {
-        pres = rd[i].data;
-        if (GNUNET_YES == GNUNET_RECLAIM_id_is_equal (pres->credential_id,
+        pres = GNUNET_RECLAIM_presentation_deserialize (rd[i].data,
+                                                        rd[i].data_size);
+        if (NULL == pres)
+        {
+          GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
+                      "Failed to deserialize presentation\n");
+          continue;
+        }
+        if (GNUNET_YES == GNUNET_RECLAIM_id_is_equal (&pres->credential_id,
                                                       &le->attribute->credential))
+        {
           found_pres_cnt++;
-        // FIXME should we store credentials here for later use??
+          ple = GNUNET_new (struct GNUNET_RECLAIM_PresentationListEntry);
+          ple->presentation = pres;
+          GNUNET_CONTAINER_DLL_insert (ticket_presentations->list_head,
+                                       ticket_presentations->list_tail,
+                                       ple);
+        }
       }
     }
   }
@@ -1472,7 +1579,8 @@ filter_tickets_cb (void *cls,
       (NULL != ticket))
   {
     GNUNET_NAMESTORE_zone_iteration_stop (tih->ns_it);
-    tih->cb (tih->cb_cls, &tih->ticket, GNUNET_OK, NULL);
+    tih->cb (tih->cb_cls, &tih->ticket, ticket_presentations, GNUNET_OK, NULL);
+    GNUNET_RECLAIM_presentation_list_destroy (ticket_presentations);
     cleanup_issue_handle (tih);
     return;
   }
@@ -1524,6 +1632,7 @@ RECLAIM_TICKETS_issue (const struct GNUNET_CRYPTO_EcdsaPrivateKey *identity,
   tih->cb = cb;
   tih->cb_cls = cb_cls;
   tih->attrs = GNUNET_RECLAIM_attribute_list_dup (attrs);
+  tih->presentations = GNUNET_new (struct GNUNET_RECLAIM_PresentationList);
   tih->identity = *identity;
   tih->ticket.audience = *audience;
 
@@ -1541,8 +1650,8 @@ RECLAIM_TICKETS_issue (const struct GNUNET_CRYPTO_EcdsaPrivateKey *identity,
 
 
 /************************************
-* Ticket iteration
-************************************/
+ * Ticket iteration
+ ************************************/
 
 /**
  * Cleanup ticket iterator

@@ -780,6 +780,11 @@ GNUNET_RECLAIM_presentation_value_to_string (uint32_t type,
                                              const void *data,
                                              size_t data_size);
 
+struct GNUNET_RECLAIM_Presentation *
+GNUNET_RECLAIM_presentation_new (uint32_t type,
+                                 const void *data,
+                                 size_t data_size);
+
 /**
  * Convert human-readable version of a 'claim' of a presentation to the binary
  * representation
@@ -828,14 +833,16 @@ GNUNET_RECLAIM_presentation_get_expiration (const struct
  *
  * @param cred the credential to use
  * @param attrs the attributes to present from the credential
- * @return the credential presentation presenting the attributes according
+ * @param presentation the credential presentation presenting the attributes according
  *         to the presentation mechanism of the credential
  *         or NULL on error.
+ * @return GNUNET_OK on success.
  */
-struct GNUNET_RECLAIM_Presentation*
+int
 GNUNET_RECLAIM_credential_get_presentation (
                               const struct GNUNET_RECLAIM_Credential *cred,
-                              const struct GNUNET_RECLAIM_AttributeList *attrs);
+                              const struct GNUNET_RECLAIM_AttributeList *attrs,
+                              struct GNUNET_RECLAIM_Presentation **presentation);
 
 
 #if 0 /* keep Emacsens' auto-indent happy */

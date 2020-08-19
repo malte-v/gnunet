@@ -463,9 +463,16 @@ struct TicketResultMessage
   uint32_t id GNUNET_PACKED;
 
   /**
+   * Length of new presentations created
+   */
+  uint32_t presentations_len GNUNET_PACKED;
+
+  /**
    * The new ticket
    */
   struct GNUNET_RECLAIM_Ticket ticket;
+
+  /* Followed by the serialized GNUNET_RECLAIM_PresentationList */
 };
 
 /**

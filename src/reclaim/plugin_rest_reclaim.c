@@ -474,7 +474,7 @@ add_credential_cont (struct GNUNET_REST_RequestHandle *con_handle,
   json_t *data_json;
   json_error_t err;
   struct GNUNET_JSON_Specification attrspec[] =
-  { GNUNET_RECLAIM_JSON_spec_claim_cred (&attribute),
+  { GNUNET_RECLAIM_JSON_spec_credential (&attribute),
     GNUNET_JSON_spec_end () };
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
@@ -811,7 +811,7 @@ add_attribute_cont (struct GNUNET_REST_RequestHandle *con_handle,
   json_t *data_json;
   json_error_t err;
   struct GNUNET_JSON_Specification attrspec[] =
-  { GNUNET_RECLAIM_JSON_spec_claim (&attribute), GNUNET_JSON_spec_end () };
+  { GNUNET_RECLAIM_JSON_spec_attribute (&attribute), GNUNET_JSON_spec_end () };
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Adding an attribute for %s.\n",
@@ -1180,7 +1180,7 @@ static void
 consume_cont (void *cls,
               const struct GNUNET_CRYPTO_EcdsaPublicKey *identity,
               const struct GNUNET_RECLAIM_Attribute *attr,
-              const struct GNUNET_RECLAIM_Credential *cred)
+              const struct GNUNET_RECLAIM_Presentation *pres)
 {
   struct RequestHandle *handle = cls;
   char *val_str;

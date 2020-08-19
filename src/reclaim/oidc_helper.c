@@ -156,8 +156,8 @@ fix_base64 (char *str)
 
 static json_t*
 generate_userinfo_json(const struct GNUNET_CRYPTO_EcdsaPublicKey *sub_key,
-                       struct GNUNET_RECLAIM_AttributeList *attrs,
-                       struct GNUNET_RECLAIM_PresentationList *presentations)
+                       const struct GNUNET_RECLAIM_AttributeList *attrs,
+                       const struct GNUNET_RECLAIM_PresentationList *presentations)
 {
   struct GNUNET_RECLAIM_AttributeListEntry *le;
   struct GNUNET_RECLAIM_PresentationListEntry *ple;
@@ -296,8 +296,8 @@ generate_userinfo_json(const struct GNUNET_CRYPTO_EcdsaPublicKey *sub_key,
  */
 char *
 OIDC_generate_userinfo (const struct GNUNET_CRYPTO_EcdsaPublicKey *sub_key,
-                        struct GNUNET_RECLAIM_AttributeList *attrs,
-                        struct GNUNET_RECLAIM_PresentationList *presentations)
+                        const struct GNUNET_RECLAIM_AttributeList *attrs,
+                        const struct GNUNET_RECLAIM_PresentationList *presentations)
 {
   char *body_str;
   json_t* body = generate_userinfo_json (sub_key,
@@ -323,8 +323,8 @@ OIDC_generate_userinfo (const struct GNUNET_CRYPTO_EcdsaPublicKey *sub_key,
 char *
 OIDC_generate_id_token (const struct GNUNET_CRYPTO_EcdsaPublicKey *aud_key,
                         const struct GNUNET_CRYPTO_EcdsaPublicKey *sub_key,
-                        struct GNUNET_RECLAIM_AttributeList *attrs,
-                        struct GNUNET_RECLAIM_PresentationList *presentations,
+                        const struct GNUNET_RECLAIM_AttributeList *attrs,
+                        const struct GNUNET_RECLAIM_PresentationList *presentations,
                         const struct GNUNET_TIME_Relative *expiration_time,
                         const char *nonce,
                         const char *secret_key)
@@ -440,8 +440,8 @@ OIDC_generate_id_token (const struct GNUNET_CRYPTO_EcdsaPublicKey *aud_key,
 char *
 OIDC_build_authz_code (const struct GNUNET_CRYPTO_EcdsaPrivateKey *issuer,
                        const struct GNUNET_RECLAIM_Ticket *ticket,
-                       struct GNUNET_RECLAIM_AttributeList *attrs,
-                       struct GNUNET_RECLAIM_PresentationList *presentations,
+                       const struct GNUNET_RECLAIM_AttributeList *attrs,
+                       const struct GNUNET_RECLAIM_PresentationList *presentations,
                        const char *nonce_str,
                        const char *code_challenge)
 {
@@ -596,7 +596,7 @@ OIDC_parse_authz_code (const struct GNUNET_CRYPTO_EcdsaPublicKey *audience,
   struct GNUNET_CRYPTO_EcdsaSignature *signature;
   uint32_t code_challenge_len;
   uint32_t attrs_ser_len;
-  uint32_t presentations_ser_len;
+  uint32_t pres_ser_len;
   size_t plaintext_len;
   size_t code_payload_len;
   uint32_t nonce_len = 0;
@@ -702,8 +702,8 @@ OIDC_parse_authz_code (const struct GNUNET_CRYPTO_EcdsaPublicKey *audience,
   presentations_ser = ((char*) attrs_ser) + attrs_ser_len;
   pres_ser_len = ntohl (params->pres_list_len);
   *presentations =
-    GNUNET_RECLAIM_presentations_list_deserialize (presentations_ser,
-                                                   pres_ser_len);
+    GNUNET_RECLAIM_presentation_list_deserialize (presentations_ser,
+                                                  pres_ser_len);
 
   GNUNET_free (code_payload);
   return GNUNET_OK;
