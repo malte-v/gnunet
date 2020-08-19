@@ -32,7 +32,7 @@
 #include "gnunet_applications.h"
 #include "gnunet_protocols.h"
 #include "gnunet_scalarproduct_service.h"
-#include "gnunet_set_service.h"
+#include "gnunet_seti_service.h"
 #include "scalarproduct.h"
 #include "gnunet-service-scalarproduct-ecc.h"
 
@@ -83,13 +83,13 @@ struct BobServiceSession
    * Set of elements for which we will be conducting an intersection.
    * The resulting elements are then used for computing the scalar product.
    */
-  struct GNUNET_SET_Handle *intersection_set;
+  struct GNUNET_SETI_Handle *intersection_set;
 
   /**
    * Set of elements for which will conduction an intersection.
    * the resulting elements are then used for computing the scalar product.
    */
-  struct GNUNET_SET_OperationHandle *intersection_op;
+  struct GNUNET_SETI_OperationHandle *intersection_op;
 
   /**
    * Our open port.
@@ -235,12 +235,12 @@ destroy_service_session (struct BobServiceSession *s)
   }
   if (NULL != s->intersection_op)
   {
-    GNUNET_SET_operation_cancel (s->intersection_op);
+    GNUNET_SETI_operation_cancel (s->intersection_op);
     s->intersection_op = NULL;
   }
   if (NULL != s->intersection_set)
   {
-    GNUNET_SET_destroy (s->intersection_set);
+    GNUNET_SETI_destroy (s->intersection_set);
     s->intersection_set = NULL;
   }
   if (NULL != s->sorted_elements)
@@ -578,22 +578,22 @@ handle_alices_cryptodata_message (void *cls,
  * that needs to be removed from the result set.
  *
  * @param cls closure with the `struct BobServiceSession`
- * @param element a result element, only valid if status is #GNUNET_SET_STATUS_OK
+ * @param element a result element, only valid if status is #GNUNET_SETI_STATUS_OK
  * @param current_size current set size
  * @param status what has happened with the set intersection?
  */
 static void
 cb_intersection_element_removed (void *cls,
-                                 const struct GNUNET_SET_Element *element,
+                                 const struct GNUNET_SETI_Element *element,
                                  uint64_t current_size,
-                                 enum GNUNET_SET_Status status)
+                                 enum GNUNET_SETI_Status status)
 {
   struct BobServiceSession *s = cls;
   struct GNUNET_SCALARPRODUCT_Element *se;
 
   switch (status)
   {
-  case GNUNET_SET_STATUS_OK:
+  case GNUNET_SETI_STATUS_DEL_LOCAL:
     /* this element has been removed from the set */
     se = GNUNET_CONTAINER_multihashmap_get (s->intersected_elements,
                                             element->data);
@@ -609,8 +609,7 @@ cb_intersection_element_removed (void *cls,
                      se));
     GNUNET_free (se);
     return;
-
-  case GNUNET_SET_STATUS_DONE:
+  case GNUNET_SETI_STATUS_DONE:
     s->intersection_op = NULL;
     GNUNET_break (NULL == s->intersection_set);
     GNUNET_CADET_receive_done (s->channel);
@@ -625,20 +624,14 @@ cb_intersection_element_removed (void *cls,
       transmit_bobs_cryptodata_message (s);
     }
     return;
-
-  case GNUNET_SET_STATUS_HALF_DONE:
-    /* unexpected for intersection */
-    GNUNET_break (0);
-    return;
-
-  case GNUNET_SET_STATUS_FAILURE:
+  case GNUNET_SETI_STATUS_FAILURE:
     /* unhandled status code */
     LOG (GNUNET_ERROR_TYPE_DEBUG,
          "Set intersection failed!\n");
     s->intersection_op = NULL;
     if (NULL != s->intersection_set)
     {
-      GNUNET_SET_destroy (s->intersection_set);
+      GNUNET_SETI_destroy (s->intersection_set);
       s->intersection_set = NULL;
     }
     s->status = GNUNET_SCALARPRODUCT_STATUS_FAILURE;
@@ -672,23 +665,22 @@ start_intersection (struct BobServiceSession *s)
               (unsigned int) s->total);
 
   s->intersection_op
-    = GNUNET_SET_prepare (&s->peer,
-                          &set_sid,
-                          NULL,
-                          GNUNET_SET_RESULT_REMOVED,
-                          (struct GNUNET_SET_Option[]) { { 0 } },
-                          &cb_intersection_element_removed,
-                          s);
+    = GNUNET_SETI_prepare (&s->peer,
+                           &set_sid,
+                           NULL,
+                           (struct GNUNET_SETI_Option[]) { { 0 } },
+                           &cb_intersection_element_removed,
+                           s);
   if (GNUNET_OK !=
-      GNUNET_SET_commit (s->intersection_op,
-                         s->intersection_set))
+      GNUNET_SETI_commit (s->intersection_op,
+                          s->intersection_set))
   {
     GNUNET_break (0);
     s->status = GNUNET_SCALARPRODUCT_STATUS_FAILURE;
     prepare_client_end_notification (s);
     return;
   }
-  GNUNET_SET_destroy (s->intersection_set);
+  GNUNET_SETI_destroy (s->intersection_set);
   s->intersection_set = NULL;
 }
 
@@ -797,7 +789,7 @@ handle_bob_client_message_multipart (void *cls,
   struct BobServiceSession *s = cls;
   uint32_t contained_count;
   const struct GNUNET_SCALARPRODUCT_Element *elements;
-  struct GNUNET_SET_Element set_elem;
+  struct GNUNET_SETI_Element set_elem;
   struct GNUNET_SCALARPRODUCT_Element *elem;
 
   contained_count = ntohl (msg->element_count_contained);
@@ -821,9 +813,9 @@ handle_bob_client_message_multipart (void *cls,
     set_elem.data = &elem->key;
     set_elem.size = sizeof(elem->key);
     set_elem.element_type = 0;
-    GNUNET_SET_add_element (s->intersection_set,
-                            &set_elem,
-                            NULL, NULL);
+    GNUNET_SETI_add_element (s->intersection_set,
+                             &set_elem,
+                             NULL, NULL);
   }
   s->client_received_element_count += contained_count;
   GNUNET_SERVICE_client_continue (s->client);
@@ -913,7 +905,7 @@ handle_bob_client_message (void *cls,
   uint32_t contained_count;
   uint32_t total_count;
   const struct GNUNET_SCALARPRODUCT_Element *elements;
-  struct GNUNET_SET_Element set_elem;
+  struct GNUNET_SETI_Element set_elem;
   struct GNUNET_SCALARPRODUCT_Element *elem;
 
   total_count = ntohl (msg->element_count_total);
@@ -927,9 +919,7 @@ handle_bob_client_message (void *cls,
   s->intersected_elements
     = GNUNET_CONTAINER_multihashmap_create (s->total,
                                             GNUNET_YES);
-  s->intersection_set
-    = GNUNET_SET_create (cfg,
-                         GNUNET_SET_OPERATION_INTERSECTION);
+  s->intersection_set = GNUNET_SETI_create (cfg);
   for (uint32_t i = 0; i < contained_count; i++)
   {
     if (0 == GNUNET_ntohll (elements[i].value))
@@ -951,9 +941,9 @@ handle_bob_client_message (void *cls,
     set_elem.data = &elem->key;
     set_elem.size = sizeof(elem->key);
     set_elem.element_type = 0;
-    GNUNET_SET_add_element (s->intersection_set,
-                            &set_elem,
-                            NULL, NULL);
+    GNUNET_SETI_add_element (s->intersection_set,
+                             &set_elem,
+                             NULL, NULL);
     s->used_element_count++;
   }
   GNUNET_SERVICE_client_continue (s->client);
