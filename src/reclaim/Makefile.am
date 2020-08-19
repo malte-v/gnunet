@@ -13,8 +13,8 @@ REST_PLUGIN = \
   libgnunet_plugin_rest_openid_connect.la \
   libgnunet_plugin_rest_reclaim.la
 
-ATTESTATION_PLUGIN = \
-  libgnunet_plugin_reclaim_attestation_jwt.la
+CREDENTIAL_PLUGIN = \
+  libgnunet_plugin_reclaim_credential_jwt.la
 
 EXTRA_DIST = \
   reclaim.conf \
@@ -34,7 +34,7 @@ lib_LTLIBRARIES = \
 plugin_LTLIBRARIES = \
   libgnunet_plugin_gnsrecord_reclaim.la \
   libgnunet_plugin_reclaim_attribute_basic.la \
-  $(ATTESTATION_PLUGIN) \
+  $(CREDENTIAL_PLUGIN) \
   $(REST_PLUGIN)
 
 bin_PROGRAMS = \
@@ -115,8 +115,8 @@ libgnunetreclaim_la_SOURCES = \
  reclaim.h \
  reclaim_attribute.c \
  reclaim_attribute.h \
- reclaim_attestation.c \
- reclaim_attestation.h
+ reclaim_credential.c \
+ reclaim_credential.h
 libgnunetreclaim_la_LIBADD = \
   $(top_builddir)/src/util/libgnunetutil.la \
   $(GN_LIBINTL) $(XLIB)
@@ -133,14 +133,14 @@ libgnunet_plugin_reclaim_attribute_basic_la_LIBADD = \
 libgnunet_plugin_reclaim_attribute_basic_la_LDFLAGS = \
  $(GN_PLUGIN_LDFLAGS)
 
-libgnunet_plugin_reclaim_attestation_jwt_la_SOURCES = \
-  plugin_reclaim_attestation_jwt.c
-libgnunet_plugin_reclaim_attestation_jwt_la_LIBADD = \
+libgnunet_plugin_reclaim_credential_jwt_la_SOURCES = \
+  plugin_reclaim_credential_jwt.c
+libgnunet_plugin_reclaim_credential_jwt_la_LIBADD = \
   $(top_builddir)/src/util/libgnunetutil.la \
   libgnunetreclaim.la \
   -ljansson\
   $(LTLIBINTL)
-libgnunet_plugin_reclaim_attestation_jwt_la_LDFLAGS = \
+libgnunet_plugin_reclaim_credential_jwt_la_LDFLAGS = \
  $(GN_PLUGIN_LDFLAGS)
 
 gnunet_reclaim_SOURCES = \

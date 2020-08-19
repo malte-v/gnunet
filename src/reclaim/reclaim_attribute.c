@@ -222,7 +222,7 @@ GNUNET_RECLAIM_attribute_value_to_string (uint32_t type,
  * Create a new attribute.
  *
  * @param attr_name the attribute name
- * @param attestation attestation ID of the attribute (maybe NULL)
+ * @param credential credential ID of the attribute (maybe NULL)
  * @param type the attribute type
  * @param data the attribute value
  * @param data_size the attribute value size
@@ -231,7 +231,7 @@ GNUNET_RECLAIM_attribute_value_to_string (uint32_t type,
 struct GNUNET_RECLAIM_Attribute *
 GNUNET_RECLAIM_attribute_new (const char *attr_name,
                               const struct
-                              GNUNET_RECLAIM_Identifier *attestation,
+                              GNUNET_RECLAIM_Identifier *credential,
                               uint32_t type,
                               const void *data,
                               size_t data_size)
@@ -244,8 +244,8 @@ GNUNET_RECLAIM_attribute_new (const char *attr_name,
 
   attr = GNUNET_malloc (sizeof(struct GNUNET_RECLAIM_Attribute)
                         + strlen (attr_name_tmp) + 1 + data_size);
-  if (NULL != attestation)
-    attr->attestation = *attestation;
+  if (NULL != credential)
+    attr->credential = *credential;
   attr->type = type;
   attr->data_size = data_size;
   attr->flag = 0;
@@ -272,7 +272,7 @@ void
 GNUNET_RECLAIM_attribute_list_add (
   struct GNUNET_RECLAIM_AttributeList *al,
   const char *attr_name,
-  const struct GNUNET_RECLAIM_Identifier *attestation,
+  const struct GNUNET_RECLAIM_Identifier *credential,
   uint32_t type,
   const void *data,
   size_t data_size)
@@ -281,7 +281,7 @@ GNUNET_RECLAIM_attribute_list_add (
 
   ale = GNUNET_new (struct GNUNET_RECLAIM_AttributeListEntry);
   ale->attribute =
-    GNUNET_RECLAIM_attribute_new (attr_name, attestation,
+    GNUNET_RECLAIM_attribute_new (attr_name, credential,
                                   type, data, data_size);
   GNUNET_CONTAINER_DLL_insert (al->list_head,
                                al->list_tail,
@@ -403,7 +403,7 @@ GNUNET_RECLAIM_attribute_list_dup (
     {
       result_ale->attribute =
         GNUNET_RECLAIM_attribute_new (ale->attribute->name,
-                                      &ale->attribute->attestation,
+                                      &ale->attribute->credential,
                                       ale->attribute->type,
                                       ale->attribute->data,
                                       ale->attribute->data_size);
@@ -478,7 +478,7 @@ GNUNET_RECLAIM_attribute_serialize (
   attr_ser->attribute_type = htons (attr->type);
   attr_ser->attribute_flag = htonl (attr->flag);
   attr_ser->attribute_id = attr->id;
-  attr_ser->attestation_id = attr->attestation;
+  attr_ser->credential_id = attr->credential;
   name_len = strlen (attr->name);
   attr_ser->name_len = htons (name_len);
   write_ptr = (char *) &attr_ser[1];
@@ -530,7 +530,7 @@ GNUNET_RECLAIM_attribute_deserialize (const char *data, size_t data_size,
   attribute->type = ntohs (attr_ser->attribute_type);
   attribute->flag = ntohl (attr_ser->attribute_flag);
   attribute->id = attr_ser->attribute_id;
-  attribute->attestation = attr_ser->attestation_id;
+  attribute->credential = attr_ser->credential_id;
   attribute->data_size = data_len;
 
   write_ptr = (char *) &attribute[1];

@@ -19,14 +19,14 @@
  */
 
 /**
- * @file reclaim-attribute/reclaim_attestation.c
- * @brief helper library to manage identity attribute attestations
+ * @file reclaim/reclaim_credential.c
+ * @brief helper library to manage identity attribute credentials
  * @author Martin Schanzenbach
  */
 #include "platform.h"
 #include "gnunet_util_lib.h"
 #include "gnunet_reclaim_plugin.h"
-#include "reclaim_attestation.h"
+#include "reclaim_credential.h"
 
 
 /**
@@ -42,14 +42,14 @@ struct Plugin
   /**
    * Plugin API
    */
-  struct GNUNET_RECLAIM_AttestationPluginFunctions *api;
+  struct GNUNET_RECLAIM_CredentialPluginFunctions *api;
 };
 
 
 /**
  * Plugins
  */
-static struct Plugin **attest_plugins;
+static struct Plugin **credential_plugins;
 
 
 /**
@@ -74,16 +74,16 @@ static int initialized;
 static void
 add_plugin (void *cls, const char *library_name, void *lib_ret)
 {
-  struct GNUNET_RECLAIM_AttestationPluginFunctions *api = lib_ret;
+  struct GNUNET_RECLAIM_CredentialPluginFunctions *api = lib_ret;
   struct Plugin *plugin;
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "Loading attestation plugin `%s'\n",
+              "Loading credential plugin `%s'\n",
               library_name);
   plugin = GNUNET_new (struct Plugin);
   plugin->api = api;
   plugin->library_name = GNUNET_strdup (library_name);
-  GNUNET_array_append (attest_plugins, num_plugins, plugin);
+  GNUNET_array_append (credential_plugins, num_plugins, plugin);
 }
 
 
@@ -96,7 +96,7 @@ init ()
   if (GNUNET_YES == initialized)
     return;
   initialized = GNUNET_YES;
-  GNUNET_PLUGIN_load_all ("libgnunet_plugin_reclaim_attestation_",
+  GNUNET_PLUGIN_load_all ("libgnunet_plugin_reclaim_credential_",
                           NULL,
                           &add_plugin,
                           NULL);
@@ -104,13 +104,13 @@ init ()
 
 
 /**
- * Convert an attestation type name to the corresponding number
+ * Convert an credential type name to the corresponding number
  *
  * @param typename name to convert
  * @return corresponding number, UINT32_MAX on error
  */
 uint32_t
-GNUNET_RECLAIM_attestation_typename_to_number (const char *typename)
+GNUNET_RECLAIM_credential_typename_to_number (const char *typename)
 {
   unsigned int i;
   struct Plugin *plugin;
@@ -118,7 +118,7 @@ GNUNET_RECLAIM_attestation_typename_to_number (const char *typename)
   init ();
   for (i = 0; i < num_plugins; i++)
   {
-    plugin = attest_plugins[i];
+    plugin = credential_plugins[i];
     if (UINT32_MAX !=
         (ret = plugin->api->typename_to_number (plugin->api->cls,
                                                 typename)))
@@ -129,13 +129,13 @@ GNUNET_RECLAIM_attestation_typename_to_number (const char *typename)
 
 
 /**
- * Convert an attestation type number to the corresponding attestation type string
+ * Convert an credential type number to the corresponding credential type string
  *
  * @param type number of a type
  * @return corresponding typestring, NULL on error
  */
 const char *
-GNUNET_RECLAIM_attestation_number_to_typename (uint32_t type)
+GNUNET_RECLAIM_credential_number_to_typename (uint32_t type)
 {
   unsigned int i;
   struct Plugin *plugin;
@@ -144,7 +144,7 @@ GNUNET_RECLAIM_attestation_number_to_typename (uint32_t type)
   init ();
   for (i = 0; i < num_plugins; i++)
   {
-    plugin = attest_plugins[i];
+    plugin = credential_plugins[i];
     if (NULL !=
         (ret = plugin->api->number_to_typename (plugin->api->cls, type)))
       return ret;
@@ -154,7 +154,7 @@ GNUNET_RECLAIM_attestation_number_to_typename (uint32_t type)
 
 
 /**
- * Convert human-readable version of a 'claim' of an attestation to the binary
+ * Convert human-readable version of a 'claim' of an credential to the binary
  * representation
  *
  * @param type type of the claim
@@ -164,7 +164,7 @@ GNUNET_RECLAIM_attestation_number_to_typename (uint32_t type)
  * @return #GNUNET_OK on success
  */
 int
-GNUNET_RECLAIM_attestation_string_to_value (uint32_t type,
+GNUNET_RECLAIM_credential_string_to_value (uint32_t type,
                                             const char *s,
                                             void **data,
                                             size_t *data_size)
@@ -175,7 +175,7 @@ GNUNET_RECLAIM_attestation_string_to_value (uint32_t type,
   init ();
   for (i = 0; i < num_plugins; i++)
   {
-    plugin = attest_plugins[i];
+    plugin = credential_plugins[i];
     if (GNUNET_OK == plugin->api->string_to_value (plugin->api->cls,
                                                    type,
                                                    s,
@@ -188,15 +188,15 @@ GNUNET_RECLAIM_attestation_string_to_value (uint32_t type,
 
 
 /**
- * Convert the 'claim' of an attestation to a string
+ * Convert the 'claim' of an credential to a string
  *
- * @param type the type of attestation
+ * @param type the type of credential
  * @param data claim in binary encoding
  * @param data_size number of bytes in @a data
  * @return NULL on error, otherwise human-readable representation of the claim
  */
 char *
-GNUNET_RECLAIM_attestation_value_to_string (uint32_t type,
+GNUNET_RECLAIM_credential_value_to_string (uint32_t type,
                                             const void *data,
                                             size_t data_size)
 {
@@ -207,7 +207,7 @@ GNUNET_RECLAIM_attestation_value_to_string (uint32_t type,
   init ();
   for (i = 0; i < num_plugins; i++)
   {
-    plugin = attest_plugins[i];
+    plugin = credential_plugins[i];
     if (NULL != (ret = plugin->api->value_to_string (plugin->api->cls,
                                                      type,
                                                      data,
@@ -219,27 +219,27 @@ GNUNET_RECLAIM_attestation_value_to_string (uint32_t type,
 
 
 /**
-   * Create a new attestation.
+   * Create a new credential.
    *
-   * @param attr_name the attestation name
-   * @param type the attestation type
-   * @param data the attestation value
-   * @param data_size the attestation value size
-   * @return the new attestation
+   * @param attr_name the credential name
+   * @param type the credential type
+   * @param data the credential value
+   * @param data_size the credential value size
+   * @return the new credential
    */
-struct GNUNET_RECLAIM_Attestation *
-GNUNET_RECLAIM_attestation_new (const char *attr_name,
+struct GNUNET_RECLAIM_Credential *
+GNUNET_RECLAIM_credential_new (const char *attr_name,
                                 uint32_t type,
                                 const void *data,
                                 size_t data_size)
 {
-  struct GNUNET_RECLAIM_Attestation *attr;
+  struct GNUNET_RECLAIM_Credential *attr;
   char *write_ptr;
   char *attr_name_tmp = GNUNET_strdup (attr_name);
 
   GNUNET_STRINGS_utf8_tolower (attr_name, attr_name_tmp);
 
-  attr = GNUNET_malloc (sizeof(struct GNUNET_RECLAIM_Attestation)
+  attr = GNUNET_malloc (sizeof(struct GNUNET_RECLAIM_Credential)
                         + strlen (attr_name_tmp) + 1 + data_size);
   attr->type = type;
   attr->data_size = data_size;
@@ -262,17 +262,17 @@ GNUNET_RECLAIM_attestation_new (const char *attr_name,
  * @return the required buffer size
  */
 size_t
-GNUNET_RECLAIM_attestation_list_serialize_get_size (
-  const struct GNUNET_RECLAIM_AttestationList *attestations)
+GNUNET_RECLAIM_credential_list_serialize_get_size (
+  const struct GNUNET_RECLAIM_CredentialList *credentials)
 {
-  struct GNUNET_RECLAIM_AttestationListEntry *le;
+  struct GNUNET_RECLAIM_CredentialListEntry *le;
   size_t len = 0;
 
-  for (le = attestations->list_head; NULL != le; le = le->next)
+  for (le = credentials->list_head; NULL != le; le = le->next)
   {
-    GNUNET_assert (NULL != le->attestation);
-    len += GNUNET_RECLAIM_attestation_serialize_get_size (le->attestation);
-    len += sizeof(struct GNUNET_RECLAIM_AttestationListEntry);
+    GNUNET_assert (NULL != le->credential);
+    len += GNUNET_RECLAIM_credential_serialize_get_size (le->credential);
+    len += sizeof(struct GNUNET_RECLAIM_CredentialListEntry);
   }
   return len;
 }
@@ -286,20 +286,20 @@ GNUNET_RECLAIM_attestation_list_serialize_get_size (
  * @return length of serialized data
  */
 size_t
-GNUNET_RECLAIM_attestation_list_serialize (
-  const struct GNUNET_RECLAIM_AttestationList *attestations,
+GNUNET_RECLAIM_credential_list_serialize (
+  const struct GNUNET_RECLAIM_CredentialList *credentials,
   char *result)
 {
-  struct GNUNET_RECLAIM_AttestationListEntry *le;
+  struct GNUNET_RECLAIM_CredentialListEntry *le;
   size_t len;
   size_t total_len;
   char *write_ptr;
   write_ptr = result;
   total_len = 0;
-  for (le = attestations->list_head; NULL != le; le = le->next)
+  for (le = credentials->list_head; NULL != le; le = le->next)
   {
-    GNUNET_assert (NULL != le->attestation);
-    len = GNUNET_RECLAIM_attestation_serialize (le->attestation, write_ptr);
+    GNUNET_assert (NULL != le->credential);
+    len = GNUNET_RECLAIM_credential_serialize (le->credential, write_ptr);
     total_len += len;
     write_ptr += len;
   }
@@ -308,43 +308,43 @@ GNUNET_RECLAIM_attestation_list_serialize (
 
 
 /**
- * Deserialize an attestation list
+ * Deserialize an credential list
  *
  * @param data the serialized attribute list
  * @param data_size the length of the serialized data
  * @return a GNUNET_IDENTITY_PROVIDER_AttributeList, must be free'd by caller
  */
-struct GNUNET_RECLAIM_AttestationList *
-GNUNET_RECLAIM_attestation_list_deserialize (const char *data, size_t data_size)
+struct GNUNET_RECLAIM_CredentialList *
+GNUNET_RECLAIM_credential_list_deserialize (const char *data, size_t data_size)
 {
-  struct GNUNET_RECLAIM_AttestationList *al;
-  struct GNUNET_RECLAIM_AttestationListEntry *ale;
+  struct GNUNET_RECLAIM_CredentialList *al;
+  struct GNUNET_RECLAIM_CredentialListEntry *ale;
   size_t att_len;
   const char *read_ptr;
 
-  al = GNUNET_new (struct GNUNET_RECLAIM_AttestationList);
+  al = GNUNET_new (struct GNUNET_RECLAIM_CredentialList);
 
   if ((data_size < sizeof(struct
-                          Attestation)
-       + sizeof(struct GNUNET_RECLAIM_AttestationListEntry)))
+                          Credential)
+       + sizeof(struct GNUNET_RECLAIM_CredentialListEntry)))
     return al;
 
   read_ptr = data;
-  while (((data + data_size) - read_ptr) >= sizeof(struct Attestation))
+  while (((data + data_size) - read_ptr) >= sizeof(struct Credential))
   {
-    ale = GNUNET_new (struct GNUNET_RECLAIM_AttestationListEntry);
-    ale->attestation =
-      GNUNET_RECLAIM_attestation_deserialize (read_ptr,
+    ale = GNUNET_new (struct GNUNET_RECLAIM_CredentialListEntry);
+    ale->credential =
+      GNUNET_RECLAIM_credential_deserialize (read_ptr,
                                               data_size - (read_ptr - data));
-    if (NULL == ale->attestation)
+    if (NULL == ale->credential)
     {
       GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
-                  "Failed to deserialize malformed attestation.\n");
+                  "Failed to deserialize malformed credential.\n");
       GNUNET_free (ale);
       return al;
     }
     GNUNET_CONTAINER_DLL_insert (al->list_head, al->list_tail, ale);
-    att_len = GNUNET_RECLAIM_attestation_serialize_get_size (ale->attestation);
+    att_len = GNUNET_RECLAIM_credential_serialize_get_size (ale->credential);
     read_ptr += att_len;
   }
   return al;
@@ -352,29 +352,29 @@ GNUNET_RECLAIM_attestation_list_deserialize (const char *data, size_t data_size)
 
 
 /**
- * Make a (deep) copy of the attestation list
+ * Make a (deep) copy of the credential list
  * @param attrs claim list to copy
  * @return copied claim list
  */
-struct GNUNET_RECLAIM_AttestationList *
-GNUNET_RECLAIM_attestation_list_dup (
-  const struct GNUNET_RECLAIM_AttestationList *al)
+struct GNUNET_RECLAIM_CredentialList *
+GNUNET_RECLAIM_credential_list_dup (
+  const struct GNUNET_RECLAIM_CredentialList *al)
 {
-  struct GNUNET_RECLAIM_AttestationListEntry *ale;
-  struct GNUNET_RECLAIM_AttestationListEntry *result_ale;
-  struct GNUNET_RECLAIM_AttestationList *result;
+  struct GNUNET_RECLAIM_CredentialListEntry *ale;
+  struct GNUNET_RECLAIM_CredentialListEntry *result_ale;
+  struct GNUNET_RECLAIM_CredentialList *result;
 
-  result = GNUNET_new (struct GNUNET_RECLAIM_AttestationList);
+  result = GNUNET_new (struct GNUNET_RECLAIM_CredentialList);
   for (ale = al->list_head; NULL != ale; ale = ale->next)
   {
-    result_ale = GNUNET_new (struct GNUNET_RECLAIM_AttestationListEntry);
-    GNUNET_assert (NULL != ale->attestation);
-    result_ale->attestation =
-      GNUNET_RECLAIM_attestation_new (ale->attestation->name,
-                                      ale->attestation->type,
-                                      ale->attestation->data,
-                                      ale->attestation->data_size);
-    result_ale->attestation->id = ale->attestation->id;
+    result_ale = GNUNET_new (struct GNUNET_RECLAIM_CredentialListEntry);
+    GNUNET_assert (NULL != ale->credential);
+    result_ale->credential =
+      GNUNET_RECLAIM_credential_new (ale->credential->name,
+                                      ale->credential->type,
+                                      ale->credential->data,
+                                      ale->credential->data_size);
+    result_ale->credential->id = ale->credential->id;
     GNUNET_CONTAINER_DLL_insert (result->list_head,
                                  result->list_tail,
                                  result_ale);
@@ -384,21 +384,21 @@ GNUNET_RECLAIM_attestation_list_dup (
 
 
 /**
- * Destroy attestation list
+ * Destroy credential list
  *
  * @param attrs list to destroy
  */
 void
-GNUNET_RECLAIM_attestation_list_destroy (
-  struct GNUNET_RECLAIM_AttestationList *al)
+GNUNET_RECLAIM_credential_list_destroy (
+  struct GNUNET_RECLAIM_CredentialList *al)
 {
-  struct GNUNET_RECLAIM_AttestationListEntry *ale;
-  struct GNUNET_RECLAIM_AttestationListEntry *tmp_ale;
+  struct GNUNET_RECLAIM_CredentialListEntry *ale;
+  struct GNUNET_RECLAIM_CredentialListEntry *tmp_ale;
 
   for (ale = al->list_head; NULL != ale;)
   {
-    if (NULL != ale->attestation)
-      GNUNET_free (ale->attestation);
+    if (NULL != ale->credential)
+      GNUNET_free (ale->credential);
     tmp_ale = ale;
     ale = ale->next;
     GNUNET_free (tmp_ale);
@@ -410,108 +410,108 @@ GNUNET_RECLAIM_attestation_list_destroy (
 /**
  * Get required size for serialization buffer
  *
- * @param attr the attestation to serialize
+ * @param attr the credential to serialize
  * @return the required buffer size
  */
 size_t
-GNUNET_RECLAIM_attestation_serialize_get_size (
-  const struct GNUNET_RECLAIM_Attestation *attestation)
+GNUNET_RECLAIM_credential_serialize_get_size (
+  const struct GNUNET_RECLAIM_Credential *credential)
 {
-  return sizeof(struct Attestation) + strlen (attestation->name)
-         + attestation->data_size;
+  return sizeof(struct Credential) + strlen (credential->name)
+         + credential->data_size;
 }
 
 
 /**
- * Serialize an attestation
+ * Serialize an credential
  *
- * @param attr the attestation to serialize
- * @param result the serialized attestation
+ * @param attr the credential to serialize
+ * @param result the serialized credential
  * @return length of serialized data
  */
 size_t
-GNUNET_RECLAIM_attestation_serialize (
-  const struct GNUNET_RECLAIM_Attestation *attestation,
+GNUNET_RECLAIM_credential_serialize (
+  const struct GNUNET_RECLAIM_Credential *credential,
   char *result)
 {
   size_t data_len_ser;
   size_t name_len;
-  struct Attestation *atts;
+  struct Credential *atts;
   char *write_ptr;
 
-  atts = (struct Attestation *) result;
-  atts->attestation_type = htons (attestation->type);
-  atts->attestation_flag = htonl (attestation->flag);
-  atts->attestation_id = attestation->id;
-  name_len = strlen (attestation->name);
+  atts = (struct Credential *) result;
+  atts->credential_type = htons (credential->type);
+  atts->credential_flag = htonl (credential->flag);
+  atts->credential_id = credential->id;
+  name_len = strlen (credential->name);
   atts->name_len = htons (name_len);
   write_ptr = (char *) &atts[1];
-  GNUNET_memcpy (write_ptr, attestation->name, name_len);
+  GNUNET_memcpy (write_ptr, credential->name, name_len);
   write_ptr += name_len;
   // TODO plugin-ize
   // data_len_ser = plugin->serialize_attribute_value (attr,
   //                                                  &attr_ser[1]);
-  data_len_ser = attestation->data_size;
-  GNUNET_memcpy (write_ptr, attestation->data, attestation->data_size);
+  data_len_ser = credential->data_size;
+  GNUNET_memcpy (write_ptr, credential->data, credential->data_size);
   atts->data_size = htons (data_len_ser);
 
-  return sizeof(struct Attestation) + strlen (attestation->name)
-         + attestation->data_size;
+  return sizeof(struct Credential) + strlen (credential->name)
+         + credential->data_size;
 }
 
 
 /**
- * Deserialize an attestation
+ * Deserialize an credential
  *
- * @param data the serialized attestation
+ * @param data the serialized credential
  * @param data_size the length of the serialized data
  *
  * @return a GNUNET_IDENTITY_PROVIDER_Attribute, must be free'd by caller
  */
-struct GNUNET_RECLAIM_Attestation *
-GNUNET_RECLAIM_attestation_deserialize (const char *data, size_t data_size)
+struct GNUNET_RECLAIM_Credential *
+GNUNET_RECLAIM_credential_deserialize (const char *data, size_t data_size)
 {
-  struct GNUNET_RECLAIM_Attestation *attestation;
-  struct Attestation *atts;
+  struct GNUNET_RECLAIM_Credential *credential;
+  struct Credential *atts;
   size_t data_len;
   size_t name_len;
   char *write_ptr;
 
-  if (data_size < sizeof(struct Attestation))
+  if (data_size < sizeof(struct Credential))
     return NULL;
 
-  atts = (struct Attestation *) data;
+  atts = (struct Credential *) data;
   data_len = ntohs (atts->data_size);
   name_len = ntohs (atts->name_len);
-  if (data_size < sizeof(struct Attestation) + data_len + name_len)
+  if (data_size < sizeof(struct Credential) + data_len + name_len)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                 "Buffer too small to deserialize\n");
     return NULL;
   }
-  attestation = GNUNET_malloc (sizeof(struct GNUNET_RECLAIM_Attestation)
+  credential = GNUNET_malloc (sizeof(struct GNUNET_RECLAIM_Credential)
                                + data_len + name_len + 1);
-  attestation->type = ntohs (atts->attestation_type);
-  attestation->flag = ntohl (atts->attestation_flag);
-  attestation->id = atts->attestation_id;
-  attestation->data_size = data_len;
+  credential->type = ntohs (atts->credential_type);
+  credential->flag = ntohl (atts->credential_flag);
+  credential->id = atts->credential_id;
+  credential->data_size = data_len;
 
-  write_ptr = (char *) &attestation[1];
+  write_ptr = (char *) &credential[1];
   GNUNET_memcpy (write_ptr, &atts[1], name_len);
   write_ptr[name_len] = '\0';
-  attestation->name = write_ptr;
+  credential->name = write_ptr;
 
   write_ptr += name_len + 1;
   GNUNET_memcpy (write_ptr, (char *) &atts[1] + name_len,
-                 attestation->data_size);
-  attestation->data = write_ptr;
-  return attestation;
+                 credential->data_size);
+  credential->data = write_ptr;
+  return credential;
 }
 
 
 struct GNUNET_RECLAIM_AttributeList*
-GNUNET_RECLAIM_attestation_get_attributes (const struct
-                                           GNUNET_RECLAIM_Attestation *attest)
+GNUNET_RECLAIM_credential_get_attributes (const struct
+                                           GNUNET_RECLAIM_Credential *credential)
 {
   unsigned int i;
   struct Plugin *plugin;
@@ -519,10 +519,10 @@ GNUNET_RECLAIM_attestation_get_attributes (const struct
   init ();
   for (i = 0; i < num_plugins; i++)
   {
-    plugin = attest_plugins[i];
+    plugin = credential_plugins[i];
     if (NULL !=
         (ret = plugin->api->get_attributes (plugin->api->cls,
-                                            attest)))
+                                            credential)))
       return ret;
   }
   return NULL;
@@ -530,8 +530,8 @@ GNUNET_RECLAIM_attestation_get_attributes (const struct
 
 
 char*
-GNUNET_RECLAIM_attestation_get_issuer (const struct
-                                       GNUNET_RECLAIM_Attestation *attest)
+GNUNET_RECLAIM_credential_get_issuer (const struct
+                                       GNUNET_RECLAIM_Credential *credential)
 {
   unsigned int i;
   struct Plugin *plugin;
@@ -539,10 +539,10 @@ GNUNET_RECLAIM_attestation_get_issuer (const struct
   init ();
   for (i = 0; i < num_plugins; i++)
   {
-    plugin = attest_plugins[i];
+    plugin = credential_plugins[i];
     if (NULL !=
         (ret = plugin->api->get_issuer (plugin->api->cls,
-                                        attest)))
+                                        credential)))
       return ret;
   }
   return NULL;
@@ -550,8 +550,8 @@ GNUNET_RECLAIM_attestation_get_issuer (const struct
 
 
 int
-GNUNET_RECLAIM_attestation_get_expiration (const struct
-                                           GNUNET_RECLAIM_Attestation *attest,
+GNUNET_RECLAIM_credential_get_expiration (const struct
+                                           GNUNET_RECLAIM_Credential *credential,
                                            struct GNUNET_TIME_Absolute*exp)
 {
   unsigned int i;
@@ -559,9 +559,9 @@ GNUNET_RECLAIM_attestation_get_expiration (const struct
   init ();
   for (i = 0; i < num_plugins; i++)
   {
-    plugin = attest_plugins[i];
+    plugin = credential_plugins[i];
     if (GNUNET_OK !=  plugin->api->get_expiration (plugin->api->cls,
-                                                   attest,
+                                                   credential,
                                                    exp))
       continue;
     return GNUNET_OK;

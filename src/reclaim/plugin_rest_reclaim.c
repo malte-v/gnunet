@@ -48,9 +48,9 @@
 #define GNUNET_REST_API_NS_RECLAIM_ATTRIBUTES "/reclaim/attributes"
 
 /**
- * Attestation namespace
+ * Credential namespace
  */
-#define GNUNET_REST_API_NS_RECLAIM_ATTESTATION "/reclaim/attestation"
+#define GNUNET_REST_API_NS_RECLAIM_CREDENTIAL "/reclaim/credential"
 
 /**
  * Ticket namespace
@@ -202,7 +202,7 @@ struct RequestHandle
   /**
    * Attribute iterator
    */
-  struct GNUNET_RECLAIM_AttestationIterator *attest_it;
+  struct GNUNET_RECLAIM_CredentialIterator *cred_it;
 
   /**
    * Ticket iterator
@@ -282,8 +282,8 @@ cleanup_handle (void *cls)
     GNUNET_SCHEDULER_cancel (handle->timeout_task);
   if (NULL != handle->attr_it)
     GNUNET_RECLAIM_get_attributes_stop (handle->attr_it);
-  if (NULL != handle->attest_it)
-    GNUNET_RECLAIM_get_attestations_stop (handle->attest_it);
+  if (NULL != handle->cred_it)
+    GNUNET_RECLAIM_get_credentials_stop (handle->cred_it);
   if (NULL != handle->ticket_it)
     GNUNET_RECLAIM_ticket_iteration_stop (handle->ticket_it);
   if (NULL != handle->url)
@@ -413,7 +413,7 @@ collect_finished_cb (void *cls)
 
   // Done
   handle->attr_it = NULL;
-  handle->attest_it = NULL;
+  handle->cred_it = NULL;
   handle->ticket_it = NULL;
   GNUNET_SCHEDULER_add_now (&return_response, handle);
 }
@@ -460,7 +460,7 @@ ticket_collect (void *cls, const struct GNUNET_RECLAIM_Ticket *ticket)
 
 
 static void
-add_attestation_cont (struct GNUNET_REST_RequestHandle *con_handle,
+add_credential_cont (struct GNUNET_REST_RequestHandle *con_handle,
                       const char *url,
                       void *cls)
 {
@@ -468,19 +468,19 @@ add_attestation_cont (struct GNUNET_REST_RequestHandle *con_handle,
   const struct GNUNET_CRYPTO_EcdsaPrivateKey *identity_priv;
   const char *identity;
   struct EgoEntry *ego_entry;
-  struct GNUNET_RECLAIM_Attestation *attribute;
+  struct GNUNET_RECLAIM_Credential *attribute;
   struct GNUNET_TIME_Relative exp;
   char term_data[handle->rest_handle->data_size + 1];
   json_t *data_json;
   json_error_t err;
   struct GNUNET_JSON_Specification attrspec[] =
-  { GNUNET_RECLAIM_JSON_spec_claim_attest (&attribute),
+  { GNUNET_RECLAIM_JSON_spec_claim_cred (&attribute),
     GNUNET_JSON_spec_end () };
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "Adding an attestation for %s.\n",
+              "Adding an credential for %s.\n",
               handle->url);
-  if (strlen (GNUNET_REST_API_NS_RECLAIM_ATTESTATION) >= strlen (
+  if (strlen (GNUNET_REST_API_NS_RECLAIM_CREDENTIAL) >= strlen (
         handle->url))
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR, "No identity given.\n");
@@ -488,7 +488,7 @@ add_attestation_cont (struct GNUNET_REST_RequestHandle *con_handle,
     return;
   }
   identity = handle->url + strlen (
-    GNUNET_REST_API_NS_RECLAIM_ATTESTATION) + 1;
+    GNUNET_REST_API_NS_RECLAIM_CREDENTIAL) + 1;
 
   for (ego_entry = ego_head; NULL != ego_entry;
        ego_entry = ego_entry->next)
@@ -518,7 +518,7 @@ add_attestation_cont (struct GNUNET_REST_RequestHandle *con_handle,
   if (NULL == attribute)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                "Unable to parse attestation from %s\n",
+                "Unable to parse credential from %s\n",
                 term_data);
     GNUNET_SCHEDULER_add_now (&do_error, handle);
     return;
@@ -529,7 +529,7 @@ add_attestation_cont (struct GNUNET_REST_RequestHandle *con_handle,
   if (GNUNET_YES == GNUNET_RECLAIM_id_is_zero (&attribute->id))
     GNUNET_RECLAIM_id_generate (&attribute->id);
   exp = GNUNET_TIME_UNIT_HOURS;
-  handle->idp_op = GNUNET_RECLAIM_attestation_store (idp,
+  handle->idp_op = GNUNET_RECLAIM_credential_store (idp,
                                                      identity_priv,
                                                      attribute,
                                                      &exp,
@@ -540,52 +540,52 @@ add_attestation_cont (struct GNUNET_REST_RequestHandle *con_handle,
 
 
 /**
- * Collect all attestations for an ego
+ * Collect all credentials for an ego
  *
  */
 static void
-attest_collect (void *cls,
+cred_collect (void *cls,
                 const struct GNUNET_CRYPTO_EcdsaPublicKey *identity,
-                const struct GNUNET_RECLAIM_Attestation *attest)
+                const struct GNUNET_RECLAIM_Credential *cred)
 {
   struct RequestHandle *handle = cls;
   struct GNUNET_RECLAIM_AttributeList *attrs;
   struct GNUNET_RECLAIM_AttributeListEntry *ale;
   struct GNUNET_TIME_Absolute exp;
   json_t *attr_obj;
-  json_t *attest_obj;
+  json_t *cred_obj;
   const char *type;
   char *tmp_value;
   char *id_str;
   char *issuer;
 
 
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Adding attestation: %s\n",
-              attest->name);
-  attrs = GNUNET_RECLAIM_attestation_get_attributes (attest);
-  issuer = GNUNET_RECLAIM_attestation_get_issuer (attest);
-  tmp_value = GNUNET_RECLAIM_attestation_value_to_string (attest->type,
-                                                          attest->data,
-                                                          attest->data_size);
-  attest_obj = json_object ();
-  json_object_set_new (attest_obj, "value", json_string (tmp_value));
-  json_object_set_new (attest_obj, "name", json_string (attest->name));
-  type = GNUNET_RECLAIM_attestation_number_to_typename (attest->type);
-  json_object_set_new (attest_obj, "type", json_string (type));
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Adding credential: %s\n",
+              cred->name);
+  attrs = GNUNET_RECLAIM_credential_get_attributes (cred);
+  issuer = GNUNET_RECLAIM_credential_get_issuer (cred);
+  tmp_value = GNUNET_RECLAIM_credential_value_to_string (cred->type,
+                                                          cred->data,
+                                                          cred->data_size);
+  cred_obj = json_object ();
+  json_object_set_new (cred_obj, "value", json_string (tmp_value));
+  json_object_set_new (cred_obj, "name", json_string (cred->name));
+  type = GNUNET_RECLAIM_credential_number_to_typename (cred->type);
+  json_object_set_new (cred_obj, "type", json_string (type));
   if (NULL != issuer)
   {
-    json_object_set_new (attest_obj, "issuer", json_string (issuer));
+    json_object_set_new (cred_obj, "issuer", json_string (issuer));
     GNUNET_free (issuer);
   }
-  if (GNUNET_OK == GNUNET_RECLAIM_attestation_get_expiration (attest,
+  if (GNUNET_OK == GNUNET_RECLAIM_credential_get_expiration (cred,
                                                               &exp))
   {
-    json_object_set_new (attest_obj, "expiration", json_integer (
+    json_object_set_new (cred_obj, "expiration", json_integer (
                            exp.abs_value_us));
   }
-  id_str = GNUNET_STRINGS_data_to_string_alloc (&attest->id,
-                                                sizeof(attest->id));
-  json_object_set_new (attest_obj, "id", json_string (id_str));
+  id_str = GNUNET_STRINGS_data_to_string_alloc (&cred->id,
+                                                sizeof(cred->id));
+  json_object_set_new (cred_obj, "id", json_string (id_str));
   GNUNET_free (tmp_value);
   GNUNET_free (id_str);
   if (NULL != attrs)
@@ -606,27 +606,27 @@ attest_collect (void *cls,
       type = GNUNET_RECLAIM_attribute_number_to_typename (ale->attribute->type);
       json_object_set_new (attr_obj, "type", json_string (type));
       json_object_set_new (attr_obj, "id", json_string (""));
-      json_object_set_new (attr_obj, "attestation", json_string (""));
+      json_object_set_new (attr_obj, "credential", json_string (""));
       json_array_append_new (attr_arr, attr_obj);
       GNUNET_free (tmp_value);
     }
-    json_object_set_new (attest_obj, "attributes", attr_arr);
+    json_object_set_new (cred_obj, "attributes", attr_arr);
   }
-  json_array_append_new (handle->resp_object, attest_obj);
+  json_array_append_new (handle->resp_object, cred_obj);
   GNUNET_RECLAIM_attribute_list_destroy (attrs);
-  GNUNET_RECLAIM_get_attestations_next (handle->attest_it);
+  GNUNET_RECLAIM_get_credentials_next (handle->cred_it);
 }
 
 
 /**
- * Lists attestation for identity request
+ * Lists credential for identity request
  *
  * @param con_handle the connection handle
  * @param url the url
  * @param cls the RequestHandle
  */
 static void
-list_attestation_cont (struct GNUNET_REST_RequestHandle *con_handle,
+list_credential_cont (struct GNUNET_REST_RequestHandle *con_handle,
                        const char *url,
                        void *cls)
 {
@@ -636,9 +636,9 @@ list_attestation_cont (struct GNUNET_REST_RequestHandle *con_handle,
   char *identity;
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "Getting attestations for %s.\n",
+              "Getting credentials for %s.\n",
               handle->url);
-  if (strlen (GNUNET_REST_API_NS_RECLAIM_ATTESTATION) >= strlen (
+  if (strlen (GNUNET_REST_API_NS_RECLAIM_CREDENTIAL) >= strlen (
         handle->url))
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR, "No identity given.\n");
@@ -646,7 +646,7 @@ list_attestation_cont (struct GNUNET_REST_RequestHandle *con_handle,
     return;
   }
   identity = handle->url + strlen (
-    GNUNET_REST_API_NS_RECLAIM_ATTESTATION) + 1;
+    GNUNET_REST_API_NS_RECLAIM_CREDENTIAL) + 1;
 
   for (ego_entry = ego_head; NULL != ego_entry;
        ego_entry = ego_entry->next)
@@ -663,11 +663,11 @@ list_attestation_cont (struct GNUNET_REST_RequestHandle *con_handle,
     return;
   }
   priv_key = GNUNET_IDENTITY_ego_get_private_key (ego_entry->ego);
-  handle->attest_it = GNUNET_RECLAIM_get_attestations_start (idp,
+  handle->cred_it = GNUNET_RECLAIM_get_credentials_start (idp,
                                                              priv_key,
                                                              &collect_error_cb,
                                                              handle,
-                                                             &attest_collect,
+                                                             &cred_collect,
                                                              handle,
                                                              &
                                                              collect_finished_cb,
@@ -676,27 +676,27 @@ list_attestation_cont (struct GNUNET_REST_RequestHandle *con_handle,
 
 
 /**
- * Deletes attestation from an identity
+ * Deletes credential from an identity
  *
  * @param con_handle the connection handle
  * @param url the url
  * @param cls the RequestHandle
  */
 static void
-delete_attestation_cont (struct GNUNET_REST_RequestHandle *con_handle,
+delete_credential_cont (struct GNUNET_REST_RequestHandle *con_handle,
                          const char *url,
                          void *cls)
 {
   struct RequestHandle *handle = cls;
   const struct GNUNET_CRYPTO_EcdsaPrivateKey *priv_key;
-  struct GNUNET_RECLAIM_Attestation attr;
+  struct GNUNET_RECLAIM_Credential attr;
   struct EgoEntry *ego_entry;
   char *identity_id_str;
   char *identity;
   char *id;
 
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Deleting attestation.\n");
-  if (strlen (GNUNET_REST_API_NS_RECLAIM_ATTESTATION) >= strlen (
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Deleting credential.\n");
+  if (strlen (GNUNET_REST_API_NS_RECLAIM_CREDENTIAL) >= strlen (
         handle->url))
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR, "No identity given.\n");
@@ -705,7 +705,7 @@ delete_attestation_cont (struct GNUNET_REST_RequestHandle *con_handle,
   }
   identity_id_str =
     strdup (handle->url + strlen (
-              GNUNET_REST_API_NS_RECLAIM_ATTESTATION) + 1);
+              GNUNET_REST_API_NS_RECLAIM_CREDENTIAL) + 1);
   identity = strtok (identity_id_str, "/");
   id = strtok (NULL, "/");
   if ((NULL == identity) || (NULL == id))
@@ -730,10 +730,10 @@ delete_attestation_cont (struct GNUNET_REST_RequestHandle *con_handle,
     return;
   }
   priv_key = GNUNET_IDENTITY_ego_get_private_key (ego_entry->ego);
-  memset (&attr, 0, sizeof(struct GNUNET_RECLAIM_Attestation));
+  memset (&attr, 0, sizeof(struct GNUNET_RECLAIM_Credential));
   GNUNET_STRINGS_string_to_data (id, strlen (id), &attr.id, sizeof(attr.id));
   attr.name = "";
-  handle->idp_op = GNUNET_RECLAIM_attestation_delete (idp,
+  handle->idp_op = GNUNET_RECLAIM_credential_delete (idp,
                                                       priv_key,
                                                       &attr,
                                                       &delete_finished_cb,
@@ -877,13 +877,13 @@ add_attribute_cont (struct GNUNET_REST_RequestHandle *con_handle,
 /**
  * Parse a JWT and return the respective claim value as Attribute
  *
- * @param attest the jwt attestation
+ * @param cred the jwt credential
  * @param claim the name of the claim in the JWT
  *
  * @return a GNUNET_RECLAIM_Attribute, containing the new value
  */
 struct GNUNET_RECLAIM_Attribute *
-parse_jwt (const struct GNUNET_RECLAIM_Attestation *attest,
+parse_jwt (const struct GNUNET_RECLAIM_Credential *cred,
            const char *claim)
 {
   char *jwt_string;
@@ -899,9 +899,9 @@ parse_jwt (const struct GNUNET_RECLAIM_Attestation *attest,
   json_t *json_val;
   json_error_t *json_err = NULL;
 
-  jwt_string = GNUNET_RECLAIM_attestation_value_to_string (attest->type,
-                                                           attest->data,
-                                                           attest->data_size);
+  jwt_string = GNUNET_RECLAIM_credential_value_to_string (cred->type,
+                                                           cred->data,
+                                                           cred->data_size);
   char *jwt_body = strtok (jwt_string, delim);
   jwt_body = strtok (NULL, delim);
   GNUNET_STRINGS_base64_decode (jwt_body, strlen (jwt_body),
@@ -927,16 +927,16 @@ parse_jwt (const struct GNUNET_RECLAIM_Attestation *attest,
                                               "Error: Referenced Claim Name not Found",
                                               (void **) &data,
                                               &data_size);
-    attr = GNUNET_RECLAIM_attribute_new (claim, &attest->id,
+    attr = GNUNET_RECLAIM_attribute_new (claim, &cred->id,
                                          type, data, data_size);
-    attr->id = attest->id;
+    attr->id = cred->id;
     attr->flag = 1;
   }
   else
   {
-    attr = GNUNET_RECLAIM_attribute_new (claim, &attest->id,
+    attr = GNUNET_RECLAIM_attribute_new (claim, &cred->id,
                                          type, data, data_size);
-    attr->id = attest->id;
+    attr->id = cred->id;
     attr->flag = 1;
   }
   return attr;
@@ -965,7 +965,7 @@ attr_collect (void *cls,
   json_object_set_new (attr_obj, "value", json_string (tmp_value));
   json_object_set_new (attr_obj, "name", json_string (attr->name));
 
-  if (GNUNET_RECLAIM_id_is_zero (&attr->attestation))
+  if (GNUNET_RECLAIM_id_is_zero (&attr->credential))
     json_object_set_new (attr_obj, "flag", json_string ("0"));
   else
     json_object_set_new (attr_obj, "flag", json_string ("1"));
@@ -974,9 +974,9 @@ attr_collect (void *cls,
   id_str = GNUNET_STRINGS_data_to_string_alloc (&attr->id,
                                                 sizeof(attr->id));
   json_object_set_new (attr_obj, "id", json_string (id_str));
-  id_str = GNUNET_STRINGS_data_to_string_alloc (&attr->attestation,
-                                                sizeof(attr->attestation));
-  json_object_set_new (attr_obj, "attestation", json_string (id_str));
+  id_str = GNUNET_STRINGS_data_to_string_alloc (&attr->credential,
+                                                sizeof(attr->credential));
+  json_object_set_new (attr_obj, "credential", json_string (id_str));
   json_array_append (handle->resp_object, attr_obj);
   json_decref (attr_obj);
   GNUNET_free (tmp_value);
@@ -1180,7 +1180,7 @@ static void
 consume_cont (void *cls,
               const struct GNUNET_CRYPTO_EcdsaPublicKey *identity,
               const struct GNUNET_RECLAIM_Attribute *attr,
-              const struct GNUNET_RECLAIM_Attestation *attest)
+              const struct GNUNET_RECLAIM_Credential *cred)
 {
   struct RequestHandle *handle = cls;
   char *val_str;
@@ -1427,11 +1427,11 @@ rest_identity_process_request (struct GNUNET_REST_RequestHandle *rest_handle,
   { MHD_HTTP_METHOD_DELETE,
     GNUNET_REST_API_NS_RECLAIM_ATTRIBUTES, &delete_attribute_cont },
   { MHD_HTTP_METHOD_GET,
-    GNUNET_REST_API_NS_RECLAIM_ATTESTATION, &list_attestation_cont },
+    GNUNET_REST_API_NS_RECLAIM_CREDENTIAL, &list_credential_cont },
   { MHD_HTTP_METHOD_POST,
-    GNUNET_REST_API_NS_RECLAIM_ATTESTATION, &add_attestation_cont },
+    GNUNET_REST_API_NS_RECLAIM_CREDENTIAL, &add_credential_cont },
   { MHD_HTTP_METHOD_DELETE,
-    GNUNET_REST_API_NS_RECLAIM_ATTESTATION, &delete_attestation_cont },
+    GNUNET_REST_API_NS_RECLAIM_CREDENTIAL, &delete_credential_cont },
   { MHD_HTTP_METHOD_GET,
     GNUNET_REST_API_NS_IDENTITY_TICKETS, &list_tickets_cont },
   { MHD_HTTP_METHOD_POST,
