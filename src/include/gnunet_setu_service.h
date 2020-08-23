@@ -162,7 +162,6 @@ enum GNUNET_SETU_OptionType
 
   /**
    * Notify client also if we are sending a value to the other peer.
-   * FIXME: not implemented!
    */
   GNUNET_SETU_OPTION_SYMMETRIC = 8
 };
