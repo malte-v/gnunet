@@ -60,7 +60,7 @@ struct GNUNET_Uri
   /**
    * The query of the uri. If not present in the uri, NULL.
    */
-  const char *query;
+  char *query;
 
 
   /**
