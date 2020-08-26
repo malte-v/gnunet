@@ -96,6 +96,7 @@ libgnunetutil_la_SOURCES = \
   strings.c \
   time.c \
   tun.c \
+  uri.c \
   speedup.c speedup.h \
   proc_compat.c
 
@@ -302,6 +303,7 @@ check_PROGRAMS = \
  test_speedup \
  test_time \
  test_tun \
+ test_uri \
  $(BENCHMARKS) \
  test_os_start_process \
  test_common_logging_runtime_loglevels
@@ -571,6 +573,11 @@ test_time_LDADD = \
 test_speedup_SOURCES = \
  test_speedup.c
 test_speedup_LDADD = \
+ libgnunetutil.la
+
+test_uri_SOURCES = \
+ test_uri.c
+test_uri_LDADD = \
  libgnunetutil.la
 
 perf_crypto_hash_SOURCES = \

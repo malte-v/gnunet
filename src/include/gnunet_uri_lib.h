@@ -1,96 +1,122 @@
-/*
-   This file is part of GNUnet
-   Copyright (C) 2020 GNUnet e.V.
-
-   GNUnet is free software: you can redistribute it and/or modify it
-   under the terms of the GNU Affero General Public License as published
-   by the Free Software Foundation, either version 3 of the License,
-   or (at your option) any later version.
-
-   GNUnet is distributed in the hope that it will be useful, but
-   WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-   Affero General Public License for more details.
-
-   You should have received a copy of the GNU Affero General Public License
-   along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
-     SPDX-License-Identifier: AGPL3.0-or-later
- */
 /**
- * @file include/gnunet_uri_lib.h
- * @brief generic parser for URIs
- * @author Jonathan Buchanan
+ * Copyright (C) 2016 Jack Engqvist Johansson
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  */
-
 #ifndef GNUNET_URI_LIB_H
 #define GNUNET_URI_LIB_H
 
+
 /**
- * A Universal Resource Identifier (URI).
+ * The struct where the parsed values will be stored:
+ *
+ * scheme ":" [ "//" ] [ username ":" password "@" ] host [ ":" port ] [ "/" ] [ path ] [ "?" query ]
+ *
+ * Note: to make sure that no strings are copied, the first slash "/" in the
+ * path will be used to null terminate the hostname if no port is supplied.
  */
-struct GNUNET_Uri
-{
-  /**
-   * The scheme of the uri.
-   */
-  char *scheme;
+struct GNUNET_uri {
+  char *scheme; /* scheme, without ":" and "//" */
+  char *username; /* username, default: NULL */
+  char *password; /* password, default: NULL */
+  char *host; /* hostname or IP address */
+  int port; /* port, default: 0 */
+  char *path; /* path, without leading "/", default: NULL */
+  char *query; /* query, default: NULL */
+  char *fragment; /* fragment, default: NULL */
+};
 
 
-  /**
-   * The authority of the uri. If not present in the uri, NULL.
-   */
-  char *authority;
-
-
-  /**
-   * The list of path segments in the URI. Note that if the path ends with a
-   * '/', then this array will end with an empty string to indicate the empty
-   * segment following the '/'.
-   */
-  char **path_segments;
-
-
-  /**
-   * The length of @e path_segments.
-   */
-  unsigned int path_segments_count;
-
-
-  /**
-   * The query of the uri. If not present in the uri, NULL.
-   */
-  char *query;
-
-
-  /**
-   * The fragment of the uri. If not present in the uri, NULL.
-   */
-  char *fragment;
+/* A struct to hold the query string parameter values. */
+struct GNUNET_uri_param {
+  char *key;
+  char *val;
 };
 
 
 /**
- * Parse a URI from a string into an internal representation.
+ * Parse a URL to a struct.
  *
- * @param uri string to parse
- * @param emsg where to store the parser error message (if any)
- * @return handle to the internal representation of the URI, or NULL on error
+ * The URL string should be in one of the following formats:
+ *
+ * Absolute URL:
+ * scheme ":" [ "//" ] [ username ":" password "@" ] host [ ":" port ] [ "/" ] [ path ] [ "?" query ] [ "#" fragment ]
+ *
+ * Relative URL:
+ * path [ "?" query ] [ "#" fragment ]
+ *
+ * The following parts will be parsed to the corresponding struct member.
+ *
+ * *url:     a pointer to the struct where to store the parsed values.
+ * *url_str: a pointer to the url to be parsed (null terminated). The string
+ *           will be modified.
+ *
+ * Returns 0 on success, otherwise -1.
  */
-struct GNUNET_Uri *
-GNUNET_uri_parse (const char *uri,
-                  char **emsg);
+int
+GNUNET_uri_parse (struct GNUNET_uri *url,
+                  char *url_str);
 
 
 /**
- * Free URI.
+ * Split a path into several strings.
  *
- * @param uri uri to free
+ * No data is copied, the slashed are used as null terminators and then
+ * pointers to each path part will be stored in **parts. Double slashes will be
+ * treated as one.
+ *
+ * *path:     the path to split. The string will be modified.
+ * **parts:   a pointer to an array of (char *) where to store the result.
+ * max_parts: max number of parts to parse.
+ *
+ * Returns the number of parsed items. -1 on error.
  */
-void
-GNUNET_uri_destroy (struct GNUNET_Uri *uri);
+int
+GNUNET_uri_split_path (char *path,
+                       char **parts,
+                       int max_parts);
+
+
+/**
+ * Parse a query string into a key/value struct.
+ *
+ * The query string should be a null terminated string of parameters separated by
+ * a delimiter. Each parameter are checked for the equal sign character. If it
+ * appears in the parameter, it will be used as a null terminator and the part
+ * that comes after it will be the value of the parameter.
+ *
+ * No data are copied, the equal sign and delimiters are used as null
+ * terminators and then pointers to each parameter key and value will be stored
+ * in the yuarel_param struct.
+ *
+ * *query:     the query string to parse. The string will be modified.
+ * delimiter:  the character that separates the key/value pairs from eachother.
+ * *params:    an array of (struct yuarel_param) where to store the result.
+ * max_values: max number of parameters to parse.
+ *
+ * Returns the number of parsed items. -1 on error.
+ */
+int
+GNUNET_uri_parse_query (char *query,
+                        char delimiter,
+                        struct GNUNET_uri_param *params,
+                        int max_params);
 
 
 #endif /* GNUNET_URI_LIB_H */
-
-/* end of include/gnunet_uri_lib.h */
