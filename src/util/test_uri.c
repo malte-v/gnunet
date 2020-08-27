@@ -84,7 +84,7 @@ static char *
 test_parse_http_url_ok (void)
 {
   int rc;
-  struct GNUNET_uri url;
+  struct GNUNET_Uri url;
   char *url_string;
 
   /* Minimal URL */
@@ -397,7 +397,7 @@ static char *
 test_parse_http_rel_url_ok (void)
 {
   int rc;
-  struct GNUNET_uri url;
+  struct GNUNET_Uri url;
   char *url_string;
 
   /* Minimal relative URL */
@@ -492,7 +492,7 @@ static char *
 test_parse_url_fail (void)
 {
   int rc;
-  struct GNUNET_uri url;
+  struct GNUNET_Uri url;
   char *url_string;
 
   /* Empty */
@@ -627,7 +627,7 @@ test_parse_query_ok (void)
 {
   int rc;
   char *q;
-  struct GNUNET_uri_param params[10];
+  struct GNUNET_UriParam params[10];
 
   /* One param query */
   q = strdup ("q=yes");

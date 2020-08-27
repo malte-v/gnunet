@@ -31,7 +31,7 @@
  * Note: to make sure that no strings are copied, the first slash "/" in the
  * path will be used to null terminate the hostname if no port is supplied.
  */
-struct GNUNET_uri {
+struct GNUNET_Uri {
   char *scheme; /* scheme, without ":" and "//" */
   char *username; /* username, default: NULL */
   char *password; /* password, default: NULL */
@@ -44,7 +44,7 @@ struct GNUNET_uri {
 
 
 /* A struct to hold the query string parameter values. */
-struct GNUNET_uri_param {
+struct GNUNET_UriParam {
   char *key;
   char *val;
 };
@@ -70,7 +70,7 @@ struct GNUNET_uri_param {
  * Returns 0 on success, otherwise -1.
  */
 int
-GNUNET_uri_parse (struct GNUNET_uri *url,
+GNUNET_uri_parse (struct GNUNET_Uri *url,
                   char *url_str);
 
 
@@ -115,7 +115,7 @@ GNUNET_uri_split_path (char *path,
 int
 GNUNET_uri_parse_query (char *query,
                         char delimiter,
-                        struct GNUNET_uri_param *params,
+                        struct GNUNET_UriParam *params,
                         int max_params);
 
 

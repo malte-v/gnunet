@@ -156,14 +156,14 @@ find_path (char *str)
  * Returns 0 on success, otherwise -1.
  */
 int
-GNUNET_uri_parse (struct GNUNET_uri *url,
+GNUNET_uri_parse (struct GNUNET_Uri *url,
                   char *u)
 {
   if (NULL == url || NULL == u) {
     return -1;
   }
 
-  memset(url, 0, sizeof (struct GNUNET_uri));
+  memset(url, 0, sizeof (struct GNUNET_Uri));
 
   /* (Fragment) */
   url->fragment = find_fragment (u);
@@ -311,7 +311,7 @@ GNUNET_uri_split_path (char *path,
 int
 GNUNET_uri_parse_query (char *query,
                         char delimiter,
-                        struct GNUNET_uri_param *params,
+                        struct GNUNET_UriParam *params,
                         int max_params)
 {
   int i = 0;
