@@ -1296,13 +1296,13 @@ rest_process_request (struct GNUNET_REST_RequestHandle *rest_handle,
   struct RequestHandle *handle = GNUNET_new (struct RequestHandle);
   struct GNUNET_REST_RequestHandlerError err;
   static const struct GNUNET_REST_RequestHandler handlers[] =
-  { { MHD_HTTP_METHOD_GET, GNUNET_REST_API_NS_IDENTITY, &ego_get_all },
-    { MHD_HTTP_METHOD_GET, GNUNET_REST_API_NS_IDENTITY_PUBKEY,
+  { { MHD_HTTP_METHOD_GET, GNUNET_REST_API_NS_IDENTITY_PUBKEY,
       &ego_get_pubkey },
     { MHD_HTTP_METHOD_GET, GNUNET_REST_API_NS_IDENTITY_NAME, &ego_get_name },
     { MHD_HTTP_METHOD_GET,
       GNUNET_REST_API_NS_IDENTITY_SUBSYSTEM,
       &ego_get_subsystem },
+    { MHD_HTTP_METHOD_GET, GNUNET_REST_API_NS_IDENTITY, &ego_get_all },
     { MHD_HTTP_METHOD_PUT,
       GNUNET_REST_API_NS_IDENTITY_PUBKEY,
       &ego_edit_pubkey },
