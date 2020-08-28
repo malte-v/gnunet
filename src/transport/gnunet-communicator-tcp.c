@@ -2944,6 +2944,10 @@ static void
 do_shutdown (void *cls)
 {
 
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "Shutdown %s!\n",
+              shutdown_running ? "running" : "not running");
+
   if (GNUNET_YES == shutdown_running)
     return;
   else
@@ -2958,6 +2962,7 @@ do_shutdown (void *cls)
   }
   GNUNET_CONTAINER_multipeermap_iterate (queue_map, &get_queue_delete_it, NULL);
   GNUNET_CONTAINER_multipeermap_destroy (queue_map);
+  GNUNET_TRANSPORT_communicator_address_remove_all (ch);
   if (NULL != ch)
   {
     GNUNET_TRANSPORT_communicator_disconnect (ch);
@@ -3038,8 +3043,9 @@ nat_address_cb (void *cls,
   char *my_addr;
   struct GNUNET_TRANSPORT_AddressIdentifier *ai;
 
-      GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                  "nat address cb %s\n",
+      GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                  "nat address cb %s %s\n",
+                  add_remove ? "add" : "remove",
                   GNUNET_a2s (addr, addrlen));
 
   if (GNUNET_YES == add_remove)
@@ -3162,7 +3168,7 @@ init_socket (struct sockaddr *addr,
     sto_len = in_len;
   }
 
-  addr = (struct sockaddr *) &in_sto;
+  //addr = (struct sockaddr *) &in_sto;
   in_len = sto_len;
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Bound to `%s'\n",

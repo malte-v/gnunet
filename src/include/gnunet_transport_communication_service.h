@@ -336,6 +336,14 @@ void
 GNUNET_TRANSPORT_communicator_address_remove (
   struct GNUNET_TRANSPORT_AddressIdentifier *ai);
 
+/**
+ * Notify transport service that this communicator no longer provides all its addresses for this peer.
+ *
+ * @param ch The communicator handle.
+ */
+void
+GNUNET_TRANSPORT_communicator_address_remove_all (
+                                                  struct GNUNET_TRANSPORT_CommunicatorHandle *ch);
 
 /**
  * The communicator asks the transport service to route a message via
