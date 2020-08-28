@@ -106,8 +106,7 @@ check ()
    * is expected to be set to zero
    */GNUNET_log_skip (1, GNUNET_YES);
   GNUNET_PEER_resolve (0, &res);
-  GNUNET_assert (0 ==
-                 GNUNET_is_zero (&res));
+  GNUNET_assert (GNUNET_YES == GNUNET_is_zero (&res));
 
   /* Removing peer entries 1 and 3 from table using the list decrement function */
   /* If count = 0, nothing should be done whatsoever */

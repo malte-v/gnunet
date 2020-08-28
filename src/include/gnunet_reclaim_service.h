@@ -92,7 +92,21 @@ struct GNUNET_RECLAIM_Ticket
  * @param ticket the ticket
  */
 typedef void (*GNUNET_RECLAIM_TicketCallback) (
-  void *cls, const struct GNUNET_RECLAIM_Ticket *ticket);
+  void *cls,
+  const struct GNUNET_RECLAIM_Ticket *ticket);
+
+/**
+ * Method called when a token has been issued.
+ * On success returns a ticket that can be given to a relying party
+ * in order for it retrive identity attributes
+ *
+ * @param cls closure
+ * @param ticket the ticket
+ */
+typedef void (*GNUNET_RECLAIM_IssueTicketCallback) (
+  void *cls,
+  const struct GNUNET_RECLAIM_Ticket *ticket,
+  const struct GNUNET_RECLAIM_PresentationList *presentations);
 
 
 /**
@@ -113,7 +127,6 @@ typedef void (*GNUNET_RECLAIM_ContinuationWithStatus) (void *cls,
  * @param cls The callback closure
  * @param identity The identity authoritative over the attributes
  * @param attr The attribute
- * @param attestation The attestation for the attribute (may be NULL)
  */
 typedef void (*GNUNET_RECLAIM_AttributeResult) (
   void *cls, const struct GNUNET_CRYPTO_EcdsaPublicKey *identity,
@@ -125,25 +138,25 @@ typedef void (*GNUNET_RECLAIM_AttributeResult) (
  * @param cls The callback closure
  * @param identity The identity authoritative over the attributes
  * @param attr The attribute
- * @param attestation The attestation for the attribute (may be NULL)
+ * @param presentation The presentation for the credential (may be NULL)
  */
 typedef void (*GNUNET_RECLAIM_AttributeTicketResult) (
   void *cls, const struct GNUNET_CRYPTO_EcdsaPublicKey *identity,
   const struct GNUNET_RECLAIM_Attribute *attr,
-  const struct GNUNET_RECLAIM_Attestation *attestation);
+  const struct GNUNET_RECLAIM_Presentation *presentation);
 
 
 /**
- * Callback used to notify the client of attestation results.
+ * Callback used to notify the client of credential results.
  *
  * @param cls The callback closure
  * @param identity The identity authoritative over the attributes
- * @param attestation The attestation
+ * @param credential The credential
  * @param attributes the parsed attributes
  */
-typedef void (*GNUNET_RECLAIM_AttestationResult) (
+typedef void (*GNUNET_RECLAIM_CredentialResult) (
   void *cls, const struct GNUNET_CRYPTO_EcdsaPublicKey *identity,
-  const struct GNUNET_RECLAIM_Attestation *attestation);
+  const struct GNUNET_RECLAIM_Credential *credential);
 
 
 /**
@@ -178,22 +191,22 @@ GNUNET_RECLAIM_attribute_store (
 
 
 /**
-   * Store an attestation.  If the attestation is already present,
-   * it is replaced with the new attestation.
+   * Store a credential.  If the credential is already present,
+   * it is replaced with the new credential.
    *
    * @param h handle to the re:claimID service
    * @param pkey private key of the identity
-   * @param attr the attestation value
-   * @param exp_interval the relative expiration interval for the attestation
+   * @param attr the credential value
+   * @param exp_interval the relative expiration interval for the credential
    * @param cont continuation to call when done
    * @param cont_cls closure for @a cont
    * @return handle to abort the request
    */
 struct GNUNET_RECLAIM_Operation *
-GNUNET_RECLAIM_attestation_store (
+GNUNET_RECLAIM_credential_store (
   struct GNUNET_RECLAIM_Handle *h,
   const struct GNUNET_CRYPTO_EcdsaPrivateKey *pkey,
-  const struct GNUNET_RECLAIM_Attestation *attestation,
+  const struct GNUNET_RECLAIM_Credential *credential,
   const struct GNUNET_TIME_Relative *exp_interval,
   GNUNET_RECLAIM_ContinuationWithStatus cont,
   void *cont_cls);
@@ -218,21 +231,21 @@ GNUNET_RECLAIM_attribute_delete (
   GNUNET_RECLAIM_ContinuationWithStatus cont, void *cont_cls);
 
 /**
- * Delete an attestation. Tickets used to share this attestation are updated
- * accordingly.
+ * Delete a credential. Tickets used to share use a presentation of this
+ * credential are updated accordingly.
  *
  * @param h handle to the re:claimID service
  * @param pkey Private key of the identity to add an attribute to
- * @param attr The attestation
+ * @param cred The credential
  * @param cont Continuation to call when done
  * @param cont_cls Closure for @a cont
  * @return handle Used to to abort the request
  */
 struct GNUNET_RECLAIM_Operation *
-GNUNET_RECLAIM_attestation_delete (
+GNUNET_RECLAIM_credential_delete (
   struct GNUNET_RECLAIM_Handle *h,
   const struct GNUNET_CRYPTO_EcdsaPrivateKey *pkey,
-  const struct GNUNET_RECLAIM_Attestation *attr,
+  const struct GNUNET_RECLAIM_Credential *cred,
   GNUNET_RECLAIM_ContinuationWithStatus cont,
   void *cont_cls);
 
@@ -293,12 +306,12 @@ GNUNET_RECLAIM_get_attributes_stop (
 
 
 /**
- * List all attestations for a local identity.
+ * List all credentials for a local identity.
  * This MUST lock the `struct GNUNET_RECLAIM_Handle`
- * for any other calls than #GNUNET_RECLAIM_get_attestations_next() and
- * #GNUNET_RECLAIM_get_attestations_stop. @a proc will be called once
+ * for any other calls than #GNUNET_RECLAIM_get_credentials_next() and
+ * #GNUNET_RECLAIM_get_credentials_stop. @a proc will be called once
  * immediately, and then again after
- * #GNUNET_RECLAIM_get_attestations_next() is invoked.
+ * #GNUNET_RECLAIM_get_credentials_next() is invoked.
  *
  * On error (disconnect), @a error_cb will be invoked.
  * On normal completion, @a finish_cb proc will be
@@ -309,34 +322,34 @@ GNUNET_RECLAIM_get_attributes_stop (
  * @param error_cb Function to call on error (i.e. disconnect),
  *        the handle is afterwards invalid
  * @param error_cb_cls Closure for @a error_cb
- * @param proc Function to call on each attestation
+ * @param proc Function to call on each credential
  * @param proc_cls Closure for @a proc
  * @param finish_cb Function to call on completion
  *        the handle is afterwards invalid
  * @param finish_cb_cls Closure for @a finish_cb
  * @return an iterator Handle to use for iteration
  */
-struct GNUNET_RECLAIM_AttestationIterator *
-GNUNET_RECLAIM_get_attestations_start (
+struct GNUNET_RECLAIM_CredentialIterator *
+GNUNET_RECLAIM_get_credentials_start (
   struct GNUNET_RECLAIM_Handle *h,
   const struct GNUNET_CRYPTO_EcdsaPrivateKey *identity,
   GNUNET_SCHEDULER_TaskCallback error_cb,
   void *error_cb_cls,
-  GNUNET_RECLAIM_AttestationResult proc,
+  GNUNET_RECLAIM_CredentialResult proc,
   void *proc_cls,
   GNUNET_SCHEDULER_TaskCallback finish_cb,
   void *finish_cb_cls);
 
 
 /**
- * Calls the record processor specified in #GNUNET_RECLAIM_get_attestation_start
+ * Calls the record processor specified in #GNUNET_RECLAIM_get_credentials_start
  * for the next record.
  *
  * @param it the iterator
  */
 void
-GNUNET_RECLAIM_get_attestations_next (struct
-                                      GNUNET_RECLAIM_AttestationIterator *ait);
+GNUNET_RECLAIM_get_credentials_next (
+                              struct GNUNET_RECLAIM_CredentialIterator *ait);
 
 
 /**
@@ -347,8 +360,8 @@ GNUNET_RECLAIM_get_attestations_next (struct
  * @param it the iterator
  */
 void
-GNUNET_RECLAIM_get_attestations_stop (struct
-                                      GNUNET_RECLAIM_AttestationIterator *ait);
+GNUNET_RECLAIM_get_credentials_stop (
+                              struct GNUNET_RECLAIM_CredentialIterator *ait);
 
 
 /**
@@ -370,7 +383,7 @@ GNUNET_RECLAIM_ticket_issue (
   const struct GNUNET_CRYPTO_EcdsaPrivateKey *iss,
   const struct GNUNET_CRYPTO_EcdsaPublicKey *rp,
   const struct GNUNET_RECLAIM_AttributeList *attrs,
-  GNUNET_RECLAIM_TicketCallback cb, void *cb_cls);
+  GNUNET_RECLAIM_IssueTicketCallback cb, void *cb_cls);
 
 
 /**

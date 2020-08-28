@@ -1173,9 +1173,9 @@ GNUNET_memcmp_ct_ (const void *b1,
  * @param a pointer to @a n bytes which should be tested for the
  *          entire memory being zero'ed out.
  * @param n number of bytes in @a to be tested
- * @return 0 if a is zero, non-zero otherwise
+ * @return GNUNET_YES if a is zero, GNUNET_NO otherwise
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_is_zero_ (const void *a,
                  size_t n);
 
@@ -1185,7 +1185,7 @@ GNUNET_is_zero_ (const void *a,
  *
  * @param a pointer to a struct which should be tested for the
  *          entire memory being zero'ed out.
- * @return 0 if a is zero, non-zero otherwise
+ * @return GNUNET_YES if a is zero, GNUNET_NO otherwise
  */
 #define GNUNET_is_zero(a)           \
   GNUNET_is_zero_ (a, sizeof (*a))

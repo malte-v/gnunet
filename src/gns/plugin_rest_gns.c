@@ -81,6 +81,16 @@ struct Plugin
 struct RequestHandle
 {
   /**
+   * DLL
+   */
+  struct RequestHandle *next;
+
+  /**
+   * DLL
+   */
+  struct RequestHandle *prev;
+
+  /**
    * Active GNS lookup
    */
   struct GNUNET_GNS_LookupWithTldRequest *gns_lookup;
@@ -136,6 +146,15 @@ struct RequestHandle
   int response_code;
 };
 
+/**
+ * DLL
+ */
+static struct RequestHandle *requests_head;
+
+/**
+ * DLL
+ */
+static struct RequestHandle *requests_tail;
 
 /**
  * Cleanup lookup handle
@@ -165,6 +184,9 @@ cleanup_handle (void *cls)
   if (NULL != handle->emsg)
     GNUNET_free (handle->emsg);
 
+  GNUNET_CONTAINER_DLL_remove (requests_head,
+                               requests_tail,
+                               handle);
   GNUNET_free (handle);
 }
 
@@ -198,7 +220,7 @@ do_error (void *cls)
   handle->proc (handle->proc_cls, resp, handle->response_code);
   json_decref (json_error);
   GNUNET_free (response);
-  GNUNET_SCHEDULER_add_now (&cleanup_handle, handle);
+  cleanup_handle(handle);
 }
 
 
@@ -374,8 +396,12 @@ rest_process_request (struct GNUNET_REST_RequestHandle *rest_handle,
   handle->proc_cls = proc_cls;
   handle->proc = proc;
   handle->rest_handle = rest_handle;
-
   handle->url = GNUNET_strdup (rest_handle->url);
+  handle->timeout_task =
+    GNUNET_SCHEDULER_add_delayed (handle->timeout, &do_timeout, handle);
+  GNUNET_CONTAINER_DLL_insert (requests_head,
+                               requests_tail,
+                               handle);
   if (handle->url[strlen (handle->url) - 1] == '/')
     handle->url[strlen (handle->url) - 1] = '\0';
   if (GNUNET_NO ==
@@ -386,8 +412,6 @@ rest_process_request (struct GNUNET_REST_RequestHandle *rest_handle,
   }
 
 
-  handle->timeout_task =
-    GNUNET_SCHEDULER_add_delayed (handle->timeout, &do_timeout, handle);
   return GNUNET_YES;
 }
 
@@ -405,8 +429,6 @@ libgnunet_plugin_rest_gns_init (void *cls)
   struct GNUNET_REST_Plugin *api;
 
   cfg = cls;
-  if (NULL != plugin.cfg)
-    return NULL; /* can only initialize once! */
   memset (&plugin, 0, sizeof(struct Plugin));
   plugin.cfg = cfg;
   api = GNUNET_new (struct GNUNET_REST_Plugin);
@@ -437,12 +459,18 @@ void *
 libgnunet_plugin_rest_gns_done (void *cls)
 {
   struct GNUNET_REST_Plugin *api = cls;
-  struct Plugin *plugin = api->cls;
+  struct RequestHandle *request;
+  struct Plugin *plugin;
 
-  plugin->cfg = NULL;
+  while (NULL != (request = requests_head))
+    do_error (request);
+
   if (NULL != gns)
     GNUNET_GNS_disconnect (gns);
 
+  plugin = api->cls;
+
+  plugin->cfg = NULL;
 
   GNUNET_free (allow_methods);
   GNUNET_free (api);

@@ -245,7 +245,7 @@ struct GNUNET_MY_ResultSpec
   /**
    * Memory for MySQL to notify us about NULL values.
    */
-  my_bool is_null;
+  MYSQL_BOOL is_null;
 };
 
 

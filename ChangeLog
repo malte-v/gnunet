@@ -1,3 +1,66 @@
+Wed, 12 Aug 2020 09:36:33 +0200 (99f820453)
+fix: GNUNET_is_zero(ptr) should return enum GNUNET_GenericReturnValue. Fixes #6475. - Martin Schanzenbach
+
+Tue, 11 Aug 2020 11:35:06 +0200 (286759692)
+fix: mysql version detection - Martin Schanzenbach
+
+Thu, 6 Aug 2020 08:45:40 +0200 (1d4f5263a)
+reclaim: Refactoring and more standards compliance with respect to scopes - Martin Schanzenbach
+
+Wed, 5 Aug 2020 11:35:05 +0200 (6e764f4ab)
+reclaim: Make SPAs work with public clients. No longer encrypt code. - Martin Schanzenbach
+
+Tue, 4 Aug 2020 21:08:22 +0200 (ade9b5e52)
+reclaim: fix #6463 - Martin Schanzenbach
+
+Tue, 4 Aug 2020 19:40:23 +0200 (815ded19f)
+rest: fix #6462 - Martin Schanzenbach
+
+Tue, 4 Aug 2020 10:09:45 +0200 (080519e98)
+reclaim: do not store access token instead piggyback ticket - Martin Schanzenbach
+
+Mon, 3 Aug 2020 19:37:23 +0200 (8c86c4472)
+reclaim: support client credentials in POST body for token request - Martin Schanzenbach
+
+Sat, 1 Aug 2020 16:22:38 +0200 (e44686f08)
+fix: reclaim urlenc / revert accidental change - Martin Schanzenbach
+
+Sat, 1 Aug 2020 16:07:08 +0200 (754d8c1b4)
+util: add percent/url encoding - Martin Schanzenbach
+
+Thu, 30 Jul 2020 16:12:22 +0530 (8d312646c)
+fix SIGSEGV in GNUNET_buffer_write_data_encoded - Florian Dold
+
+Thu, 30 Jul 2020 15:15:59 +0530 (d335baac8)
+implement GNUNET_buffer_write_data_encoded - Florian Dold
+
+Wed, 22 Jul 2020 21:47:42 +0200 (8703a0516)
+ensure psql fails hard if there is an error in the SQL (fixes #6437) - Christian Grothoff
+
+Sat, 18 Jul 2020 00:44:39 +0200 (7f4ddbcab)
+merge flags into enum for GNUNET_DISK_pipe() API, fixing #6188 - Christian Grothoff
+
+Fri, 17 Jul 2020 22:35:36 +0200 (28ab2c446)
+avoid boolean flag in GNUNET_OS_start_process() API (fixes #6188) - Christian Grothoff
+
+Fri, 17 Jul 2020 14:26:45 +0200 (0c9911d73)
+TNG: Implemented 5530: add replay protection to TCP communicator. Added monotime value checks - t3sserakt
+
+Thu, 16 Jul 2020 20:36:12 +0200 (bbe0a0501)
+avoid boolean argument in GNUNET_CURL_job_add(), see #6188 - Christian Grothoff
+
+Thu, 16 Jul 2020 17:40:14 +0200 (ee1fbffa1)
+support context-wide client authentication - Christian Grothoff
+
+Thu, 16 Jul 2020 17:24:30 +0200 (23820348b)
+docs: fixed example for pinning a friends public key - rexxnor
+
+Wed, 15 Jul 2020 17:21:39 +0200 (9bb2c1e31)
+Load GNSRECORD plugins within GNUnet's context - Christian Grothoff
+
+Fri, 3 Jul 2020 22:37:42 +0200 (0f2ac01f3)
+Add function to return GNUnet's default configuration - Christian Grothoff
+
 Thu, 9 Jul 2020 09:09:50 +0200 (5a0df5e18)
 fix: raise ATS quotas to 10 MiB #6426 - Martin Schanzenbach
 

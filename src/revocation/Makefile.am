@@ -78,7 +78,7 @@ gnunet_service_revocation_SOURCES = \
 gnunet_service_revocation_LDADD = \
   libgnunetrevocation.la \
   $(top_builddir)/src/core/libgnunetcore.la \
-  $(top_builddir)/src/set/libgnunetset.la \
+  $(top_builddir)/src/setu/libgnunetsetu.la \
   $(top_builddir)/src/statistics/libgnunetstatistics.la \
   $(top_builddir)/src/util/libgnunetutil.la \
   -lm \

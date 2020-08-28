@@ -46,6 +46,16 @@ const struct GNUNET_CONFIGURATION_Handle *cfg;
 struct RequestHandle
 {
   /**
+   * DLL
+   */
+  struct RequestHandle *next;
+
+  /**
+   * DLL
+   */
+  struct RequestHandle *prev;
+
+  /**
    * Handle to rest request
    */
   struct GNUNET_REST_RequestHandle *rest_handle;
@@ -66,6 +76,15 @@ struct RequestHandle
   int response_code;
 };
 
+/**
+ * DLL
+ */
+static struct RequestHandle *requests_head;
+
+/**
+ * DLL
+ */
+static struct RequestHandle *requests_tail;
 
 /**
  * Cleanup request handle.
@@ -77,6 +96,9 @@ cleanup_handle (struct RequestHandle *handle)
 {
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Cleaning up\n");
+  GNUNET_CONTAINER_DLL_remove (requests_head,
+                               requests_tail,
+                               handle);
   GNUNET_free (handle);
 }
 
@@ -153,7 +175,9 @@ rest_copying_process_request (struct GNUNET_REST_RequestHandle *conndata_handle,
   handle->proc_cls = proc_cls;
   handle->proc = proc;
   handle->rest_handle = conndata_handle;
-
+  GNUNET_CONTAINER_DLL_insert (requests_head,
+                               requests_tail,
+                               handle);
   return GNUNET_REST_handle_request (conndata_handle,
                                      handlers,
                                      &err,
@@ -201,6 +225,8 @@ libgnunet_plugin_rest_copying_done (void *cls)
   struct GNUNET_REST_Plugin *api = cls;
   struct Plugin *plugin = api->cls;
 
+  while (NULL != requests_head)
+    cleanup_handle (requests_head);
   plugin->cfg = NULL;
   GNUNET_free (api);
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,

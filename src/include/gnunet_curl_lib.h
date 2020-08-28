@@ -275,9 +275,8 @@ GNUNET_CURL_set_userpass (struct GNUNET_CURL_Context *ctx,
 
 
 /**
- * Force use of the provided TLS client certificate
- * for client authentication for all operations performed
- * with @a ctx.
+ * Force use of the provided TLS client certificate for client authentication
+ * for all operations performed with @a ctx.
  *
  * Note that if the provided information is incorrect,
  * the earliest operation that could fail is
@@ -298,9 +297,9 @@ GNUNET_CURL_set_tlscert (struct GNUNET_CURL_Context *ctx,
 
 
 /**
- * Schedule a CURL request to be executed and call the given @a jcc
- * upon its completion.  Note that the context will make use of the
- * CURLOPT_PRIVATE facility of the CURL @a eh.
+ * Schedule a CURL request to be executed and call the given @a jcc upon its
+ * completion.  Note that the context will make use of the CURLOPT_PRIVATE
+ * facility of the CURL @a eh.
  *
  * This function modifies the CURL handle to add the
  * "Content-Type: application/json" header if @a add_json is set.
@@ -342,6 +341,17 @@ GNUNET_CURL_job_add_raw (struct GNUNET_CURL_Context *ctx,
                          const struct curl_slist *job_headers,
                          GNUNET_CURL_RawJobCompletionCallback jcc,
                          void *jcc_cls);
+
+
+/**
+ * Add @a extra_headers to the HTTP headers for @a job.
+ *
+ * @param[in,out] job the job to modify
+ * @param extra_headers headers to append
+ */
+void
+GNUNET_CURL_extend_headers (struct GNUNET_CURL_Job *job,
+                            const struct curl_slist *extra_headers);
 
 
 /**

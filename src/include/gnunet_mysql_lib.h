@@ -41,6 +41,12 @@ extern "C"
 #endif
 #endif
 
+#ifdef HAVE_MYSQL8
+  typedef bool MYSQL_BOOL;
+#else
+  typedef my_bool MYSQL_BOOL; //MySQL < 8 wants this
+#endif
+
 
 /**
  * Mysql context.

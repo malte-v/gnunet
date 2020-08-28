@@ -538,9 +538,9 @@ GNUNET_copy_message (const struct GNUNET_MessageHeader *msg)
  * @param a pointer to @a n bytes which should be tested for the
  *          entire memory being zero'ed out.
  * @param n number of bytes in @a to be tested
- * @return 0 if a is zero, non-zero otherwise
+ * @return GNUNET_YES if a is zero, GNUNET_NO otherwise
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_is_zero_ (const void *a,
                  size_t n)
 {
@@ -548,8 +548,8 @@ GNUNET_is_zero_ (const void *a,
 
   for (size_t i = 0; i < n; i++)
     if (b[i])
-      return 1;
-  return 0;
+      return GNUNET_NO;
+  return GNUNET_YES;
 }
 
 

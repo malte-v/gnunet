@@ -19,34 +19,34 @@
  */
 /**
  * @author Martin Schanzenbach
- * @file reclaim-attribute/reclaim_attestation.h
- * @brief GNUnet reclaim identity attribute attestations
+ * @file reclaim/reclaim_credential.h
+ * @brief GNUnet reclaim identity attribute credentials
  *
  */
-#ifndef RECLAIM_ATTESTATION_H
-#define RECLAIM_ATTESTATION_H
+#ifndef RECLAIM_CREDENTIAL_H
+#define RECLAIM_CREDENTIAL_H
 
 #include "gnunet_reclaim_service.h"
 
 /**
- * Serialized attestation claim
+ * Serialized credential claim
  */
-struct Attestation
+struct Credential
 {
   /**
-   * Attestation type
+   * Credential type
    */
-  uint32_t attestation_type;
+  uint32_t credential_type;
 
   /**
-   * Attestation flag
+   * Credential flag
    */
-  uint32_t attestation_flag;
+  uint32_t credential_flag;
 
   /**
-   * Attestation ID
+   * Credential ID
    */
-  struct GNUNET_RECLAIM_Identifier attestation_id;
+  struct GNUNET_RECLAIM_Identifier credential_id;
 
   /**
    * Name length
@@ -58,7 +58,42 @@ struct Attestation
    */
   uint32_t data_size;
 
-  // followed by data_size Attestation value data
+  // followed by data_size Credential value data
 };
+
+
+/**
+ * Serialized presentation claim
+ */
+struct Presentation
+{
+  /**
+   * Presentation type
+   */
+  uint32_t presentation_type;
+
+  /**
+   * Presentation flag
+   */
+  uint32_t presentation_flag;
+
+  /**
+   * Credential ID
+   */
+  struct GNUNET_RECLAIM_Identifier credential_id;
+
+  /**
+   * Name length
+   */
+  uint32_t name_len;
+
+  /**
+   * Data size
+   */
+  uint32_t data_size;
+
+  // followed by data_size Presentation value data
+};
+
 
 #endif

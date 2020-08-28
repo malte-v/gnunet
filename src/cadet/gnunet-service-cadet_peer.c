@@ -245,7 +245,7 @@ GCP_2s (const struct CadetPeer *cp)
   char *ret;
 
   if ((NULL == cp) ||
-      (0 == GNUNET_is_zero (&cp->pid.public_key)))
+      (GNUNET_YES == GNUNET_is_zero (&cp->pid.public_key)))
     return "NULL";
 
   ret = GNUNET_CRYPTO_eddsa_public_key_to_string (&cp->pid.public_key);

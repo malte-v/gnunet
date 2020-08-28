@@ -393,6 +393,15 @@ struct EgoEntry
 
 struct RequestHandle
 {
+  /**
+   * DLL
+   */
+  struct RequestHandle *next;
+
+  /**
+   * DLL
+   */
+  struct RequestHandle *prev;
 
   /**
    * Selected ego
@@ -430,10 +439,14 @@ struct RequestHandle
   struct GNUNET_RECLAIM_AttributeList *attr_userinfo_list;
 
   /**
-   * Attestation list
+   * Credentials
    */
-  struct GNUNET_RECLAIM_AttestationList *attests_list;
+  struct GNUNET_RECLAIM_CredentialList *credentials;
 
+  /**
+   * Presentations
+   */
+  struct GNUNET_RECLAIM_PresentationList *presentations;
 
   /**
    * IDENTITY Operation
@@ -452,9 +465,9 @@ struct RequestHandle
   struct GNUNET_RECLAIM_AttributeIterator *attr_it;
 
   /**
-   * Attestation iterator
+   * Credential iterator
    */
-  struct GNUNET_RECLAIM_AttestationIterator *attest_it;
+  struct GNUNET_RECLAIM_CredentialIterator *cred_it;
 
 
   /**
@@ -528,6 +541,16 @@ struct RequestHandle
   int public_client;
 };
 
+/**
+ * DLL
+ */
+static struct RequestHandle *requests_head;
+
+/**
+ * DLL
+ */
+static struct RequestHandle *requests_tail;
+
 
 /**
  * Cleanup lookup handle
@@ -542,8 +565,8 @@ cleanup_handle (struct RequestHandle *handle)
     GNUNET_SCHEDULER_cancel (handle->timeout_task);
   if (NULL != handle->attr_it)
     GNUNET_RECLAIM_get_attributes_stop (handle->attr_it);
-  if (NULL != handle->attest_it)
-    GNUNET_RECLAIM_get_attestations_stop (handle->attest_it);
+  if (NULL != handle->cred_it)
+    GNUNET_RECLAIM_get_credentials_stop (handle->cred_it);
   if (NULL != handle->ticket_it)
     GNUNET_RECLAIM_ticket_iteration_stop (handle->ticket_it);
   if (NULL != handle->idp_op)
@@ -571,17 +594,14 @@ cleanup_handle (struct RequestHandle *handle)
     GNUNET_RECLAIM_attribute_list_destroy (handle->attr_idtoken_list);
   if (NULL!=handle->attr_userinfo_list)
     GNUNET_RECLAIM_attribute_list_destroy (handle->attr_userinfo_list);
-  if (NULL!=handle->attests_list)
-    GNUNET_RECLAIM_attestation_list_destroy (handle->attests_list);
-
+  if (NULL!=handle->credentials)
+    GNUNET_RECLAIM_credential_list_destroy (handle->credentials);
+  if (NULL!=handle->presentations)
+    GNUNET_RECLAIM_presentation_list_destroy (handle->presentations);
+  GNUNET_CONTAINER_DLL_remove (requests_head,
+                               requests_tail,
+                               handle);
   GNUNET_free (handle);
-}
-
-
-static void
-cleanup_handle_delayed (void *cls)
-{
-  cleanup_handle (cls);
 }
 
 
@@ -613,7 +633,7 @@ do_error (void *cls)
                            MHD_HTTP_HEADER_CONTENT_TYPE,
                            "application/json");
   handle->proc (handle->proc_cls, resp, handle->response_code);
-  GNUNET_SCHEDULER_add_now (&cleanup_handle_delayed, handle);
+  cleanup_handle (handle);
   GNUNET_free (json_error);
 }
 
@@ -640,7 +660,7 @@ do_userinfo_error (void *cls)
   resp = GNUNET_REST_create_response ("");
   MHD_add_response_header (resp, MHD_HTTP_HEADER_WWW_AUTHENTICATE, "Bearer");
   handle->proc (handle->proc_cls, resp, handle->response_code);
-  GNUNET_SCHEDULER_add_now (&cleanup_handle_delayed, handle);
+  cleanup_handle (handle);
   GNUNET_free (error);
 }
 
@@ -667,7 +687,7 @@ do_redirect_error (void *cls)
   resp = GNUNET_REST_create_response ("");
   MHD_add_response_header (resp, "Location", redirect);
   handle->proc (handle->proc_cls, resp, MHD_HTTP_FOUND);
-  GNUNET_SCHEDULER_add_now (&cleanup_handle_delayed, handle);
+  cleanup_handle (handle);
   GNUNET_free (redirect);
 }
 
@@ -897,7 +917,7 @@ login_redirect (void *cls)
   }
   handle->proc (handle->proc_cls, resp, MHD_HTTP_FOUND);
   GNUNET_free (new_redirect);
-  GNUNET_SCHEDULER_add_now (&cleanup_handle_delayed, handle);
+  cleanup_handle (handle);
 }
 
 
@@ -920,7 +940,9 @@ oidc_iteration_error (void *cls)
  * parameter. Otherwise redirects with error
  */
 static void
-oidc_ticket_issue_cb (void *cls, const struct GNUNET_RECLAIM_Ticket *ticket)
+oidc_ticket_issue_cb (void *cls,
+                      const struct GNUNET_RECLAIM_Ticket *ticket,
+                      const struct GNUNET_RECLAIM_PresentationList *pres)
 {
   struct RequestHandle *handle = cls;
   struct MHD_Response *resp;
@@ -943,7 +965,7 @@ oidc_ticket_issue_cb (void *cls, const struct GNUNET_RECLAIM_Ticket *ticket)
   code_string = OIDC_build_authz_code (&handle->priv_key,
                                        &handle->ticket,
                                        handle->attr_idtoken_list,
-                                       handle->attests_list,
+                                       pres,
                                        handle->oidc->nonce,
                                        handle->oidc->code_challenge);
   if ((NULL != handle->redirect_prefix) && (NULL != handle->redirect_suffix) &&
@@ -974,7 +996,7 @@ oidc_ticket_issue_cb (void *cls, const struct GNUNET_RECLAIM_Ticket *ticket)
   resp = GNUNET_REST_create_response ("");
   MHD_add_response_header (resp, "Location", redirect_uri);
   handle->proc (handle->proc_cls, resp, MHD_HTTP_FOUND);
-  GNUNET_SCHEDULER_add_now (&cleanup_handle_delayed, handle);
+  cleanup_handle (handle);
   GNUNET_free (redirect_uri);
   GNUNET_free (ticket_str);
   GNUNET_free (code_string);
@@ -996,13 +1018,13 @@ attribute_list_merge (struct GNUNET_RECLAIM_AttributeList *list_a,
     le_m = GNUNET_new (struct GNUNET_RECLAIM_AttributeListEntry);
     le_m->attribute = GNUNET_RECLAIM_attribute_new (le_a->attribute->name,
                                                     &le_a->attribute->
-                                                    attestation,
+                                                    credential,
                                                     le_a->attribute->type,
                                                     le_a->attribute->data,
                                                     le_a->attribute->data_size);
     le_m->attribute->id = le_a->attribute->id;
     le_m->attribute->flag = le_a->attribute->flag;
-    le_m->attribute->attestation = le_a->attribute->attestation;
+    le_m->attribute->credential = le_a->attribute->credential;
     GNUNET_CONTAINER_DLL_insert (merged_list->list_head,
                                  merged_list->list_tail,
                                  le_m);
@@ -1021,13 +1043,13 @@ attribute_list_merge (struct GNUNET_RECLAIM_AttributeList *list_a,
     le_m = GNUNET_new (struct GNUNET_RECLAIM_AttributeListEntry);
     le_m->attribute = GNUNET_RECLAIM_attribute_new (le_b->attribute->name,
                                                     &le_b->attribute->
-                                                    attestation,
+                                                    credential,
                                                     le_b->attribute->type,
                                                     le_b->attribute->data,
                                                     le_b->attribute->data_size);
     le_m->attribute->id = le_b->attribute->id;
     le_m->attribute->flag = le_b->attribute->flag;
-    le_m->attribute->attestation = le_b->attribute->attestation;
+    le_m->attribute->credential = le_b->attribute->credential;
     GNUNET_CONTAINER_DLL_insert (merged_list->list_head,
                                  merged_list->list_tail,
                                  le_m);
@@ -1037,14 +1059,19 @@ attribute_list_merge (struct GNUNET_RECLAIM_AttributeList *list_a,
 
 
 static void
-oidc_attest_collect_finished_cb (void *cls)
+oidc_cred_collect_finished_cb (void *cls)
 {
   struct RequestHandle *handle = cls;
   struct GNUNET_RECLAIM_AttributeList *merged_list;
+  struct GNUNET_RECLAIM_AttributeListEntry *le_m;
 
-  handle->attest_it = NULL;
+  handle->cred_it = NULL;
   merged_list = attribute_list_merge (handle->attr_idtoken_list,
                                       handle->attr_userinfo_list);
+  for (le_m = merged_list->list_head; NULL != le_m; le_m = le_m->next)
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "List Attibute in ticket to issue: %s\n",
+                le_m->attribute->name);
   handle->idp_op = GNUNET_RECLAIM_ticket_issue (idp,
                                                 &handle->priv_key,
                                                 &handle->oidc->client_pkey,
@@ -1059,40 +1086,40 @@ oidc_attest_collect_finished_cb (void *cls)
  * Collects all attributes for an ego if in scope parameter
  */
 static void
-oidc_attest_collect (void *cls,
-                     const struct GNUNET_CRYPTO_EcdsaPublicKey *identity,
-                     const struct GNUNET_RECLAIM_Attestation *attest)
+oidc_cred_collect (void *cls,
+                   const struct GNUNET_CRYPTO_EcdsaPublicKey *identity,
+                   const struct GNUNET_RECLAIM_Credential *cred)
 {
   struct RequestHandle *handle = cls;
   struct GNUNET_RECLAIM_AttributeListEntry *le;
-  struct GNUNET_RECLAIM_AttestationListEntry *ale;
+  struct GNUNET_RECLAIM_CredentialListEntry *ale;
 
-  for (ale = handle->attests_list->list_head; NULL != ale; ale = ale->next)
+  for (ale = handle->credentials->list_head; NULL != ale; ale = ale->next)
   {
-    if (GNUNET_NO == GNUNET_RECLAIM_id_is_equal (&ale->attestation->id,
-                                                 &attest->id))
+    if (GNUNET_NO == GNUNET_RECLAIM_id_is_equal (&ale->credential->id,
+                                                 &cred->id))
       continue;
-    /** Attestation already in list **/
-    GNUNET_RECLAIM_get_attestations_next (handle->attest_it);
+    /** Credential already in list **/
+    GNUNET_RECLAIM_get_credentials_next (handle->cred_it);
     return;
   }
 
   for (le = handle->attr_idtoken_list->list_head; NULL != le; le = le->next)
   {
-    if (GNUNET_NO == GNUNET_RECLAIM_id_is_equal (&le->attribute->attestation,
-                                                 &attest->id))
+    if (GNUNET_NO == GNUNET_RECLAIM_id_is_equal (&le->attribute->credential,
+                                                 &cred->id))
       continue;
-    /** Attestation matches for attribute, add **/
-    ale = GNUNET_new (struct GNUNET_RECLAIM_AttestationListEntry);
-    ale->attestation = GNUNET_RECLAIM_attestation_new (attest->name,
-                                                       attest->type,
-                                                       attest->data,
-                                                       attest->data_size);
-    GNUNET_CONTAINER_DLL_insert (handle->attests_list->list_head,
-                                 handle->attests_list->list_tail,
+    /** Credential matches for attribute, add **/
+    ale = GNUNET_new (struct GNUNET_RECLAIM_CredentialListEntry);
+    ale->credential = GNUNET_RECLAIM_credential_new (cred->name,
+                                                     cred->type,
+                                                     cred->data,
+                                                     cred->data_size);
+    GNUNET_CONTAINER_DLL_insert (handle->credentials->list_head,
+                                 handle->credentials->list_tail,
                                  ale);
   }
-  GNUNET_RECLAIM_get_attestations_next (handle->attest_it);
+  GNUNET_RECLAIM_get_credentials_next (handle->cred_it);
 }
 
 
@@ -1110,16 +1137,16 @@ oidc_attr_collect_finished_cb (void *cls)
     GNUNET_SCHEDULER_add_now (&do_redirect_error, handle);
     return;
   }
-  handle->attests_list = GNUNET_new (struct GNUNET_RECLAIM_AttestationList);
-  handle->attest_it =
-    GNUNET_RECLAIM_get_attestations_start (idp,
-                                           &handle->priv_key,
-                                           &oidc_iteration_error,
-                                           handle,
-                                           &oidc_attest_collect,
-                                           handle,
-                                           &oidc_attest_collect_finished_cb,
-                                           handle);
+  handle->credentials = GNUNET_new (struct GNUNET_RECLAIM_CredentialList);
+  handle->cred_it =
+    GNUNET_RECLAIM_get_credentials_start (idp,
+                                          &handle->priv_key,
+                                          &oidc_iteration_error,
+                                          handle,
+                                          &oidc_cred_collect,
+                                          handle,
+                                          &oidc_cred_collect_finished_cb,
+                                          handle);
 
 }
 
@@ -1136,7 +1163,7 @@ attr_in_claims_request (struct RequestHandle *handle,
   const char *key;
   json_t *value;
 
-  /** Check if attribute is requested through standard scope **/
+  /** Check if attribute is requested through a scope **/
   if (GNUNET_YES == OIDC_check_scopes_for_claim_request (handle->oidc->scope,
                                                          attr_name))
     return GNUNET_YES;
@@ -1193,13 +1220,13 @@ oidc_attr_collect (void *cls,
   {
     le = GNUNET_new (struct GNUNET_RECLAIM_AttributeListEntry);
     le->attribute = GNUNET_RECLAIM_attribute_new (attr->name,
-                                                  &attr->attestation,
+                                                  &attr->credential,
                                                   attr->type,
                                                   attr->data,
                                                   attr->data_size);
     le->attribute->id = attr->id;
     le->attribute->flag = attr->flag;
-    le->attribute->attestation = attr->attestation;
+    le->attribute->credential = attr->credential;
     GNUNET_CONTAINER_DLL_insert (handle->attr_idtoken_list->list_head,
                                  handle->attr_idtoken_list->list_tail,
                                  le);
@@ -1208,13 +1235,13 @@ oidc_attr_collect (void *cls,
   {
     le = GNUNET_new (struct GNUNET_RECLAIM_AttributeListEntry);
     le->attribute = GNUNET_RECLAIM_attribute_new (attr->name,
-                                                  &attr->attestation,
+                                                  &attr->credential,
                                                   attr->type,
                                                   attr->data,
                                                   attr->data_size);
     le->attribute->id = attr->id;
     le->attribute->flag = attr->flag;
-    le->attribute->attestation = attr->attestation;
+    le->attribute->credential = attr->credential;
     GNUNET_CONTAINER_DLL_insert (handle->attr_userinfo_list->list_head,
                                  handle->attr_userinfo_list->list_tail,
                                  le);
@@ -1332,7 +1359,7 @@ build_redirect (void *cls)
     resp = GNUNET_REST_create_response ("");
     MHD_add_response_header (resp, "Location", redirect_uri);
     handle->proc (handle->proc_cls, resp, MHD_HTTP_FOUND);
-    GNUNET_SCHEDULER_add_now (&cleanup_handle_delayed, handle);
+    cleanup_handle (handle);
     GNUNET_free (redirect_uri);
     return;
   }
@@ -1709,7 +1736,7 @@ login_cont (struct GNUNET_REST_RequestHandle *con_handle,
                 term_data);
     handle->proc (handle->proc_cls, resp, MHD_HTTP_BAD_REQUEST);
     json_decref (root);
-    GNUNET_SCHEDULER_add_now (&cleanup_handle_delayed, handle);
+    cleanup_handle (handle);
     return;
   }
   GNUNET_asprintf (&cookie, "Identity=%s", json_string_value (identity));
@@ -1739,7 +1766,7 @@ login_cont (struct GNUNET_REST_RequestHandle *con_handle,
   GNUNET_free (cookie);
   GNUNET_free (header_val);
   json_decref (root);
-  GNUNET_SCHEDULER_add_now (&cleanup_handle_delayed, handle);
+  cleanup_handle (handle);
 }
 
 
@@ -1963,10 +1990,9 @@ token_endpoint (struct GNUNET_REST_RequestHandle *con_handle,
   const struct EgoEntry *ego_entry;
   struct GNUNET_TIME_Relative expiration_time;
   struct GNUNET_RECLAIM_AttributeList *cl = NULL;
-  struct GNUNET_RECLAIM_AttestationList *al = NULL;
+  struct GNUNET_RECLAIM_PresentationList *pl = NULL;
   struct GNUNET_RECLAIM_Ticket ticket;
   struct GNUNET_CRYPTO_EcdsaPublicKey cid;
-  const struct GNUNET_CRYPTO_EcdsaPrivateKey *privkey;
   struct GNUNET_HashCode cache_key;
   struct MHD_Response *resp;
   char *grant_type;
@@ -2038,7 +2064,6 @@ token_endpoint (struct GNUNET_REST_RequestHandle *con_handle,
     GNUNET_SCHEDULER_add_now (&do_error, handle);
     return;
   }
-  privkey = GNUNET_IDENTITY_ego_get_private_key (ego_entry->ego);
 
   // REQUIRED code verifier
   code_verifier = get_url_parameter_copy (handle, OIDC_CODE_VERIFIER_KEY);
@@ -2051,7 +2076,7 @@ token_endpoint (struct GNUNET_REST_RequestHandle *con_handle,
 
   // decode code
   if (GNUNET_OK != OIDC_parse_authz_code (&cid, code, code_verifier, &ticket,
-                                          &cl, &al, &nonce))
+                                          &cl, &pl, &nonce))
   {
     handle->emsg = GNUNET_strdup (OIDC_ERROR_KEY_INVALID_REQUEST);
     handle->edesc = GNUNET_strdup ("invalid code");
@@ -2091,7 +2116,7 @@ token_endpoint (struct GNUNET_REST_RequestHandle *con_handle,
   id_token = OIDC_generate_id_token (&ticket.audience,
                                      &ticket.identity,
                                      cl,
-                                     al,
+                                     pl,
                                      &expiration_time,
                                      (NULL != nonce) ? nonce : NULL,
                                      jwt_secret);
@@ -2107,11 +2132,11 @@ token_endpoint (struct GNUNET_REST_RequestHandle *con_handle,
   MHD_add_response_header (resp, "Content-Type", "application/json");
   handle->proc (handle->proc_cls, resp, MHD_HTTP_OK);
   GNUNET_RECLAIM_attribute_list_destroy (cl);
-  GNUNET_RECLAIM_attestation_list_destroy (al);
+  GNUNET_RECLAIM_presentation_list_destroy (pl);
   GNUNET_free (access_token);
   GNUNET_free (json_response);
   GNUNET_free (id_token);
-  GNUNET_SCHEDULER_add_now (&cleanup_handle_delayed, handle);
+  cleanup_handle (handle);
 }
 
 
@@ -2122,22 +2147,21 @@ static void
 consume_ticket (void *cls,
                 const struct GNUNET_CRYPTO_EcdsaPublicKey *identity,
                 const struct GNUNET_RECLAIM_Attribute *attr,
-                const struct GNUNET_RECLAIM_Attestation *attest)
+                const struct GNUNET_RECLAIM_Presentation *pres)
 {
   struct RequestHandle *handle = cls;
   struct GNUNET_RECLAIM_AttributeListEntry *ale;
-  struct GNUNET_RECLAIM_AttestationListEntry *atle;
+  struct GNUNET_RECLAIM_PresentationListEntry *atle;
   struct MHD_Response *resp;
   char *result_str;
   handle->idp_op = NULL;
 
-  GNUNET_log (GNUNET_ERROR_TYPE_ERROR, "Attr: %s\n", attr->name);
   if (NULL == identity)
   {
     result_str = OIDC_generate_userinfo (&handle->ticket.identity,
                                          handle->attr_userinfo_list,
-                                         handle->attests_list);
-    GNUNET_log (GNUNET_ERROR_TYPE_ERROR, "Userinfo: %s\n", result_str);
+                                         handle->presentations);
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Userinfo: %s\n", result_str);
     resp = GNUNET_REST_create_response (result_str);
     handle->proc (handle->proc_cls, resp, MHD_HTTP_OK);
     GNUNET_free (result_str);
@@ -2146,33 +2170,35 @@ consume_ticket (void *cls,
   }
   ale = GNUNET_new (struct GNUNET_RECLAIM_AttributeListEntry);
   ale->attribute = GNUNET_RECLAIM_attribute_new (attr->name,
-                                                 &attr->attestation,
+                                                 &attr->credential,
                                                  attr->type,
                                                  attr->data,
                                                  attr->data_size);
   ale->attribute->id = attr->id;
   ale->attribute->flag = attr->flag;
-  ale->attribute->attestation = attr->attestation;
+  ale->attribute->credential = attr->credential;
   GNUNET_CONTAINER_DLL_insert (handle->attr_userinfo_list->list_head,
                                handle->attr_userinfo_list->list_tail,
                                ale);
-  for (atle = handle->attests_list->list_head; NULL != atle; atle = atle->next)
+  if (NULL == pres)
+    return;
+  for (atle = handle->presentations->list_head;
+       NULL != atle; atle = atle->next)
   {
-    if (GNUNET_NO == GNUNET_RECLAIM_id_is_equal (&atle->attestation->id,
-                                                 &attest->id))
+    if (GNUNET_NO == GNUNET_RECLAIM_id_is_equal (&atle->presentation->credential_id,
+                                                 &pres->credential_id))
       continue;
     break; /** already in list **/
   }
   if (NULL == atle)
   {
-    /** Attestation matches for attribute, add **/
-    atle = GNUNET_new (struct GNUNET_RECLAIM_AttestationListEntry);
-    atle->attestation = GNUNET_RECLAIM_attestation_new (attest->name,
-                                                        attest->type,
-                                                        attest->data,
-                                                        attest->data_size);
-    GNUNET_CONTAINER_DLL_insert (handle->attests_list->list_head,
-                                 handle->attests_list->list_tail,
+    /** Credential matches for attribute, add **/
+    atle = GNUNET_new (struct GNUNET_RECLAIM_PresentationListEntry);
+    atle->presentation = GNUNET_RECLAIM_presentation_new (pres->type,
+                                                         pres->data,
+                                                         pres->data_size);
+    GNUNET_CONTAINER_DLL_insert (handle->presentations->list_head,
+                                 handle->presentations->list_tail,
                                  atle);
   }
 }
@@ -2271,8 +2297,8 @@ userinfo_endpoint (struct GNUNET_REST_RequestHandle *con_handle,
   privkey = GNUNET_IDENTITY_ego_get_private_key (aud_ego->ego);
   handle->attr_userinfo_list =
     GNUNET_new (struct GNUNET_RECLAIM_AttributeList);
-  handle->attests_list =
-    GNUNET_new (struct GNUNET_RECLAIM_AttestationList);
+  handle->presentations =
+    GNUNET_new (struct GNUNET_RECLAIM_PresentationList);
 
   handle->idp_op = GNUNET_RECLAIM_ticket_consume (idp,
                                                   privkey,
@@ -2442,6 +2468,12 @@ oidc_config_endpoint (struct GNUNET_REST_RequestHandle *con_handle,
                          json_string ("openid"));
   json_array_append_new (scopes,
                          json_string ("profile"));
+  json_array_append_new (scopes,
+                         json_string ("email"));
+  json_array_append_new (scopes,
+                         json_string ("address"));
+  json_array_append_new (scopes,
+                         json_string ("phone"));
   json_object_set_new (oidc_config,
                        "scopes_supported",
                        scopes);
@@ -2533,14 +2565,17 @@ rest_identity_process_request (struct GNUNET_REST_RequestHandle *rest_handle,
   handle->proc = proc;
   handle->rest_handle = rest_handle;
   handle->url = GNUNET_strdup (rest_handle->url);
+  handle->timeout_task =
+    GNUNET_SCHEDULER_add_delayed (handle->timeout, &do_timeout, handle);
+  GNUNET_CONTAINER_DLL_insert (requests_head,
+                               requests_tail,
+                               handle);
   if (handle->url[strlen (handle->url) - 1] == '/')
     handle->url[strlen (handle->url) - 1] = '\0';
   if (GNUNET_NO ==
       GNUNET_REST_handle_request (handle->rest_handle, handlers, &err, handle))
     return GNUNET_NO;
 
-  handle->timeout_task =
-    GNUNET_SCHEDULER_add_delayed (handle->timeout, &do_timeout, handle);
   return GNUNET_YES;
 }
 
@@ -2585,6 +2620,14 @@ libgnunet_plugin_rest_openid_connect_init (void *cls)
 }
 
 
+static int
+cleanup_hashmap (void *cls, const struct GNUNET_HashCode *key, void *value)
+{
+  GNUNET_free (value);
+  return GNUNET_YES;
+}
+
+
 /**
    * Exit point from the plugin.
    *
@@ -2599,19 +2642,15 @@ libgnunet_plugin_rest_openid_connect_done (void *cls)
   struct EgoEntry *ego_entry;
 
   plugin->cfg = NULL;
-
-  struct GNUNET_CONTAINER_MultiHashMapIterator *hashmap_it;
-  void *value = NULL;
-  hashmap_it =
-    GNUNET_CONTAINER_multihashmap_iterator_create (OIDC_cookie_jar_map);
-  while (GNUNET_YES ==
-         GNUNET_CONTAINER_multihashmap_iterator_next (hashmap_it, NULL,
-                                                      value))
-    GNUNET_free (value);
-  GNUNET_CONTAINER_multihashmap_iterator_destroy (hashmap_it);
-  GNUNET_CONTAINER_multihashmap_destroy (OIDC_cookie_jar_map);
-
-  GNUNET_CONTAINER_multihashmap_iterator_destroy (hashmap_it);
+  while (NULL != requests_head)
+    cleanup_handle (requests_head);
+  if (NULL != OIDC_cookie_jar_map)
+  {
+    GNUNET_CONTAINER_multihashmap_iterate (OIDC_cookie_jar_map,
+                                           &cleanup_hashmap,
+                                           NULL);
+    GNUNET_CONTAINER_multihashmap_destroy (OIDC_cookie_jar_map);
+  }
   GNUNET_free (allow_methods);
   if (NULL != gns_handle)
     GNUNET_GNS_disconnect (gns_handle);

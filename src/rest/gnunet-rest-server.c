@@ -208,6 +208,11 @@ struct AcceptedRequest
    * Connection
    */
   struct MhdConnectionHandle *con_handle;
+
+  /**
+   * State
+   */
+  int socket_with_mhd;
 };
 
 /**
@@ -310,7 +315,13 @@ cleanup_ar (struct AcceptedRequest *ar)
   {
     cleanup_handle (ar->con_handle);
   }
-  GNUNET_NETWORK_socket_free_memory_only_ (ar->sock);
+  if (GNUNET_YES == ar->socket_with_mhd)
+  {
+    GNUNET_NETWORK_socket_free_memory_only_ (ar->sock);
+  } else {
+    GNUNET_NETWORK_socket_close (ar->sock);
+  }
+  ar->sock = NULL;
   GNUNET_CONTAINER_DLL_remove (req_list_head,
                                req_list_tail,
                                ar);
@@ -529,7 +540,7 @@ create_response (void *cls,
     MHD_suspend_connection (con_handle->con);
     return MHD_YES;
   }
-  MHD_resume_connection (con_handle->con);
+  //MHD_resume_connection (con_handle->con);
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Queueing response from plugin with MHD\n");
   // Handle Preflights for extensions
@@ -767,7 +778,7 @@ mhd_completed_cb (void *cls,
     cleanup_handle (ar->con_handle);
     ar->con_handle = NULL;
   }
-  schedule_httpd ();
+  ar->socket_with_mhd = GNUNET_YES;
   *con_cls = NULL;
 }
 
@@ -882,6 +893,7 @@ do_accept (void *cls)
   else
     GNUNET_assert (0);
   ar = GNUNET_new (struct AcceptedRequest);
+  ar->socket_with_mhd = GNUNET_YES;
   ar->sock = GNUNET_NETWORK_socket_accept (lsock, NULL, NULL);
   if (NULL == ar->sock)
   {
@@ -925,7 +937,7 @@ do_shutdown (void *cls)
     GNUNET_CONTAINER_DLL_remove (plugins_head,
                                  plugins_tail,
                                  ple);
-    GNUNET_PLUGIN_unload (ple->libname, NULL);
+    GNUNET_PLUGIN_unload (ple->libname, ple->plugin);
     GNUNET_free (ple->libname);
     GNUNET_free (ple);
   }

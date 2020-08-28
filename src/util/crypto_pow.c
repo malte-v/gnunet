@@ -38,12 +38,11 @@
  * @param result where to write the resulting hash
  */
 void
-GNUNET_CRYPTO_pow_hash (const char *salt,
+GNUNET_CRYPTO_pow_hash (const struct GNUNET_CRYPTO_PowSalt *salt,
                         const void *buf,
                         size_t buf_len,
                         struct GNUNET_HashCode *result)
 {
-  GNUNET_assert (strlen (salt) == crypto_pwhash_argon2id_SALTBYTES);
   /* Threads hardcoded at 1 in libsodium */
   GNUNET_break (0 ==
                 crypto_pwhash_argon2id ((unsigned char *) result,

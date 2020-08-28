@@ -161,6 +161,16 @@ enum UpdateStrategy
 struct RequestHandle
 {
   /**
+   * DLL
+   */
+  struct RequestHandle *next;
+
+  /**
+   * DLL
+   */
+  struct RequestHandle *prev;
+
+  /**
    * Records to store
    */
   char *record_name;
@@ -258,6 +268,17 @@ struct RequestHandle
 };
 
 /**
+ * DLL
+ */
+static struct RequestHandle *requests_head;
+
+/**
+ * DLL
+ */
+static struct RequestHandle *requests_tail;
+
+
+/**
  * Cleanup lookup handle
  * @param handle Handle to clean up
  */
@@ -298,7 +319,9 @@ cleanup_handle (void *cls)
   {
     json_decref (handle->resp_object);
   }
-
+  GNUNET_CONTAINER_DLL_remove (requests_head,
+                               requests_tail,
+                               handle);
   GNUNET_free (handle);
 }
 
@@ -329,7 +352,7 @@ do_error (void *cls)
   handle->proc (handle->proc_cls, resp, handle->response_code);
   json_decref (json_error);
   GNUNET_free (response);
-  GNUNET_SCHEDULER_add_now (&cleanup_handle, handle);
+  cleanup_handle (handle);
 }
 
 
@@ -1024,10 +1047,14 @@ rest_process_request (struct GNUNET_REST_RequestHandle *rest_handle,
   handle->proc = proc;
   handle->rest_handle = rest_handle;
   handle->zone_pkey = NULL;
-
+  handle->timeout_task =
+    GNUNET_SCHEDULER_add_delayed (handle->timeout, &do_error, handle);
   handle->url = GNUNET_strdup (rest_handle->url);
   if (handle->url[strlen (handle->url) - 1] == '/')
     handle->url[strlen (handle->url) - 1] = '\0';
+  GNUNET_CONTAINER_DLL_insert (requests_head,
+                               requests_tail,
+                               handle);
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Connecting...\n");
   if (GNUNET_NO ==
       GNUNET_REST_handle_request (handle->rest_handle, handlers, &err, handle))
@@ -1035,9 +1062,6 @@ rest_process_request (struct GNUNET_REST_RequestHandle *rest_handle,
     cleanup_handle (handle);
     return GNUNET_NO;
   }
-
-  handle->timeout_task =
-    GNUNET_SCHEDULER_add_delayed (handle->timeout, &do_error, handle);
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Connected\n");
   return GNUNET_YES;
@@ -1065,6 +1089,7 @@ libgnunet_plugin_rest_namestore_init (void *cls)
   api->cls = &plugin;
   api->name = GNUNET_REST_API_NS_NAMESTORE;
   api->process_request = &rest_process_request;
+  state = ID_REST_STATE_INIT;
   GNUNET_asprintf (&allow_methods,
                    "%s, %s, %s, %s, %s",
                    MHD_HTTP_METHOD_GET,
@@ -1091,10 +1116,13 @@ libgnunet_plugin_rest_namestore_done (void *cls)
 {
   struct GNUNET_REST_Plugin *api = cls;
   struct Plugin *plugin = api->cls;
+  struct RequestHandle *request;
   struct EgoEntry *ego_entry;
   struct EgoEntry *ego_tmp;
 
   plugin->cfg = NULL;
+  while (NULL != (request = requests_head))
+    do_error (request);
   if (NULL != identity_handle)
     GNUNET_IDENTITY_disconnect (identity_handle);
   if (NULL != ns_handle)

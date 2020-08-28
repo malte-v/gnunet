@@ -143,12 +143,13 @@ extern "C" {
 /**
  * Record type for an attribute attestation
  */
-#define GNUNET_GNSRECORD_TYPE_RECLAIM_ATTESTATION 65554
+#define GNUNET_GNSRECORD_TYPE_RECLAIM_CREDENTIAL 65554
 
 /**
- * Record type for an attestation reference in a ticket
+ * Record type for a presentation of a credential (used
+ * in a ticket record set)
  */
-#define GNUNET_GNSRECORD_TYPE_RECLAIM_ATTESTATION_REF 65555
+#define GNUNET_GNSRECORD_TYPE_RECLAIM_PRESENTATION 65555
 
 
 /**

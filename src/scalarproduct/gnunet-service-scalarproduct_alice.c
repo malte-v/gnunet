@@ -32,7 +32,7 @@
 #include "gnunet_applications.h"
 #include "gnunet_protocols.h"
 #include "gnunet_scalarproduct_service.h"
-#include "gnunet_set_service.h"
+#include "gnunet_seti_service.h"
 #include "scalarproduct.h"
 #include "gnunet-service-scalarproduct.h"
 
@@ -99,18 +99,18 @@ struct AliceServiceSession
    * Set of elements for which will conduction an intersection.
    * the resulting elements are then used for computing the scalar product.
    */
-  struct GNUNET_SET_Handle *intersection_set;
+  struct GNUNET_SETI_Handle *intersection_set;
 
   /**
    * Set of elements for which will conduction an intersection.
    * the resulting elements are then used for computing the scalar product.
    */
-  struct GNUNET_SET_OperationHandle *intersection_op;
+  struct GNUNET_SETI_OperationHandle *intersection_op;
 
   /**
    * Handle to Alice's Intersection operation listening for Bob
    */
-  struct GNUNET_SET_ListenHandle *intersection_listen;
+  struct GNUNET_SETI_ListenHandle *intersection_listen;
 
   /**
    * channel-handle associated with our cadet handle
@@ -265,17 +265,17 @@ destroy_service_session (struct AliceServiceSession *s)
   }
   if (NULL != s->intersection_listen)
   {
-    GNUNET_SET_listen_cancel (s->intersection_listen);
+    GNUNET_SETI_listen_cancel (s->intersection_listen);
     s->intersection_listen = NULL;
   }
   if (NULL != s->intersection_op)
   {
-    GNUNET_SET_operation_cancel (s->intersection_op);
+    GNUNET_SETI_operation_cancel (s->intersection_op);
     s->intersection_op = NULL;
   }
   if (NULL != s->intersection_set)
   {
-    GNUNET_SET_destroy (s->intersection_set);
+    GNUNET_SETI_destroy (s->intersection_set);
     s->intersection_set = NULL;
   }
   if (NULL != s->sorted_elements)
@@ -894,22 +894,22 @@ send_alices_cryptodata_message (struct AliceServiceSession *s)
  * to indicate that the set intersection operation is done.
  *
  * @param cls closure with the `struct AliceServiceSession`
- * @param element a result element, only valid if status is #GNUNET_SET_STATUS_OK
+ * @param element a result element, only valid if status is #GNUNET_SETI_STATUS_OK
  * @param current_size current set size
  * @param status what has happened with the set intersection?
  */
 static void
 cb_intersection_element_removed (void *cls,
-                                 const struct GNUNET_SET_Element *element,
+                                 const struct GNUNET_SETI_Element *element,
                                  uint64_t current_size,
-                                 enum GNUNET_SET_Status status)
+                                 enum GNUNET_SETI_Status status)
 {
   struct AliceServiceSession *s = cls;
   struct GNUNET_SCALARPRODUCT_Element *se;
 
   switch (status)
   {
-  case GNUNET_SET_STATUS_OK:
+  case GNUNET_SETI_STATUS_DEL_LOCAL:
     /* this element has been removed from the set */
     se = GNUNET_CONTAINER_multihashmap_get (s->intersected_elements,
                                             element->data);
@@ -926,33 +926,27 @@ cb_intersection_element_removed (void *cls,
     GNUNET_free (se);
     return;
 
-  case GNUNET_SET_STATUS_DONE:
+  case GNUNET_SETI_STATUS_DONE:
     s->intersection_op = NULL;
     if (NULL != s->intersection_set)
     {
-      GNUNET_SET_destroy (s->intersection_set);
+      GNUNET_SETI_destroy (s->intersection_set);
       s->intersection_set = NULL;
     }
     send_alices_cryptodata_message (s);
     return;
-
-  case GNUNET_SET_STATUS_HALF_DONE:
-    /* unexpected for intersection */
-    GNUNET_break (0);
-    return;
-
-  case GNUNET_SET_STATUS_FAILURE:
+  case GNUNET_SETI_STATUS_FAILURE:
     /* unhandled status code */
     LOG (GNUNET_ERROR_TYPE_DEBUG, "Set intersection failed!\n");
     if (NULL != s->intersection_listen)
     {
-      GNUNET_SET_listen_cancel (s->intersection_listen);
+      GNUNET_SETI_listen_cancel (s->intersection_listen);
       s->intersection_listen = NULL;
     }
     s->intersection_op = NULL;
     if (NULL != s->intersection_set)
     {
-      GNUNET_SET_destroy (s->intersection_set);
+      GNUNET_SETI_destroy (s->intersection_set);
       s->intersection_set = NULL;
     }
     s->status = GNUNET_SCALARPRODUCT_STATUS_FAILURE;
@@ -974,7 +968,7 @@ cb_intersection_element_removed (void *cls,
  * @param other_peer the other peer
  * @param context_msg message with application specific information from
  *        the other peer
- * @param request request from the other peer (never NULL), use GNUNET_SET_accept()
+ * @param request request from the other peer (never NULL), use GNUNET_SETI_accept()
  *        to accept it, otherwise the request will be refused
  *        Note that we can't just return value from the listen callback,
  *        as it is also necessary to specify the set we want to do the
@@ -985,7 +979,7 @@ static void
 cb_intersection_request_alice (void *cls,
                                const struct GNUNET_PeerIdentity *other_peer,
                                const struct GNUNET_MessageHeader *context_msg,
-                               struct GNUNET_SET_Request *request)
+                               struct GNUNET_SETI_Request *request)
 {
   struct AliceServiceSession *s = cls;
 
@@ -994,11 +988,11 @@ cb_intersection_request_alice (void *cls,
     GNUNET_break_op (0);
     return;
   }
-  s->intersection_op = GNUNET_SET_accept (request,
-                                          GNUNET_SET_RESULT_REMOVED,
-                                          (struct GNUNET_SET_Option[]){ { 0 } },
-                                          &cb_intersection_element_removed,
-                                          s);
+  s->intersection_op = GNUNET_SETI_accept (request,
+                                           (struct
+                                            GNUNET_SETI_Option[]){ { 0 } },
+                                           &cb_intersection_element_removed,
+                                           s);
   if (NULL == s->intersection_op)
   {
     GNUNET_break (0);
@@ -1006,7 +1000,7 @@ cb_intersection_request_alice (void *cls,
     prepare_client_end_notification (s);
     return;
   }
-  if (GNUNET_OK != GNUNET_SET_commit (s->intersection_op, s->intersection_set))
+  if (GNUNET_OK != GNUNET_SETI_commit (s->intersection_op, s->intersection_set))
   {
     GNUNET_break (0);
     s->status = GNUNET_SCALARPRODUCT_STATUS_FAILURE;
@@ -1055,11 +1049,10 @@ client_request_complete_alice (struct AliceServiceSession *s)
     return;
   }
   s->cadet_mq = GNUNET_CADET_get_mq (s->channel);
-  s->intersection_listen = GNUNET_SET_listen (cfg,
-                                              GNUNET_SET_OPERATION_INTERSECTION,
-                                              &s->session_id,
-                                              &cb_intersection_request_alice,
-                                              s);
+  s->intersection_listen = GNUNET_SETI_listen (cfg,
+                                               &s->session_id,
+                                               &cb_intersection_request_alice,
+                                               s);
   if (NULL == s->intersection_listen)
   {
     s->status = GNUNET_SCALARPRODUCT_STATUS_FAILURE;
@@ -1125,7 +1118,7 @@ handle_alice_client_message_multipart (
   struct AliceServiceSession *s = cls;
   uint32_t contained_count;
   const struct GNUNET_SCALARPRODUCT_Element *elements;
-  struct GNUNET_SET_Element set_elem;
+  struct GNUNET_SETI_Element set_elem;
   struct GNUNET_SCALARPRODUCT_Element *elem;
 
   contained_count = ntohl (msg->element_count_contained);
@@ -1150,7 +1143,7 @@ handle_alice_client_message_multipart (
     set_elem.data = &elem->key;
     set_elem.size = sizeof(elem->key);
     set_elem.element_type = 0;
-    GNUNET_SET_add_element (s->intersection_set, &set_elem, NULL, NULL);
+    GNUNET_SETI_add_element (s->intersection_set, &set_elem, NULL, NULL);
     s->used_element_count++;
   }
   GNUNET_SERVICE_client_continue (s->client);
@@ -1217,7 +1210,7 @@ handle_alice_client_message (void *cls,
   uint32_t contained_count;
   uint32_t total_count;
   const struct GNUNET_SCALARPRODUCT_Element *elements;
-  struct GNUNET_SET_Element set_elem;
+  struct GNUNET_SETI_Element set_elem;
   struct GNUNET_SCALARPRODUCT_Element *elem;
 
   total_count = ntohl (msg->element_count_total);
@@ -1230,8 +1223,7 @@ handle_alice_client_message (void *cls,
   elements = (const struct GNUNET_SCALARPRODUCT_Element *) &msg[1];
   s->intersected_elements =
     GNUNET_CONTAINER_multihashmap_create (s->total, GNUNET_YES);
-  s->intersection_set =
-    GNUNET_SET_create (cfg, GNUNET_SET_OPERATION_INTERSECTION);
+  s->intersection_set = GNUNET_SETI_create (cfg);
 
   for (uint32_t i = 0; i < contained_count; i++)
   {
@@ -1255,7 +1247,10 @@ handle_alice_client_message (void *cls,
     set_elem.data = &elem->key;
     set_elem.size = sizeof(elem->key);
     set_elem.element_type = 0;
-    GNUNET_SET_add_element (s->intersection_set, &set_elem, NULL, NULL);
+    GNUNET_SETI_add_element (s->intersection_set,
+                             &set_elem,
+                             NULL,
+                             NULL);
     s->used_element_count++;
   }
   GNUNET_SERVICE_client_continue (s->client);

@@ -472,6 +472,30 @@ setup_job (CURL *eh,
 
 
 /**
+ * Add @a extra_headers to the HTTP headers for @a job.
+ *
+ * @param[in,out] job the job to modify
+ * @param extra_headers headers to append
+ */
+void
+GNUNET_CURL_extend_headers (struct GNUNET_CURL_Job *job,
+                            const struct curl_slist *extra_headers)
+{
+  struct curl_slist *all_headers = job->job_headers;
+
+  for (const struct curl_slist *curr = extra_headers;
+       NULL != curr;
+       curr = curr->next)
+  {
+    GNUNET_assert (NULL !=
+                   (all_headers = curl_slist_append (all_headers,
+                                                     curr->data)));
+  }
+  job->job_headers = all_headers;
+}
+
+
+/**
  * Schedule a CURL request to be executed and call the given @a jcc
  * upon its completion.  Note that the context will make use of the
  * CURLOPT_PRIVATE facility of the CURL @a eh.  Used to download
@@ -864,7 +888,8 @@ do_benchmark (CURLMsg *cmsg)
      curl -w "foo%{size_request} -XPOST --data "ABC" $URL
      the CURLINFO_REQUEST_SIZE should be the whole size of the request
      including headers and body.
-   */GNUNET_break (size_curl <= size_long);
+  *///
+  GNUNET_break (size_curl <= size_long);
 
   urd = get_url_benchmark_data (url, (unsigned int) response_code);
   urd->count++;

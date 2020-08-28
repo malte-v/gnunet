@@ -139,9 +139,9 @@ struct AttributeResultMessage
   uint16_t attr_len GNUNET_PACKED;
 
   /**
-   * Length of serialized attestation data
+   * Length of serialized credential data
    */
-  uint16_t attestation_len GNUNET_PACKED;
+  uint16_t credential_len GNUNET_PACKED;
 
   /**
    * always zero (for alignment)
@@ -159,9 +159,9 @@ struct AttributeResultMessage
 };
 
 /**
- * Attestation is returned from the idp.
+ * Credential is returned from the idp.
  */
-struct AttestationResultMessage
+struct CredentialResultMessage
 {
   /**
    * Message header
@@ -176,7 +176,7 @@ struct AttestationResultMessage
   /**
    * Length of serialized attribute data
    */
-  uint16_t attestation_len GNUNET_PACKED;
+  uint16_t credential_len GNUNET_PACKED;
 
   /**
    * always zero (for alignment)
@@ -189,7 +189,7 @@ struct AttestationResultMessage
   struct GNUNET_CRYPTO_EcdsaPublicKey identity;
 
   /* followed by:
-   * serialized attestation data
+   * serialized credential data
    */
 };
 
@@ -234,9 +234,9 @@ struct AttributeIterationNextMessage
 
 
 /**
- * Start a attestation iteration for the given identity
+ * Start a credential iteration for the given identity
  */
-struct AttestationIterationStartMessage
+struct CredentialIterationStartMessage
 {
   /**
    * Message
@@ -256,9 +256,9 @@ struct AttestationIterationStartMessage
 
 
 /**
- * Ask for next result of attestation iteration for the given operation
+ * Ask for next result of credential iteration for the given operation
  */
-struct AttestationIterationNextMessage
+struct CredentialIterationNextMessage
 {
   /**
    * Type will be #GNUNET_MESSAGE_TYPE_RECLAIM_ATTRIBUTE_ITERATION_NEXT
@@ -273,9 +273,9 @@ struct AttestationIterationNextMessage
 
 
 /**
- * Stop attestation iteration for the given operation
+ * Stop credential iteration for the given operation
  */
-struct AttestationIterationStopMessage
+struct CredentialIterationStopMessage
 {
   /**
    * Type will be #GNUNET_MESSAGE_TYPE_RECLAIM_ATTRIBUTE_ITERATION_STOP
@@ -463,9 +463,16 @@ struct TicketResultMessage
   uint32_t id GNUNET_PACKED;
 
   /**
+   * Length of new presentations created
+   */
+  uint32_t presentations_len GNUNET_PACKED;
+
+  /**
    * The new ticket
    */
   struct GNUNET_RECLAIM_Ticket ticket;
+
+  /* Followed by the serialized GNUNET_RECLAIM_PresentationList */
 };
 
 /**
@@ -520,9 +527,9 @@ struct ConsumeTicketResultMessage
   uint16_t attrs_len GNUNET_PACKED;
 
   /**
-   * Length of attestation data
+   * Length of presentation data
    */
-  uint16_t attestations_len;
+  uint16_t presentations_len;
 
   /**
    * always zero (for alignment)

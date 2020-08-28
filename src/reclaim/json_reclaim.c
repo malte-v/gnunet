@@ -46,7 +46,7 @@ parse_attr (void *cls, json_t *root, struct GNUNET_JSON_Specification *spec)
   const char *val_str = NULL;
   const char *type_str = NULL;
   const char *id_str = NULL;
-  const char *attest_str = NULL;
+  const char *cred_str = NULL;
   const char *flag_str = NULL;
   char *data;
   int unpack_state;
@@ -68,8 +68,8 @@ parse_attr (void *cls, json_t *root, struct GNUNET_JSON_Specification *spec)
                               &name_str,
                               "id",
                               &id_str,
-                              "attestation",
-                              &attest_str,
+                              "credential",
+                              &cred_str,
                               "type",
                               &type_str,
                               "value",
@@ -95,12 +95,12 @@ parse_attr (void *cls, json_t *root, struct GNUNET_JSON_Specification *spec)
   }
   attr = GNUNET_RECLAIM_attribute_new (name_str, NULL,
                                        type, data, data_size);
-  if ((NULL != attest_str) && (0 != strlen (attest_str)))
+  if ((NULL != cred_str) && (0 != strlen (cred_str)))
   {
-    GNUNET_STRINGS_string_to_data (attest_str,
-                                   strlen (attest_str),
-                                   &attr->attestation,
-                                   sizeof(attr->attestation));
+    GNUNET_STRINGS_string_to_data (cred_str,
+                                   strlen (cred_str),
+                                   &attr->credential,
+                                   sizeof(attr->credential));
   }
   if ((NULL == id_str) || (0 == strlen (id_str)))
     memset (&attr->id, 0, sizeof (attr->id));
@@ -142,7 +142,7 @@ clean_attr (void *cls, struct GNUNET_JSON_Specification *spec)
  * @return JSON Specification
  */
 struct GNUNET_JSON_Specification
-GNUNET_RECLAIM_JSON_spec_claim (struct GNUNET_RECLAIM_Attribute **attr)
+GNUNET_RECLAIM_JSON_spec_attribute (struct GNUNET_RECLAIM_Attribute **attr)
 {
   struct GNUNET_JSON_Specification ret = { .parser = &parse_attr,
                                            .cleaner = &clean_attr,
@@ -279,7 +279,7 @@ GNUNET_RECLAIM_JSON_spec_ticket (struct GNUNET_RECLAIM_Ticket **ticket)
 
 
 /**
-   * Parse given JSON object to an attestation claim
+   * Parse given JSON object to a credential claim
    *
    * @param cls closure, NULL
    * @param root the json object representing data
@@ -287,9 +287,9 @@ GNUNET_RECLAIM_JSON_spec_ticket (struct GNUNET_RECLAIM_Ticket **ticket)
    * @return #GNUNET_OK upon successful parsing; #GNUNET_SYSERR upon error
    */
 static int
-parse_attest (void *cls, json_t *root, struct GNUNET_JSON_Specification *spec)
+parse_credential (void *cls, json_t *root, struct GNUNET_JSON_Specification *spec)
 {
-  struct GNUNET_RECLAIM_Attestation *attr;
+  struct GNUNET_RECLAIM_Credential *cred;
   const char *name_str = NULL;
   const char *val_str = NULL;
   const char *type_str = NULL;
@@ -325,26 +325,26 @@ parse_attest (void *cls, json_t *root, struct GNUNET_JSON_Specification *spec)
                 "Error json object has a wrong format!\n");
     return GNUNET_SYSERR;
   }
-  type = GNUNET_RECLAIM_attestation_typename_to_number (type_str);
+  type = GNUNET_RECLAIM_credential_typename_to_number (type_str);
   if (GNUNET_SYSERR ==
-      (GNUNET_RECLAIM_attestation_string_to_value (type,
-                                                   val_str,
-                                                   (void **) &data,
-                                                   &data_size)))
+      (GNUNET_RECLAIM_credential_string_to_value (type,
+                                                  val_str,
+                                                  (void **) &data,
+                                                  &data_size)))
   {
-    GNUNET_log (GNUNET_ERROR_TYPE_ERROR, "Attestation value invalid!\n");
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR, "Credential value invalid!\n");
     return GNUNET_SYSERR;
   }
-  attr = GNUNET_RECLAIM_attestation_new (name_str, type, data, data_size);
+  cred = GNUNET_RECLAIM_credential_new (name_str, type, data, data_size);
   if ((NULL == id_str) || (0 == strlen (id_str)))
-    memset (&attr->id, 0, sizeof (attr->id));
+    memset (&cred->id, 0, sizeof (cred->id));
   else
     GNUNET_STRINGS_string_to_data (id_str,
                                    strlen (id_str),
-                                   &attr->id,
-                                   sizeof(attr->id));
+                                   &cred->id,
+                                   sizeof(cred->id));
 
-  *(struct GNUNET_RECLAIM_Attestation **) spec->ptr = attr;
+  *(struct GNUNET_RECLAIM_Credential **) spec->ptr = cred;
   return GNUNET_OK;
 }
 
@@ -356,11 +356,11 @@ parse_attest (void *cls, json_t *root, struct GNUNET_JSON_Specification *spec)
  * @param[out] spec where to free the data
  */
 static void
-clean_attest (void *cls, struct GNUNET_JSON_Specification *spec)
+clean_credential (void *cls, struct GNUNET_JSON_Specification *spec)
 {
-  struct GNUNET_RECLAIM_Attestation **attr;
+  struct GNUNET_RECLAIM_Credential **attr;
 
-  attr = (struct GNUNET_RECLAIM_Attestation **) spec->ptr;
+  attr = (struct GNUNET_RECLAIM_Credential **) spec->ptr;
   if (NULL != *attr)
   {
     GNUNET_free (*attr);
@@ -370,23 +370,23 @@ clean_attest (void *cls, struct GNUNET_JSON_Specification *spec)
 
 
 /**
- * JSON Specification for Reclaim attestation claims.
+ * JSON Specification for credential claims.
  *
- * @param ticket struct of GNUNET_RECLAIM_ATTESTATION_Claim to fill
+ * @param attr struct of GNUNET_RECLAIM_Credential to fill
  * @return JSON Specification
  */
 struct GNUNET_JSON_Specification
-GNUNET_RECLAIM_JSON_spec_claim_attest (struct
-                                       GNUNET_RECLAIM_Attestation **attr)
+GNUNET_RECLAIM_JSON_spec_credential (struct
+                                     GNUNET_RECLAIM_Credential **cred)
 {
-  struct GNUNET_JSON_Specification ret = { .parser = &parse_attest,
-                                           .cleaner = &clean_attest,
+  struct GNUNET_JSON_Specification ret = { .parser = &parse_credential,
+                                           .cleaner = &clean_credential,
                                            .cls = NULL,
                                            .field = NULL,
-                                           .ptr = attr,
+                                           .ptr = cred,
                                            .ptr_size = 0,
                                            .size_ptr = NULL };
 
-  *attr = NULL;
+  *cred = NULL;
   return ret;
 }

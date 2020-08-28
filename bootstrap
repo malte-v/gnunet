@@ -79,8 +79,8 @@ check_libtool()
        existence libtoolize || \
        existence glibtoolize || \
        existence slibtool; then
-        autoreconf -if
-        . "bin/pogen.sh"
+        autoreconf -if || exit 1
+        . "bin/pogen.sh" || exit 1
     else
         echo "*** No libtoolize (libtool) or libtool found, please install it ***" >&2;
         exit 1
@@ -97,15 +97,15 @@ submodules()
     if ! git --version >/dev/null; then
         echo "git not installed, skipping submodule update"
     else
-        git submodule update --init || true
-        git submodule update --recursive || true
-        git submodule sync || true
+        git submodule update --init || exit 1
+        git submodule update --recursive || exit 1
+        git submodule sync || exit 1
     fi
 }
 
 init_buildcommon_include()
 {
-    cp contrib/build-common/Makefile.inc contrib/Makefile.inc || true
+    cp contrib/build-common/Makefile.inc contrib/Makefile.inc || exit 1
 }
 
 main()

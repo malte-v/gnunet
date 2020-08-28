@@ -44,6 +44,7 @@
  * @param aud_key the public of the audience
  * @param sub_key the public key of the subject
  * @param attrs the attribute list
+ * @param presentations credential presentation list (may be empty)
  * @param expiration_time the validity of the token
  * @param secret_key the key used to sign the JWT
  * @return a new base64-encoded JWT string.
@@ -51,8 +52,8 @@
 char*
 OIDC_generate_id_token (const struct GNUNET_CRYPTO_EcdsaPublicKey *aud_key,
                    const struct GNUNET_CRYPTO_EcdsaPublicKey *sub_key,
-                   struct GNUNET_RECLAIM_AttributeList *attrs,
-                   struct GNUNET_RECLAIM_AttestationList *attests,
+                   const struct GNUNET_RECLAIM_AttributeList *attrs,
+                   const struct GNUNET_RECLAIM_PresentationList *presentations,
                    const struct GNUNET_TIME_Relative *expiration_time,
                    const char *nonce,
                    const char *secret_key);
@@ -64,6 +65,7 @@ OIDC_generate_id_token (const struct GNUNET_CRYPTO_EcdsaPublicKey *aud_key,
  * @param issuer the issuer of the ticket, used to sign the ticket and nonce
  * @param ticket the ticket to include in the code
  * @param attrs list of attributes to share
+ * @param presentations credential presentation list
  * @param nonce the nonce to include in the code
  * @param code_challenge PKCE code challenge
  * @return a new authorization code (caller must free)
@@ -71,8 +73,8 @@ OIDC_generate_id_token (const struct GNUNET_CRYPTO_EcdsaPublicKey *aud_key,
 char*
 OIDC_build_authz_code (const struct GNUNET_CRYPTO_EcdsaPrivateKey *issuer,
                        const struct GNUNET_RECLAIM_Ticket *ticket,
-                       struct GNUNET_RECLAIM_AttributeList *attrs,
-                       struct GNUNET_RECLAIM_AttestationList *attests,
+                       const struct GNUNET_RECLAIM_AttributeList *attrs,
+                       const struct GNUNET_RECLAIM_PresentationList *presentations,
                        const char *nonce,
                        const char *code_challenge);
 
@@ -86,6 +88,7 @@ OIDC_build_authz_code (const struct GNUNET_CRYPTO_EcdsaPrivateKey *issuer,
  * @param code_verfier PKCE code verifier
  * @param ticket where to store the ticket
  * @param attrs the attributes found in the code
+ * @param presentations credential presentation list
  * @param nonce where to store the nonce
  * @return GNUNET_OK if successful, else GNUNET_SYSERR
  */
@@ -95,7 +98,7 @@ OIDC_parse_authz_code (const struct GNUNET_CRYPTO_EcdsaPublicKey *ecdsa_pub,
                        const char *code_verifier,
                        struct GNUNET_RECLAIM_Ticket *ticket,
                        struct GNUNET_RECLAIM_AttributeList **attrs,
-                       struct GNUNET_RECLAIM_AttestationList **attests,
+                       struct GNUNET_RECLAIM_PresentationList **presentations,
                        char **nonce);
 
 /**
@@ -136,8 +139,8 @@ OIDC_access_token_parse (const char* token,
  * @return GNUNET_YES if attribute is implcitly requested
  */
 enum GNUNET_GenericReturnValue
-OIDC_check_scopes_for_claim_request (const char*scopes,
-                                     const char*attr);
+OIDC_check_scopes_for_claim_request (const char *scopes,
+                                     const char *attr);
 
 
 /**
@@ -145,12 +148,12 @@ OIDC_check_scopes_for_claim_request (const char*scopes,
  *
  * @param sub_key the subject (user)
  * @param attrs user attribute list
- * @param attests user attribute attestation list (may be empty)
+ * @param presentations credential presentation list
  * @return Userinfo JSON
  */
 char *
 OIDC_generate_userinfo (const struct GNUNET_CRYPTO_EcdsaPublicKey *sub_key,
-                        struct GNUNET_RECLAIM_AttributeList *attrs,
-                        struct GNUNET_RECLAIM_AttestationList *attests);
+                        const struct GNUNET_RECLAIM_AttributeList *attrs,
+                        const struct GNUNET_RECLAIM_PresentationList *presentations);
 
 #endif

@@ -124,11 +124,8 @@ run_task (void *cls)
 
   GNUNET_asprintf (&fn, "cat");
 
-  hello_pipe_stdin = GNUNET_DISK_pipe (GNUNET_YES, GNUNET_YES, GNUNET_YES,
-                                       GNUNET_NO);
-  hello_pipe_stdout = GNUNET_DISK_pipe (GNUNET_YES, GNUNET_YES, GNUNET_NO,
-                                        GNUNET_YES);
-
+  hello_pipe_stdin = GNUNET_DISK_pipe (GNUNET_DISK_PF_BLOCKING_RW);
+  hello_pipe_stdout = GNUNET_DISK_pipe (GNUNET_DISK_PF_BLOCKING_RW);
   if ((hello_pipe_stdout == NULL) || (hello_pipe_stdin == NULL))
   {
     GNUNET_break (0);
@@ -202,10 +199,8 @@ check_kill ()
 {
   char *fn;
 
-  hello_pipe_stdin = GNUNET_DISK_pipe (GNUNET_YES, GNUNET_YES, GNUNET_YES,
-                                       GNUNET_NO);
-  hello_pipe_stdout = GNUNET_DISK_pipe (GNUNET_YES, GNUNET_YES, GNUNET_NO,
-                                        GNUNET_YES);
+  hello_pipe_stdin = GNUNET_DISK_pipe (GNUNET_DISK_PF_BLOCKING_RW);
+  hello_pipe_stdout = GNUNET_DISK_pipe (GNUNET_DISK_PF_BLOCKING_RW);
   if ((hello_pipe_stdout == NULL) || (hello_pipe_stdin == NULL))
   {
     return 1;
@@ -247,10 +242,8 @@ check_instant_kill ()
 {
   char *fn;
 
-  hello_pipe_stdin = GNUNET_DISK_pipe (GNUNET_YES, GNUNET_YES, GNUNET_YES,
-                                       GNUNET_NO);
-  hello_pipe_stdout = GNUNET_DISK_pipe (GNUNET_YES, GNUNET_YES, GNUNET_NO,
-                                        GNUNET_YES);
+  hello_pipe_stdin = GNUNET_DISK_pipe (GNUNET_DISK_PF_BLOCKING_RW);
+  hello_pipe_stdout = GNUNET_DISK_pipe (GNUNET_DISK_PF_BLOCKING_RW);
   if ((hello_pipe_stdout == NULL) || (hello_pipe_stdin == NULL))
   {
     return 1;

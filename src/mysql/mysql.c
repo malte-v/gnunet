@@ -220,7 +220,7 @@ iopen (struct GNUNET_MYSQL_Context *mc)
   char *mysql_user;
   char *mysql_password;
   unsigned long long mysql_port;
-  my_bool reconnect;
+  MYSQL_BOOL reconnect;
   unsigned int timeout;
 
   mc->dbf = mysql_init (NULL);

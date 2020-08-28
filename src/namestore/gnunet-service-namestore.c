@@ -1809,7 +1809,7 @@ run_zone_iteration_round (struct ZoneIteration *zi, uint64_t limit)
   start = GNUNET_TIME_absolute_get ();
   GNUNET_break (GNUNET_SYSERR !=
                 GSN_database->iterate_records (GSN_database->cls,
-                                               (0 == GNUNET_is_zero (&zi->zone))
+                                               (GNUNET_YES == GNUNET_is_zero (&zi->zone))
                                                ? NULL
                                                : &zi->zone,
                                                zi->seq,
@@ -2083,7 +2083,7 @@ monitor_iteration_next (void *cls)
   else
     zm->iteration_cnt = zm->limit; /* use it all */
   ret = GSN_database->iterate_records (GSN_database->cls,
-                                       (0 == GNUNET_is_zero (&zm->zone))
+                                       (GNUNET_YES == GNUNET_is_zero (&zm->zone))
                                        ? NULL
                                        : &zm->zone,
                                        zm->seq,

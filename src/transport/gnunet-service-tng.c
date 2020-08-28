@@ -3209,7 +3209,7 @@ notify_monitors (const struct GNUNET_PeerIdentity *peer,
       continue;
     if (tc->details.monitor.one_shot)
       continue;
-    if ((0 != GNUNET_is_zero (&tc->details.monitor.peer)) &&
+    if ((GNUNET_NO == GNUNET_is_zero (&tc->details.monitor.peer)) &&
         (0 != GNUNET_memcmp (&tc->details.monitor.peer, peer)))
       continue;
     notify_monitor (tc, peer, address, nt, me);

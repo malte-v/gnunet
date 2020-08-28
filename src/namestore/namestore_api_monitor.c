@@ -139,7 +139,7 @@ check_result (void *cls, const struct RecordResultMessage *lrm)
 
   (void) cls;
   if ((0 != GNUNET_memcmp (&lrm->private_key, &zm->zone)) &&
-      (0 != GNUNET_is_zero (&zm->zone)))
+      (GNUNET_NO == GNUNET_is_zero (&zm->zone)))
   {
     GNUNET_break (0);
     return GNUNET_SYSERR;

@@ -170,17 +170,17 @@ struct IdpClient
 
   /**
    * Head of the DLL of
-   * Attribute iteration operations in
+   * Credential iteration operations in
    * progress initiated by this client
    */
-  struct Iterator *attest_iter_head;
+  struct Iterator *cred_iter_head;
 
   /**
    * Tail of the DLL of
-   * Attribute iteration operations
+   * Credential iteration operations
    * in progress initiated by this client
    */
-  struct Iterator *attest_iter_tail;
+  struct Iterator *cred_iter_tail;
 
   /**
    * Head of DLL of ticket iteration ops
@@ -285,9 +285,9 @@ struct AttributeDeleteHandle
   struct GNUNET_RECLAIM_Attribute *claim;
 
   /**
-   * The attestation to delete
+   * The credential to delete
    */
-  struct GNUNET_RECLAIM_Attestation *attest;
+  struct GNUNET_RECLAIM_Credential *credential;
 
   /**
    * Tickets to update
@@ -352,9 +352,9 @@ struct AttributeStoreHandle
   struct GNUNET_RECLAIM_Attribute *claim;
 
   /**
-  * The attestation to store
+  * The credential to store
   */
-  struct GNUNET_RECLAIM_Attestation *attest;
+  struct GNUNET_RECLAIM_Credential *credential;
 
   /**
    * The attribute expiration interval
@@ -488,8 +488,8 @@ cleanup_adh (struct AttributeDeleteHandle *adh)
     GNUNET_free (adh->label);
   if (NULL != adh->claim)
     GNUNET_free (adh->claim);
-  if (NULL != adh->attest)
-    GNUNET_free (adh->attest);
+  if (NULL != adh->credential)
+    GNUNET_free (adh->credential);
   while (NULL != (le = adh->tickets_to_update_head))
   {
     GNUNET_CONTAINER_DLL_remove (adh->tickets_to_update_head,
@@ -517,8 +517,8 @@ cleanup_as_handle (struct AttributeStoreHandle *ash)
     GNUNET_NAMESTORE_cancel (ash->ns_qe);
   if (NULL != ash->claim)
     GNUNET_free (ash->claim);
-  if (NULL != ash->attest)
-    GNUNET_free (ash->attest);
+  if (NULL != ash->credential)
+    GNUNET_free (ash->credential);
   GNUNET_free (ash);
 }
 
@@ -569,9 +569,9 @@ cleanup_client (struct IdpClient *idp)
     GNUNET_CONTAINER_DLL_remove (idp->attr_iter_head, idp->attr_iter_tail, ai);
     GNUNET_free (ai);
   }
-  while (NULL != (ai = idp->attest_iter_head))
+  while (NULL != (ai = idp->cred_iter_head))
   {
-    GNUNET_CONTAINER_DLL_remove (idp->attest_iter_head, idp->attest_iter_tail,
+    GNUNET_CONTAINER_DLL_remove (idp->cred_iter_head, idp->cred_iter_tail,
                                  ai);
     GNUNET_free (ai);
   }
@@ -646,19 +646,33 @@ static void
 send_ticket_result (const struct IdpClient *client,
                     uint32_t r_id,
                     const struct GNUNET_RECLAIM_Ticket *ticket,
+                    const struct GNUNET_RECLAIM_PresentationList *presentations,
                     uint32_t success)
 {
   struct TicketResultMessage *irm;
   struct GNUNET_MQ_Envelope *env;
+  size_t pres_len = 0;
 
-  env = GNUNET_MQ_msg (irm,
-                       GNUNET_MESSAGE_TYPE_RECLAIM_TICKET_RESULT);
+  if (NULL != presentations)
+  {
+    pres_len =
+      GNUNET_RECLAIM_presentation_list_serialize_get_size (presentations);
+  }
+  env = GNUNET_MQ_msg_extra (irm,
+                             pres_len,
+                             GNUNET_MESSAGE_TYPE_RECLAIM_TICKET_RESULT);
   if (NULL != ticket)
   {
     irm->ticket = *ticket;
   }
   // TODO add success member
   irm->id = htonl (r_id);
+  irm->presentations_len = htons (pres_len);
+  if (NULL != presentations)
+  {
+    GNUNET_RECLAIM_presentation_list_serialize (presentations,
+                                                (char*) &irm[1]);
+  }
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Sending TICKET_RESULT message\n");
   GNUNET_MQ_send (client->mq, env);
 }
@@ -669,12 +683,14 @@ send_ticket_result (const struct IdpClient *client,
  *
  * @param cls out ticket issue operation handle
  * @param ticket the issued ticket
+ * @param presentations newly created credential presentations (NULL on error)
  * @param success issue success status (GNUNET_OK if successful)
  * @param emsg error message (NULL of success is GNUNET_OK)
  */
 static void
 issue_ticket_result_cb (void *cls,
                         struct GNUNET_RECLAIM_Ticket *ticket,
+                        struct GNUNET_RECLAIM_PresentationList *presentations,
                         int32_t success,
                         const char *emsg)
 {
@@ -682,7 +698,7 @@ issue_ticket_result_cb (void *cls,
 
   if (GNUNET_OK != success)
   {
-    send_ticket_result (tio->client, tio->r_id, NULL, GNUNET_SYSERR);
+    send_ticket_result (tio->client, tio->r_id, NULL, NULL, GNUNET_SYSERR);
     GNUNET_CONTAINER_DLL_remove (tio->client->issue_op_head,
                                  tio->client->issue_op_tail,
                                  tio);
@@ -690,7 +706,8 @@ issue_ticket_result_cb (void *cls,
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR, "Error issuing ticket: %s\n", emsg);
     return;
   }
-  send_ticket_result (tio->client, tio->r_id, ticket, GNUNET_SYSERR);
+  send_ticket_result (tio->client, tio->r_id,
+                      ticket, presentations, GNUNET_SYSERR);
   GNUNET_CONTAINER_DLL_remove (tio->client->issue_op_head,
                                tio->client->issue_op_tail,
                                tio);
@@ -732,6 +749,7 @@ handle_issue_ticket_message (void *cls, const struct IssueTicketMessage *im)
   struct TicketIssueOperation *tio;
   struct IdpClient *idp = cls;
   struct GNUNET_RECLAIM_AttributeList *attrs;
+  struct GNUNET_RECLAIM_AttributeListEntry *le;
   size_t attrs_len;
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Received ISSUE_TICKET message\n");
@@ -739,6 +757,10 @@ handle_issue_ticket_message (void *cls, const struct IssueTicketMessage *im)
   attrs_len = ntohs (im->attr_len);
   attrs = GNUNET_RECLAIM_attribute_list_deserialize ((char *) &im[1],
                                                      attrs_len);
+  for (le = attrs->list_head; NULL != le; le = le->next)
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "List entry: %s\n", le->attribute->name);
+
   tio->r_id = ntohl (im->id);
   tio->client = idp;
   GNUNET_CONTAINER_DLL_insert (idp->issue_op_head, idp->issue_op_tail, tio);
@@ -842,7 +864,7 @@ static void
 consume_result_cb (void *cls,
                    const struct GNUNET_CRYPTO_EcdsaPublicKey *identity,
                    const struct GNUNET_RECLAIM_AttributeList *attrs,
-                   const struct GNUNET_RECLAIM_AttestationList *attests,
+                   const struct GNUNET_RECLAIM_PresentationList *presentations,
                    int32_t success,
                    const char *emsg)
 {
@@ -851,28 +873,28 @@ consume_result_cb (void *cls,
   struct GNUNET_MQ_Envelope *env;
   char *data_tmp;
   size_t attrs_len = 0;
-  size_t attests_len = 0;
+  size_t pres_len = 0;
 
   if (GNUNET_OK != success)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR, "Error consuming ticket: %s\n", emsg);
   }
   attrs_len = GNUNET_RECLAIM_attribute_list_serialize_get_size (attrs);
-  attests_len = GNUNET_RECLAIM_attestation_list_serialize_get_size (attests);
+  pres_len = GNUNET_RECLAIM_presentation_list_serialize_get_size (presentations);
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Sending CONSUME_TICKET_RESULT message\n");
   env = GNUNET_MQ_msg_extra (crm,
-                             attrs_len + attests_len,
+                             attrs_len + pres_len,
                              GNUNET_MESSAGE_TYPE_RECLAIM_CONSUME_TICKET_RESULT);
   crm->id = htonl (cop->r_id);
   crm->attrs_len = htons (attrs_len);
-  crm->attestations_len = htons (attests_len);
+  crm->presentations_len = htons (pres_len);
   crm->identity = *identity;
   crm->result = htonl (success);
   data_tmp = (char *) &crm[1];
   GNUNET_RECLAIM_attribute_list_serialize (attrs, data_tmp);
   data_tmp += attrs_len;
-  GNUNET_RECLAIM_attestation_list_serialize (attests, data_tmp);
+  GNUNET_RECLAIM_presentation_list_serialize (presentations, data_tmp);
   GNUNET_MQ_send (cop->client->mq, env);
   GNUNET_CONTAINER_DLL_remove (cop->client->consume_op_head,
                                cop->client->consume_op_tail,
@@ -1053,8 +1075,9 @@ handle_attribute_store_message (void *cls,
   data_len = ntohs (sam->attr_len);
 
   ash = GNUNET_new (struct AttributeStoreHandle);
-  ash->claim = GNUNET_RECLAIM_attribute_deserialize ((char *) &sam[1],
-                                                     data_len);
+  GNUNET_RECLAIM_attribute_deserialize ((char *) &sam[1],
+                                        data_len,
+                                        &ash->claim);
 
   ash->r_id = ntohl (sam->id);
   ash->identity = sam->identity;
@@ -1069,14 +1092,14 @@ handle_attribute_store_message (void *cls,
 
 
 /**
- * Attestation store result handler
+ * Credential store result handler
  *
  * @param cls our attribute store handle
  * @param success GNUNET_OK if successful
  * @param emsg error message (NULL if success=GNUNET_OK)
  */
 static void
-attest_store_cont (void *cls, int32_t success, const char *emsg)
+cred_store_cont (void *cls, int32_t success, const char *emsg)
 {
   struct AttributeStoreHandle *ash = cls;
   struct GNUNET_MQ_Envelope *env;
@@ -1090,7 +1113,7 @@ attest_store_cont (void *cls, int32_t success, const char *emsg)
   if (GNUNET_SYSERR == success)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                "Failed to store attestation %s\n",
+                "Failed to store credential: %s\n",
                 emsg);
     cleanup_as_handle (ash);
     GNUNET_SCHEDULER_add_now (&do_shutdown, NULL);
@@ -1107,16 +1130,16 @@ attest_store_cont (void *cls, int32_t success, const char *emsg)
 
 
 /**
- * Error looking up potential attestation. Abort.
+ * Error looking up potential credential. Abort.
  *
  * @param cls our attribute store handle
  */
 static void
-attest_error (void *cls)
+cred_error (void *cls)
 {
   struct AttributeStoreHandle *ash = cls;
   GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-              "Failed to check for existing Attestation\n");
+              "Failed to check for existing credential.\n");
   cleanup_as_handle (ash);
   GNUNET_SCHEDULER_add_now (&do_shutdown, NULL);
   return;
@@ -1124,7 +1147,7 @@ attest_error (void *cls)
 
 
 /**
-* Check for existing record before storing attestation
+* Check for existing record before storing credential
 *
 * @param cls our attribute store handle
 * @param zone zone we are iterating
@@ -1133,33 +1156,34 @@ attest_error (void *cls)
 * @param rd records
 */
 static void
-attest_add_cb (void *cls,
-               const struct GNUNET_CRYPTO_EcdsaPrivateKey *zone,
-               const char *label,
-               unsigned int rd_count,
-               const struct GNUNET_GNSRECORD_Data *rd)
+cred_add_cb (void *cls,
+             const struct GNUNET_CRYPTO_EcdsaPrivateKey *zone,
+             const char *label,
+             unsigned int rd_count,
+             const struct GNUNET_GNSRECORD_Data *rd)
 {
   struct AttributeStoreHandle *ash = cls;
+  struct GNUNET_GNSRECORD_Data rd_new[1];
   char *buf;
   size_t buf_size;
-  buf_size = GNUNET_RECLAIM_attestation_serialize_get_size (ash->attest);
+
+  buf_size = GNUNET_RECLAIM_credential_serialize_get_size (ash->credential);
   buf = GNUNET_malloc (buf_size);
-  GNUNET_RECLAIM_attestation_serialize (ash->attest, buf);
+  GNUNET_RECLAIM_credential_serialize (ash->credential, buf);
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "Storing new Attestation\n");
-  struct GNUNET_GNSRECORD_Data rd_new[1];
+              "Storing new credential under `%s'.\n",
+              label);
   rd_new[0].data_size = buf_size;
   rd_new[0].data = buf;
-  rd_new[0].record_type = GNUNET_GNSRECORD_TYPE_RECLAIM_ATTESTATION;
+  rd_new[0].record_type = GNUNET_GNSRECORD_TYPE_RECLAIM_CREDENTIAL;
   rd_new[0].flags = GNUNET_GNSRECORD_RF_RELATIVE_EXPIRATION;
   rd_new[0].expiration_time = ash->exp.rel_value_us;
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Encrypting with label %s\n", label);
   ash->ns_qe = GNUNET_NAMESTORE_records_store (nsh,
                                                &ash->identity,
                                                label,
                                                1,
                                                rd_new,
-                                               &attest_store_cont,
+                                               &cred_store_cont,
                                                ash);
   GNUNET_free (buf);
   return;
@@ -1167,44 +1191,43 @@ attest_add_cb (void *cls,
 
 
 /**
- * Add a new attestation
+ * Add a new credential
  *
  * @param cls the AttributeStoreHandle
  */
 static void
-attest_store_task (void *cls)
+cred_store_task (void *cls)
 {
   struct AttributeStoreHandle *ash = cls;
   char *label;
 
   // Give the ash a new id if unset
-  if (GNUNET_YES == GNUNET_RECLAIM_id_is_zero (&ash->attest->id))
-    GNUNET_RECLAIM_id_generate (&ash->attest->id);
-  label = GNUNET_STRINGS_data_to_string_alloc (&ash->attest->id,
-                                               sizeof (ash->attest->id));
+  if (GNUNET_YES == GNUNET_RECLAIM_id_is_zero (&ash->credential->id))
+    GNUNET_RECLAIM_id_generate (&ash->credential->id);
+  label = GNUNET_STRINGS_data_to_string_alloc (&ash->credential->id,
+                                               sizeof (ash->credential->id));
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "Looking up existing data under label %s\n", label);
-// Test for the content of the existing ID
+              "Looking up existing data under label `%s'\n", label);
   ash->ns_qe = GNUNET_NAMESTORE_records_lookup (nsh,
                                                 &ash->identity,
                                                 label,
-                                                &attest_error,
+                                                &cred_error,
                                                 ash,
-                                                &attest_add_cb,
+                                                &cred_add_cb,
                                                 ash);
   GNUNET_free (label);
 }
 
 
 /**
- * Check an attestation store message
+ * Check an credential store message
  *
  * @param cls unused
  * @param sam the message to check
  */
 static int
-check_attestation_store_message (void *cls,
-                                 const struct AttributeStoreMessage *sam)
+check_credential_store_message (void *cls,
+                                const struct AttributeStoreMessage *sam)
 {
   uint16_t size;
 
@@ -1219,26 +1242,26 @@ check_attestation_store_message (void *cls,
 
 
 /**
-* Handle an attestation store message
+* Handle a credential store message
 *
 * @param cls our client
 * @param sam the message to handle
 */
 static void
-handle_attestation_store_message (void *cls,
+handle_credential_store_message (void *cls,
                                   const struct AttributeStoreMessage *sam)
 {
   struct AttributeStoreHandle *ash;
   struct IdpClient *idp = cls;
   size_t data_len;
 
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Received ATTESTATION_STORE message\n");
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Received CREDENTIAL_STORE message\n");
 
   data_len = ntohs (sam->attr_len);
 
   ash = GNUNET_new (struct AttributeStoreHandle);
-  ash->attest = GNUNET_RECLAIM_attestation_deserialize ((char *) &sam[1],
-                                                        data_len);
+  ash->credential = GNUNET_RECLAIM_credential_deserialize ((char *) &sam[1],
+                                                           data_len);
 
   ash->r_id = ntohl (sam->id);
   ash->identity = sam->identity;
@@ -1248,7 +1271,7 @@ handle_attestation_store_message (void *cls,
   GNUNET_SERVICE_client_continue (idp->client);
   ash->client = idp;
   GNUNET_CONTAINER_DLL_insert (idp->store_op_head, idp->store_op_tail, ash);
-  GNUNET_SCHEDULER_add_now (&attest_store_task, ash);
+  GNUNET_SCHEDULER_add_now (&cred_store_task, ash);
 }
 
 
@@ -1304,12 +1327,12 @@ ticket_iter (void *cls,
       if (GNUNET_YES != GNUNET_RECLAIM_id_is_equal (rd[i].data,
                                                     &adh->claim->id))
         continue;
-    if (adh->attest != NULL)
+    if (adh->credential != NULL)
       if (GNUNET_YES != GNUNET_RECLAIM_id_is_equal (rd[i].data,
-                                                    &adh->attest->id))
+                                                    &adh->credential->id))
         continue;
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                "Attribute or Attestation to delete found (%s)\n",
+                "Attribute to delete found (%s)\n",
                 adh->label);
     has_changed = GNUNET_YES;
     break;
@@ -1404,10 +1427,10 @@ update_tickets (void *cls)
           && (GNUNET_YES == GNUNET_RECLAIM_id_is_equal (rd[i].data,
                                                         &adh->claim->id)))
         continue;
-    if (adh->attest != NULL)
+    if (adh->credential != NULL)
       if ((GNUNET_GNSRECORD_TYPE_RECLAIM_ATTRIBUTE_REF == rd[i].record_type)
           && (GNUNET_YES == GNUNET_RECLAIM_id_is_equal (rd[i].data,
-                                                        &adh->attest->id)))
+                                                        &adh->credential->id)))
         continue;
     rd_new[j] = rd[i];
     j++;
@@ -1548,9 +1571,10 @@ handle_attribute_delete_message (void *cls,
   data_len = ntohs (dam->attr_len);
 
   adh = GNUNET_new (struct AttributeDeleteHandle);
-  adh->claim = GNUNET_RECLAIM_attribute_deserialize ((char *) &dam[1],
-                                                     data_len);
-  adh->attest = NULL;
+  GNUNET_RECLAIM_attribute_deserialize ((char *) &dam[1],
+                                        data_len,
+                                        &adh->claim);
+  adh->credential = NULL;
 
   adh->r_id = ntohl (dam->id);
   adh->identity = dam->identity;
@@ -1571,14 +1595,14 @@ handle_attribute_delete_message (void *cls,
 
 
 /**
-   * Attestation deleted callback
+   * Credential deleted callback
    *
    * @param cls our handle
    * @param success success status
    * @param emsg error message (NULL if success=GNUNET_OK)
    */
 static void
-attest_delete_cont (void *cls, int32_t success, const char *emsg)
+cred_delete_cont (void *cls, int32_t success, const char *emsg)
 {
   struct AttributeDeleteHandle *adh = cls;
 
@@ -1586,7 +1610,7 @@ attest_delete_cont (void *cls, int32_t success, const char *emsg)
   if (GNUNET_SYSERR == success)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                "Error deleting attestation %s\n",
+                "Error deleting credential `%s'\n",
                 adh->label);
     send_delete_response (adh, GNUNET_SYSERR);
     cleanup_adh (adh);
@@ -1598,14 +1622,14 @@ attest_delete_cont (void *cls, int32_t success, const char *emsg)
 
 
 /**
- * Check attestation delete message format
+ * Check credential delete message format
  *
  * @cls unused
  * @dam message to check
  */
 static int
-check_attestation_delete_message (void *cls,
-                                  const struct AttributeDeleteMessage *dam)
+check_credential_delete_message (void *cls,
+                                 const struct AttributeDeleteMessage *dam)
 {
   uint16_t size;
 
@@ -1620,33 +1644,33 @@ check_attestation_delete_message (void *cls,
 
 
 /**
- * Handle attestation deletion
+ * Handle credential deletion
  *
  * @param cls our client
  * @param dam deletion message
  */
 static void
-handle_attestation_delete_message (void *cls,
+handle_credential_delete_message (void *cls,
                                    const struct AttributeDeleteMessage *dam)
 {
   struct AttributeDeleteHandle *adh;
   struct IdpClient *idp = cls;
   size_t data_len;
 
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Received ATTESTATION_DELETE message\n");
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Received CREDENTIAL_DELETE message\n");
 
   data_len = ntohs (dam->attr_len);
 
   adh = GNUNET_new (struct AttributeDeleteHandle);
-  adh->attest = GNUNET_RECLAIM_attestation_deserialize ((char *) &dam[1],
-                                                        data_len);
+  adh->credential = GNUNET_RECLAIM_credential_deserialize ((char *) &dam[1],
+                                                           data_len);
   adh->claim = NULL;
 
   adh->r_id = ntohl (dam->id);
   adh->identity = dam->identity;
   adh->label
-    = GNUNET_STRINGS_data_to_string_alloc (&adh->attest->id,
-                                           sizeof(adh->attest->id));
+    = GNUNET_STRINGS_data_to_string_alloc (&adh->credential->id,
+                                           sizeof(adh->credential->id));
   GNUNET_SERVICE_client_continue (idp->client);
   adh->client = idp;
   GNUNET_CONTAINER_DLL_insert (idp->delete_op_head, idp->delete_op_tail, adh);
@@ -1655,7 +1679,7 @@ handle_attestation_delete_message (void *cls,
                                                adh->label,
                                                0,
                                                NULL,
-                                               &attest_delete_cont,
+                                               &cred_delete_cont,
                                                adh);
 }
 
@@ -1705,7 +1729,7 @@ attr_iter_error (void *cls)
 
 
 /**
- * Got record. Return if it is an attribute or attestation.
+ * Got record. Return if it is an attribute.
  *
  * @param cls our attribute iterator
  * @param zone zone we are iterating
@@ -1845,51 +1869,51 @@ handle_iteration_next (void *cls,
 
 
 /*************************************************
-* Attestation iteration
+* Credential iteration
 *************************************************/
 
 
 /**
- * Done iterating over attestations
+ * Done iterating over credentials
  *
  * @param cls our iterator handle
  */
 static void
-attest_iter_finished (void *cls)
+cred_iter_finished (void *cls)
 {
   struct Iterator *ai = cls;
   struct GNUNET_MQ_Envelope *env;
-  struct AttestationResultMessage *arm;
+  struct CredentialResultMessage *arm;
 
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Sending ATTESTATION_RESULT message\n");
-  env = GNUNET_MQ_msg (arm, GNUNET_MESSAGE_TYPE_RECLAIM_ATTESTATION_RESULT);
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Sending CREDENTIAL_RESULT message\n");
+  env = GNUNET_MQ_msg (arm, GNUNET_MESSAGE_TYPE_RECLAIM_CREDENTIAL_RESULT);
   arm->id = htonl (ai->request_id);
-  arm->attestation_len = htons (0);
+  arm->credential_len = htons (0);
   GNUNET_MQ_send (ai->client->mq, env);
-  GNUNET_CONTAINER_DLL_remove (ai->client->attest_iter_head,
-                               ai->client->attest_iter_tail,
+  GNUNET_CONTAINER_DLL_remove (ai->client->cred_iter_head,
+                               ai->client->cred_iter_tail,
                                ai);
   GNUNET_free (ai);
 }
 
 
 /**
- * Error iterating over attestations. Abort.
+ * Error iterating over credentials. Abort.
  *
  * @param cls our attribute iteration handle
  */
 static void
-attest_iter_error (void *cls)
+cred_iter_error (void *cls)
 {
   struct Iterator *ai = cls;
 
-  GNUNET_log (GNUNET_ERROR_TYPE_ERROR, "Failed to iterate over attestations\n");
-  attest_iter_finished (ai);
+  GNUNET_log (GNUNET_ERROR_TYPE_ERROR, "Failed to iterate over credentials\n");
+  cred_iter_finished (ai);
 }
 
 
 /**
- * Got record. Return attestation.
+ * Got record. Return credential.
  *
  * @param cls our attribute iterator
  * @param zone zone we are iterating
@@ -1898,32 +1922,32 @@ attest_iter_error (void *cls)
  * @param rd records
  */
 static void
-attest_iter_cb (void *cls,
-                const struct GNUNET_CRYPTO_EcdsaPrivateKey *zone,
-                const char *label,
-                unsigned int rd_count,
-                const struct GNUNET_GNSRECORD_Data *rd)
+cred_iter_cb (void *cls,
+              const struct GNUNET_CRYPTO_EcdsaPrivateKey *zone,
+              const char *label,
+              unsigned int rd_count,
+              const struct GNUNET_GNSRECORD_Data *rd)
 {
   struct Iterator *ai = cls;
   struct GNUNET_MQ_Envelope *env;
-  struct AttestationResultMessage *arm;
+  struct CredentialResultMessage *arm;
   char *data_tmp;
 
   if ((rd_count != 1) ||
-      (GNUNET_GNSRECORD_TYPE_RECLAIM_ATTESTATION != rd->record_type))
+      (GNUNET_GNSRECORD_TYPE_RECLAIM_CREDENTIAL != rd->record_type))
   {
     GNUNET_NAMESTORE_zone_iterator_next (ai->ns_it, 1);
     return;
   }
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Found attestation under: %s\n",
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Found credential under: %s\n",
               label);
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "Sending ATTESTATION_RESULT message\n");
+              "Sending CREDENTIAL_RESULT message\n");
   env = GNUNET_MQ_msg_extra (arm,
                              rd->data_size,
-                             GNUNET_MESSAGE_TYPE_RECLAIM_ATTESTATION_RESULT);
+                             GNUNET_MESSAGE_TYPE_RECLAIM_CREDENTIAL_RESULT);
   arm->id = htonl (ai->request_id);
-  arm->attestation_len = htons (rd->data_size);
+  arm->credential_len = htons (rd->data_size);
   GNUNET_CRYPTO_ecdsa_key_get_public (zone, &arm->identity);
   data_tmp = (char *) &arm[1];
   GNUNET_memcpy (data_tmp, rd->data, rd->data_size);
@@ -1939,29 +1963,29 @@ attest_iter_cb (void *cls,
  * @param ais_msg the iteration message to start
  */
 static void
-handle_attestation_iteration_start (void *cls,
-                                    const struct
-                                    AttestationIterationStartMessage *ais_msg)
+handle_credential_iteration_start (void *cls,
+                                   const struct
+                                   CredentialIterationStartMessage *ais_msg)
 {
   struct IdpClient *idp = cls;
   struct Iterator *ai;
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "Received ATTESTATION_ITERATION_START message\n");
+              "Received CREDENTIAL_ITERATION_START message\n");
   ai = GNUNET_new (struct Iterator);
   ai->request_id = ntohl (ais_msg->id);
   ai->client = idp;
   ai->identity = ais_msg->identity;
 
-  GNUNET_CONTAINER_DLL_insert (idp->attest_iter_head, idp->attest_iter_tail,
+  GNUNET_CONTAINER_DLL_insert (idp->cred_iter_head, idp->cred_iter_tail,
                                ai);
   ai->ns_it = GNUNET_NAMESTORE_zone_iteration_start (nsh,
                                                      &ai->identity,
-                                                     &attest_iter_error,
+                                                     &cred_iter_error,
                                                      ai,
-                                                     &attest_iter_cb,
+                                                     &cred_iter_cb,
                                                      ai,
-                                                     &attest_iter_finished,
+                                                     &cred_iter_finished,
                                                      ai);
   GNUNET_SERVICE_client_continue (idp->client);
 }
@@ -1974,9 +1998,9 @@ handle_attestation_iteration_start (void *cls,
  * @param ais_msg the stop message
  */
 static void
-handle_attestation_iteration_stop (void *cls,
-                                   const struct
-                                   AttestationIterationStopMessage *ais_msg)
+handle_credential_iteration_stop (void *cls,
+                                  const struct
+                                  CredentialIterationStopMessage *ais_msg)
 {
   struct IdpClient *idp = cls;
   struct Iterator *ai;
@@ -1984,9 +2008,9 @@ handle_attestation_iteration_stop (void *cls,
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Received `%s' message\n",
-              "ATTESTATION_ITERATION_STOP");
+              "CREDENTIAL_ITERATION_STOP");
   rid = ntohl (ais_msg->id);
-  for (ai = idp->attest_iter_head; NULL != ai; ai = ai->next)
+  for (ai = idp->cred_iter_head; NULL != ai; ai = ai->next)
     if (ai->request_id == rid)
       break;
   if (NULL == ai)
@@ -1995,7 +2019,7 @@ handle_attestation_iteration_stop (void *cls,
     GNUNET_SERVICE_client_drop (idp->client);
     return;
   }
-  GNUNET_CONTAINER_DLL_remove (idp->attest_iter_head, idp->attest_iter_tail,
+  GNUNET_CONTAINER_DLL_remove (idp->cred_iter_head, idp->cred_iter_tail,
                                ai);
   GNUNET_free (ai);
   GNUNET_SERVICE_client_continue (idp->client);
@@ -2003,24 +2027,24 @@ handle_attestation_iteration_stop (void *cls,
 
 
 /**
- * Client requests next attestation from iterator
+ * Client requests next credential from iterator
  *
  * @param cls the client
  * @param ais_msg the message
  */
 static void
-handle_attestation_iteration_next (void *cls,
-                                   const struct
-                                   AttestationIterationNextMessage *ais_msg)
+handle_credential_iteration_next (void *cls,
+                                  const struct
+                                  CredentialIterationNextMessage *ais_msg)
 {
   struct IdpClient *idp = cls;
   struct Iterator *ai;
   uint32_t rid;
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "Received ATTESTATION_ITERATION_NEXT message\n");
+              "Received CREDENTIAL_ITERATION_NEXT message\n");
   rid = ntohl (ais_msg->id);
-  for (ai = idp->attest_iter_head; NULL != ai; ai = ai->next)
+  for (ai = idp->cred_iter_head; NULL != ai; ai = ai->next)
     if (ai->request_id == rid)
       break;
   if (NULL == ai)
@@ -2262,16 +2286,16 @@ GNUNET_SERVICE_MAIN (
                          GNUNET_MESSAGE_TYPE_RECLAIM_ATTRIBUTE_STORE,
                          struct AttributeStoreMessage,
                          NULL),
-  GNUNET_MQ_hd_var_size (attestation_store_message,
-                         GNUNET_MESSAGE_TYPE_RECLAIM_ATTESTATION_STORE,
+  GNUNET_MQ_hd_var_size (credential_store_message,
+                         GNUNET_MESSAGE_TYPE_RECLAIM_CREDENTIAL_STORE,
                          struct AttributeStoreMessage,
                          NULL),
   GNUNET_MQ_hd_var_size (attribute_delete_message,
                          GNUNET_MESSAGE_TYPE_RECLAIM_ATTRIBUTE_DELETE,
                          struct AttributeDeleteMessage,
                          NULL),
-  GNUNET_MQ_hd_var_size (attestation_delete_message,
-                         GNUNET_MESSAGE_TYPE_RECLAIM_ATTESTATION_DELETE,
+  GNUNET_MQ_hd_var_size (credential_delete_message,
+                         GNUNET_MESSAGE_TYPE_RECLAIM_CREDENTIAL_DELETE,
                          struct AttributeDeleteMessage,
                          NULL),
   GNUNET_MQ_hd_fixed_size (iteration_start,
@@ -2286,17 +2310,17 @@ GNUNET_SERVICE_MAIN (
                            GNUNET_MESSAGE_TYPE_RECLAIM_ATTRIBUTE_ITERATION_STOP,
                            struct AttributeIterationStopMessage,
                            NULL),
-  GNUNET_MQ_hd_fixed_size (attestation_iteration_start,
-                           GNUNET_MESSAGE_TYPE_RECLAIM_ATTESTATION_ITERATION_START,
-                           struct AttestationIterationStartMessage,
+  GNUNET_MQ_hd_fixed_size (credential_iteration_start,
+                           GNUNET_MESSAGE_TYPE_RECLAIM_CREDENTIAL_ITERATION_START,
+                           struct CredentialIterationStartMessage,
                            NULL),
-  GNUNET_MQ_hd_fixed_size (attestation_iteration_next,
-                           GNUNET_MESSAGE_TYPE_RECLAIM_ATTESTATION_ITERATION_NEXT,
-                           struct AttestationIterationNextMessage,
+  GNUNET_MQ_hd_fixed_size (credential_iteration_next,
+                           GNUNET_MESSAGE_TYPE_RECLAIM_CREDENTIAL_ITERATION_NEXT,
+                           struct CredentialIterationNextMessage,
                            NULL),
-  GNUNET_MQ_hd_fixed_size (attestation_iteration_stop,
-                           GNUNET_MESSAGE_TYPE_RECLAIM_ATTESTATION_ITERATION_STOP,
-                           struct AttestationIterationStopMessage,
+  GNUNET_MQ_hd_fixed_size (credential_iteration_stop,
+                           GNUNET_MESSAGE_TYPE_RECLAIM_CREDENTIAL_ITERATION_STOP,
+                           struct CredentialIterationStopMessage,
                            NULL),
 
   GNUNET_MQ_hd_var_size (issue_ticket_message,

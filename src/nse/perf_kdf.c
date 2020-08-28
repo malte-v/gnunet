@@ -34,10 +34,11 @@ perfHash ()
 {
   struct GNUNET_HashCode hc;
   char buf[64];
+  struct GNUNET_CRYPTO_PowSalt salt = { "gnunet-nse-proof" };
 
   memset (buf, 1, sizeof(buf));
   for (unsigned int i = 0; i < 1024; i++)
-    GNUNET_CRYPTO_pow_hash ("gnunet-nse-proof",
+    GNUNET_CRYPTO_pow_hash (&salt,
                             buf,
                             sizeof(buf),
                             &hc);

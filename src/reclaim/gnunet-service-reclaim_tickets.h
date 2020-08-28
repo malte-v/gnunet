@@ -113,6 +113,7 @@ typedef void (*RECLAIM_TICKETS_TicketIter) (
  *
  * @param cls closure
  * @param ticket the ticket
+ * @param presentations new presentations for ticket (NULL on error)
  * @param success #GNUNET_SYSERR on failure (including timeout/queue
  * drop/failure to validate) #GNUNET_OK on success
  * @param emsg NULL on success, otherwise an error message
@@ -120,6 +121,7 @@ typedef void (*RECLAIM_TICKETS_TicketIter) (
 typedef void (*RECLAIM_TICKETS_TicketResult) (
   void *cls,
   struct GNUNET_RECLAIM_Ticket *ticket,
+  struct GNUNET_RECLAIM_PresentationList *presentations,
   int32_t success,
   const char *emsg);
 
@@ -129,7 +131,8 @@ typedef void (*RECLAIM_TICKETS_TicketResult) (
  *
  * @param cls closure
  * @param identity the issuer of the ticket/attributes
- * @param l attribute list retrieved through ticket
+ * @param attributes attribute list retrieved through ticket
+ * @param presentations attribute presentations (may be NULL)
  * @param success GNUNET_OK on success
  * @param emsg error message (NULL on success)
  */
@@ -137,7 +140,7 @@ typedef void (*RECLAIM_TICKETS_ConsumeCallback) (
   void *cls,
   const struct GNUNET_CRYPTO_EcdsaPublicKey *identity,
   const struct GNUNET_RECLAIM_AttributeList *attributes,
-  const struct GNUNET_RECLAIM_AttestationList *attestations,
+  const struct GNUNET_RECLAIM_PresentationList *presentations,
   int32_t success,
   const char *emsg);
 

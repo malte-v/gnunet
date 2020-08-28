@@ -62,9 +62,9 @@ struct OIDC_Parameters
   uint32_t attr_list_len GNUNET_PACKED;
 
   /**
-   * The length of the attestation list
+   * The length of the presentation list
    */
-  uint32_t attest_list_len GNUNET_PACKED;
+  uint32_t pres_list_len GNUNET_PACKED;
 };
 
 GNUNET_NETWORK_STRUCT_END
@@ -156,25 +156,25 @@ fix_base64 (char *str)
 
 static json_t*
 generate_userinfo_json(const struct GNUNET_CRYPTO_EcdsaPublicKey *sub_key,
-                       struct GNUNET_RECLAIM_AttributeList *attrs,
-                       struct GNUNET_RECLAIM_AttestationList *attests)
+                       const struct GNUNET_RECLAIM_AttributeList *attrs,
+                       const struct GNUNET_RECLAIM_PresentationList *presentations)
 {
   struct GNUNET_RECLAIM_AttributeListEntry *le;
-  struct GNUNET_RECLAIM_AttestationListEntry *ale;
+  struct GNUNET_RECLAIM_PresentationListEntry *ple;
   char *subject;
   char *source_name;
   char *attr_val_str;
-  char *attest_val_str;
+  char *pres_val_str;
   json_t *body;
   json_t *aggr_names;
   json_t *aggr_sources;
   json_t *aggr_sources_jwt;
   json_t *addr_claim = NULL;
-  int num_attestations = 0;
+  int num_presentations = 0;
   for (le = attrs->list_head; NULL != le; le = le->next)
   {
-    if (GNUNET_NO == GNUNET_RECLAIM_id_is_zero (&le->attribute->attestation))
-      num_attestations++;
+    if (GNUNET_NO == GNUNET_RECLAIM_id_is_zero (&le->attribute->credential))
+      num_presentations++;
   }
 
   subject =
@@ -191,23 +191,25 @@ generate_userinfo_json(const struct GNUNET_CRYPTO_EcdsaPublicKey *sub_key,
   json_object_set_new (body, "iss", json_string (SERVER_ADDRESS));
   // sub REQUIRED public key identity, not exceed 255 ASCII  length
   json_object_set_new (body, "sub", json_string (subject));
-  attest_val_str = NULL;
+  pres_val_str = NULL;
   source_name = NULL;
   int i = 0;
-  for (ale = attests->list_head; NULL != ale; ale = ale->next)
+  for (ple = presentations->list_head; NULL != ple; ple = ple->next)
   {
-    // New Attestation
+    // New presentation
     GNUNET_asprintf (&source_name,
                      "src%d",
                      i);
     aggr_sources_jwt = json_object ();
-    attest_val_str =
-      GNUNET_RECLAIM_attestation_value_to_string (ale->attestation->type,
-                                                  ale->attestation->data,
-                                                  ale->attestation->data_size);
-    json_object_set_new (aggr_sources_jwt, "JWT",
-                         json_string (attest_val_str) );
+    pres_val_str =
+      GNUNET_RECLAIM_presentation_value_to_string (ple->presentation->type,
+                                                   ple->presentation->data,
+                                                   ple->presentation->data_size);
+    json_object_set_new (aggr_sources_jwt,
+                         GNUNET_RECLAIM_presentation_number_to_typename (ple->presentation->type),
+                         json_string (pres_val_str) );
     json_object_set_new (aggr_sources, source_name, aggr_sources_jwt);
+    GNUNET_free (pres_val_str);
     GNUNET_free (source_name);
     source_name = NULL;
     i++;
@@ -216,7 +218,7 @@ generate_userinfo_json(const struct GNUNET_CRYPTO_EcdsaPublicKey *sub_key,
   for (le = attrs->list_head; NULL != le; le = le->next)
   {
 
-    if (GNUNET_YES == GNUNET_RECLAIM_id_is_zero (&le->attribute->attestation))
+    if (GNUNET_YES == GNUNET_RECLAIM_id_is_zero (&le->attribute->credential))
     {
 
       attr_val_str =
@@ -247,18 +249,24 @@ generate_userinfo_json(const struct GNUNET_CRYPTO_EcdsaPublicKey *sub_key,
     }
     else
     {
-      // Check if attest is there
+      // Check if presentation is there
       int j = 0;
-      for (ale = attests->list_head; NULL != ale; ale = ale->next)
+      for (ple = presentations->list_head; NULL != ple; ple = ple->next)
       {
         if (GNUNET_YES ==
-            GNUNET_RECLAIM_id_is_equal (&ale->attestation->id,
-                                        &le->attribute->attestation))
+            GNUNET_RECLAIM_id_is_equal (&ple->presentation->credential_id,
+                                        &le->attribute->credential))
           break;
         j++;
       }
-      GNUNET_assert (NULL != ale);
-      // Attestation is existing, hence take the respective source str
+      if (NULL == ple)
+      {
+        GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
+                    "Presentation for `%s' missing...\n",
+                    le->attribute->name);
+        continue;
+      }
+      // Presentation exists, hence take the respective source str
       GNUNET_asprintf (&source_name,
                        "src%d",
                        j);
@@ -269,9 +277,6 @@ generate_userinfo_json(const struct GNUNET_CRYPTO_EcdsaPublicKey *sub_key,
   }
   if (NULL != addr_claim)
     json_object_set_new (body, "address", addr_claim);
-
-  if (NULL != attest_val_str)
-    GNUNET_free (attest_val_str);
   if (0 != i)
   {
     json_object_set_new (body, "_claim_names", aggr_names);
@@ -286,18 +291,18 @@ generate_userinfo_json(const struct GNUNET_CRYPTO_EcdsaPublicKey *sub_key,
  *
  * @param sub_key the subject (user)
  * @param attrs user attribute list
- * @param attests user attribute attestation list (may be empty)
+ * @param presentations credential presentation list (may be empty)
  * @return Userinfo JSON
  */
 char *
 OIDC_generate_userinfo (const struct GNUNET_CRYPTO_EcdsaPublicKey *sub_key,
-                        struct GNUNET_RECLAIM_AttributeList *attrs,
-                        struct GNUNET_RECLAIM_AttestationList *attests)
+                        const struct GNUNET_RECLAIM_AttributeList *attrs,
+                        const struct GNUNET_RECLAIM_PresentationList *presentations)
 {
   char *body_str;
   json_t* body = generate_userinfo_json (sub_key,
                                          attrs,
-                                         attests);
+                                         presentations);
   body_str = json_dumps (body, JSON_INDENT (0) | JSON_COMPACT);
   json_decref (body);
   return body_str;
@@ -310,6 +315,7 @@ OIDC_generate_userinfo (const struct GNUNET_CRYPTO_EcdsaPublicKey *sub_key,
  * @param aud_key the public of the audience
  * @param sub_key the public key of the subject
  * @param attrs the attribute list
+ * @param presentations credential presentation list (may be empty)
  * @param expiration_time the validity of the token
  * @param secret_key the key used to sign the JWT
  * @return a new base64-encoded JWT string.
@@ -317,8 +323,8 @@ OIDC_generate_userinfo (const struct GNUNET_CRYPTO_EcdsaPublicKey *sub_key,
 char *
 OIDC_generate_id_token (const struct GNUNET_CRYPTO_EcdsaPublicKey *aud_key,
                         const struct GNUNET_CRYPTO_EcdsaPublicKey *sub_key,
-                        struct GNUNET_RECLAIM_AttributeList *attrs,
-                        struct GNUNET_RECLAIM_AttestationList *attests,
+                        const struct GNUNET_RECLAIM_AttributeList *attrs,
+                        const struct GNUNET_RECLAIM_PresentationList *presentations,
                         const struct GNUNET_TIME_Relative *expiration_time,
                         const char *nonce,
                         const char *secret_key)
@@ -339,7 +345,7 @@ OIDC_generate_id_token (const struct GNUNET_CRYPTO_EcdsaPublicKey *aud_key,
 
   body = generate_userinfo_json (sub_key,
                                  attrs,
-                                 attests);
+                                 presentations);
   // iat REQUIRED time now
   time_now = GNUNET_TIME_absolute_get ();
   // exp REQUIRED time expired from config
@@ -426,6 +432,7 @@ OIDC_generate_id_token (const struct GNUNET_CRYPTO_EcdsaPublicKey *aud_key,
  * @param issuer the issuer of the ticket, used to sign the ticket and nonce
  * @param ticket the ticket to include in the code
  * @param attrs list of attributes which are shared
+ * @param presentations credential presentation list (may be empty)
  * @param nonce the nonce to include in the code
  * @param code_challenge PKCE code challenge
  * @return a new authorization code (caller must free)
@@ -433,8 +440,8 @@ OIDC_generate_id_token (const struct GNUNET_CRYPTO_EcdsaPublicKey *aud_key,
 char *
 OIDC_build_authz_code (const struct GNUNET_CRYPTO_EcdsaPrivateKey *issuer,
                        const struct GNUNET_RECLAIM_Ticket *ticket,
-                       struct GNUNET_RECLAIM_AttributeList *attrs,
-                       struct GNUNET_RECLAIM_AttestationList *attests,
+                       const struct GNUNET_RECLAIM_AttributeList *attrs,
+                       const struct GNUNET_RECLAIM_PresentationList *presentations,
                        const char *nonce_str,
                        const char *code_challenge)
 {
@@ -447,7 +454,7 @@ OIDC_build_authz_code (const struct GNUNET_CRYPTO_EcdsaPrivateKey *issuer,
   size_t payload_len;
   size_t code_payload_len;
   size_t attr_list_len = 0;
-  size_t attests_list_len = 0;
+  size_t pres_list_len = 0;
   size_t code_challenge_len = 0;
   uint32_t nonce_len = 0;
   struct GNUNET_CRYPTO_EccSignaturePurpose *purpose;
@@ -481,17 +488,17 @@ OIDC_build_authz_code (const struct GNUNET_CRYPTO_EcdsaPrivateKey *issuer,
     // Get serialized attributes
     payload_len += attr_list_len;
   }
-  if (NULL != attests)
+  if (NULL != presentations)
   {
     // Get length
-    attests_list_len =
-      GNUNET_RECLAIM_attestation_list_serialize_get_size (attests);
-    params.attest_list_len = htonl (attests_list_len);
+    pres_list_len =
+      GNUNET_RECLAIM_presentation_list_serialize_get_size (presentations);
+    params.pres_list_len = htonl (pres_list_len);
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                "Length of serialized attestations: %lu\n",
-                attests_list_len);
+                "Length of serialized presentations: %lu\n",
+                pres_list_len);
     // Get serialized attributes
-    payload_len += attests_list_len;
+    payload_len += pres_list_len;
   }
 
   // Get plaintext length
@@ -510,8 +517,8 @@ OIDC_build_authz_code (const struct GNUNET_CRYPTO_EcdsaPrivateKey *issuer,
   }
   if (0 < attr_list_len)
     GNUNET_RECLAIM_attribute_list_serialize (attrs, tmp);
-  if (0 < attests_list_len)
-    GNUNET_RECLAIM_attestation_list_serialize (attests, tmp);
+  if (0 < pres_list_len)
+    GNUNET_RECLAIM_presentation_list_serialize (presentations, tmp);
 
   /** END **/
 
@@ -564,7 +571,7 @@ OIDC_build_authz_code (const struct GNUNET_CRYPTO_EcdsaPrivateKey *issuer,
  *                     if used in request.
  * @param ticket where to store the ticket
  * @param attrs the attributes in the code
- * @param attests the attestations in the code (if any)
+ * @param presentations credential presentation list
  * @param nonce_str where to store the nonce (if contained)
  * @return GNUNET_OK if successful, else GNUNET_SYSERR
  */
@@ -574,14 +581,14 @@ OIDC_parse_authz_code (const struct GNUNET_CRYPTO_EcdsaPublicKey *audience,
                        const char *code_verifier,
                        struct GNUNET_RECLAIM_Ticket *ticket,
                        struct GNUNET_RECLAIM_AttributeList **attrs,
-                       struct GNUNET_RECLAIM_AttestationList **attests,
+                       struct GNUNET_RECLAIM_PresentationList **presentations,
                        char **nonce_str)
 {
   char *code_payload;
   char *ptr;
   char *plaintext;
   char *attrs_ser;
-  char *attests_ser;
+  char *presentations_ser;
   char *expected_code_challenge;
   char *code_challenge;
   char *code_verifier_hash;
@@ -589,7 +596,7 @@ OIDC_parse_authz_code (const struct GNUNET_CRYPTO_EcdsaPublicKey *audience,
   struct GNUNET_CRYPTO_EcdsaSignature *signature;
   uint32_t code_challenge_len;
   uint32_t attrs_ser_len;
-  uint32_t attests_ser_len;
+  uint32_t pres_ser_len;
   size_t plaintext_len;
   size_t code_payload_len;
   uint32_t nonce_len = 0;
@@ -621,6 +628,7 @@ OIDC_parse_authz_code (const struct GNUNET_CRYPTO_EcdsaPublicKey *audience,
 
   // cmp code_challenge code_verifier
   code_challenge_len = ntohl (params->code_challenge_len);
+  code_challenge = ((char *) &params[1]);
   if (0 != code_challenge_len) /* Only check if this code requires a CV */
   {
     if (NULL == code_verifier)
@@ -639,7 +647,6 @@ OIDC_parse_authz_code (const struct GNUNET_CRYPTO_EcdsaPublicKey *audience,
     // encode code verifier
     GNUNET_STRINGS_base64url_encode (code_verifier_hash, 256 / 8,
                                      &expected_code_challenge);
-    code_challenge = ((char *) &params[1]);
     GNUNET_free (code_verifier_hash);
     if (0 !=
         strncmp (expected_code_challenge, code_challenge, code_challenge_len))
@@ -692,10 +699,11 @@ OIDC_parse_authz_code (const struct GNUNET_CRYPTO_EcdsaPublicKey *audience,
   attrs_ser = ((char *) &params[1]) + code_challenge_len + nonce_len;
   attrs_ser_len = ntohl (params->attr_list_len);
   *attrs = GNUNET_RECLAIM_attribute_list_deserialize (attrs_ser, attrs_ser_len);
-  attests_ser = ((char*) attrs_ser) + attrs_ser_len;
-  attests_ser_len = ntohl (params->attest_list_len);
-  *attests = GNUNET_RECLAIM_attestation_list_deserialize (attests_ser,
-                                                          attests_ser_len);
+  presentations_ser = ((char*) attrs_ser) + attrs_ser_len;
+  pres_ser_len = ntohl (params->pres_list_len);
+  *presentations =
+    GNUNET_RECLAIM_presentation_list_deserialize (presentations_ser,
+                                                  pres_ser_len);
 
   GNUNET_free (code_payload);
   return GNUNET_OK;
@@ -769,7 +777,7 @@ OIDC_access_token_parse (const char *token,
 
 /**
  * Checks if a claim is implicitly requested through standard
- * scope(s)
+ * scope(s) or explicitly through non-standard scope.
  *
  * @param scopes the scopes which have been requested
  * @param attr the attribute name to check
@@ -832,6 +840,11 @@ OIDC_check_scopes_for_claim_request (const char*scopes,
         }
       }
 
+    } else if (0 == strcmp (attr, scope_variable))
+    {
+      /** attribute matches requested scope **/
+      GNUNET_free (scope_variables);
+      return GNUNET_YES;
     }
     scope_variable = strtok (NULL, delimiter);
   }

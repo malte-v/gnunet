@@ -43,29 +43,34 @@ static int ret;
 static int list;
 
 /**
- * List attestations flag
+ * List credentials flag
  */
-static int list_attestations;
+static int list_credentials;
 
 /**
- * Attestation ID string
+ * Credential ID string
  */
-static char *attestation_id;
+static char *credential_id;
 
 /**
- * Attestation ID
+ * Credential ID
  */
-static struct GNUNET_RECLAIM_Identifier attestation;
+static struct GNUNET_RECLAIM_Identifier credential;
 
 /**
- * Attestation name
+ * Credential name
  */
-static char *attestation_name;
+static char *credential_name;
 
 /**
- * Attestation exists
+ * Credential type
  */
-static int attestation_exists;
+static char *credential_type;
+
+/**
+ * Credential exists
+ */
+static int credential_exists;
 
 /**
  * Relying party
@@ -133,9 +138,9 @@ static struct GNUNET_RECLAIM_Operation *reclaim_op;
 static struct GNUNET_RECLAIM_AttributeIterator *attr_iterator;
 
 /**
- * Attestation iterator
+ * Credential iterator
  */
-static struct GNUNET_RECLAIM_AttestationIterator *attest_iterator;
+static struct GNUNET_RECLAIM_CredentialIterator *cred_iterator;
 
 
 /**
@@ -143,10 +148,6 @@ static struct GNUNET_RECLAIM_AttestationIterator *attest_iterator;
  */
 static struct GNUNET_RECLAIM_TicketIterator *ticket_iterator;
 
-/**
- * Master ABE key
- */
-static struct GNUNET_CRYPTO_AbeMasterKey *abe_key;
 
 /**
  * ego private key
@@ -208,25 +209,27 @@ do_cleanup (void *cls)
     GNUNET_RECLAIM_cancel (reclaim_op);
   if (NULL != attr_iterator)
     GNUNET_RECLAIM_get_attributes_stop (attr_iterator);
-  if (NULL != attest_iterator)
-    GNUNET_RECLAIM_get_attestations_stop (attest_iterator);
+  if (NULL != cred_iterator)
+    GNUNET_RECLAIM_get_credentials_stop (cred_iterator);
   if (NULL != ticket_iterator)
     GNUNET_RECLAIM_ticket_iteration_stop (ticket_iterator);
   if (NULL != reclaim_handle)
     GNUNET_RECLAIM_disconnect (reclaim_handle);
   if (NULL != identity_handle)
     GNUNET_IDENTITY_disconnect (identity_handle);
-  if (NULL != abe_key)
-    GNUNET_free (abe_key);
   if (NULL != attr_list)
     GNUNET_free (attr_list);
   if (NULL != attr_to_delete)
     GNUNET_free (attr_to_delete);
+  if (NULL == credential_type)
+    GNUNET_free (credential_type);
 }
 
 
 static void
-ticket_issue_cb (void *cls, const struct GNUNET_RECLAIM_Ticket *ticket)
+ticket_issue_cb (void *cls,
+                 const struct GNUNET_RECLAIM_Ticket *ticket,
+                 const struct GNUNET_RECLAIM_PresentationList *presentations)
 {
   char *ticket_str;
 
@@ -260,7 +263,7 @@ static void
 process_attrs (void *cls,
                const struct GNUNET_CRYPTO_EcdsaPublicKey *identity,
                const struct GNUNET_RECLAIM_Attribute *attr,
-               const struct GNUNET_RECLAIM_Attestation *attest)
+               const struct GNUNET_RECLAIM_Presentation *presentation)
 {
   char *value_str;
   char *id;
@@ -280,7 +283,7 @@ process_attrs (void *cls,
   attr_type = GNUNET_RECLAIM_attribute_number_to_typename (attr->type);
   id = GNUNET_STRINGS_data_to_string_alloc (&attr->id, sizeof(attr->id));
   value_str = NULL;
-  if (NULL == attest)
+  if (NULL == presentation)
   {
     value_str = GNUNET_RECLAIM_attribute_value_to_string (attr->type,
                                                           attr->data,
@@ -290,7 +293,7 @@ process_attrs (void *cls,
   {
     struct GNUNET_RECLAIM_AttributeListEntry *ale;
     struct GNUNET_RECLAIM_AttributeList *al
-      = GNUNET_RECLAIM_attestation_get_attributes (attest);
+      = GNUNET_RECLAIM_presentation_get_attributes (presentation);
 
     for (ale = al->list_head; NULL != ale; ale = ale->next)
     {
@@ -298,10 +301,8 @@ process_attrs (void *cls,
         continue;
       value_str
         = GNUNET_RECLAIM_attribute_value_to_string (ale->attribute->type,
-                                                    ale->attribute->
-                                                    data,
-                                                    ale->attribute->
-                                                    data_size);
+                                                    ale->attribute->data,
+                                                    ale->attribute->data_size);
       break;
     }
   }
@@ -312,7 +313,7 @@ process_attrs (void *cls,
            attr_type,
            attr->flag,
            id,
-           (NULL == attest) ? "" : "(ATTESTED)");
+           (NULL == presentation) ? "" : "(ATTESTED)");
   GNUNET_free (value_str);
   GNUNET_free (id);
 }
@@ -362,7 +363,7 @@ static void
 iter_error (void *cls)
 {
   attr_iterator = NULL;
-  attest_iterator = NULL;
+  cred_iterator = NULL;
   fprintf (stderr, "Failed\n");
 
   cleanup_task = GNUNET_SCHEDULER_add_now (&do_cleanup, NULL);
@@ -457,6 +458,7 @@ iter_finished (void *cls)
     if (NULL == attr_to_delete)
     {
       fprintf (stdout, "No such attribute ``%s''\n", attr_delete);
+      GNUNET_SCHEDULER_add_now (&do_cleanup, NULL);
       return;
     }
     reclaim_op = GNUNET_RECLAIM_attribute_delete (reclaim_handle,
@@ -489,9 +491,9 @@ iter_finished (void *cls)
       claim =
         GNUNET_RECLAIM_attribute_new (attr_name, NULL, type, data, data_size);
     }
-    if (NULL != attestation_id)
+    if (NULL != credential_id)
     {
-      claim->attestation = attestation;
+      claim->credential = credential;
     }
     reclaim_op = GNUNET_RECLAIM_attribute_store (reclaim_handle,
                                                  pkey,
@@ -524,7 +526,7 @@ iter_cb (void *cls,
     if (0 == strcasecmp (attr_name, attr->name))
     {
       claim = GNUNET_RECLAIM_attribute_new (attr->name,
-                                            &attr->attestation,
+                                            &attr->credential,
                                             attr->type,
                                             attr->data,
                                             attr->data_size);
@@ -543,7 +545,7 @@ iter_cb (void *cls,
       }
       le = GNUNET_new (struct GNUNET_RECLAIM_AttributeListEntry);
       le->attribute = GNUNET_RECLAIM_attribute_new (attr->name,
-                                                    &attr->attestation,
+                                                    &attr->credential,
                                                     attr->type,
                                                     attr->data,
                                                     attr->data_size);
@@ -562,7 +564,7 @@ iter_cb (void *cls,
     if (0 == strcasecmp (attr_delete, label))
     {
       attr_to_delete = GNUNET_RECLAIM_attribute_new (attr->name,
-                                                     &attr->attestation,
+                                                     &attr->credential,
                                                      attr->type,
                                                      attr->data,
                                                      attr->data_size);
@@ -577,7 +579,7 @@ iter_cb (void *cls,
                                                          attr->data_size);
     attr_type = GNUNET_RECLAIM_attribute_number_to_typename (attr->type);
     id = GNUNET_STRINGS_data_to_string_alloc (&attr->id, sizeof(attr->id));
-    if (GNUNET_YES == GNUNET_RECLAIM_id_is_zero (&attr->attestation))
+    if (GNUNET_YES == GNUNET_RECLAIM_id_is_zero (&attr->credential))
     {
       fprintf (stdout,
                "%s: ``%s'' (%s); ID: %s\n",
@@ -588,17 +590,17 @@ iter_cb (void *cls,
     }
     else
     {
-      char *attest_id =
-        GNUNET_STRINGS_data_to_string_alloc (&attr->attestation,
-                                             sizeof(attr->attestation));
+      char *cred_id =
+        GNUNET_STRINGS_data_to_string_alloc (&attr->credential,
+                                             sizeof(attr->credential));
       fprintf (stdout,
-               "%s: <``%s'' in attestation %s> (%s); ID: %s\n",
+               "%s: ``%s'' in credential presentation `%s' (%s); ID: %s\n",
                attr->name,
                attr_str,
-               attest_id,
+               cred_id,
                attr_type,
                id);
-      GNUNET_free (attest_id);
+      GNUNET_free (cred_id);
 
     }
     GNUNET_free (id);
@@ -608,29 +610,31 @@ iter_cb (void *cls,
 
 
 static void
-attest_iter_finished (void *cls)
+cred_iter_finished (void *cls)
 {
-  attest_iterator = NULL;
+  cred_iterator = NULL;
 
-  // Add new attestation
-  if ((NULL != attestation_name) &&
+  // Add new credential
+  if ((NULL != credential_name) &&
       (NULL != attr_value))
   {
-    struct GNUNET_RECLAIM_Attestation *attestation =
-      GNUNET_RECLAIM_attestation_new (attestation_name,
-                                      GNUNET_RECLAIM_ATTESTATION_TYPE_JWT, // FIXME hardcoded
-                                      attr_value,
-                                      strlen (attr_value));
-    reclaim_op = GNUNET_RECLAIM_attestation_store (reclaim_handle,
-                                                   pkey,
-                                                   attestation,
-                                                   &exp_interval,
-                                                   store_cont,
-                                                   NULL);
+    enum GNUNET_RECLAIM_CredentialType ctype =
+      GNUNET_RECLAIM_credential_typename_to_number (credential_type);
+    struct GNUNET_RECLAIM_Credential *credential =
+      GNUNET_RECLAIM_credential_new (credential_name,
+                                     ctype,
+                                     attr_value,
+                                     strlen (attr_value));
+    reclaim_op = GNUNET_RECLAIM_credential_store (reclaim_handle,
+                                                  pkey,
+                                                  credential,
+                                                  &exp_interval,
+                                                  store_cont,
+                                                  NULL);
     return;
 
   }
-  if (list_attestations)
+  if (list_credentials)
   {
     cleanup_task = GNUNET_SCHEDULER_add_now (&do_cleanup, NULL);
     return;
@@ -648,34 +652,34 @@ attest_iter_finished (void *cls)
 
 
 static void
-attest_iter_cb (void *cls,
-                const struct GNUNET_CRYPTO_EcdsaPublicKey *identity,
-                const struct GNUNET_RECLAIM_Attestation *attest)
+cred_iter_cb (void *cls,
+              const struct GNUNET_CRYPTO_EcdsaPublicKey *identity,
+              const struct GNUNET_RECLAIM_Credential *cred)
 {
-  char *attest_str;
+  char *cred_str;
   char *attr_str;
   char *id;
-  const char *attest_type;
+  const char *cred_type;
   struct GNUNET_RECLAIM_AttributeListEntry *ale;
 
-  if (GNUNET_YES == GNUNET_RECLAIM_id_is_equal (&attestation,
-                                                &attest->id))
-    attestation_exists = GNUNET_YES;
-  if (list_attestations)
+  if (GNUNET_YES == GNUNET_RECLAIM_id_is_equal (&credential,
+                                                &cred->id))
+    credential_exists = GNUNET_YES;
+  if (list_credentials)
   {
-    attest_str = GNUNET_RECLAIM_attestation_value_to_string (attest->type,
-                                                             attest->data,
-                                                             attest->data_size);
-    attest_type = GNUNET_RECLAIM_attestation_number_to_typename (attest->type);
-    id = GNUNET_STRINGS_data_to_string_alloc (&attest->id, sizeof(attest->id));
+    cred_str = GNUNET_RECLAIM_credential_value_to_string (cred->type,
+                                                          cred->data,
+                                                          cred->data_size);
+    cred_type = GNUNET_RECLAIM_credential_number_to_typename (cred->type);
+    id = GNUNET_STRINGS_data_to_string_alloc (&cred->id, sizeof(cred->id));
     fprintf (stdout,
              "%s: ``%s'' (%s); ID: %s\n",
-             attest->name,
-             attest_str,
-             attest_type,
+             cred->name,
+             cred_str,
+             cred_type,
              id);
     struct GNUNET_RECLAIM_AttributeList *attrs =
-      GNUNET_RECLAIM_attestation_get_attributes (attest);
+      GNUNET_RECLAIM_credential_get_attributes (cred);
     if (NULL != attrs)
     {
       fprintf (stdout,
@@ -684,11 +688,8 @@ attest_iter_cb (void *cls,
       {
         attr_str = GNUNET_RECLAIM_attribute_value_to_string (
           ale->attribute->type,
-          ale->attribute->
-          data,
-          ale->attribute->
-          data_size);
-
+          ale->attribute->data,
+          ale->attribute->data_size);
         fprintf (stdout,
                  "\t %s: %s\n", ale->attribute->name, attr_str);
         GNUNET_free (attr_str);
@@ -697,7 +698,7 @@ attest_iter_cb (void *cls,
     }
     GNUNET_free (id);
   }
-  GNUNET_RECLAIM_get_attestations_next (attest_iterator);
+  GNUNET_RECLAIM_get_credentials_next (cred_iterator);
 }
 
 
@@ -710,12 +711,14 @@ start_process ()
     cleanup_task = GNUNET_SCHEDULER_add_now (&do_cleanup, NULL);
     return;
   }
-  attestation = GNUNET_RECLAIM_ID_ZERO;
-  if (NULL != attestation_id)
-    GNUNET_STRINGS_string_to_data (attestation_id,
-                                   strlen (attestation_id),
-                                   &attestation, sizeof(attestation));
-  attestation_exists = GNUNET_NO;
+  if (NULL == credential_type)
+    credential_type = GNUNET_strdup ("JWT");
+  credential = GNUNET_RECLAIM_ID_ZERO;
+  if (NULL != credential_id)
+    GNUNET_STRINGS_string_to_data (credential_id,
+                                   strlen (credential_id),
+                                   &credential, sizeof(credential));
+  credential_exists = GNUNET_NO;
   if (list_tickets)
   {
     ticket_iterator = GNUNET_RECLAIM_ticket_iteration_start (reclaim_handle,
@@ -750,15 +753,14 @@ start_process ()
 
   attr_list = GNUNET_new (struct GNUNET_RECLAIM_AttributeList);
   claim = NULL;
-  attest_iterator = GNUNET_RECLAIM_get_attestations_start (reclaim_handle,
-                                                           pkey,
-                                                           &iter_error,
-                                                           NULL,
-                                                           &attest_iter_cb,
-                                                           NULL,
-                                                           &
-                                                           attest_iter_finished,
-                                                           NULL);
+  cred_iterator = GNUNET_RECLAIM_get_credentials_start (reclaim_handle,
+                                                        pkey,
+                                                        &iter_error,
+                                                        NULL,
+                                                        &cred_iter_cb,
+                                                        NULL,
+                                                        &cred_iter_finished,
+                                                        NULL);
 
 }
 
@@ -856,20 +858,20 @@ main (int argc, char *const argv[])
                                gettext_noop ("List attributes for EGO"),
                                &list),
     GNUNET_GETOPT_option_flag ('A',
-                               "attestations",
-                               gettext_noop ("List attestations for EGO"),
-                               &list_attestations),
+                               "credentials",
+                               gettext_noop ("List credentials for EGO"),
+                               &list_credentials),
     GNUNET_GETOPT_option_string ('I',
-                                 "Attestation ID",
-                                 "ATTESTATION_ID",
+                                 "Credential ID",
+                                 "CREDENTIAL_ID",
                                  gettext_noop (
-                                   "Attestation to use for attribute"),
-                                 &attestation_id),
+                                   "Credential to use for attribute"),
+                                 &credential_id),
     GNUNET_GETOPT_option_string ('N',
-                                 "attestation-name",
+                                 "credential-name",
                                  "NAME",
-                                 gettext_noop ("Attestation name"),
-                                 &attestation_name),
+                                 gettext_noop ("Credential name"),
+                                 &credential_name),
     GNUNET_GETOPT_option_string ('i',
                                  "issue",
                                  "A1,A2,...",
@@ -891,6 +893,11 @@ main (int argc, char *const argv[])
                                  "TYPE",
                                  gettext_noop ("Type of attribute"),
                                  &type_str),
+    GNUNET_GETOPT_option_string ('u',
+                                 "credential-type",
+                                 "TYPE",
+                                 gettext_noop ("Type of credential"),
+                                 &credential_type),
     GNUNET_GETOPT_option_flag ('T',
                                "tickets",
                                gettext_noop ("List tickets of ego"),
