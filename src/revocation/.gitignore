@@ -2,3 +2,4 @@ gnunet-service-revocation
 gnunet-revocation
 test_revocation
 test_local_revocation.py
+gnunet-revocation-tvg
