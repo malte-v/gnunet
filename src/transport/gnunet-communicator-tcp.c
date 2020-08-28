@@ -836,6 +836,11 @@ static struct GNUNET_PEERSTORE_Handle *peerstore;
 int shutdown_running = GNUNET_NO;
 
 /**
+ * The port the communicator should be assigned to.
+ */
+unsigned int bind_port;
+
+/**
  * We have been notified that our listen socket has something to
  * read. Do the read and reschedule this function to be called again
  * once more is available.
@@ -856,7 +861,6 @@ listen_cb (void *cls);
 static void
 queue_destroy (struct Queue *queue)
 {
-  struct GNUNET_MQ_Handle *mq;
   struct ListenTask *lt;
   lt = GNUNET_new (struct ListenTask);
   lt->listen_sock = queue->listen_sock;
@@ -1432,7 +1436,7 @@ try_handle_plaintext (struct Queue *queue)
   if ((-1 != unverified_size) && (unverified_size > INITIAL_CORE_KX_SIZE))
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                "Already received data of size %u bigger than KX size %u!\n",
+                "Already received data of size %lu bigger than KX size %lu!\n",
                 unverified_size,
                 INITIAL_CORE_KX_SIZE);
     GNUNET_break_op (0);
@@ -1709,6 +1713,8 @@ tcp_address_to_sockaddr_numeric_v6 (socklen_t *sock_len, struct sockaddr_in6 v6,
 #if HAVE_SOCKADDR_IN_SIN_LEN
   v6.sin6_len = sizeof(sizeof(struct sockaddr_in6));
 #endif
+  v6.sin6_flowinfo = 0;
+  v6.sin6_scope_id = 0;
   in = GNUNET_memdup (&v6, sizeof(v6));
   *sock_len = sizeof(struct sockaddr_in6);
 
@@ -1976,6 +1982,8 @@ tcp_address_to_sockaddr (const char *bindto, socklen_t *sock_len)
     // colon = strrchr (cp, ':');
     port = extract_port (bindto);
     in = tcp_address_to_sockaddr_numeric_v6 (sock_len, v6, port);
+  }else{
+    GNUNET_assert (0);
   }
 
   // GNUNET_free (start);
@@ -2826,7 +2834,7 @@ mq_init (void *cls, const struct GNUNET_PeerIdentity *peer, const char *address)
   struct Queue *queue;
   const char *path;
   struct sockaddr *in;
-  socklen_t in_len;
+  socklen_t in_len = 0;
   struct GNUNET_NETWORK_Handle *sock;
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
@@ -3030,6 +3038,10 @@ nat_address_cb (void *cls,
   char *my_addr;
   struct GNUNET_TRANSPORT_AddressIdentifier *ai;
 
+      GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                  "nat address cb %s\n",
+                  GNUNET_a2s (addr, addrlen));
+
   if (GNUNET_YES == add_remove)
   {
     enum GNUNET_NetworkType nt;
@@ -3056,6 +3068,35 @@ nat_address_cb (void *cls,
 }
 
 /**
+ * This method adds addresses to the DLL, that are later register at the NAT service.
+ */
+static void
+add_addr (struct sockaddr *in, socklen_t in_len)
+{
+
+  struct Addresses *saddrs;
+
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "add address %s\n",
+              GNUNET_a2s (in, in_len));
+
+  saddrs = GNUNET_new (struct Addresses);
+  saddrs->addr = in;
+  saddrs->addr_len = in_len;
+  GNUNET_CONTAINER_DLL_insert (addrs_head, addrs_tail, saddrs);
+
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "after add address %s\n",
+              GNUNET_a2s (in, in_len));
+
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "add address %s\n",
+              GNUNET_a2s (saddrs->addr, saddrs->addr_len));
+  
+  addrs_lens++;
+}
+
+/**
  * This method launch network interactions for each address we like to bind to.
  *
  * @param addr The address we will listen to.
@@ -3063,7 +3104,7 @@ nat_address_cb (void *cls,
  * @return GNUNET_SYSERR in case of error. GNUNET_OK in case we are successfully listen to the address.
  */
 static int
-init_socket (const struct sockaddr *addr,
+init_socket (struct sockaddr *addr,
              socklen_t in_len)
 {
   struct sockaddr_storage in_sto;
@@ -3178,6 +3219,7 @@ init_socket (const struct sockaddr *addr,
     return GNUNET_SYSERR;
   }
 
+  add_addr (addr, in_len);
   return GNUNET_OK;
 
 }
@@ -3194,6 +3236,10 @@ nat_register ()
   int i;
   struct Addresses *pos;
 
+
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "starting nat register!\n");
+
   i = 0;
   saddrs = GNUNET_malloc ((addrs_lens + 1) * sizeof(struct sockaddr *));
 
@@ -3201,6 +3247,10 @@ nat_register ()
 
   for (pos = addrs_head; NULL != pos; pos = pos->next)
   {
+
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "registering address %s\n",
+                GNUNET_a2s (addrs_head->addr, addrs_head->addr_len));
 
     saddr_lens[i] = addrs_head->addr_len;
     saddrs[i] = GNUNET_memdup (addrs_head->addr, saddr_lens[i]);
@@ -3236,22 +3286,6 @@ nat_register ()
 }
 
 /**
- * This method adds addresses to the DLL, that are later register at the NAT service.
- */
-static void
-add_addr (struct sockaddr *in, socklen_t in_len)
-{
-
-  struct Addresses *saddrs;
-
-  saddrs = GNUNET_new (struct Addresses);
-  saddrs->addr = in;
-  saddrs->addr_len = in_len;
-  GNUNET_CONTAINER_DLL_insert (addrs_head, addrs_tail, saddrs);
-  addrs_lens++;
-}
-
-/**
  * This method is the callback called by the resolver API, and wraps method init_socket.
  *
  * @param cls The port we will bind to.
@@ -3266,22 +3300,19 @@ init_socket_resolv (void *cls,
   struct sockaddr_in *v4;
   struct sockaddr_in6 *v6;
   struct sockaddr *in;
-  unsigned int *port;
 
-  port = cls;
+  (void) cls;
   if (NULL  != addr)
   {
     if (AF_INET == addr->sa_family)
     {
       v4 = (struct sockaddr_in *) addr;
-      in = tcp_address_to_sockaddr_numeric_v4 (&in_len, *v4, *port);// _global);
-      add_addr (in, in_len);
+      in = tcp_address_to_sockaddr_numeric_v4 (&in_len, *v4, bind_port);// _global);
     }
     else if (AF_INET6 == addr->sa_family)
     {
       v6 = (struct sockaddr_in6 *) addr;
-      in = tcp_address_to_sockaddr_numeric_v6 (&in_len, *v6, *port);// _global);
-      add_addr (in, in_len);
+      in = tcp_address_to_sockaddr_numeric_v6 (&in_len, *v6, bind_port);// _global);
     }
     else
     {
@@ -3292,13 +3323,17 @@ init_socket_resolv (void *cls,
                   AF_INET6);
       return;
     }
-    init_socket (in,
-                 in_len);
+    init_socket (in, in_len);
   }
   else
   {
     GNUNET_log (GNUNET_ERROR_TYPE_INFO,
                 "Address is NULL. This might be an error or the resolver finished resolving.\n");
+    if (NULL == addrs_head){
+      GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
+                "Resolver finished resolving, but we do not listen to an address!.\n");
+      return;
+    }
     nat_register ();
   }
 }
@@ -3364,9 +3399,9 @@ run (void *cls,
     return;
   }
 
-  if (1 == sscanf (bindto, "%u%1s", &port, dummy))
+  if (1 == sscanf (bindto, "%u%1s", &bind_port, dummy))
   {
-    po = tcp_address_to_sockaddr_port_only (bindto, &port);
+    po = tcp_address_to_sockaddr_port_only (bindto, &bind_port);
 
     addr_len_ipv4 = po->addr_len_ipv4;
 
@@ -3378,14 +3413,12 @@ run (void *cls,
     if (NULL != po->addr_ipv4)
     {
       init_socket (po->addr_ipv4, addr_len_ipv4);
-      add_addr (po->addr_ipv4, addr_len_ipv4);
     }
 
     if (NULL != po->addr_ipv6)
     {
       addr_len_ipv6 = po->addr_len_ipv6;
       init_socket (po->addr_ipv6, addr_len_ipv6);
-      add_addr (po->addr_ipv6, addr_len_ipv6);
     }
 
     GNUNET_free (po);
@@ -3399,11 +3432,10 @@ run (void *cls,
 
   if (1 == inet_pton (AF_INET, start, &v4.sin_addr))
   {
-    port = extract_port (bindto);
+    bind_port = extract_port (bindto);
 
-    in = tcp_address_to_sockaddr_numeric_v4 (&in_len, v4, port);
+    in = tcp_address_to_sockaddr_numeric_v4 (&in_len, v4, bind_port);
     init_socket (in, in_len);
-    add_addr (in, in_len);
     nat_register ();
     GNUNET_free (bindto);
     return;
@@ -3411,17 +3443,16 @@ run (void *cls,
 
   if (1 == inet_pton (AF_INET6, start, &v6.sin6_addr))
   {
-    port = extract_port (bindto);
-    in = tcp_address_to_sockaddr_numeric_v6 (&in_len, v6, port);
+    bind_port = extract_port (bindto);
+    in = tcp_address_to_sockaddr_numeric_v6 (&in_len, v6, bind_port);
     init_socket (in, in_len);
-    add_addr (in, in_len);
     nat_register ();
     GNUNET_free (bindto);
     return;
   }
 
 
-  port = extract_port (bindto);
+  bind_port = extract_port (bindto);
 
   resolve_request_handle = GNUNET_RESOLVER_ip_get (strtok_r (bindto, ":",
                                                              &rest),
