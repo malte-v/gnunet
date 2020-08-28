@@ -272,12 +272,12 @@ src/reclaim/gnunet-service-reclaim_tickets.c
 src/reclaim/json_reclaim.c
 src/reclaim/oidc_helper.c
 src/reclaim/plugin_gnsrecord_reclaim.c
-src/reclaim/plugin_reclaim_attestation_jwt.c
+src/reclaim/plugin_reclaim_credential_jwt.c
 src/reclaim/plugin_reclaim_attribute_basic.c
 src/reclaim/plugin_rest_openid_connect.c
 src/reclaim/plugin_rest_reclaim.c
 src/reclaim/reclaim_api.c
-src/reclaim/reclaim_attestation.c
+src/reclaim/reclaim_credential.c
 src/reclaim/reclaim_attribute.c
 src/regex/gnunet-daemon-regexprofiler.c
 src/regex/gnunet-regex-profiler.c
