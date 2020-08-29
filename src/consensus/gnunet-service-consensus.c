@@ -1244,8 +1244,8 @@ struct Evilness
 
 
 static int
-parse_evilness_cram_subtype (const char *evil_subtype_str, struct
-                             Evilness *evil)
+parse_evilness_cram_subtype (const char *evil_subtype_str,
+                             struct Evilness *evil)
 {
   if (0 == strcmp ("replace", evil_subtype_str))
   {
@@ -2245,11 +2245,8 @@ task_start_reconcile (struct TaskEntry *task)
                 "P%u: Looking up set {%s} to run remote union\n",
                 session->local_peer_idx,
                 debug_str_set_key (&setop->input_set));
-
     rcm.header.type = htons (GNUNET_MESSAGE_TYPE_CONSENSUS_P2P_ROUND_CONTEXT);
-    rcm.header.size = htons (sizeof(struct
-                                    GNUNET_CONSENSUS_RoundContextMessage));
-
+    rcm.header.size = htons (sizeof(rcm));
     rcm.kind = htons (task->key.kind);
     rcm.peer1 = htons (task->key.peer1);
     rcm.peer2 = htons (task->key.peer2);
@@ -2260,8 +2257,9 @@ task_start_reconcile (struct TaskEntry *task)
     GNUNET_assert (NULL == setop->op);
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                 "P%u: initiating set op with P%u, our set is %s\n",
-                session->local_peer_idx, task->key.peer2, debug_str_set_key (
-                  &setop->input_set));
+                session->local_peer_idx,
+                task->key.peer2,
+                debug_str_set_key (&setop->input_set));
 
     struct GNUNET_SET_Option opts[] = {
       { GNUNET_SET_OPTION_BYZANTINE, { .num = session->lower_bound } },
@@ -2744,7 +2742,6 @@ put_task (struct GNUNET_CONTAINER_MultiHashMap *taskmap,
   struct Step *s;
 
   GNUNET_assert (NULL != t->step);
-
   t = GNUNET_memdup (t, sizeof(struct TaskEntry));
   s = t->step;
   if (s->tasks_len == s->tasks_cap)
@@ -2765,9 +2762,13 @@ put_task (struct GNUNET_CONTAINER_MultiHashMap *taskmap,
   s->tasks[s->tasks_len] = t;
   s->tasks_len++;
 
-  GNUNET_CRYPTO_hash (&t->key, sizeof(struct TaskKey), &round_hash);
+  GNUNET_CRYPTO_hash (&t->key,
+                      sizeof(struct TaskKey),
+                      &round_hash);
   GNUNET_assert (GNUNET_OK ==
-                 GNUNET_CONTAINER_multihashmap_put (taskmap, &round_hash, t,
+                 GNUNET_CONTAINER_multihashmap_put (taskmap,
+                                                    &round_hash,
+                                                    t,
                                                     GNUNET_CONTAINER_MULTIHASHMAPOPTION_UNIQUE_ONLY));
 }
 
