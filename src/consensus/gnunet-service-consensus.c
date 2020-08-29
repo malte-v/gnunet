@@ -17,13 +17,11 @@
 
      SPDX-License-Identifier: AGPL3.0-or-later
  */
-
 /**
  * @file consensus/gnunet-service-consensus.c
  * @brief multi-peer set reconciliation
  * @author Florian Dold <flo@dold.me>
  */
-
 #include "platform.h"
 #include "gnunet_util_lib.h"
 #include "gnunet_block_lib.h"
@@ -1012,7 +1010,8 @@ set_result_cb (void *cls,
 
   if (SET_KIND_NONE != setop->output_set.set_kind)
   {
-    output_set = lookup_set (session, &setop->output_set);
+    output_set = lookup_set (session,
+                             &setop->output_set);
     GNUNET_assert (NULL != output_set);
   }
 
@@ -2194,7 +2193,9 @@ task_start_reconcile (struct TaskEntry *task)
        we clone the input set. */
     if (NULL == lookup_set (session, &setop->output_set))
     {
-      create_set_copy_for_task (task, &setop->input_set, &setop->output_set);
+      create_set_copy_for_task (task,
+                                &setop->input_set,
+                                &setop->output_set);
       return;
     }
   }
@@ -2318,7 +2319,9 @@ task_start_eval_echo (struct TaskEntry *task)
   output_set = lookup_set (session, &sk_out);
   if (NULL == output_set)
   {
-    create_set_copy_for_task (task, &sk_in, &sk_out);
+    create_set_copy_for_task (task,
+                              &sk_in,
+                              &sk_out);
     return;
   }
 
@@ -2326,6 +2329,7 @@ task_start_eval_echo (struct TaskEntry *task)
     // FIXME: should be marked as a shallow copy, so
     // we can destroy everything correctly
     struct SetEntry *last_set = GNUNET_new (struct SetEntry);
+
     last_set->h = output_set->h;
     last_set->key = (struct SetKey) { SET_KIND_LAST_GRADECAST };
     put_set (session, last_set);
@@ -2719,7 +2723,7 @@ set_listen_cb (void *cls,
   task->cls.setop.op = GNUNET_SET_accept (request,
                                           GNUNET_SET_RESULT_SYMMETRIC,
                                           opts,
-                                          set_result_cb,
+                                          &set_result_cb,
                                           task);
 
   /* If the task hasn't been started yet,
