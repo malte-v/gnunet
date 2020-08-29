@@ -848,7 +848,8 @@ diff_insert (struct DiffEntry *diff,
     di->element = GNUNET_SET_element_dup (element);
     GNUNET_assert (GNUNET_OK ==
                    GNUNET_CONTAINER_multihashmap_put (diff->changes,
-                                                      &hash, di,
+                                                      &hash,
+                                                      di,
                                                       GNUNET_CONTAINER_MULTIHASHMAPOPTION_UNIQUE_FAST));
   }
 
@@ -1396,6 +1397,7 @@ commit_set (struct ConsensusSession *session,
   {
     struct GNUNET_SET_Element element;
     struct ConsensusElement ce = { 0 };
+
     ce.marker = CONSENSUS_MARKER_CONTESTED;
     element.data = &ce;
     element.size = sizeof(struct ConsensusElement);
@@ -3329,13 +3331,6 @@ handle_client_join (void *cls,
 }
 
 
-static void
-client_insert_done (void *cls)
-{
-  // FIXME: implement
-}
-
-
 /**
  * Called when a client performs an insert operation.
  *
@@ -3400,8 +3395,8 @@ handle_client_insert (void *cls,
 
     GNUNET_SET_add_element (initial_set,
                             &element,
-                            &client_insert_done,
-                            session);
+                            NULL,
+                            NULL);
 #ifdef GNUNET_EXTRA_LOGGING
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                 "P%u: element %s added\n",
