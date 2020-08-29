@@ -94,7 +94,7 @@ GNUNET_CRYPTO_hash_to_enc (const struct GNUNET_HashCode *block,
  * @param result where to store the hash code
  * @return #GNUNET_OK on success, #GNUNET_SYSERR if result has the wrong encoding
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_CRYPTO_hash_from_string2 (const char *enc,
                                  size_t enclen,
                                  struct GNUNET_HashCode *result)
