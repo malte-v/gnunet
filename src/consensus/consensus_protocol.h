@@ -124,6 +124,7 @@ struct ConsensusSizeElement
   uint8_t sender_index;
 };
 
+
 struct ConsensusStuffedElement
 {
   struct ConsensusElement ce;
