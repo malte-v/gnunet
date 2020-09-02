@@ -1,3 +1,7 @@
 #!/bin/bash
 
-echo "Skipped"
+# echo "Skipped"
+
+pushd src/transport
+make check TESTS='test_communicator_basic-tcp'
+popd
