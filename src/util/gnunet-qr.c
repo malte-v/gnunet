@@ -36,7 +36,7 @@
 /**
  * Video device to capture from. Sane default for GNU/Linux systems.
  */
-static char *device = "/dev/video0";
+static char *device;
 
 /**
  * --verbose option
@@ -51,7 +51,7 @@ static int silent = false;
 /**
  * Handler exit code
  */
-static long unsigned int exit_code = 1;
+static long unsigned int exit_code = 0;
 
 /**
  * Helper process we started.
@@ -228,6 +228,8 @@ get_symbol (zbar_processor_t *proc)
   }
 
   /* initialize the Processor */
+  if (NULL == device)
+    device = GNUNET_strdup ("/dev/video0");
   if (0 != (rc = zbar_processor_init (proc, device, 1)))
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
@@ -306,6 +308,7 @@ run_zbar ()
   ret = GNUNET_strdup (data);
   /* clean up */
   zbar_processor_destroy (proc);
+  GNUNET_free (device);
   return ret;
 }
 
