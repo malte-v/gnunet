@@ -862,7 +862,7 @@ main (int argc, char *const argv[])
                                gettext_noop ("List credentials for EGO"),
                                &list_credentials),
     GNUNET_GETOPT_option_string ('I',
-                                 "Credential ID",
+                                 "credential-id",
                                  "CREDENTIAL_ID",
                                  gettext_noop (
                                    "Credential to use for attribute"),
