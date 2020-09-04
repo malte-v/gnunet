@@ -96,7 +96,7 @@ These are the direct dependencies for running GNUnet:
 - which                             (contrib/apparmor(?), gnunet-bugreport,
                                      and possibly more)
 - zlib
-- libsodium          >= 1.0.11      (for elliptic curve cryptography)
+- libsodium          >= 1.0.17      (for elliptic curve cryptography)
 
 These are the dependencies for GNUnet's testsuite:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
