@@ -1081,7 +1081,6 @@ GNUNET_TRANSPORT_communicator_address_add (
   return ai;
 }
 
-
 /**
  * Notify transport service about an address that this communicator no
  * longer provides for this peer.
@@ -1098,6 +1097,20 @@ GNUNET_TRANSPORT_communicator_address_remove (
   GNUNET_CONTAINER_DLL_remove (ch->ai_head, ch->ai_tail, ai);
   GNUNET_free (ai->address);
   GNUNET_free (ai);
+}
+
+/**
+ * Notify transport service that this communicator no longer provides all its addresses for this peer.
+ *
+ * @param ch The communicator handle.
+ */
+void
+GNUNET_TRANSPORT_communicator_address_remove_all (
+                                              struct GNUNET_TRANSPORT_CommunicatorHandle *ch)
+{
+  for (struct GNUNET_TRANSPORT_AddressIdentifier *ai = ch->ai_head; NULL != ai;
+       ai = ai->next)
+    GNUNET_TRANSPORT_communicator_address_remove (ai);
 }
 
 

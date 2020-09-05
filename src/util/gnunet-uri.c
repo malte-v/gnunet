@@ -29,7 +29,7 @@
 /**
  * Handler exit code
  */
-static long unsigned int exit_code = 1;
+static long unsigned int exit_code = 0;
 
 /**
  * Helper process we started.
