@@ -37,7 +37,7 @@ gnunet_seti_profiler_LDADD = \
 
 gnunet_service_seti_SOURCES = \
  gnunet-service-seti.c \
- gnunet-service-set_protocol.h
+ gnunet-service-seti_protocol.h
 gnunet_service_seti_LDADD = \
   $(top_builddir)/src/util/libgnunetutil.la \
   $(top_builddir)/src/statistics/libgnunetstatistics.la \

@@ -177,6 +177,8 @@ jwt_parse_attributes (void *cls,
   json_object_foreach (json_val, key, value) {
     if (0 == strcmp ("iss", key))
       continue;
+    if (0 == strcmp ("jti", key))
+      continue;
     if (0 == strcmp ("exp", key))
       continue;
     if (0 == strcmp ("iat", key))

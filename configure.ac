@@ -21,7 +21,7 @@
 #
 AC_PREREQ(2.61)
 # Checks for programs.
-AC_INIT([gnunet], [0.13.2], [bug-gnunet@gnu.org])
+AC_INIT([gnunet], [0.13.3], [bug-gnunet@gnu.org])
 AC_CONFIG_AUX_DIR([build-aux])
 
 # check for legacy option that is no longer supported (#5627) and fail hard
@@ -1036,9 +1036,10 @@ AC_CHECK_LIB([kvm],[kvm_open])
 AC_CHECK_LIB([kstat],[kstat_open])
 
 libsodium=0
-# test for libsodium
+# test for libsodium >=1.017 (introduction of
+# crypto_scalarmult_ed25519_base_noclamp API)
 AC_CHECK_HEADER([sodium.h],
-                [AC_CHECK_LIB([sodium], [crypto_pwhash_argon2id],
+                [AC_CHECK_LIB([sodium], [crypto_scalarmult_ed25519_base_noclamp],
                               [libsodium=1])])
 
 AS_IF([test x$libsodium = x0],

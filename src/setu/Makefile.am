@@ -46,7 +46,7 @@ gnunet_setu_ibf_profiler_LDADD = \
   $(GN_LIBINTL)
 
 gnunet_service_setu_SOURCES = \
- gnunet-service-setu.c gnunet-service-setu.h \
+ gnunet-service-setu.c gnunet-service-setu_protocol.h \
  ibf.c ibf.h \
  gnunet-service-setu_strata_estimator.c gnunet-service-setu_strata_estimator.h \
  gnunet-service-setu_protocol.h
