@@ -124,6 +124,25 @@ communicator_available_cb (void *cls,
        address_prefix);
 }
 
+static void
+open_queue (void *cls)
+{
+  char *address = cls;
+
+  if (NULL != tc_hs[PEER_A]->c_mq)
+  {
+    queue_est = GNUNET_YES;
+    GNUNET_TRANSPORT_TESTING_transport_communicator_open_queue (tc_hs[PEER_A],
+                                                                &peer_id[PEER_B],
+                                                                address);
+  }
+  else
+  {
+    GNUNET_SCHEDULER_add_delayed (GNUNET_TIME_UNIT_SECONDS,
+                                  &open_queue,
+                                  address);
+  }
+}
 
 static void
 add_address_cb (void *cls,
@@ -144,10 +163,7 @@ add_address_cb (void *cls,
   if ((0 == strcmp ((char*) cls, cfg_peers_name[PEER_B])) &&
       (GNUNET_NO == queue_est))
   {
-    queue_est = GNUNET_YES;
-    GNUNET_TRANSPORT_TESTING_transport_communicator_open_queue (tc_hs[PEER_A],
-                                                                &peer_id[PEER_B],
-                                                                address);
+    open_queue (address);
   }
 }
 

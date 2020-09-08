@@ -59,145 +59,6 @@ struct MyClient
 };
 
 /**
- * @brief Handle to a transport communicator
- */
-struct GNUNET_TRANSPORT_TESTING_TransportCommunicatorHandle
-{
-  /**
-   * Clients
-   */
-  struct MyClient *client_head;
-  struct MyClient *client_tail;
-
-  /**
-  * @brief Handle to the client
-  */
-  struct GNUNET_MQ_Handle *c_mq;
-
-  /**
-    * @brief Handle to the configuration
-    */
-  struct GNUNET_CONFIGURATION_Handle *cfg;
-
-  /**
-   * @brief File name of configuration file
-   */
-  char *cfg_filename;
-
-  struct GNUNET_PeerIdentity peer_id;
-
-  /**
-   * @brief Handle to the transport service
-   */
-  struct GNUNET_SERVICE_Handle *tsh;
-
-  /**
-   * @brief Task that will be run on shutdown to stop and clean transport
-   * service
-   */
-  struct GNUNET_SCHEDULER_Task *ts_shutdown_task;
-
-
-  /**
-   * @brief Process of the communicator
-   */
-  struct GNUNET_OS_Process *c_proc;
-
-  /**
-   * NAT process
-   */
-  struct GNUNET_OS_Process *nat_proc;
-
-  /**
-   * resolver service process
-   */
-  struct GNUNET_OS_Process *resolver_proc;
-
-  /**
-   * peerstore service process
-   */
-  struct GNUNET_OS_Process *ps_proc;
-
-  /**
-   * @brief Task that will be run on shutdown to stop and clean communicator
-   */
-  struct GNUNET_SCHEDULER_Task *c_shutdown_task;
-
-  /**
-   * @brief Characteristics of the communicator
-   */
-  enum GNUNET_TRANSPORT_CommunicatorCharacteristics c_characteristics;
-
-  /**
-   * @brief Specifies supported addresses
-   */
-  char *c_addr_prefix;
-
-  /**
-   * @brief Specifies supported addresses
-   */
-  char *c_address;
-
-  /**
-   * @brief Head of the DLL of queues associated with this communicator
-   */
-  struct GNUNET_TRANSPORT_TESTING_TransportCommunicatorQueue *queue_head;
-
-  /**
-   * @brief Tail of the DLL of queues associated with this communicator
-   */
-  struct GNUNET_TRANSPORT_TESTING_TransportCommunicatorQueue *queue_tail;
-
-  /* Callbacks + Closures */
-  /**
-   * @brief Callback called when a new communicator connects
-   */
-  GNUNET_TRANSPORT_TESTING_CommunicatorAvailableCallback
-    communicator_available_cb;
-
-  /**
-   * @brief Callback called when a new communicator connects
-   */
-  GNUNET_TRANSPORT_TESTING_AddAddressCallback add_address_cb;
-
-  /**
-   * @brief Callback called when a new communicator connects
-   */
-  GNUNET_TRANSPORT_TESTING_QueueCreateReplyCallback queue_create_reply_cb;
-
-  /**
-   * @brief Callback called when a new communicator connects
-   */
-  GNUNET_TRANSPORT_TESTING_AddQueueCallback add_queue_cb;
-
-  /**
-   * @brief Callback called when a new communicator connects
-   */
-  GNUNET_TRANSPORT_TESTING_IncomingMessageCallback incoming_msg_cb;
-
-  /**
-   * @brief Backchannel callback
-   */
-  GNUNET_TRANSPORT_TESTING_BackchannelCallback bc_cb;
-
-  /**
-   * Our service handle
-   */
-  struct GNUNET_SERVICE_Handle *sh;
-
-  /**
-   * @brief Closure to the callback
-   */
-  void *cb_cls;
-
-  /**
-   * Backchannel supported
-   */
-  int bc_enabled;
-};
-
-
-/**
  * @brief Queue of a communicator and some context
  */
 struct GNUNET_TRANSPORT_TESTING_TransportCommunicatorQueue
@@ -707,6 +568,9 @@ shutdown_service (void *cls)
 {
   struct GNUNET_SERVICE_Handle *h = cls;
 
+  LOG (GNUNET_ERROR_TYPE_DEBUG,
+       "Shutting down service!\n");
+
   GNUNET_SERVICE_stop (h);
 }
 
@@ -1202,6 +1066,8 @@ GNUNET_TRANSPORT_TESTING_transport_communicator_open_queue (
   memcpy (&msg[1], address, alen);
   if (NULL != tc_h->c_mq)
   {
+    LOG (GNUNET_ERROR_TYPE_DEBUG,
+         "Sending queue create immediately\n");
     GNUNET_MQ_send (tc_h->c_mq, env);
   }
   else

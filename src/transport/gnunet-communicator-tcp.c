@@ -394,11 +394,6 @@ struct Queue
   struct GNUNET_PeerIdentity target;
 
   /**
-   * ID of listen task
-   */
-  struct GNUNET_SCHEDULER_Task *listen_task;
-
-  /**
    * Listen socket.
    */
   struct GNUNET_NETWORK_Handle *listen_sock;
@@ -638,11 +633,6 @@ struct ProtoQueue
   struct ProtoQueue *prev;
 
   /**
-   * ID of listen task
-   */
-  struct GNUNET_SCHEDULER_Task *listen_task;
-
-  /**
    * Listen socket.
    */
   struct GNUNET_NETWORK_Handle *listen_sock;
@@ -761,6 +751,11 @@ static struct GNUNET_TRANSPORT_CommunicatorHandle *ch;
 static struct GNUNET_CONTAINER_MultiPeerMap *queue_map;
 
 /**
+ * ListenTasks (map from socket to `struct ListenTask`)
+ */
+static struct GNUNET_CONTAINER_MultiHashMap *lt_map;
+
+/**
  * Our public key.
  */
 static struct GNUNET_PeerIdentity my_identity;
@@ -816,6 +811,16 @@ struct Addresses *addrs_head;
 struct Addresses *addrs_tail;
 
 /**
+ * Head of DLL with ListenTasks.
+ */
+struct ListenTask *lts_head;
+
+/**
+ * Head of DLL with ListenTask.
+ */
+struct ListenTask *lts_tail;
+
+/**
  * Number of addresses in the DLL for register at NAT service.
  */
 int addrs_lens;
@@ -850,7 +855,6 @@ unsigned int bind_port;
 static void
 listen_cb (void *cls);
 
-
 /**
  * Functions with this signature are called whenever we need
  * to close a queue due to a disconnect or failure to
@@ -861,10 +865,14 @@ listen_cb (void *cls);
 static void
 queue_destroy (struct Queue *queue)
 {
-  struct ListenTask *lt;
-  lt = GNUNET_new (struct ListenTask);
-  lt->listen_sock = queue->listen_sock;
-  lt->listen_task = queue->listen_task;
+  struct ListenTask *lt = NULL;
+  struct GNUNET_HashCode h_sock;
+
+  GNUNET_CRYPTO_hash (queue->listen_sock,
+                      sizeof(queue->listen_sock),
+                      &h_sock);
+
+  lt =   GNUNET_CONTAINER_multihashmap_get (lt_map, &h_sock);
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Disconnecting queue for peer `%s'\n",
@@ -934,7 +942,7 @@ queue_destroy (struct Queue *queue)
   else
     GNUNET_free (queue);
 
-  if ((NULL != lt->listen_sock) && (NULL == lt->listen_task))
+  if ((! shutdown_running) && (NULL == lt->listen_task))
   {
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                 "add read net listen\n");
@@ -1982,7 +1990,8 @@ tcp_address_to_sockaddr (const char *bindto, socklen_t *sock_len)
     // colon = strrchr (cp, ':');
     port = extract_port (bindto);
     in = tcp_address_to_sockaddr_numeric_v6 (sock_len, v6, port);
-  }else{
+  }
+  else{
     GNUNET_assert (0);
   }
 
@@ -2530,11 +2539,6 @@ decrypt_and_check_tc (struct Queue *queue,
 static void
 free_proto_queue (struct ProtoQueue *pq)
 {
-  if (NULL != pq->listen_task)
-  {
-    GNUNET_SCHEDULER_cancel (pq->listen_task);
-    pq->listen_task = NULL;
-  }
   if (NULL != pq->listen_sock)
   {
     GNUNET_break (GNUNET_OK == GNUNET_NETWORK_socket_close (pq->listen_sock));
@@ -2653,7 +2657,6 @@ proto_read_kx (void *cls)
   queue->address = pq->address; /* steals reference */
   queue->address_len = pq->address_len;
   queue->target = tc.sender;
-  queue->listen_task = pq->listen_task;
   queue->listen_sock = pq->listen_sock;
   queue->sock = pq->sock;
 
@@ -2695,6 +2698,9 @@ listen_cb (void *cls)
   struct GNUNET_NETWORK_Handle *sock;
   struct ProtoQueue *pq;
   struct ListenTask *lt;
+
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "listen_cb\n");
 
   lt = cls;
 
@@ -2909,6 +2915,36 @@ mq_init (void *cls, const struct GNUNET_PeerIdentity *peer, const char *address)
 }
 
 /**
+ * Iterator over all ListenTasks to clean up.
+ *
+ * @param cls NULL
+ * @param key unused
+ * @param value the ListenTask to cancel.
+ * @return #GNUNET_OK to continue to iterate
+ */
+static int
+get_lt_delete_it (void *cls,
+                  const struct GNUNET_HashCode *key,
+                  void *value)
+{
+  struct ListenTask *lt = value;
+
+  (void) cls;
+  (void) key;
+  if (NULL != lt->listen_task)
+  {
+    GNUNET_SCHEDULER_cancel (lt->listen_task);
+    lt->listen_task = NULL;
+  }
+  if (NULL != lt->listen_sock)
+  {
+    GNUNET_break (GNUNET_OK == GNUNET_NETWORK_socket_close (lt->listen_sock));
+    lt->listen_sock = NULL;
+  }
+  return GNUNET_OK;
+}
+
+/**
  * Iterator over all message queues to clean up.
  *
  * @param cls NULL
@@ -2925,15 +2961,9 @@ get_queue_delete_it (void *cls,
 
   (void) cls;
   (void) target;
-  if (NULL != queue->listen_task)
-  {
-    GNUNET_SCHEDULER_cancel (queue->listen_task);
-    queue->listen_task = NULL;
-  }
   queue_destroy (queue);
   return GNUNET_OK;
 }
-
 
 /**
  * Shutdown the UNIX communicator.
@@ -2943,7 +2973,6 @@ get_queue_delete_it (void *cls,
 static void
 do_shutdown (void *cls)
 {
-
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Shutdown %s!\n",
               shutdown_running ? "running" : "not running");
@@ -2960,6 +2989,7 @@ do_shutdown (void *cls)
     GNUNET_NAT_unregister (nat);
     nat = NULL;
   }
+  GNUNET_CONTAINER_multihashmap_iterate (lt_map, &get_lt_delete_it, NULL);
   GNUNET_CONTAINER_multipeermap_iterate (queue_map, &get_queue_delete_it, NULL);
   GNUNET_CONTAINER_multipeermap_destroy (queue_map);
   GNUNET_TRANSPORT_communicator_address_remove_all (ch);
@@ -2993,6 +3023,8 @@ do_shutdown (void *cls)
     GNUNET_RESOLVER_request_cancel (resolve_request_handle);
     resolve_request_handle = NULL;
   }
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "Shutdown done!\n");
 }
 
 
@@ -3043,10 +3075,10 @@ nat_address_cb (void *cls,
   char *my_addr;
   struct GNUNET_TRANSPORT_AddressIdentifier *ai;
 
-      GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                  "nat address cb %s %s\n",
-                  add_remove ? "add" : "remove",
-                  GNUNET_a2s (addr, addrlen));
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "nat address cb %s %s\n",
+              add_remove ? "add" : "remove",
+              GNUNET_a2s (addr, addrlen));
 
   if (GNUNET_YES == add_remove)
   {
@@ -3098,7 +3130,7 @@ add_addr (struct sockaddr *in, socklen_t in_len)
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "add address %s\n",
               GNUNET_a2s (saddrs->addr, saddrs->addr_len));
-  
+
   addrs_lens++;
 }
 
@@ -3117,6 +3149,7 @@ init_socket (struct sockaddr *addr,
   socklen_t sto_len;
   struct GNUNET_NETWORK_Handle *listen_sock;
   struct ListenTask *lt;
+  struct GNUNET_HashCode h_sock;
 
   if (NULL == addr)
   {
@@ -3168,13 +3201,12 @@ init_socket (struct sockaddr *addr,
     sto_len = in_len;
   }
 
-  //addr = (struct sockaddr *) &in_sto;
+  // addr = (struct sockaddr *) &in_sto;
   in_len = sto_len;
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Bound to `%s'\n",
               GNUNET_a2s ((const struct sockaddr *) &in_sto, sto_len));
   stats = GNUNET_STATISTICS_create ("C-TCP", cfg);
-  GNUNET_SCHEDULER_add_shutdown (&do_shutdown, NULL);
 
   if (NULL == is)
     is = GNUNET_NT_scanner_init ();
@@ -3202,6 +3234,27 @@ init_socket (struct sockaddr *addr,
                                                    listen_sock,
                                                    &listen_cb,
                                                    lt);
+
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "creating hash\n");
+  GNUNET_CRYPTO_hash (lt->listen_sock,
+                      sizeof(lt->listen_sock),
+                      &h_sock);
+
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "creating map\n");
+  if (NULL == lt_map)
+    lt_map = GNUNET_CONTAINER_multihashmap_create (2, GNUNET_NO);
+
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "creating map entry\n");
+  GNUNET_CONTAINER_multihashmap_put (lt_map,
+                                     &h_sock,
+                                     lt,
+                                     GNUNET_CONTAINER_MULTIHASHMAPOPTION_UNIQUE_ONLY);
+
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "map entry created\n");
 
   if (NULL == queue_map)
     queue_map = GNUNET_CONTAINER_multipeermap_create (10, GNUNET_NO);
@@ -3335,12 +3388,14 @@ init_socket_resolv (void *cls,
   {
     GNUNET_log (GNUNET_ERROR_TYPE_INFO,
                 "Address is NULL. This might be an error or the resolver finished resolving.\n");
-    if (NULL == addrs_head){
+    if (NULL == addrs_head)
+    {
       GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
-                "Resolver finished resolving, but we do not listen to an address!.\n");
+                  "Resolver finished resolving, but we do not listen to an address!.\n");
       return;
     }
     nat_register ();
+
   }
 }
 
@@ -3405,6 +3460,8 @@ run (void *cls,
     return;
   }
 
+  GNUNET_SCHEDULER_add_shutdown (&do_shutdown, NULL);
+
   if (1 == sscanf (bindto, "%u%1s", &bind_port, dummy))
   {
     po = tcp_address_to_sockaddr_port_only (bindto, &bind_port);
@@ -3444,6 +3501,7 @@ run (void *cls,
     init_socket (in, in_len);
     nat_register ();
     GNUNET_free (bindto);
+
     return;
   }
 
@@ -3454,6 +3512,7 @@ run (void *cls,
     init_socket (in, in_len);
     nat_register ();
     GNUNET_free (bindto);
+
     return;
   }
 
