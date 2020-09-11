@@ -1,3 +1,48 @@
+Sun, 6 Sep 2020 13:33:31 +0200 (fa067384b)
+GNUnet 0.13.3 - Martin Schanzenbach
+
+Fri, 4 Sep 2020 20:12:00 +0200 (35d7c1f88)
+fix: depend on libsodium >=1.0.17. Fixes #6506 - Martin Schanzenbach
+
+Fri, 4 Sep 2020 04:07:46 +0200 (538277ed8)
+reclaim: fix cli parameter name for credential ID - Martin Schanzenbach
+
+Wed, 2 Sep 2020 19:26:37 +0200 (3ec73fc68)
+gnunet-qr/uri: Fix exit code handling; fix memory corruption - Martin Schanzenbach
+
+Fri, 28 Aug 2020 12:26:52 +0200 (bbf9540c9)
+fix order of namespaces in plugin_rest_identity GNUNET_REST_namespace_match() always matched to the first namespace for GET - jospaeth
+
+Wed, 26 Aug 2020 14:49:02 -0400 (49d74db2e)
+use (and "GNUnet-ify") libyuarel as a basepoint for uri parsing - Jonathan Buchanan
+
+Sun, 23 Aug 2020 16:52:26 +0200 (ef86866ce)
+add function GNUNET_CURL_extend_headers() - Christian Grothoff
+
+Wed, 19 Aug 2020 23:53:02 +0200 (a57d476ab)
+reclaim: Attestations now called credentials. Credentials are presented to third parties as presentations. - Martin Schanzenbach
+
+Wed, 19 Aug 2020 13:17:01 +0200 (6531e0387)
+break out chapters on SETI and SETUI from SET chapter - Christian Grothoff
+
+Wed, 19 Aug 2020 11:05:13 +0200 (6dabecce0)
+change scalarproduct to use seti service in lieu of deprecated set service - Christian Grothoff
+
+Wed, 19 Aug 2020 10:59:27 +0200 (2d010ea15)
+change revocation logic to use setu service in lieu of deprecated set service - Christian Grothoff
+
+Tue, 18 Aug 2020 13:35:24 +0200 (2cd052cb8)
+Update reclaimID handbook entry - Martin Schanzenbach
+
+Tue, 18 Aug 2020 00:09:59 +0200 (2bce42e5b)
+fix: build on openbsd - Martin Schanzenbach
+
+Mon, 17 Aug 2020 14:45:46 +0200 (6f2ee9eb3)
+clean up GNUNET_CRYPTO_pow_hash API - Christian Grothoff
+
+Sun, 16 Aug 2020 20:46:39 +0200 (be0475f2a)
+split of set union from set service (preliminary) - Christian Grothoff
+
 Wed, 12 Aug 2020 09:36:33 +0200 (99f820453)
 fix: GNUNET_is_zero(ptr) should return enum GNUNET_GenericReturnValue. Fixes #6475. - Martin Schanzenbach
 

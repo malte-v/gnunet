@@ -99,6 +99,8 @@ gnunetinclude_HEADERS = \
   gnunet_secretsharing_service.h \
   gnunet_service_lib.h \
   gnunet_set_service.h \
+  gnunet_seti_service.h \
+  gnunet_setu_service.h \
   gnunet_signal_lib.h \
   gnunet_signatures.h \
   gnunet_socks.h \

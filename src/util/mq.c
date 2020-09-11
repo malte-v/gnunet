@@ -273,7 +273,7 @@ GNUNET_MQ_handle_message (const struct GNUNET_MQ_MessageHandler *handlers,
       break;
     }
   }
-done:
+  done:
   if (GNUNET_NO == handled)
   {
     LOG (GNUNET_ERROR_TYPE_INFO,
@@ -355,6 +355,10 @@ void
 GNUNET_MQ_send (struct GNUNET_MQ_Handle *mq,
                 struct GNUNET_MQ_Envelope *ev)
 {
+  if (NULL == mq)
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                "mq is NUll when sending message of type %u\n",
+                (unsigned int) ntohs (ev->mh->type));
   GNUNET_assert (NULL != mq);
   GNUNET_assert (NULL == ev->parent_queue);
 
