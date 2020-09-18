@@ -1380,9 +1380,13 @@ try_handle_plaintext (struct SenderAddress *sender,
  * @param ss shared secret to generate ACKs for
  */
 static void
-consider_ss_ack (struct SharedSecret *ss)
+consider_ss_ack (struct SharedSecret *ss, int yesno)
 {
   GNUNET_assert (NULL != ss->sender);
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "Considering SS UDPAck %s\n",
+              GNUNET_i2s_full (&ss->sender->target));
+
   /* drop ancient KeyCacheEntries */
   while ((NULL != ss->kce_head) &&
          (MAX_SQN_DELTA <
@@ -1392,8 +1396,19 @@ consider_ss_ack (struct SharedSecret *ss)
   {
     struct UDPAck ack;
 
-    while (ss->active_kce_count < KCN_TARGET)
+    /**
+     * If we previously have seen this ss
+     * we now generate KCN_TARGET KCEs.
+     * For the initial KX (active_kce_count==0),
+     * we only generate a single KCE to prevent
+     * unnecessary overhead.
+     */
+    if (0 < ss->active_kce_count) {
+      while (ss->active_kce_count < KCN_TARGET)
+        kce_generate (ss, ++ss->sequence_allowed);
+    } else {
       kce_generate (ss, ++ss->sequence_allowed);
+    }
     ack.header.type = htons (GNUNET_MESSAGE_TYPE_COMMUNICATOR_UDP_ACK);
     ack.header.size = htons (sizeof(ack));
     ack.sequence_max = htonl (ss->sequence_allowed);
@@ -1445,7 +1460,7 @@ decrypt_box (const struct UDPBox *box,
                             sizeof(out_buf),
                             GNUNET_NO);
   try_handle_plaintext (ss->sender, out_buf, sizeof(out_buf));
-  consider_ss_ack (ss);
+  consider_ss_ack (ss, GNUNET_YES);
 }
 
 
@@ -1715,6 +1730,9 @@ sock_read (void *cls)
 
     kx = (const struct InitialKX *) buf;
     ss = setup_shared_secret_dec (&kx->ephemeral);
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "Before DEC\n");
+
     if (GNUNET_OK != try_decrypt (ss,
                                   kx->gcm_tag,
                                   0,
@@ -1732,6 +1750,9 @@ sock_read (void *cls)
         GNUNET_NO);
       return;
     }
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "Before VERIFY\n");
+
     uc = (const struct UDPConfirmation *) pbuf;
     if (GNUNET_OK != verify_confirmation (&kx->ephemeral, uc))
     {
@@ -1743,6 +1764,9 @@ sock_read (void *cls)
                                 GNUNET_NO);
       return;
     }
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "Before SETUP_SENDER\n");
+
     calculate_cmac (ss);
     sender = setup_sender (&uc->sender, (const struct sockaddr *) &sa, salen);
     ss->sender = sender;
@@ -1754,7 +1778,7 @@ sock_read (void *cls)
                               1,
                               GNUNET_NO);
     try_handle_plaintext (sender, &uc[1], sizeof(pbuf) - sizeof(*uc));
-    consider_ss_ack (ss);
+    consider_ss_ack (ss, GNUNET_NO);
     if (sender->num_secrets > MAX_SECRETS)
       secret_destroy (sender->ss_tail);
   }
