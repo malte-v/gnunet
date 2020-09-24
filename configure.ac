@@ -1817,6 +1817,16 @@ AC_MSG_RESULT($use_gcov)
 AM_CONDITIONAL([USE_COVERAGE], [test "x$use_gcov" = "xyes"])
 
 
+# Temporarily disable a specific piece of code until TNG is out.
+AC_ARG_ENABLE([transport-timing-diagnostic],
+              [AS_HELP_STRING([--enable-transport-timing-diagnostic],
+                              [enable logging of transport (not TNG) sending times])],
+              [enable_ttd=yes],
+              [enable_ttd=no])
+AS_IF([test "x$enable_ttd" = "xyes"],
+      [AC_DEFINE([ENABLE_TTD], [1], [Define if transport (not TNG) should warn about sending times.])])
+
+
 # version info
 # TODO: git blame says this predates our switch to git.
 # git-svn should be adjusted to simply git, or
