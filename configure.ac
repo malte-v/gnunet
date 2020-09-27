@@ -1335,7 +1335,7 @@ CPPFLAGS=$SAVE_CPPFLAGS
 
 # test for postgres:
 postgres=false
-AX_LIB_POSTGRESQL([9.5],
+AX_LIB_POSTGRESQL([12.0],
   [CPPFLAGS="$CPPFLAGS $POSTGRESQL_CPPFLAGS"
    AC_CHECK_HEADERS([libpq-fe.h],
    postgres=true)

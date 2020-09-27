@@ -73,8 +73,7 @@ database_setup (struct Plugin *plugin)
       " record_data BYTEA NOT NULL DEFAULT '',"
       " label TEXT NOT NULL DEFAULT '',"
       " CONSTRAINT zl UNIQUE (zone_private_key,label)"
-      ")"
-      "WITH OIDS");
+      ")");
   struct GNUNET_PQ_ExecuteStatement es_default =
     GNUNET_PQ_make_execute ("CREATE TABLE IF NOT EXISTS ns098records ("
                             " seq BIGSERIAL PRIMARY KEY,"
@@ -85,8 +84,7 @@ database_setup (struct Plugin *plugin)
                             " record_data BYTEA NOT NULL DEFAULT '',"
                             " label TEXT NOT NULL DEFAULT '',"
                             " CONSTRAINT zl UNIQUE (zone_private_key,label)"
-                            ")"
-                            "WITH OIDS");
+                            ")");
   const struct GNUNET_PQ_ExecuteStatement *cr;
   struct GNUNET_PQ_ExecuteStatement sc = GNUNET_PQ_EXECUTE_STATEMENT_END;
 

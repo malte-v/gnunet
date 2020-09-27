@@ -67,14 +67,19 @@ static int
 init_connection (struct Plugin *plugin)
 {
   struct GNUNET_PQ_ExecuteStatement es[] = {
+    GNUNET_PQ_make_try_execute ("CREATE TEMPORARY SEQUENCE IF NOT EXISTS gn011dc_oid_seq"),
     GNUNET_PQ_make_execute ("CREATE TEMPORARY TABLE IF NOT EXISTS gn011dc ("
+                            "  oid OID NOT NULL DEFAULT nextval('gn011dc_oid_seq'),"
                             "  type INTEGER NOT NULL,"
                             "  prox INTEGER NOT NULL,"
                             "  discard_time BIGINT NOT NULL,"
                             "  key BYTEA NOT NULL,"
                             "  value BYTEA NOT NULL,"
-                            "  path BYTEA DEFAULT NULL)"
-                            "WITH OIDS"),
+                            "  path BYTEA DEFAULT NULL)"),
+    GNUNET_PQ_make_try_execute (
+      "ALTER SEQUENCE gnu011dc_oid_seq OWNED BY gn011dc.oid"),
+    GNUNET_PQ_make_try_execute (
+      "CREATE INDEX IF NOT EXISTS idx_oid ON gn011dc (oid)"),
     GNUNET_PQ_make_try_execute (
       "CREATE INDEX IF NOT EXISTS idx_key ON gn011dc (key)"),
     GNUNET_PQ_make_try_execute (
