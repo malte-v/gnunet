@@ -30,6 +30,44 @@
 
 #include "gnunet_common.h"
 
+/**
+ * Handle for an ego.
+ */
+struct GNUNET_IDENTITY_Ego
+{
+  /**
+   * Hash of the private key of this ego.
+   */
+  struct GNUNET_HashCode id;
+
+  /**
+   * The identity key pair
+   */
+  struct GNUNET_IDENTITY_PublicKey pub;
+
+  /**
+   * The identity key pair
+   */
+  struct GNUNET_IDENTITY_PrivateKey pk;
+
+  /**
+   * Current name associated with this ego.
+   */
+  char *name;
+
+  /**
+   * Client context associated with this ego.
+   */
+  void *ctx;
+
+  /**
+   * Set to true once @e pub was initialized
+   */
+  bool pub_initialized;
+};
+
+
+
 
 GNUNET_NETWORK_STRUCT_BEGIN
 
@@ -95,7 +133,7 @@ struct UpdateMessage
   /**
    * The private key
    */
-  struct GNUNET_CRYPTO_EcdsaPrivateKey private_key;
+  struct GNUNET_IDENTITY_PrivateKey private_key;
 
   /* followed by 0-terminated ego name */
 };
@@ -151,7 +189,7 @@ struct SetDefaultMessage
   /**
    * The private key
    */
-  struct GNUNET_CRYPTO_EcdsaPrivateKey private_key;
+  struct GNUNET_IDENTITY_PrivateKey private_key;
 
   /* followed by 0-terminated service name */
 };
@@ -181,7 +219,7 @@ struct CreateRequestMessage
   /**
    * The private key
    */
-  struct GNUNET_CRYPTO_EcdsaPrivateKey private_key;
+  struct GNUNET_IDENTITY_PrivateKey private_key;
 
   /* followed by 0-terminated identity name */
 };
@@ -238,43 +276,6 @@ struct DeleteMessage
 };
 
 GNUNET_NETWORK_STRUCT_END
-
-/**
- * Handle for an ego.
- */
-struct GNUNET_IDENTITY_Ego
-{
-  /**
-   * Hash of the private key of this ego.
-   */
-  struct GNUNET_HashCode id;
-
-  /**
-   * Private key associated with this ego.
-   */
-  struct GNUNET_CRYPTO_EcdsaPrivateKey pk;
-
-  /**
-   * Public key associated with this ego. Initialized on demand.
-   * Always use #GNUNET_IDENTITY_ego_get_public_key() to obtain.
-   */
-  struct GNUNET_CRYPTO_EcdsaPublicKey pub;
-
-  /**
-   * Current name associated with this ego.
-   */
-  char *name;
-
-  /**
-   * Client context associated with this ego.
-   */
-  void *ctx;
-
-  /**
-   * Set to true once @e pub was initialized
-   */
-  bool pub_initialized;
-};
 
 
 #endif

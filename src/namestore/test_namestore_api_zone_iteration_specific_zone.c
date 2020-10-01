@@ -38,9 +38,9 @@ static struct GNUNET_NAMESTORE_Handle *nsh;
 
 static struct GNUNET_SCHEDULER_Task *endbadly_task;
 
-static struct GNUNET_CRYPTO_EcdsaPrivateKey privkey;
+static struct GNUNET_IDENTITY_PrivateKey privkey;
 
-static struct GNUNET_CRYPTO_EcdsaPrivateKey privkey2;
+static struct GNUNET_IDENTITY_PrivateKey privkey2;
 
 static struct GNUNET_NAMESTORE_ZoneIterator *zi;
 
@@ -124,7 +124,7 @@ fail_cb (void *cls)
 
 static void
 zone_proc (void *cls,
-           const struct GNUNET_CRYPTO_EcdsaPrivateKey *zone,
+           const struct GNUNET_IDENTITY_PrivateKey *zone,
            const char *label,
            unsigned int rd_count,
            const struct GNUNET_GNSRECORD_Data *rd)
@@ -309,7 +309,7 @@ create_record (unsigned int count)
  */
 static void
 empty_zone_proc (void *cls,
-                 const struct GNUNET_CRYPTO_EcdsaPrivateKey *zone,
+                 const struct GNUNET_IDENTITY_PrivateKey *zone,
                  const char *label,
                  unsigned int rd_count,
                  const struct GNUNET_GNSRECORD_Data *rd)
@@ -341,8 +341,10 @@ static void
 empty_zone_proc_end (void *cls)
 {
   zi = NULL;
-  GNUNET_CRYPTO_ecdsa_key_create (&privkey);
-  GNUNET_CRYPTO_ecdsa_key_create (&privkey2);
+  privkey.type = htonl (GNUNET_GNSRECORD_TYPE_PKEY);
+  privkey2.type = htonl (GNUNET_GNSRECORD_TYPE_PKEY);
+  GNUNET_CRYPTO_ecdsa_key_create (&privkey.ecdsa_key);
+  GNUNET_CRYPTO_ecdsa_key_create (&privkey2.ecdsa_key);
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Created record 1\n");
   GNUNET_asprintf (&s_name_1,

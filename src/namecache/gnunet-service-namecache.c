@@ -184,40 +184,24 @@ handle_lookup_block_it (void *cls,
   struct LookupBlockContext *lnc = cls;
   struct GNUNET_MQ_Envelope *env;
   struct LookupBlockResponseMessage *r;
-  size_t esize;
   size_t bsize;
 
-  bsize = ntohl (block->purpose.size);
-  if (bsize <
-      (sizeof(struct GNUNET_CRYPTO_EccSignaturePurpose) + sizeof(struct
-                                                                 GNUNET_TIME_AbsoluteNBO)))
-  {
-    GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
-                "Malformed block.");
-    lnc->status = GNUNET_SYSERR;
-    return;
-  }
-  esize = ntohl (block->purpose.size)
-          - sizeof(struct GNUNET_CRYPTO_EccSignaturePurpose)
-          - sizeof(struct GNUNET_TIME_AbsoluteNBO);
+  bsize = GNUNET_GNSRECORD_block_get_size (block);
   env = GNUNET_MQ_msg_extra (r,
-                             esize,
+                             bsize,
                              GNUNET_MESSAGE_TYPE_NAMECACHE_LOOKUP_BLOCK_RESPONSE);
   r->gns_header.r_id = htonl (lnc->request_id);
-  r->expire = block->expiration_time;
-  r->signature = block->signature;
-  r->derived_key = block->derived_key;
   GNUNET_memcpy (&r[1],
-                 &block[1],
-                 esize);
+                 block,
+                 bsize);
   GNUNET_STATISTICS_update (statistics,
                             "blocks found in cache",
                             1,
                             GNUNET_NO);
+  r->expire = GNUNET_TIME_absolute_hton (
+    GNUNET_GNSRECORD_block_get_expiration (block));
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "Sending NAMECACHE_LOOKUP_BLOCK_RESPONSE message with expiration time %s\n",
-              GNUNET_STRINGS_absolute_time_to_string (
-                GNUNET_TIME_absolute_ntoh (r->expire)));
+              "Sending NAMECACHE_LOOKUP_BLOCK_RESPONSE message\n");
   GNUNET_MQ_send (lnc->nc->mq,
                   env);
 }
@@ -314,20 +298,11 @@ handle_block_cache (void *cls,
                             GNUNET_NO);
   esize = ntohs (rp_msg->gns_header.header.size) - sizeof(struct
                                                           BlockCacheMessage);
-  block = GNUNET_malloc (sizeof(struct GNUNET_GNSRECORD_Block) + esize);
-  block->signature = rp_msg->signature;
-  block->derived_key = rp_msg->derived_key;
-  block->purpose.size = htonl (sizeof(struct GNUNET_CRYPTO_EccSignaturePurpose)
-                               + sizeof(struct GNUNET_TIME_AbsoluteNBO)
-                               + esize);
-  block->expiration_time = rp_msg->expire;
+  block = GNUNET_malloc (esize);
+  memcpy (block, &rp_msg[1], esize);
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "Received NAMECACHE_BLOCK_CACHE message with expiration time %s\n",
-              GNUNET_STRINGS_absolute_time_to_string (
-                GNUNET_TIME_absolute_ntoh (block->expiration_time)));
-  GNUNET_memcpy (&block[1],
-                 &rp_msg[1],
-                 esize);
+              "Received NAMECACHE_BLOCK_CACHE message with type %u\n",
+              htonl (block->type));
   res = GSN_database->cache_block (GSN_database->cls,
                                    block);
   GNUNET_free (block);

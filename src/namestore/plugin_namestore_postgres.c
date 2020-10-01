@@ -73,8 +73,7 @@ database_setup (struct Plugin *plugin)
       " record_data BYTEA NOT NULL DEFAULT '',"
       " label TEXT NOT NULL DEFAULT '',"
       " CONSTRAINT zl UNIQUE (zone_private_key,label)"
-      ")"
-      "WITH OIDS");
+      ")");
   struct GNUNET_PQ_ExecuteStatement es_default =
     GNUNET_PQ_make_execute ("CREATE TABLE IF NOT EXISTS ns098records ("
                             " seq BIGSERIAL PRIMARY KEY,"
@@ -85,8 +84,7 @@ database_setup (struct Plugin *plugin)
                             " record_data BYTEA NOT NULL DEFAULT '',"
                             " label TEXT NOT NULL DEFAULT '',"
                             " CONSTRAINT zl UNIQUE (zone_private_key,label)"
-                            ")"
-                            "WITH OIDS");
+                            ")");
   const struct GNUNET_PQ_ExecuteStatement *cr;
   struct GNUNET_PQ_ExecuteStatement sc = GNUNET_PQ_EXECUTE_STATEMENT_END;
 
@@ -182,13 +180,13 @@ database_setup (struct Plugin *plugin)
 static int
 namestore_postgres_store_records (void *cls,
                                   const struct
-                                  GNUNET_CRYPTO_EcdsaPrivateKey *zone_key,
+                                  GNUNET_IDENTITY_PrivateKey *zone_key,
                                   const char *label,
                                   unsigned int rd_count,
                                   const struct GNUNET_GNSRECORD_Data *rd)
 {
   struct Plugin *plugin = cls;
-  struct GNUNET_CRYPTO_EcdsaPublicKey pkey;
+  struct GNUNET_IDENTITY_PublicKey pkey;
   uint64_t rvalue;
   uint32_t rd_count32 = (uint32_t) rd_count;
   ssize_t data_size;
@@ -197,13 +195,14 @@ namestore_postgres_store_records (void *cls,
           0,
           sizeof(pkey));
   for (unsigned int i = 0; i < rd_count; i++)
-    if (GNUNET_GNSRECORD_TYPE_PKEY == rd[i].record_type)
+    if (GNUNET_YES ==
+        GNUNET_GNSRECORD_is_zonekey_type (rd[i].record_type))
     {
-      GNUNET_break (sizeof(struct GNUNET_CRYPTO_EcdsaPublicKey) ==
-                    rd[i].data_size);
-      GNUNET_memcpy (&pkey,
-                     rd[i].data,
-                     rd[i].data_size);
+      GNUNET_break (GNUNET_OK ==
+                    GNUNET_GNSRECORD_identity_from_data (rd[i].data,
+                                                         rd[i].data_size,
+                                                         rd[i].record_type,
+                                                         &pkey));
       break;
     }
   rvalue = GNUNET_CRYPTO_random_u64 (GNUNET_CRYPTO_QUALITY_WEAK,
@@ -298,7 +297,7 @@ struct ParserContext
   /**
    * Zone key, NULL if part of record.
    */
-  const struct GNUNET_CRYPTO_EcdsaPrivateKey *zone_key;
+  const struct GNUNET_IDENTITY_PrivateKey *zone_key;
 
   /**
    * Number of results still to return (counted down by
@@ -332,7 +331,7 @@ parse_result_call_iterator (void *cls,
     size_t data_size;
     uint32_t record_count;
     char *label;
-    struct GNUNET_CRYPTO_EcdsaPrivateKey zk;
+    struct GNUNET_IDENTITY_PrivateKey zk;
     struct GNUNET_PQ_ResultSpec rs_with_zone[] = {
       GNUNET_PQ_result_spec_uint64 ("seq", &serial),
       GNUNET_PQ_result_spec_uint32 ("record_count", &record_count),
@@ -409,7 +408,7 @@ parse_result_call_iterator (void *cls,
 static int
 namestore_postgres_lookup_records (void *cls,
                                    const struct
-                                   GNUNET_CRYPTO_EcdsaPrivateKey *zone,
+                                   GNUNET_IDENTITY_PrivateKey *zone,
                                    const char *label,
                                    GNUNET_NAMESTORE_RecordIterator iter,
                                    void *iter_cls)
@@ -459,7 +458,7 @@ namestore_postgres_lookup_records (void *cls,
 static int
 namestore_postgres_iterate_records (void *cls,
                                     const struct
-                                    GNUNET_CRYPTO_EcdsaPrivateKey *zone,
+                                    GNUNET_IDENTITY_PrivateKey *zone,
                                     uint64_t serial,
                                     uint64_t limit,
                                     GNUNET_NAMESTORE_RecordIterator iter,
@@ -526,9 +525,9 @@ namestore_postgres_iterate_records (void *cls,
 static int
 namestore_postgres_zone_to_name (void *cls,
                                  const struct
-                                 GNUNET_CRYPTO_EcdsaPrivateKey *zone,
+                                 GNUNET_IDENTITY_PrivateKey *zone,
                                  const struct
-                                 GNUNET_CRYPTO_EcdsaPublicKey *value_zone,
+                                 GNUNET_IDENTITY_PublicKey *value_zone,
                                  GNUNET_NAMESTORE_RecordIterator iter,
                                  void *iter_cls)
 {

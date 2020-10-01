@@ -185,6 +185,7 @@ gnunet_service_conversation_LDADD = \
   libgnunetmicrophone.la \
   $(top_builddir)/src/cadet/libgnunetcadet.la \
   $(top_builddir)/src/util/libgnunetutil.la \
+  $(top_builddir)/src/identity/libgnunetidentity.la \
   $(INTLLIBS)
 #gnunet_service_conversation_LDFLAGS = \
 #  

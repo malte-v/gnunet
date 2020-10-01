@@ -1821,7 +1821,8 @@ enqueue_fragment (void *cls, const struct GNUNET_MessageHeader *msg)
   struct GNUNET_ATS_Session *session = frag_ctx->session;
   size_t msg_len = ntohs (msg->size);
 
-  LOG (GNUNET_ERROR_TYPE_DEBUG, "Enqueuing fragment with %u bytes\n", msg_len);
+  LOG (GNUNET_ERROR_TYPE_DEBUG, "Enqueuing fragment with %lu bytes\n",
+       (unsigned long) msg_len);
   udpw = GNUNET_malloc (sizeof(struct UDP_MessageWrapper) + msg_len);
   udpw->session = session;
   udpw->msg_buf = (char *) &udpw[1];
@@ -1996,8 +1997,8 @@ udp_plugin_send (void *cls,
     return GNUNET_SYSERR;
   }
   LOG (GNUNET_ERROR_TYPE_DEBUG,
-       "UDP transmits %u-byte message to `%s' using address `%s'\n",
-       udpmlen,
+       "UDP transmits %lu-byte message to `%s' using address `%s'\n",
+       (unsigned long) udpmlen,
        GNUNET_i2s (&s->target),
        udp_address_to_string (plugin,
                               s->address->address,
@@ -3113,18 +3114,18 @@ remove_timeout_messages_and_select (struct Plugin *plugin,
       {
         /* this message is not delayed */
         LOG (GNUNET_ERROR_TYPE_DEBUG,
-             "Message for peer `%s' (%u bytes) is not delayed \n",
+             "Message for peer `%s' (%lu bytes) is not delayed \n",
              GNUNET_i2s (&udpw->session->target),
-             udpw->payload_size);
+             (unsigned long) udpw->payload_size);
         break;       /* Found message to send, break */
       }
       else
       {
         /* Message is delayed, try next */
         LOG (GNUNET_ERROR_TYPE_DEBUG,
-             "Message for peer `%s' (%u bytes) is delayed for %s\n",
+             "Message for peer `%s' (%lu bytes) is delayed for %s\n",
              GNUNET_i2s (&udpw->session->target),
-             udpw->payload_size,
+             (unsigned long) udpw->payload_size,
              GNUNET_STRINGS_relative_time_to_string (remaining, GNUNET_YES));
         udpw = udpw->next;
       }

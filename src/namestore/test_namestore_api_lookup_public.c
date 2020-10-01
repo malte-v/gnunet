@@ -42,9 +42,9 @@ static struct GNUNET_NAMECACHE_Handle *nch;
 
 static struct GNUNET_SCHEDULER_Task *endbadly_task;
 
-static struct GNUNET_CRYPTO_EcdsaPrivateKey privkey;
+static struct GNUNET_IDENTITY_PrivateKey privkey;
 
-static struct GNUNET_CRYPTO_EcdsaPublicKey pubkey;
+static struct GNUNET_IDENTITY_PublicKey pubkey;
 
 static int res;
 
@@ -163,7 +163,7 @@ put_cont (void *cls, int32_t success, const char *emsg)
 {
   const char *name = cls;
   struct GNUNET_HashCode derived_hash;
-  struct GNUNET_CRYPTO_EcdsaPublicKey pubkey;
+  struct GNUNET_IDENTITY_PublicKey pubkey;
 
   nsqe = NULL;
   GNUNET_assert (NULL != cls);
@@ -173,8 +173,8 @@ put_cont (void *cls, int32_t success, const char *emsg)
               (success == GNUNET_OK) ? "SUCCESS" : "FAIL");
 
   /* Create derived hash */
-  GNUNET_CRYPTO_ecdsa_key_get_public (&privkey,
-                                      &pubkey);
+  GNUNET_IDENTITY_key_get_public (&privkey,
+                                  &pubkey);
   GNUNET_GNSRECORD_query_from_public_key (&pubkey, name, &derived_hash);
 
   ncqe = GNUNET_NAMECACHE_lookup_block (nch, &derived_hash,
@@ -193,9 +193,10 @@ run (void *cls,
   endbadly_task = GNUNET_SCHEDULER_add_delayed (TIMEOUT,
                                                 &endbadly,
                                                 NULL);
-  GNUNET_CRYPTO_ecdsa_key_create (&privkey);
-  GNUNET_CRYPTO_ecdsa_key_get_public (&privkey,
-                                      &pubkey);
+  privkey.type = htonl (GNUNET_GNSRECORD_TYPE_PKEY);
+  GNUNET_CRYPTO_ecdsa_key_create (&privkey.ecdsa_key);
+  GNUNET_IDENTITY_key_get_public (&privkey,
+                                  &pubkey);
 
   rd.expiration_time = GNUNET_TIME_absolute_get ().abs_value_us + 1000000000;
   rd.record_type = TEST_RECORD_TYPE;

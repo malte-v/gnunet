@@ -475,6 +475,7 @@ uri_ksk_continuation (void *cls,
                       const char *emsg)
 {
   const struct GNUNET_CRYPTO_EcdsaPrivateKey *priv;
+  const struct GNUNET_IDENTITY_PrivateKey *pk;
 
   if (NULL != emsg)
   {
@@ -486,7 +487,10 @@ uri_ksk_continuation (void *cls,
     GNUNET_SCHEDULER_shutdown ();
     return;
   }
-  priv = GNUNET_IDENTITY_ego_get_private_key (namespace);
+  pk = GNUNET_IDENTITY_ego_get_private_key (namespace);
+  if (GNUNET_IDENTITY_TYPE_ECDSA != ntohl (pk->type))
+    return;
+  priv = &pk->ecdsa_key;
   GNUNET_FS_publish_sks (ctx,
                          priv,
                          this_id,
@@ -569,6 +573,7 @@ directory_trim_complete (struct GNUNET_FS_ShareTreeItem *directory_scan_result)
 {
   struct GNUNET_FS_FileInformation *fi;
   const struct GNUNET_CRYPTO_EcdsaPrivateKey *priv;
+  const struct GNUNET_IDENTITY_PrivateKey *pk;
 
   fi = get_file_information (directory_scan_result);
   GNUNET_FS_share_tree_free (directory_scan_result);
@@ -586,10 +591,13 @@ directory_trim_complete (struct GNUNET_FS_ShareTreeItem *directory_scan_result)
     GNUNET_SCHEDULER_shutdown ();
     return;
   }
-  if (NULL == namespace)
-    priv = NULL;
-  else
-    priv = GNUNET_IDENTITY_ego_get_private_key (namespace);
+  priv = NULL;
+  if (NULL != namespace)
+  {
+    pk = GNUNET_IDENTITY_ego_get_private_key (namespace);
+    GNUNET_assert (GNUNET_IDENTITY_TYPE_ECDSA == ntohl (pk->type));
+    priv = &pk->ecdsa_key;
+  }
   pc = GNUNET_FS_publish_start (ctx,
                                 fi,
                                 priv,

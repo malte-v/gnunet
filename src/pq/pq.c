@@ -1,6 +1,6 @@
 /*
    This file is part of GNUnet
-   Copyright (C) 2014, 2015, 2016, 2017, 2019 GNUnet e.V.
+   Copyright (C) 2014, 2015, 2016, 2017, 2019, 2020 GNUnet e.V.
 
    GNUnet is free software: you can redistribute it and/or modify it
    under the terms of the GNU Affero General Public License as published
@@ -27,14 +27,7 @@
 #include "platform.h"
 #include "pq.h"
 
-/**
- * Execute a prepared statement.
- *
- * @param db database handle
- * @param name name of the prepared statement
- * @param params parameters to the statement
- * @return postgres result
- */
+
 PGresult *
 GNUNET_PQ_exec_prepared (struct GNUNET_PQ_Context *db,
                          const char *name,
@@ -120,12 +113,6 @@ GNUNET_PQ_exec_prepared (struct GNUNET_PQ_Context *db,
 }
 
 
-/**
- * Free all memory that was allocated in @a rs during
- * #GNUNET_PQ_extract_result().
- *
- * @param rs reult specification to clean up
- */
 void
 GNUNET_PQ_cleanup_result (struct GNUNET_PQ_ResultSpec *rs)
 {
@@ -136,17 +123,6 @@ GNUNET_PQ_cleanup_result (struct GNUNET_PQ_ResultSpec *rs)
 }
 
 
-/**
- * Extract results from a query result according to the given
- * specification.
- *
- * @param result result to process
- * @param[in,out] rs result specification to extract for
- * @param row row from the result to extract
- * @return
- *   #GNUNET_YES if all results could be extracted
- *   #GNUNET_SYSERR if a result was invalid (non-existing field)
- */
 int
 GNUNET_PQ_extract_result (PGresult *result,
                           struct GNUNET_PQ_ResultSpec *rs,
@@ -160,6 +136,23 @@ GNUNET_PQ_extract_result (PGresult *result,
     int ret;
 
     spec = &rs[i];
+    if (spec->is_nullable)
+    {
+      int fnum;
+
+      fnum = PQfnumber (result,
+                        spec->fname);
+      if (PQgetisnull (result,
+                       row,
+                       fnum))
+      {
+        if (NULL != spec->is_null)
+          *spec->is_null = true;
+        continue;
+      }
+      if (NULL != spec->is_null)
+        *spec->is_null = false;
+    }
     ret = spec->conv (spec->cls,
                       result,
                       row,

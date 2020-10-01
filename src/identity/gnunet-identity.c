@@ -66,6 +66,11 @@ static unsigned int verbose;
 static int quiet;
 
 /**
+ * Was "eddsa" specified?
+ */
+static int type_eddsa;
+
+/**
  * -C option
  */
 static char *create_ego;
@@ -108,7 +113,7 @@ static struct GNUNET_IDENTITY_Operation *delete_op;
 /**
  * Private key from command line option, or NULL.
  */
-struct GNUNET_CRYPTO_EcdsaPrivateKey pk;
+struct GNUNET_IDENTITY_PrivateKey pk;
 
 /**
  * Value to return from #main().
@@ -197,7 +202,7 @@ delete_finished (void *cls,
  */
 static void
 create_finished (void *cls,
-                 const struct GNUNET_CRYPTO_EcdsaPrivateKey *pk,
+                 const struct GNUNET_IDENTITY_PrivateKey *pk,
                  const char *emsg)
 {
   struct GNUNET_IDENTITY_Operation **op = cls;
@@ -212,16 +217,16 @@ create_finished (void *cls,
   }
   else if (verbose)
   {
-    struct GNUNET_CRYPTO_EcdsaPublicKey pub;
+    struct GNUNET_IDENTITY_PublicKey pub;
     char *pubs;
 
-    GNUNET_CRYPTO_ecdsa_key_get_public (pk, &pub);
-    pubs = GNUNET_CRYPTO_ecdsa_public_key_to_string (&pub);
+    GNUNET_IDENTITY_key_get_public (pk, &pub);
+    pubs = GNUNET_IDENTITY_public_key_to_string (&pub);
     if (private_keys)
     {
       char *privs;
 
-      privs = GNUNET_CRYPTO_ecdsa_private_key_to_string (pk);
+      privs = GNUNET_IDENTITY_private_key_to_string (pk);
       fprintf (stdout, "%s - %s\n", pubs, privs);
       GNUNET_free (privs);
     }
@@ -293,7 +298,7 @@ print_ego (void *cls,
            void **ctx,
            const char *identifier)
 {
-  struct GNUNET_CRYPTO_EcdsaPublicKey pk;
+  struct GNUNET_IDENTITY_PublicKey pk;
   char *s;
   char *privs;
 
@@ -342,8 +347,8 @@ print_ego (void *cls,
                      set_ego)) )
     return;
   GNUNET_IDENTITY_ego_get_public_key (ego, &pk);
-  s = GNUNET_CRYPTO_ecdsa_public_key_to_string (&pk);
-  privs = GNUNET_CRYPTO_ecdsa_private_key_to_string (
+  s = GNUNET_IDENTITY_public_key_to_string (&pk);
+  privs = GNUNET_IDENTITY_private_key_to_string (
     GNUNET_IDENTITY_ego_get_private_key (ego));
   if ((monitor) || (NULL != identifier))
   {
@@ -357,9 +362,16 @@ print_ego (void *cls,
     else
     {
       if (private_keys)
-        fprintf (stdout, "%s - %s - %s\n", identifier, s, privs);
+        fprintf (stdout, "%s - %s - %s - %s\n",
+                 identifier, s, privs,
+                 (ntohl (pk.type) == GNUNET_IDENTITY_TYPE_ECDSA) ?
+                 "ECDSA" : "EdDSA");
       else
-        fprintf (stdout, "%s - %s\n", identifier, s);
+        fprintf (stdout, "%s - %s - %s\n",
+                 identifier, s,
+                 (ntohl (pk.type) == GNUNET_IDENTITY_TYPE_ECDSA) ?
+                 "ECDSA" : "EdDSA");
+
     }
   }
   GNUNET_free (privs);
@@ -407,11 +419,12 @@ run (void *cls,
                                      strlen (privkey_ego),
                                      &pk,
                                      sizeof(struct
-                                            GNUNET_CRYPTO_EcdsaPrivateKey));
+                                            GNUNET_IDENTITY_PrivateKey));
       create_op =
         GNUNET_IDENTITY_create (sh,
                                 create_ego,
                                 &pk,
+                                0, // Ignored
                                 &create_finished,
                                 &create_op);
     }
@@ -420,6 +433,9 @@ run (void *cls,
         GNUNET_IDENTITY_create (sh,
                                 create_ego,
                                 NULL,
+                                (type_eddsa) ?
+                                GNUNET_IDENTITY_TYPE_EDDSA :
+                                GNUNET_IDENTITY_TYPE_ECDSA,
                                 &create_finished,
                                 &create_op);
   }
@@ -456,6 +472,11 @@ main (int argc, char *const *argv)
                                  gettext_noop (
                                    "set the private key for the identity to PRIVATE_KEY (use together with -C)"),
                                  &privkey_ego),
+    GNUNET_GETOPT_option_flag ('X',
+                               "eddsa",
+                               gettext_noop (
+                                 "generate an EdDSA identity. (use together with -C) EXPERIMENTAL"),
+                               &type_eddsa),
     GNUNET_GETOPT_option_flag ('d',
                                "display",
                                gettext_noop ("display all egos"),

@@ -296,7 +296,7 @@ discard_all_from_rung_tail ()
   while (NULL != (dir = tail->rd_head))
   {
     LOG (GNUNET_ERROR_TYPE_DEBUG,
-         "Queue full due new message %s on connection %s, dropping old message\n",
+         "Queue full due new message on connection %s, dropping old message\n",
          GNUNET_sh2s (&dir->my_route->cid.connection_of_tunnel));
     GNUNET_STATISTICS_update (stats,
                               "# messages dropped due to full buffer",
@@ -408,7 +408,7 @@ route_message (struct CadetPeer *prev,
     {
       /* We are in the highest rung, drop our own! */
       LOG (GNUNET_ERROR_TYPE_DEBUG,
-           "Queue full due new message %s on connection %s, dropping old message\n",
+           "Queue full due new message on connection %s, dropping old message\n",
            GNUNET_sh2s (&dir->my_route->cid.connection_of_tunnel));
       GNUNET_STATISTICS_update (stats,
                                 "# messages dropped due to full buffer",

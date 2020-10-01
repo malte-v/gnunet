@@ -1700,7 +1700,7 @@ GNUNET_CRYPTO_eddsa_sign_ (
  */
 #define GNUNET_CRYPTO_eddsa_sign(priv,ps,sig) do {                 \
     /* check size is set correctly */                              \
-    GNUNET_assert (htonl ((ps)->purpose.size) == sizeof (*ps));    \
+    GNUNET_assert (ntohl ((ps)->purpose.size) == sizeof (*ps));    \
     /* check 'ps' begins with the purpose */                       \
     GNUNET_static_assert (((void*) (ps)) ==                        \
                           ((void*) &(ps)->purpose));               \
@@ -1747,7 +1747,7 @@ GNUNET_CRYPTO_ecdsa_sign_ (
  */
 #define GNUNET_CRYPTO_ecdsa_sign(priv,ps,sig) do {                 \
     /* check size is set correctly */                              \
-    GNUNET_assert (htonl ((ps)->purpose.size) == sizeof (*(ps)));  \
+    GNUNET_assert (ntohl ((ps)->purpose.size) == sizeof (*(ps)));  \
     /* check 'ps' begins with the purpose */                       \
     GNUNET_static_assert (((void*) (ps)) ==                        \
                           ((void*) &(ps)->purpose));               \
@@ -1853,7 +1853,7 @@ GNUNET_CRYPTO_ecdsa_verify_ (
  */
 #define GNUNET_CRYPTO_ecdsa_verify(purp,ps,sig,pub) ({             \
     /* check size is set correctly */                              \
-    GNUNET_assert (htonl ((ps)->purpose.size) == sizeof (*(ps)));  \
+    GNUNET_assert (ntohl ((ps)->purpose.size) == sizeof (*(ps)));  \
     /* check 'ps' begins with the purpose */                       \
     GNUNET_static_assert (((void*) (ps)) ==                        \
                           ((void*) &(ps)->purpose));               \

@@ -57,7 +57,7 @@ struct Ego
   /**
    * Private key of the ego.
    */
-  struct GNUNET_CRYPTO_EcdsaPrivateKey pk;
+  struct GNUNET_IDENTITY_PrivateKey pk;
 
   /**
    * String identifier for the ego.
@@ -538,8 +538,8 @@ handle_get_default_message (void *cls,
  * @return 0 if the keys are equal
  */
 static int
-key_cmp (const struct GNUNET_CRYPTO_EcdsaPrivateKey *pk1,
-         const struct GNUNET_CRYPTO_EcdsaPrivateKey *pk2)
+key_cmp (const struct GNUNET_IDENTITY_PrivateKey *pk1,
+         const struct GNUNET_IDENTITY_PrivateKey *pk2)
 {
   return GNUNET_memcmp (pk1, pk2);
 }
@@ -738,10 +738,10 @@ handle_create_message (void *cls,
   send_result_code (client, 0, NULL);
   fn = get_ego_filename (ego);
   (void) GNUNET_DISK_directory_create_for_file (fn);
-  if (sizeof(struct GNUNET_CRYPTO_EcdsaPrivateKey) !=
+  if (sizeof(struct GNUNET_IDENTITY_PrivateKey) !=
       GNUNET_DISK_fn_write (fn,
                             &crm->private_key,
-                            sizeof(struct GNUNET_CRYPTO_EcdsaPrivateKey),
+                            sizeof(struct GNUNET_IDENTITY_PrivateKey),
                             GNUNET_DISK_PERM_USER_READ
                             | GNUNET_DISK_PERM_USER_WRITE))
     GNUNET_log_strerror_file (GNUNET_ERROR_TYPE_ERROR, "write", fn);
@@ -1038,6 +1038,67 @@ handle_delete_message (void *cls, const struct DeleteMessage *dm)
 }
 
 
+static int
+read_from_file (const char *filename,
+                void *buf,
+                size_t buf_size)
+{
+  int fd;
+  struct stat sb;
+
+  fd = open (filename,
+             O_RDONLY);
+  if (-1 == fd)
+  {
+    memset (buf,
+            0,
+            buf_size);
+    return GNUNET_SYSERR;
+  }
+  if (0 != fstat (fd,
+                  &sb))
+  {
+    GNUNET_log_strerror_file (GNUNET_ERROR_TYPE_WARNING,
+                              "stat",
+                              filename);
+    GNUNET_assert (0 == close (fd));
+    memset (buf,
+            0,
+            buf_size);
+    return GNUNET_SYSERR;
+  }
+  if (sb.st_size != buf_size)
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
+                "File `%s' has wrong size (%llu), expected %llu bytes\n",
+                filename,
+                (unsigned long long) sb.st_size,
+                (unsigned long long) buf_size);
+    GNUNET_assert (0 == close (fd));
+    memset (buf,
+            0,
+            buf_size);
+    return GNUNET_SYSERR;
+  }
+  if (buf_size !=
+      read (fd,
+            buf,
+            buf_size))
+  {
+    GNUNET_log_strerror_file (GNUNET_ERROR_TYPE_WARNING,
+                              "read",
+                              filename);
+    GNUNET_assert (0 == close (fd));
+    memset (buf,
+            0,
+            buf_size);
+    return GNUNET_SYSERR;
+  }
+  GNUNET_assert (0 == close (fd));
+  return GNUNET_OK;
+}
+
+
 /**
  * Process the given file from the "EGODIR".  Parses the file
  * and creates the respective 'struct Ego' in memory.
@@ -1063,9 +1124,9 @@ process_ego_file (void *cls,
   }
   ego = GNUNET_new (struct Ego);
   if (GNUNET_OK !=
-      GNUNET_CRYPTO_ecdsa_key_from_file (filename,
-                                         GNUNET_NO,
-                                         &ego->pk))
+      read_from_file (filename,
+                      &ego->pk,
+                      sizeof (ego->pk)))
   {
     GNUNET_free (ego);
     GNUNET_log (GNUNET_ERROR_TYPE_WARNING,

@@ -263,6 +263,7 @@ GNUNET_PQ_eval_prepared_singleton_select (struct GNUNET_PQ_Context *db,
 {
   PGresult *result;
   enum GNUNET_DB_QueryStatus qs;
+  int ntuples;
 
   result = GNUNET_PQ_exec_prepared (db,
                                     statement_name,
@@ -277,12 +278,13 @@ GNUNET_PQ_eval_prepared_singleton_select (struct GNUNET_PQ_Context *db,
     PQclear (result);
     return qs;
   }
-  if (0 == PQntuples (result))
+  ntuples = PQntuples (result);
+  if (0 == ntuples)
   {
     PQclear (result);
     return GNUNET_DB_STATUS_SUCCESS_NO_RESULTS;
   }
-  if (1 != PQntuples (result))
+  if (1 != ntuples)
   {
     /* more than one result, but there must be at most one */
     GNUNET_break (0);

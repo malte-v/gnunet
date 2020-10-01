@@ -26,12 +26,13 @@
 /**
  * The struct where the parsed values will be stored:
  *
- * scheme ":" [ "//" ] [ username ":" password "@" ] host [ ":" port ] [ "/" ] [ path ] [ "?" query ]
+ * scheme ":" [ "//" ] [ username ":" password "@" ] host [ ":" port ] [ "/" ] [ path ] [ "?" query ] [ "#" fragment ]
  *
  * Note: to make sure that no strings are copied, the first slash "/" in the
  * path will be used to null terminate the hostname if no port is supplied.
  */
-struct GNUNET_Uri {
+struct GNUNET_Uri
+{
   char *scheme; /* scheme, without ":" and "//" */
   char *username; /* username, default: NULL */
   char *password; /* password, default: NULL */
@@ -44,7 +45,8 @@ struct GNUNET_Uri {
 
 
 /* A struct to hold the query string parameter values. */
-struct GNUNET_UriParam {
+struct GNUNET_UriParam
+{
   char *key;
   char *val;
 };

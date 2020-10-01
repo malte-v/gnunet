@@ -50,13 +50,18 @@ gns_value_to_string (void *cls,
                      size_t data_size)
 {
   const char *cdata;
+  struct GNUNET_IDENTITY_PublicKey pk;
 
   switch (type)
   {
   case GNUNET_GNSRECORD_TYPE_PKEY:
-    if (data_size != sizeof(struct GNUNET_CRYPTO_EcdsaPublicKey))
+  case GNUNET_GNSRECORD_TYPE_EDKEY:
+    if (GNUNET_OK != GNUNET_GNSRECORD_identity_from_data (data,
+                                                          data_size,
+                                                          type,
+                                                          &pk))
       return NULL;
-    return GNUNET_CRYPTO_ecdsa_public_key_to_string (data);
+    return GNUNET_IDENTITY_public_key_to_string (&pk);
 
   case GNUNET_GNSRECORD_TYPE_NICK:
     return GNUNET_strndup (data, data_size);
@@ -153,24 +158,35 @@ gns_string_to_value (void *cls,
                      void **data,
                      size_t *data_size)
 {
-  struct GNUNET_CRYPTO_EcdsaPublicKey pkey;
+  struct GNUNET_IDENTITY_PublicKey pk;
+  uint32_t record_type;
 
   if (NULL == s)
     return GNUNET_SYSERR;
   switch (type)
   {
   case GNUNET_GNSRECORD_TYPE_PKEY:
+  case GNUNET_GNSRECORD_TYPE_EDKEY:
     if (GNUNET_OK !=
-        GNUNET_CRYPTO_ecdsa_public_key_from_string (s, strlen (s), &pkey))
+        GNUNET_IDENTITY_public_key_from_string (s, &pk))
     {
       GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                  _ ("Unable to parse PKEY record `%s'\n"),
+                  _ ("Unable to parse zone key record `%s'\n"),
                   s);
       return GNUNET_SYSERR;
     }
-    *data = GNUNET_new (struct GNUNET_CRYPTO_EcdsaPublicKey);
-    GNUNET_memcpy (*data, &pkey, sizeof(pkey));
-    *data_size = sizeof(struct GNUNET_CRYPTO_EcdsaPublicKey);
+    *data_size = GNUNET_IDENTITY_key_get_length (&pk);
+    if (GNUNET_OK != GNUNET_GNSRECORD_data_from_identity (&pk,
+                                                          (char **) data,
+                                                          data_size,
+                                                          &record_type))
+      return GNUNET_SYSERR;
+    if (record_type != type)
+    {
+      GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                  _("Record type does not match parsed record type\n"));
+      return GNUNET_SYSERR;
+    }
     return GNUNET_OK;
 
   case GNUNET_GNSRECORD_TYPE_NICK:
@@ -301,6 +317,7 @@ static struct
   const char *name;
   uint32_t number;
 } gns_name_map[] = { { "PKEY", GNUNET_GNSRECORD_TYPE_PKEY },
+                     { "EDKEY", GNUNET_GNSRECORD_TYPE_PKEY },
                      { "NICK", GNUNET_GNSRECORD_TYPE_NICK },
                      { "LEHO", GNUNET_GNSRECORD_TYPE_LEHO },
                      { "VPN", GNUNET_GNSRECORD_TYPE_VPN },

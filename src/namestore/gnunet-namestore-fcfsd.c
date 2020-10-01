@@ -164,7 +164,7 @@ struct Request
    */
   char public_key[128];
 
-  struct GNUNET_CRYPTO_EcdsaPublicKey pub;
+  struct GNUNET_IDENTITY_PublicKey pub;
 };
 
 /**
@@ -211,7 +211,7 @@ static struct GNUNET_NAMESTORE_Handle *ns;
 /**
  * Private key for the fcfsd zone.
  */
-static struct GNUNET_CRYPTO_EcdsaPrivateKey fcfs_zone_pkey;
+static struct GNUNET_IDENTITY_PrivateKey fcfs_zone_pkey;
 
 /**
  * Connection to identity service.
@@ -306,7 +306,6 @@ zone_iteration_end (void *cls)
   /* return static form */
   GNUNET_asprintf (&full_page,
                    ZONEINFO_PAGE,
-                   zr->zoneinfo,
                    zr->zoneinfo);
   response = MHD_create_response_from_buffer (strlen (full_page),
                                               (void *) full_page,
@@ -332,7 +331,7 @@ zone_iteration_end (void *cls)
  */
 static void
 iterate_cb (void *cls,
-            const struct GNUNET_CRYPTO_EcdsaPrivateKey *zone_key,
+            const struct GNUNET_IDENTITY_PrivateKey *zone_key,
             const char *name,
             unsigned int rd_len,
             const struct GNUNET_GNSRECORD_Data *rd)
@@ -350,7 +349,8 @@ iterate_cb (void *cls,
     return;
   }
 
-  if (GNUNET_GNSRECORD_TYPE_PKEY != rd->record_type)
+  if ((GNUNET_GNSRECORD_TYPE_PKEY != rd->record_type) &&
+      (GNUNET_GNSRECORD_TYPE_EDKEY != rd->record_type))
   {
     GNUNET_NAMESTORE_zone_iterator_next (zr->list_it,
                                          1);
@@ -615,13 +615,14 @@ zone_to_name_error (void *cls)
  */
 static void
 zone_to_name_cb (void *cls,
-                 const struct GNUNET_CRYPTO_EcdsaPrivateKey *zone_key,
+                 const struct GNUNET_IDENTITY_PrivateKey *zone_key,
                  const char *name,
                  unsigned int rd_count,
                  const struct GNUNET_GNSRECORD_Data *rd)
 {
   struct Request *request = cls;
   struct GNUNET_GNSRECORD_Data r;
+  char *rdata;
 
   (void) rd;
   (void) zone_key;
@@ -636,10 +637,21 @@ zone_to_name_cb (void *cls,
     run_httpd_now ();
     return;
   }
-  r.data = &request->pub;
-  r.data_size = sizeof(request->pub);
+  if (GNUNET_OK != GNUNET_GNSRECORD_data_from_identity (&request->pub,
+                                                        &rdata,
+                                                        &r.data_size,
+                                                        &r.record_type))
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_INFO,
+                _ ("Error creating record data.\n"));
+    request->phase = RP_FAIL;
+    MHD_resume_connection (request->con);
+    run_httpd_now ();
+    return;
+  }
+
+  r.data = rdata;
   r.expiration_time = UINT64_MAX;
-  r.record_type = GNUNET_GNSRECORD_TYPE_PKEY;
   r.flags = GNUNET_GNSRECORD_RF_NONE;
   request->qe = GNUNET_NAMESTORE_records_store (ns,
                                                 &fcfs_zone_pkey,
@@ -647,6 +659,7 @@ zone_to_name_cb (void *cls,
                                                 1, &r,
                                                 &put_continuation,
                                                 request);
+  GNUNET_free (rdata);
 }
 
 
@@ -677,7 +690,7 @@ lookup_it_error (void *cls)
  */
 static void
 lookup_it_processor (void *cls,
-                     const struct GNUNET_CRYPTO_EcdsaPrivateKey *zonekey,
+                     const struct GNUNET_IDENTITY_PrivateKey *zonekey,
                      const char *label,
                      unsigned int rd_count,
                      const struct GNUNET_GNSRECORD_Data *rd)
@@ -712,9 +725,8 @@ lookup_it_finished (void *cls)
     return;
   }
   if (GNUNET_OK !=
-      GNUNET_CRYPTO_ecdsa_public_key_from_string (request->public_key,
-                                                  strlen (request->public_key),
-                                                  &request->pub))
+      GNUNET_IDENTITY_public_key_from_string (request->public_key,
+                                              &request->pub))
   {
     GNUNET_break (0);
     request->phase = RP_FAIL;
@@ -767,7 +779,7 @@ create_response (void *cls,
 {
   struct MHD_Response *response;
   struct Request *request;
-  struct GNUNET_CRYPTO_EcdsaPublicKey pub;
+  struct GNUNET_IDENTITY_PublicKey pub;
   MHD_RESULT ret;
 
   (void) cls;
@@ -822,10 +834,8 @@ create_response (void *cls,
       request->pp = NULL;
     }
     if (GNUNET_OK !=
-        GNUNET_CRYPTO_ecdsa_public_key_from_string (request->public_key,
-                                                    strlen (
-                                                      request->public_key),
-                                                    &pub))
+        GNUNET_IDENTITY_public_key_from_string (request->public_key,
+                                                &pub))
     {
       /* parse error */
       return fill_s_reply ("Failed to parse given public key",
@@ -1211,7 +1221,8 @@ main (int argc,
                          options,
                          &run, NULL)) ? 0 : 1;
   GNUNET_free_nz ((void *) argv);
-  GNUNET_CRYPTO_ecdsa_key_clear (&fcfs_zone_pkey);
+  // FIXME
+  // GNUNET_CRYPTO_ecdsa_key_clear (&fcfs_zone_pkey);
   return ret;
 }
 

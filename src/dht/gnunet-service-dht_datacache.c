@@ -94,9 +94,9 @@ GDS_DATACACHE_handle_put (struct GNUNET_TIME_Absolute expiration,
                             put_path_length,
                             put_path);
   LOG (GNUNET_ERROR_TYPE_DEBUG,
-       "DATACACHE PUT for key %s [%u] completed (%d) after %u hops\n",
+       "DATACACHE PUT for key %s [%lu] completed (%d) after %u hops\n",
        GNUNET_h2s (key),
-       data_size,
+       (unsigned long) data_size,
        r,
        put_path_length);
 }

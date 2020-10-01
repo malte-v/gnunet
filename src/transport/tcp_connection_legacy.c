@@ -1142,9 +1142,9 @@ RETRY:
     return;
   }
   LOG (GNUNET_ERROR_TYPE_DEBUG,
-       "receive_ready read %u/%u bytes from `%s' (%p)!\n",
-       (unsigned int) ret,
-       connection->max,
+       "receive_ready read %lu/%lu bytes from `%s' (%p)!\n",
+       (unsigned long) ret,
+       (unsigned long) connection->max,
        GNUNET_a2s (connection->addr, connection->addrlen),
        connection);
   GNUNET_assert (NULL != (receiver = connection->receiver));
@@ -1327,8 +1327,8 @@ connect_error (void *cls)
   GNUNET_CONNECTION_TransmitReadyNotify notify;
 
   LOG (GNUNET_ERROR_TYPE_DEBUG,
-       "Transmission request of size %u fails (%s/%u), connection failed (%p).\n",
-       connection->nth.notify_size,
+       "Transmission request of size %lu fails (%s/%u), connection failed (%p).\n",
+       (unsigned long) connection->nth.notify_size,
        connection->hostname,
        connection->port,
        connection);
@@ -1423,9 +1423,9 @@ RETRY:
     return;
   }
   LOG (GNUNET_ERROR_TYPE_DEBUG,
-       "Connection transmitted %u/%u bytes to `%s' (%p)\n",
-       (unsigned int) ret,
-       have,
+       "Connection transmitted %lu/%lu bytes to `%s' (%p)\n",
+       (unsigned long) ret,
+       (unsigned long) have,
        GNUNET_a2s (connection->addr, connection->addrlen),
        connection);
   connection->write_buffer_pos += ret;

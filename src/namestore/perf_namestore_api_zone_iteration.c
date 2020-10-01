@@ -64,7 +64,7 @@ static struct GNUNET_SCHEDULER_Task *timeout_task;
 
 static struct GNUNET_SCHEDULER_Task *t;
 
-static struct GNUNET_CRYPTO_EcdsaPrivateKey privkey;
+static struct GNUNET_IDENTITY_PrivateKey privkey;
 
 static struct GNUNET_NAMESTORE_ZoneIterator *zi;
 
@@ -188,7 +188,7 @@ fail_cb (void *cls)
 
 static void
 zone_proc (void *cls,
-           const struct GNUNET_CRYPTO_EcdsaPrivateKey *zone,
+           const struct GNUNET_IDENTITY_PrivateKey *zone,
            const char *label,
            unsigned int rd_count,
            const struct GNUNET_GNSRECORD_Data *rd)
@@ -341,7 +341,8 @@ run (void *cls,
                                                NULL);
   nsh = GNUNET_NAMESTORE_connect (cfg);
   GNUNET_assert (NULL != nsh);
-  GNUNET_CRYPTO_ecdsa_key_create (&privkey);
+  privkey.type = htonl (GNUNET_GNSRECORD_TYPE_PKEY);
+  GNUNET_CRYPTO_ecdsa_key_create (&privkey.ecdsa_key);
   start = GNUNET_TIME_absolute_get ();
   t = GNUNET_SCHEDULER_add_now (&publish_record,
                                 NULL);

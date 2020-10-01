@@ -2431,7 +2431,7 @@ connection_ready_cb (void *cls,
   {
   case CADET_TUNNEL_KEY_UNINITIALIZED:
     LOG (GNUNET_ERROR_TYPE_DEBUG,
-         "Do not begin KX for %s if WE have no channels waiting. Retrying after %d\n",
+         "Do not begin KX for %s if WE have no channels waiting. Retrying after %llu\n",
          GCT_2s (t),
          GNUNET_TIME_absolute_get_remaining (t->next_kx_attempt).rel_value_us);
     /* Do not begin KX if WE have no channels waiting! */

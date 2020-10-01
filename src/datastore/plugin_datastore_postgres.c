@@ -72,8 +72,10 @@ init_connection (struct Plugin *plugin)
      * we only test equality on it and can cast it to/from uint32_t. For repl, prio, and anonLevel
      * we do math or inequality tests, so we can't handle the entire range of uint32_t.
      * This will also cause problems for expiration times after 294247-01-10-04:00:54 UTC.
-     * PostgreSQL also recommends against using WITH OIDS.
-     */GNUNET_PQ_make_execute ("CREATE TABLE IF NOT EXISTS gn090 ("
+     */
+    GNUNET_PQ_make_try_execute (
+      "CREATE SEQUENCE IF NOT EXISTS gn090_oid_seq"),
+    GNUNET_PQ_make_execute ("CREATE TABLE IF NOT EXISTS gn090 ("
                             "  repl INTEGER NOT NULL DEFAULT 0,"
                             "  type INTEGER NOT NULL DEFAULT 0,"
                             "  prio INTEGER NOT NULL DEFAULT 0,"
@@ -82,8 +84,12 @@ init_connection (struct Plugin *plugin)
                             "  rvalue BIGINT NOT NULL DEFAULT 0,"
                             "  hash BYTEA NOT NULL DEFAULT '',"
                             "  vhash BYTEA NOT NULL DEFAULT '',"
-                            "  value BYTEA NOT NULL DEFAULT '')"
-                            "WITH OIDS"),
+                            "  value BYTEA NOT NULL DEFAULT '',"
+                            "  oid OID NOT NULL DEFAULT nextval('gn090_oid_seq'))"),
+    GNUNET_PQ_make_try_execute (
+      "ALTER SEQUENCE gn090_oid_seq OWNED BY gn090.oid"),
+    GNUNET_PQ_make_try_execute (
+      "CREATE INDEX IF NOT EXISTS oid_hash ON gn090 (oid)"),
     GNUNET_PQ_make_try_execute (
       "CREATE INDEX IF NOT EXISTS idx_hash ON gn090 (hash)"),
     GNUNET_PQ_make_try_execute (

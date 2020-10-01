@@ -65,25 +65,34 @@ run (void *cls,
      const char *cfgfile,
      const struct GNUNET_CONFIGURATION_Handle *cfg)
 {
-  struct GNUNET_CRYPTO_EcdsaPrivateKey id_priv;
-  struct GNUNET_CRYPTO_EcdsaPublicKey id_pub;
-  struct GNUNET_REVOCATION_PowP pow;
+  struct GNUNET_IDENTITY_PrivateKey id_priv;
+  struct GNUNET_IDENTITY_PublicKey id_pub;
+  struct GNUNET_REVOCATION_PowP *pow;
   struct GNUNET_REVOCATION_PowCalculationHandle *ph;
   struct GNUNET_TIME_Relative exp;
+  char ztld[128];
 
-  GNUNET_CRYPTO_ecdsa_key_create (&id_priv);
-  GNUNET_CRYPTO_ecdsa_key_get_public (&id_priv,
-                                      &id_pub);
-  fprintf (stdout, "Zone private key (d, little-endian scalar):\n");
-  print_bytes (&id_priv, sizeof(id_priv), 0);
+  id_priv.type = htonl (GNUNET_IDENTITY_TYPE_ECDSA);
+  GNUNET_CRYPTO_ecdsa_key_create (&id_priv.ecdsa_key);
+  GNUNET_IDENTITY_key_get_public (&id_priv,
+                                  &id_pub);
+  GNUNET_STRINGS_data_to_string (&id_pub,
+                                 GNUNET_IDENTITY_key_get_length (&id_pub),
+                                 ztld,
+                                 sizeof (ztld));
+  fprintf (stdout, "Zone private key (d, little-endian scalar, with ztype prepended):\n");
+  print_bytes (&id_priv, sizeof(id_priv), 8);
   fprintf (stdout, "\n");
-  fprintf (stdout, "Zone public key (zk):\n");
-  print_bytes (&id_pub, sizeof(id_pub), 0);
+  fprintf (stdout, "Zone identifier (zid):\n");
+  print_bytes (&id_pub, GNUNET_IDENTITY_key_get_length (&id_pub), 8);
   fprintf (stdout, "\n");
-  memset (&pow, 0, sizeof (pow));
+  fprintf (stdout, "Encoded zone identifier (zkl = zTLD):\n");
+  fprintf (stdout, "%s\n", ztld);
+  fprintf (stdout, "\n");
+  pow = GNUNET_malloc (GNUNET_REVOCATION_MAX_PROOF_SIZE);
   GNUNET_REVOCATION_pow_init (&id_priv,
-                              &pow);
-  ph = GNUNET_REVOCATION_pow_start (&pow,
+                              pow);
+  ph = GNUNET_REVOCATION_pow_start (pow,
                                     TEST_EPOCHS,
                                     TEST_DIFFICULTY);
   fprintf (stdout, "Difficulty (%d base difficulty + %d epochs): %d\n\n",
@@ -97,12 +106,12 @@ run (void *cls,
   }
   exp = GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_YEARS,
                                        TEST_EPOCHS);
-  GNUNET_assert (GNUNET_OK == GNUNET_REVOCATION_check_pow (&pow,
+  GNUNET_assert (GNUNET_OK == GNUNET_REVOCATION_check_pow (pow,
                                                            TEST_DIFFICULTY,
                                                            exp));
   fprintf (stdout, "Proof:\n");
-  print_bytes (&pow,
-               sizeof (pow),
+  print_bytes (pow,
+               GNUNET_REVOCATION_proof_get_size (pow),
                8);
 }
 

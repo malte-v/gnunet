@@ -356,10 +356,10 @@ GNUNET_BIO_read_string (struct GNUNET_BIO_ReadHandle *h,
   if (big > max_length)
   {
     GNUNET_asprintf (&h->emsg,
-                     _ ("String `%s' longer than allowed (%u > %u)"),
+                     _ ("String `%s' longer than allowed (%u > %lu)"),
                      what,
                      big,
-                     max_length);
+                     (unsigned long) max_length);
     return GNUNET_SYSERR;
   }
   buf = GNUNET_malloc (big);

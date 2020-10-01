@@ -203,7 +203,7 @@ display_record (const struct GNUNET_DNSPARSER_Record *record)
     else
     {
       GNUNET_asprintf (&tmp,
-                       "priority %u, weight = %s, port = %u, target = %s",
+                       "priority %u, weight = %u, port = %u, target = %s",
                        (unsigned int) record->data.srv->priority,
                        (unsigned int) record->data.srv->weight,
                        (unsigned int) record->data.srv->port,

@@ -352,14 +352,14 @@ REGEX_BLOCK_iterate (const struct RegexBlock *block,
   }
   off = len;
   LOG (GNUNET_ERROR_TYPE_DEBUG,
-       "Start iterating block of size %u, proof %u, off %u edges %u\n",
-       size, len, off, n);
+       "Start iterating block of size %lu, proof %u, off %lu edges %u\n",
+       (unsigned long) size, len, (unsigned long) off, n);
   /* &aux[off] always points to our token */
   for (n = 0; n < num_edges; n++)
   {
     LOG (GNUNET_ERROR_TYPE_DEBUG,
-         "Edge %u/%u, off %u tokenlen %u (%.*s)\n",
-         n + 1, num_edges, off,
+         "Edge %u/%u, off %lu tokenlen %u (%.*s)\n",
+         n + 1, num_edges, (unsigned long) off,
          ntohs (edges[n].token_length), ntohs (edges[n].token_length),
          &aux[off]);
     if (NULL != iterator)

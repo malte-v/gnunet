@@ -1,6 +1,6 @@
 /*
    This file is part of GNUnet
-   Copyright (C) 2014, 2015, 2016 GNUnet e.V.
+   Copyright (C) 2014, 2015, 2016, 2020 GNUnet e.V.
 
    GNUnet is free software: you can redistribute it and/or modify it
    under the terms of the GNU Affero General Public License as published
@@ -25,6 +25,19 @@
 #include "platform.h"
 #include "gnunet_util_lib.h"
 #include "gnunet_pq_lib.h"
+
+
+struct GNUNET_PQ_ResultSpec
+GNUNET_PQ_result_spec_allow_null (struct GNUNET_PQ_ResultSpec rs,
+                                  bool *is_null)
+{
+  struct GNUNET_PQ_ResultSpec rsr;
+
+  rsr = rs;
+  rsr.is_nullable = true;
+  rsr.is_null = is_null;
+  return rsr;
+}
 
 
 /**
@@ -112,14 +125,6 @@ extract_varsize_blob (void *cls,
 }
 
 
-/**
- * Variable-size result expected.
- *
- * @param name name of the field in the table
- * @param[out] dst where to store the result, allocated
- * @param[out] sptr where to store the size of @a dst
- * @return array entry for the result specification to use
- */
 struct GNUNET_PQ_ResultSpec
 GNUNET_PQ_result_spec_variable_size (const char *name,
                                      void **dst,
@@ -196,14 +201,6 @@ extract_fixed_blob (void *cls,
 }
 
 
-/**
- * Fixed-size result expected.
- *
- * @param name name of the field in the table
- * @param[out] dst where to store the result
- * @param dst_size number of bytes in @a dst
- * @return array entry for the result specification to use
- */
 struct GNUNET_PQ_ResultSpec
 GNUNET_PQ_result_spec_fixed_size (const char *name,
                                   void *dst,
@@ -301,13 +298,6 @@ clean_rsa_public_key (void *cls,
 }
 
 
-/**
- * RSA public key expected.
- *
- * @param name name of the field in the table
- * @param[out] rsa where to store the result
- * @return array entry for the result specification to use
- */
 struct GNUNET_PQ_ResultSpec
 GNUNET_PQ_result_spec_rsa_public_key (const char *name,
                                       struct GNUNET_CRYPTO_RsaPublicKey **rsa)
@@ -405,13 +395,6 @@ clean_rsa_signature (void *cls,
 }
 
 
-/**
- * RSA signature expected.
- *
- * @param name name of the field in the table
- * @param[out] sig where to store the result;
- * @return array entry for the result specification to use
- */
 struct GNUNET_PQ_ResultSpec
 GNUNET_PQ_result_spec_rsa_signature (const char *name,
                                      struct GNUNET_CRYPTO_RsaSignature **sig)
@@ -509,13 +492,6 @@ clean_string (void *cls,
 }
 
 
-/**
- * 0-terminated string expected.
- *
- * @param name name of the field in the table
- * @param[out] dst where to store the result, allocated
- * @return array entry for the result specification to use
- */
 struct GNUNET_PQ_ResultSpec
 GNUNET_PQ_result_spec_string (const char *name,
                               char **dst)
@@ -595,13 +571,6 @@ extract_rel_time (void *cls,
 }
 
 
-/**
- * Relative time expected.
- *
- * @param name name of the field in the table
- * @param[out] at where to store the result
- * @return array entry for the result specification to use
- */
 struct GNUNET_PQ_ResultSpec
 GNUNET_PQ_result_spec_relative_time (const char *name,
                                      struct GNUNET_TIME_Relative *rt)
@@ -685,13 +654,6 @@ extract_abs_time (void *cls,
 }
 
 
-/**
- * Absolute time expected.
- *
- * @param name name of the field in the table
- * @param[out] at where to store the result
- * @return array entry for the result specification to use
- */
 struct GNUNET_PQ_ResultSpec
 GNUNET_PQ_result_spec_absolute_time (const char *name,
                                      struct GNUNET_TIME_Absolute *at)
@@ -706,13 +668,6 @@ GNUNET_PQ_result_spec_absolute_time (const char *name,
 }
 
 
-/**
- * Absolute time in network byte order expected.
- *
- * @param name name of the field in the table
- * @param[out] at where to store the result
- * @return array entry for the result specification to use
- */
 struct GNUNET_PQ_ResultSpec
 GNUNET_PQ_result_spec_absolute_time_nbo (const char *name,
                                          struct GNUNET_TIME_AbsoluteNBO *at)
@@ -786,13 +741,6 @@ extract_uint16 (void *cls,
 }
 
 
-/**
- * uint16_t expected.
- *
- * @param name name of the field in the table
- * @param[out] u16 where to store the result
- * @return array entry for the result specification to use
- */
 struct GNUNET_PQ_ResultSpec
 GNUNET_PQ_result_spec_uint16 (const char *name,
                               uint16_t *u16)
@@ -869,13 +817,6 @@ extract_uint32 (void *cls,
 }
 
 
-/**
- * uint32_t expected.
- *
- * @param name name of the field in the table
- * @param[out] u32 where to store the result
- * @return array entry for the result specification to use
- */
 struct GNUNET_PQ_ResultSpec
 GNUNET_PQ_result_spec_uint32 (const char *name,
                               uint32_t *u32)
@@ -952,22 +893,16 @@ extract_uint64 (void *cls,
 }
 
 
-/**
- * uint64_t expected.
- *
- * @param name name of the field in the table
- * @param[out] u64 where to store the result
- * @return array entry for the result specification to use
- */
 struct GNUNET_PQ_ResultSpec
 GNUNET_PQ_result_spec_uint64 (const char *name,
                               uint64_t *u64)
 {
-  struct GNUNET_PQ_ResultSpec res =
-  { &extract_uint64,
+  struct GNUNET_PQ_ResultSpec res = {
+    &extract_uint64,
     NULL,
     NULL,
-    (void *) u64, sizeof(*u64), (name), NULL };
+    (void *) u64, sizeof(*u64), (name), NULL
+  };
 
   return res;
 }

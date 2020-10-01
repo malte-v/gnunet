@@ -47,10 +47,11 @@ postgres_prepare (struct GNUNET_PQ_Context *db)
                             ",u16"
                             ",u32"
                             ",u64"
+                            ",unn"
                             ") VALUES "
                             "($1, $2, $3, $4, $5, $6,"
-                            "$7, $8, $9);",
-                            9),
+                            "$7, $8, $9, $10);",
+                            10),
     GNUNET_PQ_make_prepare ("test_select",
                             "SELECT"
                             " pub"
@@ -62,6 +63,7 @@ postgres_prepare (struct GNUNET_PQ_Context *db)
                             ",u16"
                             ",u32"
                             ",u64"
+                            ",unn"
                             " FROM test_pq"
                             " ORDER BY abs_time DESC "
                             " LIMIT 1;",
@@ -106,7 +108,8 @@ run_queries (struct GNUNET_PQ_Context *db)
   uint32_t u322;
   uint64_t u64;
   uint64_t u642;
-
+  uint64_t uzzz = 42;
+  
   priv = GNUNET_CRYPTO_rsa_private_key_create (1024);
   pub = GNUNET_CRYPTO_rsa_private_key_get_public (priv);
   memset (&hmsg, 42, sizeof(hmsg));
@@ -127,11 +130,13 @@ run_queries (struct GNUNET_PQ_Context *db)
       GNUNET_PQ_query_param_uint16 (&u16),
       GNUNET_PQ_query_param_uint32 (&u32),
       GNUNET_PQ_query_param_uint64 (&u64),
+      GNUNET_PQ_query_param_null (),
       GNUNET_PQ_query_param_end
     };
     struct GNUNET_PQ_QueryParam params_select[] = {
       GNUNET_PQ_query_param_end
     };
+    bool got_null = false;
     struct GNUNET_PQ_ResultSpec results_select[] = {
       GNUNET_PQ_result_spec_rsa_public_key ("pub", &pub2),
       GNUNET_PQ_result_spec_rsa_signature ("sig", &sig2),
@@ -142,6 +147,9 @@ run_queries (struct GNUNET_PQ_Context *db)
       GNUNET_PQ_result_spec_uint16 ("u16", &u162),
       GNUNET_PQ_result_spec_uint32 ("u32", &u322),
       GNUNET_PQ_result_spec_uint64 ("u64", &u642),
+      GNUNET_PQ_result_spec_allow_null (
+        GNUNET_PQ_result_spec_uint64 ("unn", &uzzz),
+        &got_null),
       GNUNET_PQ_result_spec_end
     };
 
@@ -197,6 +205,8 @@ run_queries (struct GNUNET_PQ_Context *db)
     GNUNET_break (16 == u162);
     GNUNET_break (32 == u322);
     GNUNET_break (64 == u642);
+    GNUNET_break (42 == uzzz);
+    GNUNET_break (got_null);
     GNUNET_PQ_cleanup_result (results_select);
     PQclear (result);
   }
@@ -225,6 +235,7 @@ main (int argc,
                             ",u16 INT2 NOT NULL"
                             ",u32 INT4 NOT NULL"
                             ",u64 INT8 NOT NULL"
+                            ",unn INT8"
                             ")"),
     GNUNET_PQ_EXECUTE_STATEMENT_END
   };

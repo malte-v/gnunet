@@ -1,6 +1,6 @@
 /*
    This file is part of GNUnet
-   Copyright (C) 2016, 2017 GNUnet e.V.
+   Copyright (C) 2016, 2017, 2020 GNUnet e.V.
 
    GNUnet is free software: you can redistribute it and/or modify it
    under the terms of the GNU Affero General Public License as published
@@ -87,6 +87,7 @@ struct GNUNET_PQ_QueryParam
    * Number of parameters eaten by this operation.
    */
   unsigned int num_params;
+
 };
 
 
@@ -100,20 +101,32 @@ struct GNUNET_PQ_QueryParam
 
 
 /**
+ * Generate query parameter to create a NULL value.
+ *
+ * @return query parameter to use to insert NULL into DB
+ */
+struct GNUNET_PQ_QueryParam
+GNUNET_PQ_query_param_null (void);
+
+
+/**
  * Generate query parameter for a buffer @a ptr of
  * @a ptr_size bytes.
  *
  * @param ptr pointer to the query parameter to pass
  * @oaran ptr_size number of bytes in @a ptr
+ * @return query parameter to use
  */
 struct GNUNET_PQ_QueryParam
-GNUNET_PQ_query_param_fixed_size (const void *ptr, size_t ptr_size);
+GNUNET_PQ_query_param_fixed_size (const void *ptr,
+                                  size_t ptr_size);
 
 
 /**
  * Generate query parameter for a string.
  *
  * @param ptr pointer to the string query parameter to pass
+ * @return query parameter to use
  */
 struct GNUNET_PQ_QueryParam
 GNUNET_PQ_query_param_string (const char *ptr);
@@ -124,6 +137,7 @@ GNUNET_PQ_query_param_string (const char *ptr);
  * by variable type.
  *
  * @param x pointer to the query parameter to pass.
+ * @return query parameter to use
  */
 #define GNUNET_PQ_query_param_auto_from_type(x) \
   GNUNET_PQ_query_param_fixed_size ((x), sizeof(*(x)))
@@ -134,6 +148,7 @@ GNUNET_PQ_query_param_string (const char *ptr);
  * database must contain a BLOB type in the respective position.
  *
  * @param x the query parameter to pass.
+ * @return query parameter to use
  */
 struct GNUNET_PQ_QueryParam
 GNUNET_PQ_query_param_rsa_public_key (
@@ -145,6 +160,7 @@ GNUNET_PQ_query_param_rsa_public_key (
  * database must contain a BLOB type in the respective position.
  *
  * @param x the query parameter to pass
+ * @return query parameter to use
  */
 struct GNUNET_PQ_QueryParam
 GNUNET_PQ_query_param_rsa_signature (
@@ -156,6 +172,7 @@ GNUNET_PQ_query_param_rsa_signature (
  * The database must store a 64-bit integer.
  *
  * @param x pointer to the query parameter to pass
+ * @return query parameter to use
  */
 struct GNUNET_PQ_QueryParam
 GNUNET_PQ_query_param_relative_time (const struct GNUNET_TIME_Relative *x);
@@ -166,6 +183,7 @@ GNUNET_PQ_query_param_relative_time (const struct GNUNET_TIME_Relative *x);
  * The database must store a 64-bit integer.
  *
  * @param x pointer to the query parameter to pass
+ * @return query parameter to use
  */
 struct GNUNET_PQ_QueryParam
 GNUNET_PQ_query_param_absolute_time (const struct GNUNET_TIME_Absolute *x);
@@ -176,6 +194,7 @@ GNUNET_PQ_query_param_absolute_time (const struct GNUNET_TIME_Absolute *x);
  * The database must store a 64-bit integer.
  *
  * @param x pointer to the query parameter to pass
+ * @return query parameter to use
  */
 struct GNUNET_PQ_QueryParam
 GNUNET_PQ_query_param_absolute_time_nbo (
@@ -186,6 +205,7 @@ GNUNET_PQ_query_param_absolute_time_nbo (
  * Generate query parameter for an uint16_t in host byte order.
  *
  * @param x pointer to the query parameter to pass
+ * @return query parameter to use
  */
 struct GNUNET_PQ_QueryParam
 GNUNET_PQ_query_param_uint16 (const uint16_t *x);
@@ -195,6 +215,7 @@ GNUNET_PQ_query_param_uint16 (const uint16_t *x);
  * Generate query parameter for an uint32_t in host byte order.
  *
  * @param x pointer to the query parameter to pass
+ * @return query parameter to use
  */
 struct GNUNET_PQ_QueryParam
 GNUNET_PQ_query_param_uint32 (const uint32_t *x);
@@ -204,6 +225,7 @@ GNUNET_PQ_query_param_uint32 (const uint32_t *x);
  * Generate query parameter for an uint16_t in host byte order.
  *
  * @param x pointer to the query parameter to pass
+ * @return query parameter to use
  */
 struct GNUNET_PQ_QueryParam
 GNUNET_PQ_query_param_uint64 (const uint64_t *x);
@@ -288,6 +310,20 @@ struct GNUNET_PQ_ResultSpec
    * Where to store actual size of the result.
    */
   size_t *result_size;
+  
+  /**
+   * True if NULL is allowed for a value in the database.
+   */
+  bool is_nullable;
+
+  /**
+   * Points to a location where we should store
+   * "true" if the result found is NULL, and
+   * otherwise "false". Only used if @e is_nullable
+   * is true.
+   */
+  bool *is_null;
+
 };
 
 
@@ -300,6 +336,21 @@ struct GNUNET_PQ_ResultSpec
   {                                       \
     NULL, NULL, NULL, NULL, 0, NULL, NULL \
   }
+
+
+/**
+ * Allow NULL value to be found in the database
+ * for the given value.
+ *
+ * @param rs result spec entry to modify
+ * @param[out] is_null location set to 'true' if the
+ *     value was indeed NULL, set to 'false' if the
+ *     value was non-NULL
+ * @return array entry for the result specification to use
+ */
+struct GNUNET_PQ_ResultSpec
+GNUNET_PQ_result_spec_allow_null (struct GNUNET_PQ_ResultSpec rs,
+                                  bool *is_null);
 
 
 /**

@@ -172,7 +172,8 @@ new_peer_entry (const struct GNUNET_PeerIdentity *peer)
 static int
 verify_revoke_message (const struct RevokeMessage *rm)
 {
-  if (GNUNET_YES != GNUNET_REVOCATION_check_pow (&rm->proof_of_work,
+  struct GNUNET_REVOCATION_PowP *pow = (struct GNUNET_REVOCATION_PowP *) &rm[1];
+  if (GNUNET_YES != GNUNET_REVOCATION_check_pow (pow,
                                                  (unsigned
                                                   int) revocation_work_required,
                                                  epoch_duration))
@@ -236,7 +237,7 @@ handle_query_message (void *cls,
   int res;
 
   GNUNET_CRYPTO_hash (&qm->key,
-                      sizeof(struct GNUNET_CRYPTO_EcdsaPublicKey),
+                      sizeof(struct GNUNET_IDENTITY_PublicKey),
                       &hc);
   res = GNUNET_CONTAINER_multihashmap_contains (revocation_map,
                                                 &hc);
@@ -276,9 +277,11 @@ do_flood (void *cls,
     return GNUNET_OK; /* peer connected to us via SET,
                          but we have no direct CORE
                          connection for flooding */
-  e = GNUNET_MQ_msg (cp,
+  e = GNUNET_MQ_msg_extra (cp,
+                     htonl (rm->pow_size),
                      GNUNET_MESSAGE_TYPE_REVOCATION_REVOKE);
   *cp = *rm;
+  memcpy (&cp[1], &rm[1], htonl (rm->pow_size));
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Flooding revocation to `%s'\n",
               GNUNET_i2s (target));
@@ -303,9 +306,12 @@ publicize_rm (const struct RevokeMessage *rm)
   struct RevokeMessage *cp;
   struct GNUNET_HashCode hc;
   struct GNUNET_SETU_Element e;
+  const struct GNUNET_IDENTITY_PublicKey *pk;
 
-  GNUNET_CRYPTO_hash (&rm->proof_of_work.key,
-                      sizeof(struct GNUNET_CRYPTO_EcdsaPublicKey),
+  struct GNUNET_REVOCATION_PowP *pow = (struct GNUNET_REVOCATION_PowP *) &rm[1];
+  pk = (const struct GNUNET_IDENTITY_PublicKey *) &pow[1];
+  GNUNET_CRYPTO_hash (pk,
+                      GNUNET_IDENTITY_key_get_length (pk),
                       &hc);
   if (GNUNET_YES ==
       GNUNET_CONTAINER_multihashmap_contains (revocation_map,
@@ -371,6 +377,23 @@ publicize_rm (const struct RevokeMessage *rm)
 }
 
 
+static int
+check_revoke_message (void *cls,
+                      const struct RevokeMessage *rm)
+{
+  uint16_t size;
+
+  size = ntohs (rm->header.size);
+  if (size <= sizeof(struct RevokeMessage))
+  {
+    GNUNET_break (0);
+    return GNUNET_SYSERR;
+  }
+  return GNUNET_OK;
+
+}
+
+
 /**
  * Handle REVOKE message from client.
  *
@@ -400,6 +423,23 @@ handle_revoke_message (void *cls,
   GNUNET_MQ_send (GNUNET_SERVICE_client_get_mq (client),
                   env);
   GNUNET_SERVICE_client_continue (client);
+}
+
+
+static int
+check_p2p_revoke (void *cls,
+                  const struct RevokeMessage *rm)
+{
+  uint16_t size;
+
+  size = ntohs (rm->header.size);
+  if (size <= sizeof(struct RevokeMessage))
+  {
+    GNUNET_break (0);
+    return GNUNET_SYSERR;
+  }
+  return GNUNET_OK;
+
 }
 
 
@@ -784,16 +824,17 @@ run (void *cls,
      struct GNUNET_SERVICE_Handle *service)
 {
   struct GNUNET_MQ_MessageHandler core_handlers[] = {
-    GNUNET_MQ_hd_fixed_size (p2p_revoke,
-                             GNUNET_MESSAGE_TYPE_REVOCATION_REVOKE,
-                             struct RevokeMessage,
-                             NULL),
+    GNUNET_MQ_hd_var_size (p2p_revoke,
+                           GNUNET_MESSAGE_TYPE_REVOCATION_REVOKE,
+                           struct RevokeMessage,
+                           NULL),
     GNUNET_MQ_handler_end ()
   };
   char *fn;
   uint64_t left;
   struct RevokeMessage *rm;
   struct GNUNET_HashCode hc;
+  const struct GNUNET_IDENTITY_PublicKey *pk;
 
   GNUNET_CRYPTO_hash ("revocation-set-union-application-id",
                       strlen ("revocation-set-union-application-id"),
@@ -892,9 +933,11 @@ run (void *cls,
       GNUNET_free (fn);
       return;
     }
-    GNUNET_break (0 == ntohl (rm->reserved));
-    GNUNET_CRYPTO_hash (&rm->proof_of_work.key,
-                        sizeof(struct GNUNET_CRYPTO_EcdsaPublicKey),
+    struct GNUNET_REVOCATION_PowP *pow = (struct
+                                          GNUNET_REVOCATION_PowP *) &rm[1];
+    pk = (const struct GNUNET_IDENTITY_PublicKey *) &pow[1];
+    GNUNET_CRYPTO_hash (pk,
+                        GNUNET_IDENTITY_key_get_length (pk),
                         &hc);
     GNUNET_break (GNUNET_OK ==
                   GNUNET_CONTAINER_multihashmap_put (revocation_map,
@@ -939,10 +982,10 @@ GNUNET_SERVICE_MAIN
                            GNUNET_MESSAGE_TYPE_REVOCATION_QUERY,
                            struct QueryMessage,
                            NULL),
-  GNUNET_MQ_hd_fixed_size (revoke_message,
-                           GNUNET_MESSAGE_TYPE_REVOCATION_REVOKE,
-                           struct RevokeMessage,
-                           NULL),
+  GNUNET_MQ_hd_var_size (revoke_message,
+                         GNUNET_MESSAGE_TYPE_REVOCATION_REVOKE,
+                         struct RevokeMessage,
+                         NULL),
   GNUNET_MQ_handler_end ());
 
 

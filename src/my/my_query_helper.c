@@ -280,14 +280,14 @@ my_conv_rsa_public_key (void *cls,
                         MYSQL_BIND *qbind)
 {
   const struct GNUNET_CRYPTO_RsaPublicKey *rsa = qp->data;
-  char *buf;
+  void *buf;
   size_t buf_size;
 
   (void) cls;
   GNUNET_assert (1 == qp->num_params);
   buf_size = GNUNET_CRYPTO_rsa_public_key_encode (rsa,
                                                   &buf);
-  qbind->buffer = (void *) buf;
+  qbind->buffer = buf;
   qbind->buffer_length = buf_size;
   qbind->buffer_type = MYSQL_TYPE_BLOB;
   return 1;
@@ -332,14 +332,14 @@ my_conv_rsa_signature (void *cls,
                        MYSQL_BIND *qbind)
 {
   const struct GNUNET_CRYPTO_RsaSignature *sig = qp->data;
-  char *buf;
+  void *buf;
   size_t buf_size;
 
   (void) cls;
   GNUNET_assert (1 == qp->num_params);
   buf_size = GNUNET_CRYPTO_rsa_signature_encode (sig,
                                                  &buf);
-  qbind->buffer = (void *) buf;
+  qbind->buffer = buf;
   qbind->buffer_length = buf_size;
   qbind->buffer_type = MYSQL_TYPE_BLOB;
   return 1;

@@ -12,7 +12,8 @@ endif
 if HAVE_EXPERIMENTAL
  EXP_DIR = \
   rps \
-  abd
+  #abd FTBFS
+  messenger
 if HAVE_ABE
  EXP_DIR += \
   abe
@@ -51,7 +52,6 @@ SUBDIRS = \
   include $(INTLEMU_SUBDIRS) \
   util \
   nt \
-  gnsrecord \
   hello \
   block \
   statistics \
@@ -74,7 +74,6 @@ SUBDIRS = \
   fragmentation \
   transport \
   ats-tool \
-  peerinfo-tool \
   core \
   $(TESTBED) \
   $(ATS_TESTS) \
@@ -85,8 +84,10 @@ SUBDIRS = \
   regex \
   dns \
   identity \
+  gnsrecord \
   namecache \
   namestore \
+  peerinfo-tool \
   cadet \
   set \
   seti \

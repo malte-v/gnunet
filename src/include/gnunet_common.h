@@ -488,7 +488,8 @@ void
 GNUNET_log_from_nocheck (enum GNUNET_ErrorType kind,
                          const char *comp,
                          const char *message,
-                         ...);
+                         ...)
+__attribute__ ((format (printf, 3, 4)));
 
 #if ! defined(GNUNET_CULL_LOGGING)
 #define GNUNET_log_from(kind, comp, ...)                                  \
@@ -1445,6 +1446,7 @@ GNUNET_is_zero_ (const void *a,
     memcpy (&(arr1) [(len1) - (len2)], _a2, (len2) * sizeof (*arr1));    \
   } while (0)
 
+
 /**
  * @ingroup memory
  * Like snprintf, just aborts if the buffer is of insufficient size.
@@ -1456,7 +1458,11 @@ GNUNET_is_zero_ (const void *a,
  * @return number of bytes written to buf or negative value on error
  */
 int
-GNUNET_snprintf (char *buf, size_t size, const char *format, ...);
+GNUNET_snprintf (char *buf,
+                 size_t size,
+                 const char *format,
+                 ...)
+__attribute__ ((format (printf, 3, 4)));
 
 
 /**
@@ -1469,7 +1475,10 @@ GNUNET_snprintf (char *buf, size_t size, const char *format, ...);
  * @return number of bytes in "*buf" excluding 0-termination
  */
 int
-GNUNET_asprintf (char **buf, const char *format, ...);
+GNUNET_asprintf (char **buf,
+                 const char *format,
+                 ...)
+__attribute__ ((format (printf, 2, 3)));
 
 
 /* ************** internal implementations, use macros above! ************** */

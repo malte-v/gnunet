@@ -158,7 +158,7 @@ GNUNET_FRAGMENT_print_ack (const struct GNUNET_MessageHeader *ack)
                    sizeof(buf),
                    "%u-%llX",
                    ntohl (fa->fragment_id),
-                   GNUNET_ntohll (fa->bits));
+                   (unsigned long long) GNUNET_ntohll (fa->bits));
   return buf;
 }
 

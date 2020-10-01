@@ -56,11 +56,17 @@ GNUNET_JSON_parse (const json_t *root,
     if (NULL == spec[i].field)
       pos = (json_t *) root;
     else
-      pos = json_object_get (root, spec[i].field);
-    if ((NULL == pos) && (spec[i].is_optional))
+      pos = json_object_get (root,
+                             spec[i].field);
+    if ( ( (NULL == pos) ||
+           (json_is_null (pos) ) ) &&
+         (spec[i].is_optional) )
       continue;
-    if ((NULL == pos) ||
-        (GNUNET_OK != spec[i].parser (spec[i].cls, pos, &spec[i])))
+    if ( (NULL == pos) ||
+         (GNUNET_OK !=
+          spec[i].parser (spec[i].cls,
+                          pos,
+                          &spec[i])) )
     {
       if (NULL != error_json_name)
         *error_json_name = spec[i].field;

@@ -42,11 +42,11 @@ static struct GNUNET_NAMESTORE_Handle *nsh;
 
 static struct GNUNET_SCHEDULER_Task *endbadly_task;
 
-static struct GNUNET_CRYPTO_EcdsaPrivateKey privkey;
+static struct GNUNET_IDENTITY_PrivateKey privkey;
 
-static struct GNUNET_CRYPTO_EcdsaPublicKey pubkey;
+static struct GNUNET_IDENTITY_PublicKey pubkey;
 
-static struct GNUNET_CRYPTO_EcdsaPublicKey s_zone_value;
+static struct GNUNET_IDENTITY_PublicKey s_zone_value;
 
 static char *s_name;
 
@@ -92,7 +92,7 @@ end (void *cls)
 
 static void
 zone_to_name_proc (void *cls,
-                   const struct GNUNET_CRYPTO_EcdsaPrivateKey *zone_key,
+                   const struct GNUNET_IDENTITY_PrivateKey *zone_key,
                    const char *n,
                    unsigned int rd_count,
                    const struct GNUNET_GNSRECORD_Data *rd)
@@ -203,20 +203,22 @@ run (void *cls,
   GNUNET_SCHEDULER_add_shutdown (&end,
                                  NULL);
   GNUNET_asprintf (&s_name, "dummy");
-  GNUNET_CRYPTO_ecdsa_key_create (&privkey);
+  privkey.type = htonl (GNUNET_GNSRECORD_TYPE_PKEY);
+  GNUNET_CRYPTO_ecdsa_key_create (&privkey.ecdsa_key);
   /* get public key */
-  GNUNET_CRYPTO_ecdsa_key_get_public (&privkey,
-                                      &pubkey);
+  GNUNET_IDENTITY_key_get_public (&privkey,
+                                  &pubkey);
 
   GNUNET_CRYPTO_random_block (GNUNET_CRYPTO_QUALITY_WEAK,
                               &s_zone_value,
                               sizeof(s_zone_value));
+  s_zone_value.type = htonl (GNUNET_GNSRECORD_TYPE_PKEY);
   {
     struct GNUNET_GNSRECORD_Data rd;
 
     rd.expiration_time = GNUNET_TIME_absolute_get ().abs_value_us;
     rd.record_type = GNUNET_GNSRECORD_TYPE_PKEY;
-    rd.data_size = sizeof(s_zone_value);
+    rd.data_size = GNUNET_IDENTITY_key_get_length (&s_zone_value);
     rd.data = &s_zone_value;
     rd.flags = 0;
 

@@ -700,6 +700,7 @@ handle_send_transmit_continuation (void *cls,
 
   delay = GNUNET_TIME_absolute_get_duration (stcc->send_time);
   addr = GST_neighbour_get_current_address (&stcc->target);
+#ifdef ENABLE_TTD
   if (delay.rel_value_us > GNUNET_CONSTANTS_LATENCY_WARN.rel_value_us)
     GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
                 "It took us %s to send %u/%u bytes to %s (%d, %s)\n",
@@ -718,6 +719,7 @@ handle_send_transmit_continuation (void *cls,
                 GNUNET_i2s (&stcc->target),
                 success,
                 (NULL != addr) ? addr->transport_name : "%");
+#endif
 
   if (GNUNET_NO == stcc->down)
   {

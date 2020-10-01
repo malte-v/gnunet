@@ -37,9 +37,9 @@ static struct GNUNET_NAMESTORE_Handle *nsh;
 
 static struct GNUNET_SCHEDULER_Task *endbadly_task;
 
-static struct GNUNET_CRYPTO_EcdsaPrivateKey privkey;
+static struct GNUNET_IDENTITY_PrivateKey privkey;
 
-static struct GNUNET_CRYPTO_EcdsaPrivateKey privkey2;
+static struct GNUNET_IDENTITY_PrivateKey privkey2;
 
 static struct GNUNET_NAMESTORE_ZoneIterator *zi;
 
@@ -142,7 +142,7 @@ fail_cb (void *cls)
 
 static void
 zone_proc (void *cls,
-           const struct GNUNET_CRYPTO_EcdsaPrivateKey *zone,
+           const struct GNUNET_IDENTITY_PrivateKey *zone,
            const char *label,
            unsigned int rd_count,
            const struct GNUNET_GNSRECORD_Data *rd)
@@ -331,7 +331,7 @@ create_record (unsigned int count)
  */
 static void
 empty_zone_proc (void *cls,
-                 const struct GNUNET_CRYPTO_EcdsaPrivateKey *zone,
+                 const struct GNUNET_IDENTITY_PrivateKey *zone,
                  const char *label,
                  unsigned int rd_count,
                  const struct GNUNET_GNSRECORD_Data *rd)
@@ -362,34 +362,11 @@ empty_zone_proc (void *cls,
 static void
 empty_zone_end (void *cls)
 {
-  char *hostkey_file;
-
   zi = NULL;
-  GNUNET_asprintf (&hostkey_file,
-                   "zonefiles%s%s",
-                   DIR_SEPARATOR_STR,
-                   "N0UJMP015AFUNR2BTNM3FKPBLG38913BL8IDMCO2H0A1LIB81960.zkey");
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "Using zonekey file `%s' \n",
-              hostkey_file);
-  GNUNET_assert (GNUNET_SYSERR !=
-                 GNUNET_CRYPTO_ecdsa_key_from_file (hostkey_file,
-                                                    GNUNET_YES,
-                                                    &privkey));
-  GNUNET_free (hostkey_file);
-
-  GNUNET_asprintf (&hostkey_file,
-                   "zonefiles%s%s",
-                   DIR_SEPARATOR_STR,
-                   "HGU0A0VCU334DN7F2I9UIUMVQMM7JMSD142LIMNUGTTV9R0CF4EG.zkey");
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "Using zonekey file `%s' \n",
-              hostkey_file);
-  GNUNET_assert (GNUNET_SYSERR !=
-                 GNUNET_CRYPTO_ecdsa_key_from_file (hostkey_file,
-                                                    GNUNET_YES,
-                                                    &privkey2));
-  GNUNET_free (hostkey_file);
+  privkey.type = htonl (GNUNET_GNSRECORD_TYPE_PKEY);
+  privkey2.type = htonl (GNUNET_GNSRECORD_TYPE_PKEY);
+  GNUNET_CRYPTO_ecdsa_key_create (&privkey.ecdsa_key);
+  GNUNET_CRYPTO_ecdsa_key_create (&privkey2.ecdsa_key);
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Created record 1\n");
 

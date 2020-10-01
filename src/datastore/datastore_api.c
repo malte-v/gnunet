@@ -994,8 +994,8 @@ GNUNET_DATASTORE_put (struct GNUNET_DATASTORE_Handle *h,
   }
 
   LOG (GNUNET_ERROR_TYPE_DEBUG,
-       "Asked to put %u bytes of data under key `%s' for %s\n",
-       size,
+       "Asked to put %lu bytes of data under key `%s' for %s\n",
+       (unsigned long) size,
        GNUNET_h2s (key),
        GNUNET_STRINGS_relative_time_to_string (
          GNUNET_TIME_absolute_get_remaining (expiration),
@@ -1205,8 +1205,8 @@ GNUNET_DATASTORE_remove (struct GNUNET_DATASTORE_Handle *h,
   if (NULL == cont)
     cont = &drop_status_cont;
   LOG (GNUNET_ERROR_TYPE_DEBUG,
-       "Asked to remove %u bytes under key `%s'\n",
-       size,
+       "Asked to remove %lu bytes under key `%s'\n",
+       (unsigned long) size,
        GNUNET_h2s (key));
   env = GNUNET_MQ_msg_extra (dm,
                              size,

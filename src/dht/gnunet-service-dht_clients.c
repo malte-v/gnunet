@@ -488,8 +488,8 @@ handle_dht_local_put (void *cls,
                GNUNET_h2s_full (&dht_msg->key));
   /* give to local clients */
   LOG (GNUNET_ERROR_TYPE_DEBUG,
-       "Handling local PUT of %u-bytes for query %s\n",
-       size - sizeof(struct GNUNET_DHT_ClientPutMessage),
+       "Handling local PUT of %lu-bytes for query %s\n",
+       (unsigned long) (size - sizeof(struct GNUNET_DHT_ClientPutMessage)),
        GNUNET_h2s (&dht_msg->key));
   GDS_CLIENTS_handle_reply (GNUNET_TIME_absolute_ntoh (dht_msg->expiration),
                             &dht_msg->key,
@@ -619,7 +619,7 @@ handle_dht_local_get (void *cls,
        "Received GET request for %s from local client %p, xq: %.*s\n",
        GNUNET_h2s (&get->key),
        ch->client,
-       xquery_size,
+       (int) xquery_size,
        xquery);
   LOG_TRAFFIC (GNUNET_ERROR_TYPE_DEBUG,
                "CLIENT-GET %s\n",

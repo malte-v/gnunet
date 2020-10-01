@@ -769,10 +769,10 @@ http_client_plugin_send (void *cls,
   char *stat_txt;
 
   LOG (GNUNET_ERROR_TYPE_DEBUG,
-       "Session %p/request %p: Sending message with %u to peer `%s' \n",
+       "Session %p/request %p: Sending message with %lu to peer `%s' \n",
        s,
        s->put.easyhandle,
-       msgbuf_size,
+       (unsigned long) msgbuf_size,
        GNUNET_i2s (&s->address->peer));
 
   /* create new message and schedule */
@@ -1087,11 +1087,10 @@ client_send_cb (void *stream,
   if (msg->pos == msg->size)
   {
     LOG (GNUNET_ERROR_TYPE_DEBUG,
-         "Session %p/request %p: sent message with %u bytes sent, removing message from queue\n",
+         "Session %p/request %p: sent message with %lu bytes sent, removing message from queue\n",
          s,
          s->put.easyhandle,
-         msg->size,
-         msg->pos);
+         (unsigned long) msg->size);
     /* Calling transmit continuation  */
     GNUNET_CONTAINER_DLL_remove (s->msg_head,
                                  s->msg_tail,
@@ -1249,10 +1248,10 @@ client_receive (void *stream,
   size_t len = size * nmemb;
 
   LOG (GNUNET_ERROR_TYPE_DEBUG,
-       "Session %p / request %p: Received %u bytes from peer `%s'\n",
+       "Session %p / request %p: Received %lu bytes from peer `%s'\n",
        s,
        s->get.easyhandle,
-       len,
+       (unsigned long) len,
        GNUNET_i2s (&s->address->peer));
   now = GNUNET_TIME_absolute_get ();
   if (now.abs_value_us < s->next_receive.abs_value_us)
@@ -1346,7 +1345,7 @@ client_run (void *cls)
       /* Log status of terminated request */
       if ((0 != msg->data.result) || (http_statuscode != 200))
         LOG (GNUNET_ERROR_TYPE_DEBUG,
-             "Session %p/request %p: %s request to `%s' ended with status %i reason %i: `%s'\n",
+             "Session %p/request %p: %s request to `%s' ended with status %li reason %i: `%s'\n",
              s, msg->easy_handle,
              (GNUNET_YES == put_request) ? "PUT" : "GET",
              GNUNET_i2s (&s->address->peer),

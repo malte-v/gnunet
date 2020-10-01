@@ -58,7 +58,7 @@ typedef void
 (*GNUNET_NAMESTORE_RecordIterator) (void *cls,
                                     uint64_t serial,
                                     const struct
-                                    GNUNET_CRYPTO_EcdsaPrivateKey *private_key,
+                                    GNUNET_IDENTITY_PrivateKey *private_key,
                                     const char *label,
                                     unsigned int rd_count,
                                     const struct GNUNET_GNSRECORD_Data *rd);
@@ -87,7 +87,7 @@ struct GNUNET_NAMESTORE_PluginFunctions
    */
   int
   (*store_records) (void *cls,
-                    const struct GNUNET_CRYPTO_EcdsaPrivateKey *zone,
+                    const struct GNUNET_IDENTITY_PrivateKey *zone,
                     const char *label,
                     unsigned int rd_count,
                     const struct GNUNET_GNSRECORD_Data *rd);
@@ -104,7 +104,7 @@ struct GNUNET_NAMESTORE_PluginFunctions
    */
   int
   (*lookup_records) (void *cls,
-                     const struct GNUNET_CRYPTO_EcdsaPrivateKey *zone,
+                     const struct GNUNET_IDENTITY_PrivateKey *zone,
                      const char *label,
                      GNUNET_NAMESTORE_RecordIterator iter,
                      void *iter_cls);
@@ -126,7 +126,7 @@ struct GNUNET_NAMESTORE_PluginFunctions
    */
   int
   (*iterate_records) (void *cls,
-                      const struct GNUNET_CRYPTO_EcdsaPrivateKey *zone,
+                      const struct GNUNET_IDENTITY_PrivateKey *zone,
                       uint64_t serial,
                       uint64_t limit,
                       GNUNET_NAMESTORE_RecordIterator iter,
@@ -146,8 +146,8 @@ struct GNUNET_NAMESTORE_PluginFunctions
    */
   int
   (*zone_to_name) (void *cls,
-                   const struct GNUNET_CRYPTO_EcdsaPrivateKey *zone,
-                   const struct GNUNET_CRYPTO_EcdsaPublicKey *value_zone,
+                   const struct GNUNET_IDENTITY_PrivateKey *zone,
+                   const struct GNUNET_IDENTITY_PublicKey *value_zone,
                    GNUNET_NAMESTORE_RecordIterator iter,
                    void *iter_cls);
 };

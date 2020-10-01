@@ -47,7 +47,8 @@ GNUNET_CONFIGURATION_load (struct GNUNET_CONFIGURATION_Handle *cfg,
 
   base_config_varname = GNUNET_OS_project_data_get ()->base_config_varname;
 
-  if (NULL != (baseconfig = getenv (base_config_varname)))
+  if (NULL != base_config_varname
+      && NULL != (baseconfig = getenv (base_config_varname)))
   {
     baseconfig = GNUNET_strdup (baseconfig);
   }
@@ -62,14 +63,16 @@ GNUNET_CONFIGURATION_load (struct GNUNET_CONFIGURATION_Handle *cfg,
     GNUNET_free (ipath);
   }
 
-  if (GNUNET_SYSERR ==
-      GNUNET_CONFIGURATION_load_from (cfg,
-                                      baseconfig))
+  char *dname = GNUNET_STRINGS_filename_expand (baseconfig);
+  GNUNET_free (baseconfig);
+
+  if (GNUNET_YES == GNUNET_DISK_directory_test (dname, GNUNET_YES) &&
+      GNUNET_SYSERR == GNUNET_CONFIGURATION_load_from (cfg, dname))
   {
-    GNUNET_free (baseconfig);
+    GNUNET_free (dname);
     return GNUNET_SYSERR;       /* no configuration at all found */
   }
-  GNUNET_free (baseconfig);
+  GNUNET_free (dname);
   if ((NULL != filename) &&
       (GNUNET_OK != GNUNET_CONFIGURATION_parse (cfg, filename)))
   {

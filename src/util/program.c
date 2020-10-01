@@ -232,15 +232,20 @@ GNUNET_PROGRAM_run2 (int argc,
          sizeof(struct GNUNET_GETOPT_CommandLineOption),
          &cmd_sorter);
   loglev = NULL;
-  xdg = getenv ("XDG_CONFIG_HOME");
-  if (NULL != xdg)
-    GNUNET_asprintf (&cfg_fn,
-                     "%s%s%s",
-                     xdg,
-                     DIR_SEPARATOR_STR,
-                     pd->config_file);
+  if (NULL != pd->config_file && NULL != pd->user_config_file)
+  {
+    xdg = getenv ("XDG_CONFIG_HOME");
+    if (NULL != xdg)
+      GNUNET_asprintf (&cfg_fn,
+                       "%s%s%s",
+                       xdg,
+                       DIR_SEPARATOR_STR,
+                       pd->config_file);
+    else
+      cfg_fn = GNUNET_strdup (pd->user_config_file);
+  }
   else
-    cfg_fn = GNUNET_strdup (pd->user_config_file);
+    cfg_fn = NULL;
   lpfx = GNUNET_strdup (binaryName);
   if (NULL != (spc = strstr (lpfx, " ")))
     *spc = '\0';
@@ -269,7 +274,7 @@ GNUNET_PROGRAM_run2 (int argc,
   }
   else
   {
-    if (GNUNET_YES == GNUNET_DISK_file_test (cfg_fn))
+    if (NULL != cfg_fn && GNUNET_YES == GNUNET_DISK_file_test (cfg_fn))
     {
       if (GNUNET_SYSERR == GNUNET_CONFIGURATION_load (cfg, cfg_fn))
       {
@@ -284,7 +289,7 @@ GNUNET_PROGRAM_run2 (int argc,
         goto cleanup;
       }
     }
-    else
+    else if (NULL != cfg_fn)
     {
       GNUNET_free (cfg_fn);
       cfg_fn = NULL;

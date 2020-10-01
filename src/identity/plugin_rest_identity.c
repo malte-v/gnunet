@@ -384,7 +384,7 @@ ego_get_for_subsystem (void *cls,
 {
   struct RequestHandle *handle = cls;
   struct MHD_Response *resp;
-  struct GNUNET_CRYPTO_EcdsaPublicKey public_key;
+  struct GNUNET_IDENTITY_PublicKey public_key;
   json_t *json_root;
   char *result_str;
   char *public_key_string;
@@ -398,7 +398,7 @@ ego_get_for_subsystem (void *cls,
   }
 
   GNUNET_IDENTITY_ego_get_public_key (ego, &public_key);
-  public_key_string = GNUNET_CRYPTO_ecdsa_public_key_to_string (&public_key);
+  public_key_string = GNUNET_IDENTITY_public_key_to_string (&public_key);
 
   // create json with subsystem identity
   json_root = json_object ();
@@ -496,7 +496,7 @@ ego_get_all (struct GNUNET_REST_RequestHandle *con_handle,
         GNUNET_CONTAINER_multihashmap_contains (
           handle->rest_handle->url_param_map, &key))
     {
-      privkey_str = GNUNET_CRYPTO_ecdsa_private_key_to_string (
+      privkey_str = GNUNET_IDENTITY_private_key_to_string (
         GNUNET_IDENTITY_ego_get_private_key (ego_entry->ego));
       json_object_set_new (json_ego,
                            GNUNET_REST_IDENTITY_PARAM_PRIVKEY,
@@ -549,7 +549,7 @@ ego_get_response (struct RequestHandle *handle, struct EgoEntry *ego_entry)
       GNUNET_CONTAINER_multihashmap_contains (
         handle->rest_handle->url_param_map, &key))
   {
-    privkey_str = GNUNET_CRYPTO_ecdsa_private_key_to_string (
+    privkey_str = GNUNET_IDENTITY_private_key_to_string (
       GNUNET_IDENTITY_ego_get_private_key (ego_entry->ego));
     json_object_set_new (json_ego,
                          GNUNET_REST_IDENTITY_PARAM_PRIVKEY,
@@ -686,7 +686,7 @@ do_finished (void *cls, const char *emsg)
  */
 static void
 do_finished_create (void *cls,
-                    const struct GNUNET_CRYPTO_EcdsaPrivateKey *pk,
+                    const struct GNUNET_IDENTITY_PrivateKey *pk,
                     const char *emsg)
 {
   struct RequestHandle *handle = cls;
@@ -999,8 +999,8 @@ ego_create (struct GNUNET_REST_RequestHandle *con_handle,
   json_error_t err;
   char *egoname;
   char *privkey;
-  struct GNUNET_CRYPTO_EcdsaPrivateKey pk;
-  struct GNUNET_CRYPTO_EcdsaPrivateKey *pk_ptr;
+  struct GNUNET_IDENTITY_PrivateKey pk;
+  struct GNUNET_IDENTITY_PrivateKey *pk_ptr;
   int json_unpack_state;
   char term_data[handle->data_size + 1];
 
@@ -1074,7 +1074,7 @@ ego_create (struct GNUNET_REST_RequestHandle *con_handle,
                                    strlen (privkey),
                                    &pk,
                                    sizeof(struct
-                                          GNUNET_CRYPTO_EcdsaPrivateKey));
+                                          GNUNET_IDENTITY_PrivateKey));
     pk_ptr = &pk;
   }
   else
@@ -1084,6 +1084,7 @@ ego_create (struct GNUNET_REST_RequestHandle *con_handle,
   handle->op = GNUNET_IDENTITY_create (identity_handle,
                                        handle->name,
                                        pk_ptr,
+                                       GNUNET_IDENTITY_TYPE_ECDSA,
                                        &do_finished_create,
                                        handle);
 }
@@ -1208,7 +1209,7 @@ list_ego (void *cls,
           const char *identifier)
 {
   struct EgoEntry *ego_entry;
-  struct GNUNET_CRYPTO_EcdsaPublicKey pk;
+  struct GNUNET_IDENTITY_PublicKey pk;
 
   if ((NULL == ego) && (ID_REST_STATE_INIT == state))
   {
@@ -1219,7 +1220,7 @@ list_ego (void *cls,
   {
     ego_entry = GNUNET_new (struct EgoEntry);
     GNUNET_IDENTITY_ego_get_public_key (ego, &pk);
-    ego_entry->keystring = GNUNET_CRYPTO_ecdsa_public_key_to_string (&pk);
+    ego_entry->keystring = GNUNET_IDENTITY_public_key_to_string (&pk);
     ego_entry->ego = ego;
     ego_entry->identifier = GNUNET_strdup (identifier);
     GNUNET_CONTAINER_DLL_insert_tail (ego_head,
@@ -1245,7 +1246,7 @@ list_ego (void *cls,
       /* Add */
       ego_entry = GNUNET_new (struct EgoEntry);
       GNUNET_IDENTITY_ego_get_public_key (ego, &pk);
-      ego_entry->keystring = GNUNET_CRYPTO_ecdsa_public_key_to_string (&pk);
+      ego_entry->keystring = GNUNET_IDENTITY_public_key_to_string (&pk);
       ego_entry->ego = ego;
       ego_entry->identifier = GNUNET_strdup (identifier);
       GNUNET_CONTAINER_DLL_insert_tail (ego_head,

@@ -280,7 +280,7 @@ GNUNET_CONSENSUS_insert (struct GNUNET_CONSENSUS_Handle *consensus,
   struct GNUNET_MQ_Envelope *ev;
   struct InsertDoneInfo *i;
 
-  LOG (GNUNET_ERROR_TYPE_DEBUG, "inserting, size=%llu\n", element->size);
+  LOG (GNUNET_ERROR_TYPE_DEBUG, "inserting, size=%u\n", element->size);
 
   ev = GNUNET_MQ_msg_extra (element_msg, element->size,
                             GNUNET_MESSAGE_TYPE_CONSENSUS_CLIENT_INSERT);

@@ -127,14 +127,12 @@ handle_identity_update (void *cls, const struct UpdateMessage *um)
   struct GNUNET_IDENTITY_EgoLookup *el = cls;
   uint16_t name_len = ntohs (um->name_len);
   const char *str = (0 == name_len) ? NULL : (const char *) &um[1];
-  struct GNUNET_CRYPTO_EcdsaPublicKey pub;
   struct GNUNET_HashCode id;
   struct GNUNET_IDENTITY_Ego ego;
   memset (&ego, 0, sizeof (ego));
 
   GNUNET_break (GNUNET_YES != ntohs (um->end_of_list));
-  GNUNET_CRYPTO_ecdsa_key_get_public (&um->private_key, &pub);
-  GNUNET_CRYPTO_hash (&pub, sizeof(pub), &id);
+  GNUNET_CRYPTO_hash (&um->private_key, sizeof(um->private_key), &id);
   ego.pk = um->private_key;
   ego.name = (char *) str;
   ego.id = id;

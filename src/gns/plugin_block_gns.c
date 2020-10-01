@@ -145,17 +145,13 @@ block_plugin_gns_evaluate (void *cls,
     return GNUNET_BLOCK_EVALUATION_RESULT_INVALID;
   }
   block = reply_block;
-  if (ntohl (block->purpose.size) + sizeof(struct
-                                           GNUNET_CRYPTO_EcdsaSignature)
-      + sizeof(struct GNUNET_CRYPTO_EcdsaPublicKey) !=
-      reply_block_size)
+  if (GNUNET_GNSRECORD_block_get_size (block) > reply_block_size)
   {
     GNUNET_break_op (0);
     return GNUNET_BLOCK_EVALUATION_RESULT_INVALID;
   }
-  GNUNET_CRYPTO_hash (&block->derived_key,
-                      sizeof(block->derived_key),
-                      &h);
+  GNUNET_GNSRECORD_query_from_block (block,
+                                     &h);
   if (0 != GNUNET_memcmp (&h, query))
   {
     GNUNET_break_op (0);
@@ -206,9 +202,8 @@ block_plugin_gns_get_key (void *cls,
     return GNUNET_BLOCK_EVALUATION_RESULT_INVALID;
   }
   block = reply_block;
-  GNUNET_CRYPTO_hash (&block->derived_key,
-                      sizeof(block->derived_key),
-                      key);
+  GNUNET_GNSRECORD_query_from_block (block,
+                                     key);
   return GNUNET_OK;
 }
 

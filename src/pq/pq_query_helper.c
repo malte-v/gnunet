@@ -1,6 +1,6 @@
 /*
    This file is part of GNUnet
-   Copyright (C) 2014, 2015, 2016 GNUnet e.V.
+   Copyright (C) 2014, 2015, 2016, 2020 GNUnet e.V.
 
    GNUnet is free software: you can redistribute it and/or modify it
    under the terms of the GNU Affero General Public License as published
@@ -42,6 +42,56 @@
  * @return -1 on error, number of offsets used in @a scratch otherwise
  */
 static int
+qconv_null (void *cls,
+            const void *data,
+            size_t data_len,
+            void *param_values[],
+            int param_lengths[],
+            int param_formats[],
+            unsigned int param_length,
+            void *scratch[],
+            unsigned int scratch_length)
+{
+  (void) scratch;
+  (void) scratch_length;
+  (void) data;
+  (void) data_len;
+  GNUNET_break (NULL == cls);
+  if (1 != param_length)
+    return -1;
+  param_values[0] = NULL;
+  param_lengths[0] = 0;
+  param_formats[0] = 1; 
+  return 0;
+}
+
+
+struct GNUNET_PQ_QueryParam
+GNUNET_PQ_query_param_null (void)
+{
+  struct GNUNET_PQ_QueryParam res = {
+    &qconv_null, NULL, NULL, 0, 1
+  };
+
+  return res;
+}
+
+
+/**
+ * Function called to convert input argument into SQL parameters.
+ *
+ * @param cls closure
+ * @param data pointer to input argument
+ * @param data_len number of bytes in @a data (if applicable)
+ * @param[out] param_values SQL data to set
+ * @param[out] param_lengths SQL length data to set
+ * @param[out] param_formats SQL format data to set
+ * @param param_length number of entries available in the @a param_values, @a param_lengths and @a param_formats arrays
+ * @param[out] scratch buffer for dynamic allocations (to be done via #GNUNET_malloc()
+ * @param scratch_length number of entries left in @a scratch
+ * @return -1 on error, number of offsets used in @a scratch otherwise
+ */
+static int
 qconv_fixed (void *cls,
              const void *data,
              size_t data_len,
@@ -64,33 +114,23 @@ qconv_fixed (void *cls,
 }
 
 
-/**
- * Generate query parameter for a buffer @a ptr of
- * @a ptr_size bytes.
- *
- * @param ptr pointer to the query parameter to pass
- * @oaran ptr_size number of bytes in @a ptr
- */
 struct GNUNET_PQ_QueryParam
 GNUNET_PQ_query_param_fixed_size (const void *ptr,
                                   size_t ptr_size)
 {
-  struct GNUNET_PQ_QueryParam res =
-  { &qconv_fixed, NULL, ptr, ptr_size, 1 };
+  struct GNUNET_PQ_QueryParam res = {
+    &qconv_fixed, NULL, ptr, ptr_size, 1
+  };
 
   return res;
 }
 
 
-/**
- * Generate query parameter for a string.
- *
- * @param ptr pointer to the string query parameter to pass
- */
 struct GNUNET_PQ_QueryParam
 GNUNET_PQ_query_param_string (const char *ptr)
 {
-  return GNUNET_PQ_query_param_fixed_size (ptr, strlen (ptr));
+  return GNUNET_PQ_query_param_fixed_size (ptr,
+                                           strlen (ptr));
 }
 
 
@@ -137,11 +177,6 @@ qconv_uint16 (void *cls,
 }
 
 
-/**
- * Generate query parameter for an uint16_t in host byte order.
- *
- * @param x pointer to the query parameter to pass
- */
 struct GNUNET_PQ_QueryParam
 GNUNET_PQ_query_param_uint16 (const uint16_t *x)
 {
@@ -195,11 +230,6 @@ qconv_uint32 (void *cls,
 }
 
 
-/**
- * Generate query parameter for an uint32_t in host byte order.
- *
- * @param x pointer to the query parameter to pass
- */
 struct GNUNET_PQ_QueryParam
 GNUNET_PQ_query_param_uint32 (const uint32_t *x)
 {
@@ -253,11 +283,6 @@ qconv_uint64 (void *cls,
 }
 
 
-/**
- * Generate query parameter for an uint64_t in host byte order.
- *
- * @param x pointer to the query parameter to pass
- */
 struct GNUNET_PQ_QueryParam
 GNUNET_PQ_query_param_uint64 (const uint64_t *x)
 {
@@ -310,13 +335,6 @@ qconv_rsa_public_key (void *cls,
 }
 
 
-/**
- * Generate query parameter for an RSA public key.  The
- * database must contain a BLOB type in the respective position.
- *
- * @param x the query parameter to pass
- * @return array entry for the query parameters to use
- */
 struct GNUNET_PQ_QueryParam
 GNUNET_PQ_query_param_rsa_public_key (const struct
                                       GNUNET_CRYPTO_RsaPublicKey *x)
@@ -370,13 +388,6 @@ qconv_rsa_signature (void *cls,
 }
 
 
-/**
- * Generate query parameter for an RSA signature.  The
- * database must contain a BLOB type in the respective position.
- *
- * @param x the query parameter to pass
- * @return array entry for the query parameters to use
- */
 struct GNUNET_PQ_QueryParam
 GNUNET_PQ_query_param_rsa_signature (const struct GNUNET_CRYPTO_RsaSignature *x)
 {
@@ -432,13 +443,6 @@ qconv_rel_time (void *cls,
 }
 
 
-/**
- * Generate query parameter for a relative time value.
- * The database must store a 64-bit integer.
- *
- * @param x pointer to the query parameter to pass
- * @return array entry for the query parameters to use
- */
 struct GNUNET_PQ_QueryParam
 GNUNET_PQ_query_param_relative_time (const struct GNUNET_TIME_Relative *x)
 {
@@ -494,29 +498,17 @@ qconv_abs_time (void *cls,
 }
 
 
-/**
- * Generate query parameter for an absolute time value.
- * The database must store a 64-bit integer.
- *
- * @param x pointer to the query parameter to pass
- * @return array entry for the query parameters to use
- */
 struct GNUNET_PQ_QueryParam
 GNUNET_PQ_query_param_absolute_time (const struct GNUNET_TIME_Absolute *x)
 {
-  struct GNUNET_PQ_QueryParam res =
-  { &qconv_abs_time, NULL, x, sizeof(*x), 1 };
+  struct GNUNET_PQ_QueryParam res = {
+    &qconv_abs_time, NULL, x, sizeof(*x), 1
+  };
 
   return res;
 }
 
 
-/**
- * Generate query parameter for an absolute time value.
- * The database must store a 64-bit integer.
- *
- * @param x pointer to the query parameter to pass
- */
 struct GNUNET_PQ_QueryParam
 GNUNET_PQ_query_param_absolute_time_nbo (const struct
                                          GNUNET_TIME_AbsoluteNBO *x)

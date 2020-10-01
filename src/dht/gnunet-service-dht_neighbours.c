@@ -2212,8 +2212,8 @@ handle_dht_p2p_get (void *cls,
                                            bg,
                                            peer_bf);
   GDS_CLIENTS_process_get (options
-                           | (GNUNET_OK == forwarded)
-                           ? GNUNET_DHT_RO_LAST_HOP : 0,
+                           | ((GNUNET_OK == forwarded)
+                           ? GNUNET_DHT_RO_LAST_HOP : 0),
                            type,
                            ntohl (get->hop_count),
                            ntohl (get->desired_replication_level),

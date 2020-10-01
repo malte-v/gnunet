@@ -92,7 +92,7 @@ struct LookupBlockResponseMessage
   /**
    * Derived public key.
    */
-  struct GNUNET_CRYPTO_EcdsaPublicKey derived_key;
+  struct GNUNET_IDENTITY_PublicKey derived_key;
 
   /* follwed by encrypted block data */
 };
@@ -121,7 +121,7 @@ struct BlockCacheMessage
   /**
    * Derived public key.
    */
-  struct GNUNET_CRYPTO_EcdsaPublicKey derived_key;
+  struct GNUNET_IDENTITY_PublicKey derived_key;
 
   /* follwed by encrypted block data */
 };

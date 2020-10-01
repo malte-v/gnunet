@@ -26,6 +26,7 @@
 #include "platform.h"
 #include "gnunet_util_lib.h"
 #include "gnunet_json_lib.h"
+#include "gnunet_gnsrecord_lib.h"
 
 #define GNUNET_JSON_GNSRECORD_VALUE "value"
 #define GNUNET_JSON_GNSRECORD_RECORD_DATA "data"
@@ -258,7 +259,7 @@ clean_gnsrecordobject (void *cls, struct GNUNET_JSON_Specification *spec)
  * @return JSON Specification
  */
 struct GNUNET_JSON_Specification
-GNUNET_JSON_spec_gnsrecord (struct GNUNET_GNSRECORD_Data **rd,
+GNUNET_GNSRECORD_JSON_spec_gnsrecord (struct GNUNET_GNSRECORD_Data **rd,
                             unsigned int *rd_count,
                             char **name)
 {
@@ -277,3 +278,114 @@ GNUNET_JSON_spec_gnsrecord (struct GNUNET_GNSRECORD_Data **rd,
                                            .size_ptr = NULL };
   return ret;
 }
+
+
+/**
+ * Convert GNS record to JSON.
+ *
+ * @param rname name of record
+ * @param rd record data
+ * @return corresponding JSON encoding
+ */
+json_t *
+GNUNET_GNSRECORD_JSON_from_gnsrecord (const char*rname,
+                            const struct GNUNET_GNSRECORD_Data *rd,
+                            unsigned int rd_count)
+{
+  struct GNUNET_TIME_Absolute abs_exp;
+  struct GNUNET_TIME_Relative rel_exp;
+  const char *expiration_time_str;
+  const char *record_type_str;
+  char *value_str;
+  json_t *data;
+  json_t *record;
+  json_t *records;
+
+  data = json_object ();
+  if (NULL == data)
+  {
+    GNUNET_break (0);
+    return NULL;
+  }
+  if (0 !=
+      json_object_set_new (data,
+                           "record_name",
+                           json_string (rname)))
+  {
+    GNUNET_break (0);
+    json_decref (data);
+    return NULL;
+  }
+  records = json_array ();
+  if (NULL == records)
+  {
+    GNUNET_break (0);
+    json_decref (data);
+    return NULL;
+  }
+  for (int i = 0; i < rd_count; i++)
+  {
+    value_str = GNUNET_GNSRECORD_value_to_string (rd[i].record_type,
+                                                  rd[i].data,
+                                                  rd[i].data_size);
+    if (GNUNET_GNSRECORD_RF_RELATIVE_EXPIRATION & rd[i].flags)
+    {
+      rel_exp.rel_value_us = rd[i].expiration_time;
+      expiration_time_str = GNUNET_STRINGS_relative_time_to_string (rel_exp,
+                                                                    GNUNET_NO);
+    }
+    else
+    {
+      abs_exp.abs_value_us = rd[i].expiration_time;
+      expiration_time_str = GNUNET_STRINGS_absolute_time_to_string (abs_exp);
+    }
+    record_type_str = GNUNET_GNSRECORD_number_to_typename (rd[i].record_type);
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "Packing %s %s %s %d\n",
+                value_str, record_type_str, expiration_time_str, rd[i].flags);
+    record = json_pack ("{s:s,s:s,s:s,s:b,s:b,s:b,s:b}",
+                        "value",
+                        value_str,
+                        "record_type",
+                        record_type_str,
+                        "expiration_time",
+                        expiration_time_str,
+                        "private",
+                        rd[i].flags & GNUNET_GNSRECORD_RF_PRIVATE,
+                        "relative_expiration",
+                        rd[i].flags & GNUNET_GNSRECORD_RF_RELATIVE_EXPIRATION,
+                        "supplemental",
+                        rd[i].flags & GNUNET_GNSRECORD_RF_SUPPLEMENTAL,
+                        "shadow",
+                        rd[i].flags & GNUNET_GNSRECORD_RF_SHADOW_RECORD);
+    GNUNET_free (value_str);
+    if (NULL == record)
+    {
+      GNUNET_break (0);
+      json_decref (records);
+      json_decref (data);
+      return NULL;
+    }
+    if (0 !=
+        json_array_append_new (records,
+                               record))
+    {
+      GNUNET_break (0);
+      json_decref (records);
+      json_decref (data);
+      return NULL;
+    }
+  }
+  if (0 !=
+      json_object_set_new (data,
+                           "data",
+                           records))
+  {
+    GNUNET_break (0);
+    json_decref (data);
+    return NULL;
+  }
+  return data;
+}
+
+

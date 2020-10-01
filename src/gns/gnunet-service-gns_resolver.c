@@ -173,7 +173,7 @@ struct AuthorityChain
     /**
      * The zone of the GNS authority
      */
-    struct GNUNET_CRYPTO_EcdsaPublicKey gns_authority;
+    struct GNUNET_IDENTITY_PublicKey gns_authority;
 
     struct
     {
@@ -305,7 +305,7 @@ struct GNS_ResolverHandle
   /**
    * The top-level GNS authoritative zone to query
    */
-  struct GNUNET_CRYPTO_EcdsaPublicKey authority_zone;
+  struct GNUNET_IDENTITY_PublicKey authority_zone;
 
   /**
    * called when resolution phase finishes
@@ -1251,7 +1251,7 @@ handle_gns_cname_result (struct GNS_ResolverHandle *rh,
   const char *tld;
   struct AuthorityChain *ac;
   int af;
-  struct GNUNET_CRYPTO_EcdsaPublicKey zone;
+  struct GNUNET_IDENTITY_PublicKey zone;
 
   nlen = strlen (cname);
   tld = GNS_get_tld (cname);
@@ -1296,7 +1296,7 @@ handle_gns_cname_result (struct GNS_ResolverHandle *rh,
     {
       GNUNET_asprintf (&res,
                        "%.*s",
-                       strlen (cname) - (strlen (tld) + 1),
+                       (int) (strlen (cname) - (strlen (tld) + 1)),
                        cname);
     }
     else
@@ -1305,7 +1305,7 @@ handle_gns_cname_result (struct GNS_ResolverHandle *rh,
                        "%.*s.%.*s",
                        (int) rh->name_resolution_pos,
                        rh->name,
-                       (int) strlen (cname) - (strlen (tld) + 1),
+                       (int) (strlen (cname) - (strlen (tld) + 1)),
                        cname);
     }
     rh->name_resolution_pos = strlen (res);
@@ -1696,10 +1696,13 @@ recursive_pkey_resolution (struct GNS_ResolverHandle *rh,
                            const struct GNUNET_GNSRECORD_Data *rd)
 {
   struct AuthorityChain *ac;
+  struct GNUNET_IDENTITY_PublicKey auth;
 
   /* delegation to another zone */
-  if (sizeof(struct GNUNET_CRYPTO_EcdsaPublicKey) !=
-      rd->data_size)
+  if (GNUNET_OK != GNUNET_GNSRECORD_identity_from_data (rd->data,
+                                                        rd->data_size,
+                                                        rd->record_type,
+                                                        &auth))
   {
     GNUNET_break_op (0);
     fail_resolution (rh);
@@ -1709,9 +1712,7 @@ recursive_pkey_resolution (struct GNS_ResolverHandle *rh,
   ac = GNUNET_new (struct AuthorityChain);
   ac->rh = rh;
   ac->gns_authority = GNUNET_YES;
-  GNUNET_memcpy (&ac->authority_info.gns_authority,
-                 rd->data,
-                 sizeof(struct GNUNET_CRYPTO_EcdsaPublicKey));
+  ac->authority_info.gns_authority = auth;
   ac->label = resolver_lookup_get_next_label (rh);
   /* add AC to tail */
   GNUNET_CONTAINER_DLL_insert_tail (rh->ac_head,
@@ -1754,7 +1755,7 @@ recursive_gns2dns_resolution (struct GNS_ResolverHandle *rh,
     char *n;
     size_t off;
     struct Gns2DnsPending *gp;
-    struct GNUNET_CRYPTO_EcdsaPublicKey zone;
+    struct GNUNET_IDENTITY_PublicKey zone;
     struct sockaddr_in v4;
     struct sockaddr_in6 v6;
 
@@ -2257,19 +2258,25 @@ handle_gns_resolution_result (void *cls,
         break;
 
       case GNUNET_GNSRECORD_TYPE_PKEY:
+      case GNUNET_GNSRECORD_TYPE_EDKEY:
         {
-          struct GNUNET_CRYPTO_EcdsaPublicKey pub;
-
-          if (rd[i].data_size != sizeof(struct GNUNET_CRYPTO_EcdsaPublicKey))
+          struct GNUNET_IDENTITY_PublicKey pubkey;
+          if (rd[i].data_size < sizeof(uint32_t))
           {
             GNUNET_break_op (0);
             break;
           }
-          GNUNET_memcpy (&pub,
-                         rd[i].data,
-                         rd[i].data_size);
+          if (GNUNET_OK !=
+              GNUNET_GNSRECORD_identity_from_data (rd[i].data,
+                                                   rd[i].data_size,
+                                                   rd[i].record_type,
+                                                   &pubkey))
+          {
+            GNUNET_break_op (0);
+            break;
+          }
           rd_off++;
-          if (GNUNET_GNSRECORD_TYPE_PKEY != rh->record_type)
+          if (rd[i].record_type != rh->record_type)
           {
             /* try to resolve "@" */
             struct AuthorityChain *ac;
@@ -2277,7 +2284,7 @@ handle_gns_resolution_result (void *cls,
             ac = GNUNET_new (struct AuthorityChain);
             ac->rh = rh;
             ac->gns_authority = GNUNET_YES;
-            ac->authority_info.gns_authority = pub;
+            ac->authority_info.gns_authority = pubkey;
             ac->label = GNUNET_strdup (GNUNET_GNS_EMPTY_LABEL_AT);
             GNUNET_CONTAINER_DLL_insert_tail (rh->ac_head,
                                               rh->ac_tail,
@@ -2367,6 +2374,7 @@ handle_gns_resolution_result (void *cls,
     return;
 
   case GNUNET_GNSRECORD_TYPE_PKEY:
+  case GNUNET_GNSRECORD_TYPE_EDKEY:
     GNUNET_break_op (1 == rd_count);  /* PKEY should be unique */
     recursive_pkey_resolution (rh,
                                &rd[0]);
@@ -2469,10 +2477,7 @@ handle_dht_response (void *cls,
     return;
   }
   block = data;
-  if (size !=
-      ntohl (block->purpose.size)
-      + sizeof(struct GNUNET_CRYPTO_EcdsaPublicKey)
-      + sizeof(struct GNUNET_CRYPTO_EcdsaSignature))
+  if (size != GNUNET_GNSRECORD_block_get_size (block))
   {
     /* how did this pass DHT block validation!? */
     GNUNET_break (0);
@@ -2480,8 +2485,8 @@ handle_dht_response (void *cls,
     return;
   }
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "Decrypting DHT block of size %u for `%s', expires %s\n",
-              ntohl (block->purpose.size),
+              "Decrypting DHT block of size %lu for `%s', expires %s\n",
+              GNUNET_GNSRECORD_block_get_size (block),
               rh->name,
               GNUNET_STRINGS_absolute_time_to_string (exp));
   if (GNUNET_OK !=
@@ -2495,8 +2500,8 @@ handle_dht_response (void *cls,
     fail_resolution (rh);
     return;
   }
-  if (0 == GNUNET_TIME_absolute_get_remaining (GNUNET_TIME_absolute_ntoh (
-                                                 block->expiration_time)).
+  if (0 == GNUNET_TIME_absolute_get_remaining (
+        GNUNET_GNSRECORD_block_get_expiration (block)).
       rel_value_us)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
@@ -2594,7 +2599,7 @@ handle_namecache_block_response (void *cls,
   struct GNS_ResolverHandle *rh = cls;
   struct AuthorityChain *ac = rh->ac_tail;
   const char *label = ac->label;
-  const struct GNUNET_CRYPTO_EcdsaPublicKey *auth =
+  const struct GNUNET_IDENTITY_PublicKey *auth =
     &ac->authority_info.gns_authority;
   struct GNUNET_HashCode query;
 
@@ -2604,8 +2609,8 @@ handle_namecache_block_response (void *cls,
        ((GNUNET_GNS_LO_LOCAL_MASTER == rh->options) &&
         (ac != rh->ac_head))) &&
       ((NULL == block) ||
-       (0 == GNUNET_TIME_absolute_get_remaining (GNUNET_TIME_absolute_ntoh (
-                                                   block->expiration_time)).
+       (0 == GNUNET_TIME_absolute_get_remaining (
+          GNUNET_GNSRECORD_block_get_expiration (block)).
         rel_value_us)))
   {
     /* namecache knows nothing; try DHT lookup */
@@ -2622,8 +2627,8 @@ handle_namecache_block_response (void *cls,
   }
 
   if ((NULL == block) ||
-      (0 == GNUNET_TIME_absolute_get_remaining (GNUNET_TIME_absolute_ntoh (
-                                                  block->expiration_time)).
+      (0 == GNUNET_TIME_absolute_get_remaining (
+         GNUNET_GNSRECORD_block_get_expiration (block)).
        rel_value_us))
   {
     /* DHT not permitted and no local result, fail */
@@ -2857,7 +2862,7 @@ start_resolver_lookup (void *cls)
  * @return handle to cancel operation
  */
 struct GNS_ResolverHandle *
-GNS_resolver_lookup (const struct GNUNET_CRYPTO_EcdsaPublicKey *zone,
+GNS_resolver_lookup (const struct GNUNET_IDENTITY_PublicKey *zone,
                      uint32_t record_type,
                      const char *name,
                      enum GNUNET_GNS_LocalOptions options,

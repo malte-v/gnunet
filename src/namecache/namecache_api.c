@@ -225,19 +225,11 @@ handle_lookup_block_response (void *cls,
   size = ntohs (msg->gns_header.header.size)
          - sizeof(struct LookupBlockResponseMessage);
   {
-    char buf[size + sizeof(struct GNUNET_GNSRECORD_Block)] GNUNET_ALIGN;
+    char buf[size] GNUNET_ALIGN;
     struct GNUNET_GNSRECORD_Block *block;
 
     block = (struct GNUNET_GNSRECORD_Block *) buf;
-    block->signature = msg->signature;
-    block->derived_key = msg->derived_key;
-    block->purpose.purpose = htonl (GNUNET_SIGNATURE_PURPOSE_GNS_RECORD_SIGN);
-    block->purpose.size = htonl (size
-                                 + sizeof(struct GNUNET_TIME_AbsoluteNBO)
-                                 + sizeof(struct
-                                          GNUNET_CRYPTO_EccSignaturePurpose));
-    block->expiration_time = msg->expire;
-    GNUNET_memcpy (&block[1],
+    GNUNET_memcpy (block,
                    &msg[1],
                    size);
     if (GNUNET_OK !=
@@ -483,11 +475,7 @@ GNUNET_NAMECACHE_block_cache (struct GNUNET_NAMECACHE_Handle *h,
 
   if (NULL == h->mq)
     return NULL;
-  blen = ntohl (block->purpose.size);
-  GNUNET_assert (blen > (sizeof(struct GNUNET_TIME_AbsoluteNBO)
-                         + sizeof(struct GNUNET_CRYPTO_EccSignaturePurpose)));
-  blen -= (sizeof(struct GNUNET_TIME_AbsoluteNBO)
-           + sizeof(struct GNUNET_CRYPTO_EccSignaturePurpose));
+  blen = GNUNET_GNSRECORD_block_get_size (block);
   rid = get_op_id (h);
   qe = GNUNET_new (struct GNUNET_NAMECACHE_QueueEntry);
   qe->nsh = h;
@@ -502,11 +490,8 @@ GNUNET_NAMECACHE_block_cache (struct GNUNET_NAMECACHE_Handle *h,
                              blen,
                              GNUNET_MESSAGE_TYPE_NAMECACHE_BLOCK_CACHE);
   msg->gns_header.r_id = htonl (rid);
-  msg->expire = block->expiration_time;
-  msg->signature = block->signature;
-  msg->derived_key = block->derived_key;
   GNUNET_memcpy (&msg[1],
-                 &block[1],
+                 block,
                  blen);
   GNUNET_MQ_send (h->mq,
                   env);

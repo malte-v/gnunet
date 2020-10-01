@@ -1304,8 +1304,8 @@ unix_plugin_send (void *cls,
     return GNUNET_SYSERR;
   }
   LOG (GNUNET_ERROR_TYPE_DEBUG,
-       "Sending %u bytes with session for peer `%s' `%s'\n",
-       msgbuf_size,
+       "Sending %lu bytes with session for peer `%s' `%s'\n",
+       (unsigned long) msgbuf_size,
        GNUNET_i2s (&session->target),
        unix_plugin_address_to_string (NULL,
                                       session->address->address,

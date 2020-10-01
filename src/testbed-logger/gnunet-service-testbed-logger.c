@@ -198,7 +198,7 @@ logger_run (void *cls,
   GNUNET_asprintf (&fn,
                    "%s/%.*s_%jd.dat",
                    dir,
-                   hname_len,
+                   (int) hname_len,
                    hname,
                    (intmax_t) pid);
   GNUNET_free (hname);
