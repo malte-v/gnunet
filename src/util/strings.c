@@ -176,7 +176,7 @@ GNUNET_STRINGS_buffer_tokenize (const char *buffer,
 char *
 GNUNET_STRINGS_byte_size_fancy (unsigned long long size)
 {
-  const char *unit = _ (/* size unit */ "b");
+  const char *unit = /* size unit */ "b";
   char *ret;
 
   if (size > 5 * 1024)
@@ -703,37 +703,37 @@ GNUNET_STRINGS_relative_time_to_string (struct GNUNET_TIME_Relative delta,
                                         int do_round)
 {
   static GNUNET_THREAD_LOCAL char buf[128];
-  const char *unit = _ (/* time unit */ "µs");
+  const char *unit = /* time unit */ "µs";
   uint64_t dval = delta.rel_value_us;
 
   if (GNUNET_TIME_UNIT_FOREVER_REL.rel_value_us == delta.rel_value_us)
-    return _ ("forever");
+    return "forever";
   if (0 == delta.rel_value_us)
-    return _ ("0 ms");
+    return "0 ms";
   if (((GNUNET_YES == do_round) && (dval > 5 * 1000)) || (0 == (dval % 1000)))
   {
     dval = dval / 1000;
-    unit = _ (/* time unit */ "ms");
+    unit = /* time unit */ "ms";
     if (((GNUNET_YES == do_round) && (dval > 5 * 1000)) || (0 == (dval % 1000)))
     {
       dval = dval / 1000;
-      unit = _ (/* time unit */ "s");
+      unit = /* time unit */ "s";
       if (((GNUNET_YES == do_round) && (dval > 5 * 60)) || (0 == (dval % 60)))
       {
         dval = dval / 60;
-        unit = _ (/* time unit */ "m");
+        unit = /* time unit */ "m";
         if (((GNUNET_YES == do_round) && (dval > 5 * 60)) || (0 == (dval % 60)))
         {
           dval = dval / 60;
-          unit = _ (/* time unit */ "h");
+          unit = /* time unit */ "h";
           if (((GNUNET_YES == do_round) && (dval > 5 * 24)) ||
               (0 == (dval % 24)))
           {
             dval = dval / 24;
             if (1 == dval)
-              unit = _ (/* time unit */ "day");
+              unit = /* time unit */ "day";
             else
-              unit = _ (/* time unit */ "days");
+              unit = /* time unit */ "days";
           }
         }
       }
@@ -761,7 +761,7 @@ GNUNET_STRINGS_absolute_time_to_string (struct GNUNET_TIME_Absolute t)
   struct tm *tp;
 
   if (t.abs_value_us == GNUNET_TIME_UNIT_FOREVER_ABS.abs_value_us)
-    return _ ("end of time");
+    return "end of time";
   tt = t.abs_value_us / 1000LL / 1000LL;
   tp = localtime (&tt);
   /* This is hacky, but i don't know a way to detect libc character encoding.
