@@ -1335,7 +1335,7 @@ CPPFLAGS=$SAVE_CPPFLAGS
 
 # test for postgres:
 postgres=false
-AX_LIB_POSTGRESQL([9.5],
+AX_LIB_POSTGRESQL([12.0],
   [CPPFLAGS="$CPPFLAGS $POSTGRESQL_CPPFLAGS"
    AC_CHECK_HEADERS([libpq-fe.h],
    postgres=true)
@@ -1815,6 +1815,16 @@ AC_ARG_ENABLE([coverage],
               [use_gcov=no])
 AC_MSG_RESULT($use_gcov)
 AM_CONDITIONAL([USE_COVERAGE], [test "x$use_gcov" = "xyes"])
+
+
+# Temporarily disable a specific piece of code until TNG is out.
+AC_ARG_ENABLE([transport-timing-diagnostic],
+              [AS_HELP_STRING([--enable-transport-timing-diagnostic],
+                              [enable logging of transport (not TNG) sending times])],
+              [enable_ttd=yes],
+              [enable_ttd=no])
+AS_IF([test "x$enable_ttd" = "xyes"],
+      [AC_DEFINE([ENABLE_TTD], [1], [Define if transport (not TNG) should warn about sending times.])])
 
 
 # version info

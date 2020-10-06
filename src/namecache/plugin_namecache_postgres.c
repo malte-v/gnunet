@@ -64,15 +64,13 @@ database_setup (struct Plugin *plugin)
                             " query BYTEA NOT NULL DEFAULT '',"
                             " block BYTEA NOT NULL DEFAULT '',"
                             " expiration_time BIGINT NOT NULL DEFAULT 0"
-                            ")"
-                            "WITH OIDS");
+                            ")");
   struct GNUNET_PQ_ExecuteStatement es_default =
     GNUNET_PQ_make_execute ("CREATE TABLE IF NOT EXISTS ns096blocks ("
                             " query BYTEA NOT NULL DEFAULT '',"
                             " block BYTEA NOT NULL DEFAULT '',"
                             " expiration_time BIGINT NOT NULL DEFAULT 0"
-                            ")"
-                            "WITH OIDS");
+                            ")");
   const struct GNUNET_PQ_ExecuteStatement *cr;
 
   if (GNUNET_YES ==
