@@ -150,6 +150,8 @@ get_path_from_proc_maps ()
   FILE *f;
   char *lgu;
 
+  if (NULL == current_pd->libname)
+    return NULL;
   GNUNET_snprintf (fn, sizeof(fn), "/proc/%u/maps", getpid ());
   if (NULL == (f = fopen (fn, "r")))
     return NULL;
