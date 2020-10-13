@@ -654,7 +654,7 @@ try_connect_using_address (void *cls,
        "Trying to connect using address `%s:%u'\n",
        GNUNET_a2s (addr,
                    addrlen),
-       cstate->port);
+       (unsigned int) cstate->port);
   ap = GNUNET_malloc (sizeof(struct AddressProbe) + addrlen);
   ap->addr = (const struct sockaddr *) &ap[1];
   GNUNET_memcpy (&ap[1],
