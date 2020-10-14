@@ -672,6 +672,9 @@ enum GNUNET_GenericReturnValue
 GNUNET_GNSRECORD_query_from_block (const struct GNUNET_GNSRECORD_Block *block,
                                    struct GNUNET_HashCode *query);
 
+enum GNUNET_GenericReturnValue
+GNUNET_GNSRECORD_record_to_identity_key (const struct GNUNET_GNSRECORD_Data *rd,
+                                         struct GNUNET_IDENTITY_PublicKey *key);
 
 #if 0 /* keep Emacsens' auto-indent happy */
 {

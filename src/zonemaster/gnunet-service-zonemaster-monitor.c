@@ -240,7 +240,7 @@ convert_records_for_export (const struct GNUNET_GNSRECORD_Data *rd,
  * @return DHT PUT handle, NULL on error
  */
 static struct GNUNET_DHT_PutHandle *
-perform_dht_put (const struct GNUNET_CRYPTO_EcdsaPrivateKey *key,
+perform_dht_put (const struct GNUNET_IDENTITY_PrivateKey *key,
                  const char *label,
                  const struct GNUNET_GNSRECORD_Data *rd_public,
                  unsigned int rd_public_count,
@@ -271,9 +271,7 @@ perform_dht_put (const struct GNUNET_CRYPTO_EcdsaPrivateKey *key,
     GNUNET_break (0);
     return NULL;   /* whoops */
   }
-  block_size = ntohl (block->purpose.size)
-               + sizeof(struct GNUNET_CRYPTO_EcdsaSignature)
-               + sizeof(struct GNUNET_CRYPTO_EcdsaPublicKey);
+  block_size = GNUNET_GNSRECORD_block_get_size (block);
   GNUNET_GNSRECORD_query_from_private_key (key,
                                            label,
                                            &query);
@@ -314,7 +312,7 @@ perform_dht_put (const struct GNUNET_CRYPTO_EcdsaPrivateKey *key,
  */
 static void
 handle_monitor_event (void *cls,
-                      const struct GNUNET_CRYPTO_EcdsaPrivateKey *zone,
+                      const struct GNUNET_IDENTITY_PrivateKey *zone,
                       const char *label,
                       unsigned int rd_count,
                       const struct GNUNET_GNSRECORD_Data *rd)

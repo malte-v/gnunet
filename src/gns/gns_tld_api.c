@@ -263,6 +263,8 @@ GNUNET_GNS_lookup_with_tld (struct GNUNET_GNS_Handle *handle,
   if (GNUNET_OK ==
       GNUNET_IDENTITY_public_key_from_string (tld, &pkey))
   {
+    LOG (GNUNET_ERROR_TYPE_DEBUG,
+         "`%s' seems to be a valid zone key\n", tld);
     eat_tld (ltr->name, tld);
     lookup_with_public_key (ltr, &pkey);
     return ltr;
@@ -303,6 +305,8 @@ GNUNET_GNS_lookup_with_tld (struct GNUNET_GNS_Handle *handle,
     }
     GNUNET_free (dot_tld);
   }
+  LOG (GNUNET_ERROR_TYPE_DEBUG,
+       "`%s' should be a valid ego\n", ltr->name);
   ltr->id_co =
     GNUNET_IDENTITY_ego_lookup_by_suffix (ltr->gns_handle->cfg,
                                           ltr->name,

@@ -1709,9 +1709,8 @@ recursive_pkey_resolution (struct GNS_ResolverHandle *rh,
   ac = GNUNET_new (struct AuthorityChain);
   ac->rh = rh;
   ac->gns_authority = GNUNET_YES;
-  GNUNET_memcpy (&ac->authority_info.gns_authority,
-                 rd->data,
-                 sizeof(struct GNUNET_IDENTITY_PublicKey));
+  GNUNET_GNSRECORD_record_to_identity_key (rd,
+                                           &ac->authority_info.gns_authority);
   ac->label = resolver_lookup_get_next_label (rh);
   /* add AC to tail */
   GNUNET_CONTAINER_DLL_insert_tail (rh->ac_head,
@@ -2258,16 +2257,11 @@ handle_gns_resolution_result (void *cls,
 
       case GNUNET_GNSRECORD_TYPE_PKEY:
         {
-          struct GNUNET_IDENTITY_PublicKey pub;
-
-          if (rd[i].data_size != sizeof(struct GNUNET_IDENTITY_PublicKey))
+          if (rd[i].data_size != sizeof(struct GNUNET_CRYPTO_EcdsaPublicKey))
           {
             GNUNET_break_op (0);
             break;
           }
-          GNUNET_memcpy (&pub,
-                         rd[i].data,
-                         rd[i].data_size);
           rd_off++;
           if (GNUNET_GNSRECORD_TYPE_PKEY != rh->record_type)
           {
@@ -2277,7 +2271,8 @@ handle_gns_resolution_result (void *cls,
             ac = GNUNET_new (struct AuthorityChain);
             ac->rh = rh;
             ac->gns_authority = GNUNET_YES;
-            ac->authority_info.gns_authority = pub;
+            GNUNET_GNSRECORD_record_to_identity_key (&rd[i],
+                                                     &ac->authority_info.gns_authority);
             ac->label = GNUNET_strdup (GNUNET_GNS_EMPTY_LABEL_AT);
             GNUNET_CONTAINER_DLL_insert_tail (rh->ac_head,
                                               rh->ac_tail,
@@ -2469,10 +2464,7 @@ handle_dht_response (void *cls,
     return;
   }
   block = data;
-  if (size !=
-      ntohl (block->purpose.size)
-      + sizeof(struct GNUNET_IDENTITY_PublicKey)
-      + sizeof(struct GNUNET_CRYPTO_EcdsaSignature))
+  if (size != GNUNET_GNSRECORD_block_get_size (block))
   {
     /* how did this pass DHT block validation!? */
     GNUNET_break (0);
@@ -2480,8 +2472,8 @@ handle_dht_response (void *cls,
     return;
   }
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "Decrypting DHT block of size %u for `%s', expires %s\n",
-              ntohl (block->purpose.size),
+              "Decrypting DHT block of size %lu for `%s', expires %s\n",
+              GNUNET_GNSRECORD_block_get_size (block),
               rh->name,
               GNUNET_STRINGS_absolute_time_to_string (exp));
   if (GNUNET_OK !=
@@ -2495,8 +2487,8 @@ handle_dht_response (void *cls,
     fail_resolution (rh);
     return;
   }
-  if (0 == GNUNET_TIME_absolute_get_remaining (GNUNET_TIME_absolute_ntoh (
-                                                 block->expiration_time)).
+  if (0 == GNUNET_TIME_absolute_get_remaining (
+        GNUNET_GNSRECORD_block_get_expiration (block)).
       rel_value_us)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
@@ -2604,8 +2596,8 @@ handle_namecache_block_response (void *cls,
        ((GNUNET_GNS_LO_LOCAL_MASTER == rh->options) &&
         (ac != rh->ac_head))) &&
       ((NULL == block) ||
-       (0 == GNUNET_TIME_absolute_get_remaining (GNUNET_TIME_absolute_ntoh (
-                                                   block->expiration_time)).
+       (0 == GNUNET_TIME_absolute_get_remaining (
+          GNUNET_GNSRECORD_block_get_expiration (block)).
         rel_value_us)))
   {
     /* namecache knows nothing; try DHT lookup */
@@ -2622,8 +2614,8 @@ handle_namecache_block_response (void *cls,
   }
 
   if ((NULL == block) ||
-      (0 == GNUNET_TIME_absolute_get_remaining (GNUNET_TIME_absolute_ntoh (
-                                                  block->expiration_time)).
+      (0 == GNUNET_TIME_absolute_get_remaining (
+         GNUNET_GNSRECORD_block_get_expiration (block)).
        rel_value_us))
   {
     /* DHT not permitted and no local result, fail */

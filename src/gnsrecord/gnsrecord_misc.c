@@ -325,5 +325,22 @@ GNUNET_GNSRECORD_query_from_block (const struct GNUNET_GNSRECORD_Block *block,
 
 }
 
+enum GNUNET_GenericReturnValue
+GNUNET_GNSRECORD_record_to_identity_key (const struct GNUNET_GNSRECORD_Data *rd,
+                                         struct GNUNET_IDENTITY_PublicKey *key)
+{
+  switch (ntohl (rd->record_type))
+  {
+  case GNUNET_GNSRECORD_TYPE_PKEY:
+    key->type = htonl (rd->record_type);
+    memcpy (&key->ecdsa_key, rd->data, sizeof (key->ecdsa_key));
+    return GNUNET_OK;
+  default:
+    return GNUNET_SYSERR;
+  }
+  return GNUNET_SYSERR;
+
+
+}
 
 /* end of gnsrecord_misc.c */

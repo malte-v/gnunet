@@ -26,6 +26,7 @@ gnunet-arm -i datastore -c test_gns_lookup.conf
 gnunet-identity -C $OTHER_EGO -c test_gns_lookup.conf
 DELEGATED_PKEY=$(gnunet-identity -d -c test_gns_lookup.conf | grep $OTHER_EGO | awk '{print $3}')
 gnunet-identity -C $MY_EGO -c test_gns_lookup.conf
+echo "MYEGO: $MY_EGO OTHER_EGO: $DELEGATED_PKEY"
 gnunet-namestore -p -z $MY_EGO -a -n b -t PKEY -V $DELEGATED_PKEY -e never -c test_gns_lookup.conf
 #This works
 gnunet-namestore -p -z $OTHER_EGO -a -n www -t A -V $TEST_IP -e never -c test_gns_lookup.conf

@@ -953,6 +953,24 @@ GNUNET_IDENTITY_disconnect (struct GNUNET_IDENTITY_Handle *h)
   GNUNET_free (h);
 }
 
+ssize_t
+private_key_get_length (const struct GNUNET_IDENTITY_PrivateKey *key)
+{
+  switch (ntohl (key->type))
+  {
+  case GNUNET_IDENTITY_TYPE_ECDSA:
+    return sizeof (key->type) + sizeof (key->ecdsa_key);
+    break;
+  case GNUNET_IDENTITY_TYPE_EDDSA:
+    return sizeof (key->type) + sizeof (key->eddsa_key);
+    break;
+  default:
+    GNUNET_break (0);
+  }
+  return -1;
+}
+
+
 
 ssize_t
 GNUNET_IDENTITY_key_get_length (const struct GNUNET_IDENTITY_PublicKey *key)
@@ -976,13 +994,9 @@ char *
 GNUNET_IDENTITY_public_key_to_string (const struct
                                       GNUNET_IDENTITY_PublicKey *key)
 {
-  size_t size = 0;
-  char *res;
-  size = GNUNET_IDENTITY_key_get_length (key);
-  GNUNET_STRINGS_base64_encode (key,
-                                size,
-                                &res);
-  return res;
+  size_t size = GNUNET_IDENTITY_key_get_length (key);
+  return GNUNET_STRINGS_data_to_string_alloc (key,
+                                              size);
 }
 
 
@@ -990,22 +1004,9 @@ char *
 GNUNET_IDENTITY_private_key_to_string (const struct
                                        GNUNET_IDENTITY_PrivateKey *key)
 {
-  size_t size = 0;
-  char *res;
-  size += sizeof (key->type);
-  switch (ntohl (key->type))
-  {
-  case GNUNET_IDENTITY_TYPE_ECDSA:
-    size += sizeof (key->ecdsa_key);
-    break;
-  case GNUNET_IDENTITY_TYPE_EDDSA:
-    size += sizeof (key->eddsa_key);
-    break;
-  }
-  size = GNUNET_STRINGS_base64_encode (key,
-                                       size,
-                                       &res);
-  return res;
+  size_t size = private_key_get_length (key);
+  return GNUNET_STRINGS_data_to_string_alloc (key,
+                                              size);
 }
 
 
@@ -1013,20 +1014,17 @@ enum GNUNET_GenericReturnValue
 GNUNET_IDENTITY_public_key_from_string (const char *str,
                                         struct GNUNET_IDENTITY_PublicKey *key)
 {
-  char *data = NULL;
-  size_t size;
-
-  size = GNUNET_STRINGS_base64_decode (str,
+  enum GNUNET_GenericReturnValue ret;
+  enum GNUNET_IDENTITY_KeyType ktype;
+  ret = GNUNET_STRINGS_string_to_data (str,
                                        strlen (str),
-                                       (void*) &data);
-  if ((NULL == data) ||
-      (size > sizeof (*key)))
-  {
-    GNUNET_free (data);
+                                       key,
+                                       sizeof (*key));
+  if (GNUNET_OK != ret)
     return GNUNET_SYSERR;
-  }
-  memcpy (key, data, size);
-  return GNUNET_OK;
+  ktype = ntohl (key->type);
+  return (GNUNET_IDENTITY_TYPE_ECDSA == ktype) ? GNUNET_OK : GNUNET_SYSERR; //FIXME other keys, cleaner way?
+
 }
 
 
@@ -1034,20 +1032,16 @@ enum GNUNET_GenericReturnValue
 GNUNET_IDENTITY_private_key_from_string (const char *str,
                                          struct GNUNET_IDENTITY_PrivateKey *key)
 {
-  char *data = NULL;
-  size_t size;
-
-  size = GNUNET_STRINGS_base64_decode (str,
+  enum GNUNET_GenericReturnValue ret;
+  enum GNUNET_IDENTITY_KeyType ktype;
+  ret = GNUNET_STRINGS_string_to_data (str,
                                        strlen (str),
-                                       (void*) &data);
-  if ((NULL == data) ||
-      (size > sizeof (*key)))
-  {
-    GNUNET_free (data);
+                                       key,
+                                       sizeof (*key));
+  if (GNUNET_OK != ret)
     return GNUNET_SYSERR;
-  }
-  memcpy (key, data, size);
-  return GNUNET_OK;
+  ktype = ntohl (key->type);
+  return (GNUNET_IDENTITY_TYPE_ECDSA == ktype) ? GNUNET_OK : GNUNET_SYSERR; //FIXME other keys, cleaner way?
 }
 
 
