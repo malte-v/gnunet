@@ -557,6 +557,7 @@ handle_update_queue_message (void *cls,
   // tc_queue->q_len += GNUNET_ntohll (msg->q_len);
   // Uncomment this for alternativ 2 of backchannel functionality
   tc_queue->q_len = GNUNET_ntohll (msg->q_len);
+  // Until here for alternativ 2
   GNUNET_SERVICE_client_continue (client->client);
 }
 
