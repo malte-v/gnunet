@@ -332,9 +332,7 @@ namecache_sqlite_cache_block (void *cls,
   struct Plugin *plugin = cls;
   struct GNUNET_HashCode query;
   struct GNUNET_TIME_Absolute expiration;
-  size_t block_size = ntohl (block->purpose.size)
-                      + sizeof(struct GNUNET_IDENTITY_PublicKey)
-                      + sizeof(struct GNUNET_CRYPTO_EcdsaSignature);
+  size_t block_size = GNUNET_GNSRECORD_block_get_size (block);
   struct GNUNET_SQ_QueryParam del_params[] = {
     GNUNET_SQ_query_param_auto_from_type (&query),
     GNUNET_SQ_query_param_absolute_time (&expiration),
@@ -356,10 +354,9 @@ namecache_sqlite_cache_block (void *cls,
     last_expire = GNUNET_TIME_absolute_get ();
     namecache_sqlite_expire_blocks (plugin);
   }
-  GNUNET_CRYPTO_hash (&block->derived_key,
-                      sizeof(block->derived_key),
-                      &query);
-  expiration = GNUNET_TIME_absolute_ntoh (block->expiration_time);
+  GNUNET_assert (GNUNET_OK ==
+                 GNUNET_GNSRECORD_query_from_block (block, &query));
+  expiration = GNUNET_GNSRECORD_block_get_expiration (block);
   GNUNET_log (GNUNET_ERROR_TYPE_INFO,
               "Caching new version of block %s (expires %s)\n",
               GNUNET_h2s (&query),
@@ -498,10 +495,7 @@ namecache_sqlite_lookup_block (void *cls,
       GNUNET_break (0);
       ret = GNUNET_SYSERR;
     }
-    else if ((block_size < sizeof(struct GNUNET_GNSRECORD_Block)) ||
-             (ntohl (block->purpose.size)
-              + sizeof(struct GNUNET_IDENTITY_PublicKey)
-              + sizeof(struct GNUNET_CRYPTO_EcdsaSignature) != block_size))
+    else if ((block_size < sizeof(struct GNUNET_GNSRECORD_Block)))
     {
       GNUNET_break (0);
       GNUNET_SQ_cleanup_result (rs);

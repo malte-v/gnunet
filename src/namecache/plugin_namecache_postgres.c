@@ -153,11 +153,11 @@ namecache_postgres_expire_blocks (struct Plugin *plugin)
 static void
 delete_old_block (struct Plugin *plugin,
                   const struct GNUNET_HashCode *query,
-                  struct GNUNET_TIME_AbsoluteNBO expiration_time)
+                  struct GNUNET_TIME_Absolute expiration_time)
 {
   struct GNUNET_PQ_QueryParam params[] = {
     GNUNET_PQ_query_param_auto_from_type (query),
-    GNUNET_PQ_query_param_absolute_time_nbo (&expiration_time),
+    GNUNET_PQ_query_param_absolute_time (&expiration_time),
     GNUNET_PQ_query_param_end
   };
   enum GNUNET_DB_QueryStatus res;
@@ -182,21 +182,20 @@ namecache_postgres_cache_block (void *cls,
 {
   struct Plugin *plugin = cls;
   struct GNUNET_HashCode query;
-  size_t block_size = ntohl (block->purpose.size)
-                      + sizeof(struct GNUNET_IDENTITY_PublicKey)
-                      + sizeof(struct GNUNET_CRYPTO_EcdsaSignature);
+  size_t block_size = GNUNET_GNSRECORD_block_get_size (block);
+  struct GNUNET_TIME_Absolute exp;
+  exp = GNUNET_GNSRECORD_block_get_expiration (block);
   struct GNUNET_PQ_QueryParam params[] = {
     GNUNET_PQ_query_param_auto_from_type (&query),
     GNUNET_PQ_query_param_fixed_size (block, block_size),
-    GNUNET_PQ_query_param_absolute_time_nbo (&block->expiration_time),
+    GNUNET_PQ_query_param_absolute_time (&exp),
     GNUNET_PQ_query_param_end
   };
   enum GNUNET_DB_QueryStatus res;
 
   namecache_postgres_expire_blocks (plugin);
-  GNUNET_CRYPTO_hash (&block->derived_key,
-                      sizeof(struct GNUNET_IDENTITY_PublicKey),
-                      &query);
+  GNUNET_GNSRECORD_query_from_block (block,
+                                     &query);
   if (block_size > 64 * 65536)
   {
     GNUNET_break (0);
@@ -204,7 +203,7 @@ namecache_postgres_cache_block (void *cls,
   }
   delete_old_block (plugin,
                     &query,
-                    block->expiration_time);
+                    exp);
 
   res = GNUNET_PQ_eval_prepared_non_select (plugin->dbh,
                                             "cache_block",
@@ -263,10 +262,7 @@ namecache_postgres_lookup_block (void *cls,
          "Ending iteration (no more results)\n");
     return GNUNET_NO;
   }
-  if ((bsize < sizeof(*block)) ||
-      (bsize != ntohl (block->purpose.size)
-       + sizeof(struct GNUNET_IDENTITY_PublicKey)
-       + sizeof(struct GNUNET_CRYPTO_EcdsaSignature)))
+  if ((bsize < sizeof(*block)))
   {
     GNUNET_break (0);
     LOG (GNUNET_ERROR_TYPE_DEBUG,

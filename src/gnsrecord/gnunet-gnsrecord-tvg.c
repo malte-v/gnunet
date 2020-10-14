@@ -149,19 +149,20 @@ run (void *cls,
                                            TEST_RECORD_LABEL,
                                            rd,
                                            TEST_RRCOUNT);
-  size_t bdata_size = ntohl (rrblock->purpose.size)
+  size_t bdata_size = ntohl (rrblock->ecdsa_block.purpose.size)
                       - sizeof(struct GNUNET_CRYPTO_EccSignaturePurpose)
                       - sizeof(struct GNUNET_TIME_AbsoluteNBO);
-  size_t rrblock_size = ntohl (rrblock->purpose.size)
+  size_t ecblock_size = ntohl (rrblock->ecdsa_block.purpose.size)
                         + sizeof(struct GNUNET_CRYPTO_EcdsaPublicKey)
                         + sizeof(struct GNUNET_CRYPTO_EcdsaSignature);
+  size_t block_size = ecblock_size + sizeof (uint32_t);
 
-  bdata = (char*) &rrblock[1];
+  bdata = (char*) &(&rrblock->ecdsa_block)[1];
   fprintf (stdout, "BDATA:\n");
   print_bytes (bdata, bdata_size, 8);
   fprintf (stdout, "\n");
   fprintf (stdout, "RRBLOCK:\n");
-  print_bytes (rrblock, rrblock_size, 8);
+  print_bytes (rrblock, block_size, 8);
   fprintf (stdout, "\n");
 
 }

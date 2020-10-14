@@ -207,10 +207,7 @@ store_and_free_entries (void *cls,
   struct GNUNET_CRYPTO_HashAsciiEncoded query;
   size_t block_size;
 
-  block_size = ntohl (entry->block->purpose.size)
-               + sizeof(struct GNUNET_IDENTITY_PublicKey)
-               + sizeof(struct GNUNET_CRYPTO_EcdsaSignature);
-
+  block_size = GNUNET_GNSRECORD_block_get_size (entry->block);
   GNUNET_STRINGS_base64_encode ((char *) entry->block,
                                 block_size,
                                 &block_b64);
@@ -277,7 +274,7 @@ expire_blocks (void *cls,
   struct GNUNET_TIME_Absolute expiration;
 
   now = GNUNET_TIME_absolute_get ();
-  expiration = GNUNET_TIME_absolute_ntoh (entry->block->expiration_time);
+  expiration = GNUNET_GNSRECORD_block_get_expiration (entry->block);
 
   if (0 == GNUNET_TIME_absolute_get_difference (now,
                                                 expiration).rel_value_us)
@@ -319,12 +316,9 @@ namecache_cache_block (void *cls,
   size_t block_size;
 
   namecache_expire_blocks (plugin);
-  GNUNET_CRYPTO_hash (&block->derived_key,
-                      sizeof(struct GNUNET_IDENTITY_PublicKey),
-                      &query);
-  block_size = ntohl (block->purpose.size)
-               + sizeof(struct GNUNET_IDENTITY_PublicKey)
-               + sizeof(struct GNUNET_CRYPTO_EcdsaSignature);
+  GNUNET_GNSRECORD_query_from_block (block,
+                                     &query);
+  block_size = GNUNET_GNSRECORD_block_get_size (block);
   if (block_size > 64 * 65536)
   {
     GNUNET_break (0);

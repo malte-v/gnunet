@@ -263,21 +263,20 @@ struct GNUNET_GNSRECORD_PlaceData
   /* Followed by struct GNUNET_PeerIdentity relays[relay_count] */
 };
 
-
 /**
  * Information we have in an encrypted block with record data (i.e. in the DHT).
  */
-struct GNUNET_GNSRECORD_Block
+struct GNUNET_GNSRECORD_EcdsaBlock
 {
+  /**
+   * Derived key used for signing; hash of this is the query.
+   */
+  struct GNUNET_CRYPTO_EcdsaPublicKey derived_key;
+
   /**
    * Signature of the block.
    */
   struct GNUNET_CRYPTO_EcdsaSignature signature;
-
-  /**
-   * Derived key used for signing; hash of this is the query.
-   */
-  struct GNUNET_IDENTITY_PublicKey derived_key;
 
   /**
    * Number of bytes signed; also specifies the number of bytes
@@ -291,6 +290,17 @@ struct GNUNET_GNSRECORD_Block
   struct GNUNET_TIME_AbsoluteNBO expiration_time;
 
   /* followed by encrypted data */
+};
+
+struct GNUNET_GNSRECORD_Block
+{
+  uint32_t type;
+
+  union
+  {
+    struct GNUNET_GNSRECORD_EcdsaBlock ecdsa_block;
+    //struct GNUNET_GNSRECORD_EddsaBlock eddsa_block;
+  };
 };
 
 
@@ -636,6 +646,31 @@ GNUNET_GNSRECORD_records_cmp (const struct GNUNET_GNSRECORD_Data *a,
 struct GNUNET_TIME_Absolute
 GNUNET_GNSRECORD_record_get_expiration_time (
   unsigned int rd_count, const struct GNUNET_GNSRECORD_Data *rd);
+
+
+/**
+ * Returns the length of this block in bytes.
+ * Block length strongly depends on the zone type.
+ *
+ * @param block the block.
+ * @return the length of this block in bytes
+ */
+size_t
+GNUNET_GNSRECORD_block_get_size (const struct GNUNET_GNSRECORD_Block *block);
+
+/**
+ * Returns the expiration of a block
+ */
+struct GNUNET_TIME_Absolute
+GNUNET_GNSRECORD_block_get_expiration (const struct GNUNET_GNSRECORD_Block *block);
+
+
+/**
+ * Builds the query from a block
+ */
+enum GNUNET_GenericReturnValue
+GNUNET_GNSRECORD_query_from_block (const struct GNUNET_GNSRECORD_Block *block,
+                                   struct GNUNET_HashCode *query);
 
 
 #if 0 /* keep Emacsens' auto-indent happy */

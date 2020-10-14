@@ -272,4 +272,58 @@ GNUNET_GNSRECORD_zkey_to_pkey (const char *zkey,
 }
 
 
+size_t
+GNUNET_GNSRECORD_block_get_size (const struct GNUNET_GNSRECORD_Block *block)
+{
+  switch (ntohl (block->type))
+  {
+  case GNUNET_GNSRECORD_TYPE_PKEY:
+    return sizeof (uint32_t)   /* zone type */
+           + sizeof (block->ecdsa_block)   /* EcdsaBlock */
+           + ntohl (block->ecdsa_block.purpose.size)   /* Length of signed data */
+           - sizeof (block->ecdsa_block.purpose);   /* Purpose already in EcdsaBlock */
+    break;
+  default:
+    return 0;
+  }
+  return 0;
+}
+
+
+struct GNUNET_TIME_Absolute
+GNUNET_GNSRECORD_block_get_expiration (const struct
+                                       GNUNET_GNSRECORD_Block *block)
+{
+
+  switch (ntohl (block->type))
+  {
+  case GNUNET_GNSRECORD_TYPE_PKEY:
+    return GNUNET_TIME_absolute_ntoh (block->ecdsa_block.expiration_time);
+  default:
+    return GNUNET_TIME_absolute_get_zero_ ();
+  }
+  return GNUNET_TIME_absolute_get_zero_ ();
+
+}
+
+
+enum GNUNET_GenericReturnValue
+GNUNET_GNSRECORD_query_from_block (const struct GNUNET_GNSRECORD_Block *block,
+                                   struct GNUNET_HashCode *query)
+{
+  switch (ntohl (block->type))
+  {
+  case GNUNET_GNSRECORD_TYPE_PKEY:
+    GNUNET_CRYPTO_hash (&block->ecdsa_block.derived_key,
+                        sizeof (block->ecdsa_block.derived_key),
+                        query);
+    return GNUNET_OK;
+  default:
+    return GNUNET_SYSERR;
+  }
+  return GNUNET_SYSERR;
+
+}
+
+
 /* end of gnsrecord_misc.c */

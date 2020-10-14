@@ -145,10 +145,7 @@ block_plugin_gns_evaluate (void *cls,
     return GNUNET_BLOCK_EVALUATION_RESULT_INVALID;
   }
   block = reply_block;
-  if (ntohl (block->purpose.size) + sizeof(struct
-                                           GNUNET_CRYPTO_EcdsaSignature)
-      + sizeof(struct GNUNET_CRYPTO_EcdsaPublicKey) !=
-      reply_block_size)
+  if (ntohl (block->purpose.size) >= reply_block_size)
   {
     GNUNET_break_op (0);
     return GNUNET_BLOCK_EVALUATION_RESULT_INVALID;
