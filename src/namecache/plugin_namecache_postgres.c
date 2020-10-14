@@ -183,7 +183,7 @@ namecache_postgres_cache_block (void *cls,
   struct Plugin *plugin = cls;
   struct GNUNET_HashCode query;
   size_t block_size = ntohl (block->purpose.size)
-                      + sizeof(struct GNUNET_CRYPTO_EcdsaPublicKey)
+                      + sizeof(struct GNUNET_IDENTITY_PublicKey)
                       + sizeof(struct GNUNET_CRYPTO_EcdsaSignature);
   struct GNUNET_PQ_QueryParam params[] = {
     GNUNET_PQ_query_param_auto_from_type (&query),
@@ -195,7 +195,7 @@ namecache_postgres_cache_block (void *cls,
 
   namecache_postgres_expire_blocks (plugin);
   GNUNET_CRYPTO_hash (&block->derived_key,
-                      sizeof(struct GNUNET_CRYPTO_EcdsaPublicKey),
+                      sizeof(struct GNUNET_IDENTITY_PublicKey),
                       &query);
   if (block_size > 64 * 65536)
   {
@@ -265,7 +265,7 @@ namecache_postgres_lookup_block (void *cls,
   }
   if ((bsize < sizeof(*block)) ||
       (bsize != ntohl (block->purpose.size)
-       + sizeof(struct GNUNET_CRYPTO_EcdsaPublicKey)
+       + sizeof(struct GNUNET_IDENTITY_PublicKey)
        + sizeof(struct GNUNET_CRYPTO_EcdsaSignature)))
   {
     GNUNET_break (0);

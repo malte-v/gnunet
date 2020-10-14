@@ -101,7 +101,7 @@ static struct GNUNET_SCHEDULER_Task *pow_task;
 /**
  * Proof-of-work object
  */
-static struct GNUNET_REVOCATION_PowP proof_of_work;
+static struct GNUNET_REVOCATION_PowP *proof_of_work;
 
 /**
  * Function run if the user aborts with CTRL-C.
@@ -325,8 +325,8 @@ calculate_pow (void *cls)
 static void
 ego_callback (void *cls, struct GNUNET_IDENTITY_Ego *ego)
 {
-  struct GNUNET_CRYPTO_EcdsaPublicKey key;
-  const struct GNUNET_CRYPTO_EcdsaPrivateKey *privkey;
+  struct GNUNET_IDENTITY_PublicKey key;
+  const struct GNUNET_IDENTITY_PrivateKey *privkey;
   struct GNUNET_REVOCATION_PowCalculationHandle *ph = NULL;
 
   el = NULL;
@@ -403,15 +403,14 @@ run (void *cls,
      const char *cfgfile,
      const struct GNUNET_CONFIGURATION_Handle *c)
 {
-  struct GNUNET_CRYPTO_EcdsaPublicKey pk;
+  struct GNUNET_IDENTITY_PublicKey pk;
 
   cfg = c;
   if (NULL != test_ego)
   {
     if (GNUNET_OK !=
-        GNUNET_CRYPTO_ecdsa_public_key_from_string (test_ego,
-                                                    strlen (test_ego),
-                                                    &pk))
+        GNUNET_IDENTITY_public_key_from_string (test_ego,
+                                                &pk))
     {
       fprintf (stderr, _ ("Public key `%s' malformed\n"), test_ego);
       return;

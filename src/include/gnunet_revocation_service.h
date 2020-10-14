@@ -21,6 +21,8 @@
 #ifndef GNUNET_REVOCATION_SERVICE_H_
 #define GNUNET_REVOCATION_SERVICE_H_
 
+#include "gnunet_identity_service.h"
+
 /**
  * @author Christian Grothoff
  *
@@ -80,14 +82,16 @@ struct GNUNET_REVOCATION_PowP
   uint64_t pow[POW_COUNT] GNUNET_PACKED;
 
   /**
-   * The signature
-   */
-  struct GNUNET_CRYPTO_EcdsaSignature signature;
-
-  /**
    * The revoked public key
    */
-  struct GNUNET_CRYPTO_EcdsaPublicKey key;
+  struct GNUNET_IDENTITY_PublicKey key;
+
+  /**
+   * Length of the signature
+   */
+  uint32_t sig_len;
+
+  /** followed by a signature **/
 };
 
 
@@ -104,7 +108,7 @@ struct GNUNET_REVOCATION_SignaturePurposePS
   /**
    * The revoked public key
    */
-  struct GNUNET_CRYPTO_EcdsaPublicKey key;
+  struct GNUNET_IDENTITY_PublicKey key;
 
   /**
    * The timestamp of the revocation
@@ -150,7 +154,7 @@ typedef void (*GNUNET_REVOCATION_Callback) (void *cls,
  */
 struct GNUNET_REVOCATION_Query *
 GNUNET_REVOCATION_query (const struct GNUNET_CONFIGURATION_Handle *cfg,
-                         const struct GNUNET_CRYPTO_EcdsaPublicKey *key,
+                         const struct GNUNET_IDENTITY_PublicKey *key,
                          GNUNET_REVOCATION_Callback func, void *func_cls);
 
 
@@ -217,7 +221,7 @@ GNUNET_REVOCATION_check_pow (const struct GNUNET_REVOCATION_PowP *pow,
  * @param pow the pow object to work with in the calculation.
  */
 void
-GNUNET_REVOCATION_pow_init (const struct GNUNET_CRYPTO_EcdsaPrivateKey *key,
+GNUNET_REVOCATION_pow_init (const struct GNUNET_IDENTITY_PrivateKey *key,
                             struct GNUNET_REVOCATION_PowP *pow);
 
 

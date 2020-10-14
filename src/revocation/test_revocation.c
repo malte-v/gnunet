@@ -38,8 +38,8 @@ struct TestPeer
   struct GNUNET_TESTBED_Operation *core_op;
   struct GNUNET_IDENTITY_Handle *idh;
   const struct GNUNET_CONFIGURATION_Handle *cfg;
-  const struct GNUNET_CRYPTO_EcdsaPrivateKey *privkey;
-  struct GNUNET_CRYPTO_EcdsaPublicKey pubkey;
+  const struct GNUNET_IDENTITY_PrivateKey *privkey;
+  struct GNUNET_IDENTITY_PublicKey pubkey;
   struct GNUNET_CRYPTO_EcdsaSignature sig;
   struct GNUNET_IDENTITY_Operation *create_id_op;
   struct GNUNET_IDENTITY_EgoLookup *ego_lookup;
@@ -142,13 +142,13 @@ revocation_cb (void *cls, enum GNUNET_GenericReturnValue is_valid)
 }
 
 
-static struct GNUNET_REVOCATION_PowP proof_of_work;
+static struct GNUNET_REVOCATION_PowP *proof_of_work;
 
 static void
 ego_cb (void *cls, struct GNUNET_IDENTITY_Ego *ego)
 {
   static int completed = 0;
-  const struct GNUNET_CRYPTO_EcdsaPrivateKey *privkey;
+  const struct GNUNET_IDENTITY_PrivateKey *privkey;
 
   if ((NULL != ego) && (cls == &testpeers[0]))
   {
@@ -164,10 +164,11 @@ ego_cb (void *cls, struct GNUNET_IDENTITY_Ego *ego)
     GNUNET_IDENTITY_ego_get_public_key (ego, &testpeers[1].pubkey);
     GNUNET_log (GNUNET_ERROR_TYPE_INFO, "Calculating proof of work...\n");
     privkey = GNUNET_IDENTITY_ego_get_private_key (ego);
-    memset (&proof_of_work, 0, sizeof (proof_of_work));
+    proof_of_work = GNUNET_malloc (sizeof (struct GNUNET_REVOCATION_PowP) +
+                                   sizeof (struct GNUNET_CRYPTO_EcdsaSignature));
     GNUNET_REVOCATION_pow_init (privkey,
-                                &proof_of_work);
-    testpeers[1].pow = GNUNET_REVOCATION_pow_start (&proof_of_work,
+                                proof_of_work);
+    testpeers[1].pow = GNUNET_REVOCATION_pow_start (proof_of_work,
                                                     1,
                                                     5);
     int res =
@@ -184,7 +185,7 @@ ego_cb (void *cls, struct GNUNET_IDENTITY_Ego *ego)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_INFO, "Egos retrieved\n");
     testpeers[1].revok_handle = GNUNET_REVOCATION_revoke (testpeers[1].cfg,
-                                                          &proof_of_work,
+                                                          proof_of_work,
                                                           &revocation_cb,
                                                           NULL);
     GNUNET_REVOCATION_pow_stop (testpeers[1].pow);
@@ -194,7 +195,7 @@ ego_cb (void *cls, struct GNUNET_IDENTITY_Ego *ego)
 
 static void
 identity_create_cb (void *cls,
-                    const struct GNUNET_CRYPTO_EcdsaPrivateKey *pk,
+                    const struct GNUNET_IDENTITY_PrivateKey *pk,
                     const char *emsg)
 {
   static int completed = 0;
@@ -238,11 +239,13 @@ identity_completion_cb (void *cls,
   testpeers[0].create_id_op = GNUNET_IDENTITY_create (testpeers[0].idh,
                                                       "client",
                                                       NULL,
+                                                      GNUNET_IDENTITY_TYPE_ECDSA,
                                                       &identity_create_cb,
                                                       &testpeers[0]);
   testpeers[1].create_id_op = GNUNET_IDENTITY_create (testpeers[1].idh,
                                                       "toberevoked",
                                                       NULL,
+                                                      GNUNET_IDENTITY_TYPE_ECDSA,
                                                       &identity_create_cb,
                                                       &testpeers[1]);
 }

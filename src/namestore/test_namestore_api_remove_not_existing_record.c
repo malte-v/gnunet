@@ -38,9 +38,9 @@ static struct GNUNET_NAMESTORE_Handle *nsh;
 
 static struct GNUNET_SCHEDULER_Task *endbadly_task;
 
-static struct GNUNET_CRYPTO_EcdsaPrivateKey privkey;
+static struct GNUNET_IDENTITY_PrivateKey privkey;
 
-static struct GNUNET_CRYPTO_EcdsaPublicKey pubkey;
+static struct GNUNET_IDENTITY_PublicKey pubkey;
 
 static int res;
 
@@ -132,8 +132,9 @@ run (void *cls,
   endbadly_task = GNUNET_SCHEDULER_add_delayed (TIMEOUT,
                                                 &endbadly,
                                                 NULL);
-  GNUNET_CRYPTO_ecdsa_key_create (&privkey);
-  GNUNET_CRYPTO_ecdsa_key_get_public (&privkey, &pubkey);
+  privkey.type = htonl (GNUNET_GNSRECORD_TYPE_PKEY);
+  GNUNET_CRYPTO_ecdsa_key_create (&privkey.ecdsa_key);
+  GNUNET_IDENTITY_key_get_public (&privkey, &pubkey);
 
   nsh = GNUNET_NAMESTORE_connect (cfg);
   GNUNET_break (NULL != nsh);

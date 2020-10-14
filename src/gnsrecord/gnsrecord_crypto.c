@@ -152,7 +152,8 @@ block_create (const struct GNUNET_CRYPTO_EcdsaPrivateKey *key,
                                                    label,
                                                    "gns");
     GNUNET_CRYPTO_ecdsa_key_get_public (dkey,
-                                        &block->derived_key);
+                                        &block->derived_key.ecdsa_key);
+    block->derived_key.type = htonl (GNUNET_GNSRECORD_TYPE_PKEY);
     derive_block_aes_key (&iv,
                           &skey,
                           label,
@@ -191,7 +192,7 @@ block_create (const struct GNUNET_CRYPTO_EcdsaPrivateKey *key,
  * @return NULL on error (block too large)
  */
 struct GNUNET_GNSRECORD_Block *
-GNUNET_GNSRECORD_block_create (const struct GNUNET_CRYPTO_EcdsaPrivateKey *key,
+GNUNET_GNSRECORD_block_create (const struct GNUNET_IDENTITY_PrivateKey *key,
                                struct GNUNET_TIME_Absolute expire,
                                const char *label,
                                const struct GNUNET_GNSRECORD_Data *rd,
@@ -199,14 +200,21 @@ GNUNET_GNSRECORD_block_create (const struct GNUNET_CRYPTO_EcdsaPrivateKey *key,
 {
   struct GNUNET_CRYPTO_EcdsaPublicKey pkey;
 
-  GNUNET_CRYPTO_ecdsa_key_get_public (key,
-                                      &pkey);
-  return block_create (key,
-                       &pkey,
-                       expire,
-                       label,
-                       rd,
-                       rd_count);
+  switch (ntohl (key->type))
+  {
+  case GNUNET_GNSRECORD_TYPE_PKEY:
+    GNUNET_CRYPTO_ecdsa_key_get_public (&key->ecdsa_key,
+                                        &pkey);
+    return block_create (&key->ecdsa_key,
+                         &pkey,
+                         expire,
+                         label,
+                         rd,
+                         rd_count);
+  default:
+    GNUNET_assert (0);
+  }
+  return NULL;
 }
 
 
@@ -240,12 +248,19 @@ struct KeyCacheLine
  * @return NULL on error (block too large)
  */
 struct GNUNET_GNSRECORD_Block *
-GNUNET_GNSRECORD_block_create2 (const struct GNUNET_CRYPTO_EcdsaPrivateKey *key,
+GNUNET_GNSRECORD_block_create2 (const struct GNUNET_IDENTITY_PrivateKey *pkey,
                                 struct GNUNET_TIME_Absolute expire,
                                 const char *label,
                                 const struct GNUNET_GNSRECORD_Data *rd,
                                 unsigned int rd_count)
 {
+  const struct GNUNET_CRYPTO_EcdsaPrivateKey *key;
+
+  if (GNUNET_IDENTITY_TYPE_ECDSA != ntohl (pkey->type))
+  {
+    return NULL; //FIXME
+  }
+  key = &pkey->ecdsa_key;
 #define CSIZE 64
   static struct KeyCacheLine cache[CSIZE];
   struct KeyCacheLine *line;
@@ -277,29 +292,27 @@ GNUNET_GNSRECORD_block_create2 (const struct GNUNET_CRYPTO_EcdsaPrivateKey *key,
  * @param block block to verify
  * @return #GNUNET_OK if the signature is valid
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_GNSRECORD_block_verify (const struct GNUNET_GNSRECORD_Block *block)
 {
+  const struct GNUNET_CRYPTO_EcdsaPublicKey *key;
+
+  if (GNUNET_GNSRECORD_TYPE_PKEY != ntohl (block->derived_key.type))
+  {
+    GNUNET_break (0);
+    return GNUNET_NO;
+  }
+  key = &block->derived_key.ecdsa_key;
+
   return GNUNET_CRYPTO_ecdsa_verify_ (GNUNET_SIGNATURE_PURPOSE_GNS_RECORD_SIGN,
                                       &block->purpose,
                                       &block->signature,
-                                      &block->derived_key);
+                                      key);
 }
 
 
-/**
- * Decrypt block.
- *
- * @param block block to decrypt
- * @param zone_key public key of the zone
- * @param label the name for the records
- * @param proc function to call with the result
- * @param proc_cls closure for proc
- * @return #GNUNET_OK on success, #GNUNET_SYSERR if the block was
- *        not well-formed
- */
-int
-GNUNET_GNSRECORD_block_decrypt (const struct GNUNET_GNSRECORD_Block *block,
+enum GNUNET_GenericReturnValue
+block_decrypt (const struct GNUNET_GNSRECORD_Block *block,
                                 const struct
                                 GNUNET_CRYPTO_EcdsaPublicKey *zone_key,
                                 const char *label,
@@ -426,6 +439,39 @@ GNUNET_GNSRECORD_block_decrypt (const struct GNUNET_GNSRECORD_Block *block,
 
 
 /**
+ * Decrypt block.
+ *
+ * @param block block to decrypt
+ * @param zone_key public key of the zone
+ * @param label the name for the records
+ * @param proc function to call with the result
+ * @param proc_cls closure for proc
+ * @return #GNUNET_OK on success, #GNUNET_SYSERR if the block was
+ *        not well-formed
+ */
+enum GNUNET_GenericReturnValue
+GNUNET_GNSRECORD_block_decrypt (const struct GNUNET_GNSRECORD_Block *block,
+                                const struct
+                                GNUNET_IDENTITY_PublicKey *zone_key,
+                                const char *label,
+                                GNUNET_GNSRECORD_RecordCallback proc,
+                                void *proc_cls)
+{
+  const struct GNUNET_CRYPTO_EcdsaPublicKey *key;
+
+  if (GNUNET_IDENTITY_TYPE_ECDSA != ntohl (zone_key->type))
+  {
+    return GNUNET_NO;
+  }
+  key = &zone_key->ecdsa_key;
+
+  return block_decrypt (block, key, label, proc, proc_cls);
+
+}
+
+
+
+/**
  * Calculate the DHT query for a given @a label in a given @a zone.
  *
  * @param zone private key of the zone
@@ -434,17 +480,24 @@ GNUNET_GNSRECORD_block_decrypt (const struct GNUNET_GNSRECORD_Block *block,
  */
 void
 GNUNET_GNSRECORD_query_from_private_key (const struct
-                                         GNUNET_CRYPTO_EcdsaPrivateKey *zone,
+                                         GNUNET_IDENTITY_PrivateKey *zone,
                                          const char *label,
                                          struct GNUNET_HashCode *query)
 {
-  struct GNUNET_CRYPTO_EcdsaPublicKey pub;
+  struct GNUNET_IDENTITY_PublicKey pub;
+  switch (ntohl (zone->type))
+  {
+  case GNUNET_GNSRECORD_TYPE_PKEY:
 
-  GNUNET_CRYPTO_ecdsa_key_get_public (zone,
-                                      &pub);
-  GNUNET_GNSRECORD_query_from_public_key (&pub,
-                                          label,
-                                          query);
+    GNUNET_IDENTITY_key_get_public (zone,
+                                    &pub);
+    GNUNET_GNSRECORD_query_from_public_key (&pub,
+                                            label,
+                                            query);
+    break;
+  default:
+    GNUNET_assert (0);
+  }
 }
 
 
@@ -457,18 +510,27 @@ GNUNET_GNSRECORD_query_from_private_key (const struct
  */
 void
 GNUNET_GNSRECORD_query_from_public_key (const struct
-                                        GNUNET_CRYPTO_EcdsaPublicKey *pub,
+                                        GNUNET_IDENTITY_PublicKey *pub,
                                         const char *label,
                                         struct GNUNET_HashCode *query)
 {
-  struct GNUNET_CRYPTO_EcdsaPublicKey pd;
-  GNUNET_CRYPTO_ecdsa_public_key_derive (pub,
-                                         label,
-                                         "gns",
-                                         &pd);
-  GNUNET_CRYPTO_hash (&pd,
-                      sizeof(pd),
-                      query);
+  struct GNUNET_IDENTITY_PublicKey pd;
+
+  switch (ntohl (pub->type))
+  {
+  case GNUNET_GNSRECORD_TYPE_PKEY:
+    pd.type = pub->type;
+    GNUNET_CRYPTO_ecdsa_public_key_derive (&pub->ecdsa_key,
+                                           label,
+                                           "gns",
+                                           &pd.ecdsa_key);
+    GNUNET_CRYPTO_hash (&pd,
+                        sizeof(pd),
+                        query);
+    break;
+  default:
+    GNUNET_assert (0);
+  }
 }
 
 

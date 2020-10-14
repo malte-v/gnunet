@@ -90,7 +90,7 @@ struct RecordStoreMessage
   /**
    * The private key of the authority.
    */
-  struct GNUNET_CRYPTO_EcdsaPrivateKey private_key;
+  struct GNUNET_IDENTITY_PrivateKey private_key;
 
   /* followed by:
    * name with length name_len
@@ -134,7 +134,7 @@ struct LabelLookupMessage
   /**
    * The private key of the zone to look up in
    */
-  struct GNUNET_CRYPTO_EcdsaPrivateKey zone;
+  struct GNUNET_IDENTITY_PrivateKey zone;
 
   /* followed by:
    * name with length name_len
@@ -176,7 +176,7 @@ struct LabelLookupResponseMessage
   /**
    * The private key of the authority.
    */
-  struct GNUNET_CRYPTO_EcdsaPrivateKey private_key;
+  struct GNUNET_IDENTITY_PrivateKey private_key;
 
   /* followed by:
    * name with length name_len
@@ -198,12 +198,12 @@ struct ZoneToNameMessage
   /**
    * The private key of the zone to look up in
    */
-  struct GNUNET_CRYPTO_EcdsaPrivateKey zone;
+  struct GNUNET_IDENTITY_PrivateKey zone;
 
   /**
    * The public key of the target zone
    */
-  struct GNUNET_CRYPTO_EcdsaPublicKey value_zone;
+  struct GNUNET_IDENTITY_PublicKey value_zone;
 };
 
 
@@ -241,7 +241,7 @@ struct ZoneToNameResponseMessage
   /**
    * The private key of the zone that contained the name.
    */
-  struct GNUNET_CRYPTO_EcdsaPrivateKey zone;
+  struct GNUNET_IDENTITY_PrivateKey zone;
 
   /* followed by:
    * name with length name_len
@@ -283,7 +283,7 @@ struct RecordResultMessage
   /**
    * The private key of the authority.
    */
-  struct GNUNET_CRYPTO_EcdsaPrivateKey private_key;
+  struct GNUNET_IDENTITY_PrivateKey private_key;
 
   /* followed by:
    * name with length name_len
@@ -311,7 +311,7 @@ struct ZoneMonitorStartMessage
   /**
    * Zone key.
    */
-  struct GNUNET_CRYPTO_EcdsaPrivateKey zone;
+  struct GNUNET_IDENTITY_PrivateKey zone;
 };
 
 
@@ -352,7 +352,7 @@ struct ZoneIterationStartMessage
   /**
    * Zone key.  All zeros for "all zones".
    */
-  struct GNUNET_CRYPTO_EcdsaPrivateKey zone;
+  struct GNUNET_IDENTITY_PrivateKey zone;
 };
 
 

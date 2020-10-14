@@ -167,7 +167,7 @@ process_lookup_result (void *cls,
  */
 static void
 lookup_with_public_key (struct GNUNET_GNS_LookupWithTldRequest *ltr,
-                        const struct GNUNET_CRYPTO_EcdsaPublicKey *pkey)
+                        const struct GNUNET_IDENTITY_PublicKey *pkey)
 {
   ltr->lr = GNUNET_GNS_lookup (ltr->gns_handle,
                                ltr->name,
@@ -190,11 +190,11 @@ lookup_with_public_key (struct GNUNET_GNS_LookupWithTldRequest *ltr,
  */
 static void
 identity_zone_cb (void *cls,
-                  const struct GNUNET_CRYPTO_EcdsaPrivateKey *priv,
+                  const struct GNUNET_IDENTITY_PrivateKey *priv,
                   const char *ego_name)
 {
   struct GNUNET_GNS_LookupWithTldRequest *ltr = cls;
-  struct GNUNET_CRYPTO_EcdsaPublicKey pkey;
+  struct GNUNET_IDENTITY_PublicKey pkey;
 
   ltr->id_co = NULL;
   if (NULL == priv)
@@ -219,7 +219,7 @@ identity_zone_cb (void *cls,
     ltr->options = GNUNET_GNS_LO_NO_DHT;
   else
     ltr->options = GNUNET_GNS_LO_LOCAL_MASTER;
-  GNUNET_CRYPTO_ecdsa_key_get_public (priv, &pkey);
+  GNUNET_IDENTITY_key_get_public (priv, &pkey);
   lookup_with_public_key (ltr, &pkey);
 }
 
@@ -249,7 +249,7 @@ GNUNET_GNS_lookup_with_tld (struct GNUNET_GNS_Handle *handle,
   const char *tld;
   char *dot_tld;
   char *zonestr;
-  struct GNUNET_CRYPTO_EcdsaPublicKey pkey;
+  struct GNUNET_IDENTITY_PublicKey pkey;
 
   ltr = GNUNET_new (struct GNUNET_GNS_LookupWithTldRequest);
   ltr->gns_handle = handle;
@@ -261,7 +261,7 @@ GNUNET_GNS_lookup_with_tld (struct GNUNET_GNS_Handle *handle,
   /* start with trivial case: TLD is zkey */
   tld = get_tld (ltr->name);
   if (GNUNET_OK ==
-      GNUNET_CRYPTO_ecdsa_public_key_from_string (tld, strlen (tld), &pkey))
+      GNUNET_IDENTITY_public_key_from_string (tld, &pkey))
   {
     eat_tld (ltr->name, tld);
     lookup_with_public_key (ltr, &pkey);
@@ -281,9 +281,8 @@ GNUNET_GNS_lookup_with_tld (struct GNUNET_GNS_Handle *handle,
                                                             &zonestr))
     {
       if (GNUNET_OK !=
-          GNUNET_CRYPTO_ecdsa_public_key_from_string (zonestr,
-                                                      strlen (zonestr),
-                                                      &pkey))
+          GNUNET_IDENTITY_public_key_from_string (zonestr,
+                                                  &pkey))
       {
         GNUNET_log_config_invalid (
           GNUNET_ERROR_TYPE_ERROR,

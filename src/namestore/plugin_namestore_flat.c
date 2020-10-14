@@ -54,7 +54,7 @@ struct FlatFileEntry
   /**
    * Entry zone
    */
-  struct GNUNET_CRYPTO_EcdsaPrivateKey private_key;
+  struct GNUNET_IDENTITY_PrivateKey private_key;
 
   /**
    * Record cound
@@ -86,7 +86,7 @@ struct FlatFileEntry
  * @param h[out] initialized hash
  */
 static void
-hash_pkey_and_label (const struct GNUNET_CRYPTO_EcdsaPrivateKey *pkey,
+hash_pkey_and_label (const struct GNUNET_IDENTITY_PrivateKey *pkey,
                      const char *label,
                      struct GNUNET_HashCode *h)
 {
@@ -95,14 +95,14 @@ hash_pkey_and_label (const struct GNUNET_CRYPTO_EcdsaPrivateKey *pkey,
   size_t key_len;
 
   label_len = strlen (label);
-  key_len = label_len + sizeof(struct GNUNET_CRYPTO_EcdsaPrivateKey);
+  key_len = label_len + sizeof(struct GNUNET_IDENTITY_PrivateKey);
   key = GNUNET_malloc (key_len);
   GNUNET_memcpy (key,
                  label,
                  label_len);
   GNUNET_memcpy (key + label_len,
                  pkey,
-                 sizeof(struct GNUNET_CRYPTO_EcdsaPrivateKey));
+                 sizeof(struct GNUNET_IDENTITY_PrivateKey));
   GNUNET_CRYPTO_hash (key,
                       key_len,
                       h);
@@ -296,7 +296,7 @@ database_setup (struct Plugin *plugin)
     GNUNET_free (record_data);
 
     {
-      struct GNUNET_CRYPTO_EcdsaPrivateKey *private_key;
+      struct GNUNET_IDENTITY_PrivateKey *private_key;
 
       GNUNET_STRINGS_base64_decode (zone_private_key,
                                     strlen (zone_private_key),
@@ -345,7 +345,7 @@ store_and_free_entries (void *cls,
 
   (void) key;
   GNUNET_STRINGS_base64_encode (&entry->private_key,
-                                sizeof(struct GNUNET_CRYPTO_EcdsaPrivateKey),
+                                sizeof(struct GNUNET_IDENTITY_PrivateKey),
                                 &zone_private_key);
   data_size = GNUNET_GNSRECORD_records_get_size (entry->record_count,
                                                  entry->record_data);
@@ -452,7 +452,7 @@ database_shutdown (struct Plugin *plugin)
 static int
 namestore_flat_store_records (void *cls,
                               const struct
-                              GNUNET_CRYPTO_EcdsaPrivateKey *zone_key,
+                              GNUNET_IDENTITY_PrivateKey *zone_key,
                               const char *label,
                               unsigned int rd_count,
                               const struct GNUNET_GNSRECORD_Data *rd)
@@ -482,7 +482,7 @@ namestore_flat_store_records (void *cls,
                    strlen (label));
   GNUNET_memcpy (&entry->private_key,
                  zone_key,
-                 sizeof(struct GNUNET_CRYPTO_EcdsaPrivateKey));
+                 sizeof(struct GNUNET_IDENTITY_PrivateKey));
   entry->rvalue = rvalue;
   entry->record_count = rd_count;
   entry->record_data = GNUNET_new_array (rd_count,
@@ -517,7 +517,7 @@ namestore_flat_store_records (void *cls,
  */
 static int
 namestore_flat_lookup_records (void *cls,
-                               const struct GNUNET_CRYPTO_EcdsaPrivateKey *zone,
+                               const struct GNUNET_IDENTITY_PrivateKey *zone,
                                const char *label,
                                GNUNET_NAMESTORE_RecordIterator iter,
                                void *iter_cls)
@@ -574,7 +574,7 @@ struct IterateContext
   /**
    * Target zone.
    */
-  const struct GNUNET_CRYPTO_EcdsaPrivateKey *zone;
+  const struct GNUNET_IDENTITY_PrivateKey *zone;
 
   /**
    * Function to call on each record.
@@ -647,7 +647,7 @@ iterate_zones (void *cls,
 static int
 namestore_flat_iterate_records (void *cls,
                                 const struct
-                                GNUNET_CRYPTO_EcdsaPrivateKey *zone,
+                                GNUNET_IDENTITY_PrivateKey *zone,
                                 uint64_t serial,
                                 uint64_t limit,
                                 GNUNET_NAMESTORE_RecordIterator iter,
@@ -674,8 +674,8 @@ namestore_flat_iterate_records (void *cls,
  */
 struct ZoneToNameContext
 {
-  const struct GNUNET_CRYPTO_EcdsaPrivateKey *zone;
-  const struct GNUNET_CRYPTO_EcdsaPublicKey *value_zone;
+  const struct GNUNET_IDENTITY_PrivateKey *zone;
+  const struct GNUNET_IDENTITY_PublicKey *value_zone;
   GNUNET_NAMESTORE_RecordIterator iter;
   void *iter_cls;
 
@@ -702,7 +702,7 @@ zone_to_name (void *cls,
       continue;
     if (0 == memcmp (ztn->value_zone,
                      entry->record_data[i].data,
-                     sizeof(struct GNUNET_CRYPTO_EcdsaPublicKey)))
+                     sizeof(struct GNUNET_IDENTITY_PublicKey)))
     {
       ztn->iter (ztn->iter_cls,
                  i + 1,    /* zero is illegal! */
@@ -730,9 +730,9 @@ zone_to_name (void *cls,
  */
 static int
 namestore_flat_zone_to_name (void *cls,
-                             const struct GNUNET_CRYPTO_EcdsaPrivateKey *zone,
+                             const struct GNUNET_IDENTITY_PrivateKey *zone,
                              const struct
-                             GNUNET_CRYPTO_EcdsaPublicKey *value_zone,
+                             GNUNET_IDENTITY_PublicKey *value_zone,
                              GNUNET_NAMESTORE_RecordIterator iter,
                              void *iter_cls)
 {

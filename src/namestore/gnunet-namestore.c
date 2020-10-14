@@ -59,7 +59,7 @@ static struct GNUNET_NAMESTORE_Handle *ns;
 /**
  * Private key for the our zone.
  */
-static struct GNUNET_CRYPTO_EcdsaPrivateKey zone_pkey;
+static struct GNUNET_IDENTITY_PrivateKey zone_pkey;
 
 /**
  * Handle to identity lookup.
@@ -496,7 +496,7 @@ display_record (const char *rname,
  */
 static void
 display_record_iterator (void *cls,
-                         const struct GNUNET_CRYPTO_EcdsaPrivateKey *zone_key,
+                         const struct GNUNET_IDENTITY_PrivateKey *zone_key,
                          const char *rname,
                          unsigned int rd_len,
                          const struct GNUNET_GNSRECORD_Data *rd)
@@ -519,7 +519,7 @@ display_record_iterator (void *cls,
  */
 static void
 display_record_monitor (void *cls,
-                        const struct GNUNET_CRYPTO_EcdsaPrivateKey *zone_key,
+                        const struct GNUNET_IDENTITY_PrivateKey *zone_key,
                         const char *rname,
                         unsigned int rd_len,
                         const struct GNUNET_GNSRECORD_Data *rd)
@@ -542,7 +542,7 @@ display_record_monitor (void *cls,
  */
 static void
 display_record_lookup (void *cls,
-                       const struct GNUNET_CRYPTO_EcdsaPrivateKey *zone_key,
+                       const struct GNUNET_IDENTITY_PrivateKey *zone_key,
                        const char *rname,
                        unsigned int rd_len,
                        const struct GNUNET_GNSRECORD_Data *rd)
@@ -622,7 +622,7 @@ add_error_cb (void *cls)
  */
 static void
 get_existing_record (void *cls,
-                     const struct GNUNET_CRYPTO_EcdsaPrivateKey *zone_key,
+                     const struct GNUNET_IDENTITY_PrivateKey *zone_key,
                      const char *rec_name,
                      unsigned int rd_count,
                      const struct GNUNET_GNSRECORD_Data *rd)
@@ -781,7 +781,7 @@ reverse_error_cb (void *cls)
  */
 static void
 handle_reverse_lookup (void *cls,
-                       const struct GNUNET_CRYPTO_EcdsaPrivateKey *zone,
+                       const struct GNUNET_IDENTITY_PrivateKey *zone,
                        const char *label,
                        unsigned int rd_count,
                        const struct GNUNET_GNSRECORD_Data *rd)
@@ -826,7 +826,7 @@ del_lookup_error_cb (void *cls)
  */
 static void
 del_monitor (void *cls,
-             const struct GNUNET_CRYPTO_EcdsaPrivateKey *zone,
+             const struct GNUNET_IDENTITY_PrivateKey *zone,
              const char *label,
              unsigned int rd_count,
              const struct GNUNET_GNSRECORD_Data *rd)
@@ -1187,12 +1187,11 @@ run_with_zone_pkey (const struct GNUNET_CONFIGURATION_Handle *cfg)
   }
   if (NULL != reverse_pkey)
   {
-    struct GNUNET_CRYPTO_EcdsaPublicKey pubkey;
+    struct GNUNET_IDENTITY_PublicKey pubkey;
 
     if (GNUNET_OK !=
-        GNUNET_CRYPTO_ecdsa_public_key_from_string (reverse_pkey,
-                                                    strlen (reverse_pkey),
-                                                    &pubkey))
+        GNUNET_IDENTITY_public_key_from_string (reverse_pkey,
+                                                &pubkey))
     {
       fprintf (stderr,
                _ ("Invalid public key for reverse lookup `%s'\n"),
@@ -1211,12 +1210,12 @@ run_with_zone_pkey (const struct GNUNET_CONFIGURATION_Handle *cfg)
   {
     char sh[105];
     char sname[64];
-    struct GNUNET_CRYPTO_EcdsaPublicKey pkey;
+    struct GNUNET_IDENTITY_PublicKey pkey;
 
     GNUNET_STRINGS_utf8_tolower (uri, uri);
     if ((2 != (sscanf (uri, "gnunet://gns/%52s/%63s", sh, sname))) ||
         (GNUNET_OK !=
-         GNUNET_CRYPTO_ecdsa_public_key_from_string (sh, strlen (sh), &pkey)))
+         GNUNET_IDENTITY_public_key_from_string (sh, &pkey)))
     {
       fprintf (stderr, _ ("Invalid URI `%s'\n"), uri);
       GNUNET_SCHEDULER_shutdown ();
@@ -1242,8 +1241,8 @@ run_with_zone_pkey (const struct GNUNET_CONFIGURATION_Handle *cfg)
     }
     memset (&rd, 0, sizeof(rd));
     rd.data = &pkey;
-    rd.data_size = sizeof(struct GNUNET_CRYPTO_EcdsaPublicKey);
-    rd.record_type = GNUNET_GNSRECORD_TYPE_PKEY;
+    rd.data_size = GNUNET_IDENTITY_key_get_length (&pkey);
+    rd.record_type = ntohl (pkey.type);
     rd.expiration_time = etime;
     if (GNUNET_YES == etime_is_rel)
       rd.flags |= GNUNET_GNSRECORD_RF_RELATIVE_EXPIRATION;
@@ -1704,11 +1703,13 @@ main (int argc, char *const *argv)
                                   NULL)))
   {
     GNUNET_free_nz ((void *) argv);
-    GNUNET_CRYPTO_ecdsa_key_clear (&zone_pkey);
+    //FIXME
+    //GNUNET_CRYPTO_ecdsa_key_clear (&zone_pkey);
     return lret;
   }
   GNUNET_free_nz ((void *) argv);
-  GNUNET_CRYPTO_ecdsa_key_clear (&zone_pkey);
+  //FIXME
+  //GNUNET_CRYPTO_ecdsa_key_clear (&zone_pkey);
   return ret;
 }
 

@@ -100,7 +100,7 @@ dns_value_to_string (void *cls,
         return NULL;
       }
       GNUNET_asprintf (&result,
-                       "rname=%s mname=%s %lu,%lu,%lu,%lu,%lu",
+                       "rname=%s mname=%s %u,%u,%u,%u,%u",
                        soa->rname,
                        soa->mname,
                        soa->serial,

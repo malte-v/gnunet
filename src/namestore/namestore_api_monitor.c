@@ -82,7 +82,7 @@ struct GNUNET_NAMESTORE_ZoneMonitor
   /**
    * Monitored zone.
    */
-  struct GNUNET_CRYPTO_EcdsaPrivateKey zone;
+  struct GNUNET_IDENTITY_PrivateKey zone;
 
   /**
    * Do we first iterate over all existing records?
@@ -302,7 +302,7 @@ reconnect (struct GNUNET_NAMESTORE_ZoneMonitor *zm)
 struct GNUNET_NAMESTORE_ZoneMonitor *
 GNUNET_NAMESTORE_zone_monitor_start (
   const struct GNUNET_CONFIGURATION_Handle *cfg,
-  const struct GNUNET_CRYPTO_EcdsaPrivateKey *zone,
+  const struct GNUNET_IDENTITY_PrivateKey *zone,
   int iterate_first,
   GNUNET_SCHEDULER_TaskCallback error_cb,
   void *error_cb_cls,

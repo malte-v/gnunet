@@ -38,9 +38,9 @@ static struct GNUNET_NAMESTORE_Handle *nsh;
 
 static struct GNUNET_SCHEDULER_Task *endbadly_task;
 
-static struct GNUNET_CRYPTO_EcdsaPrivateKey privkey;
+static struct GNUNET_IDENTITY_PrivateKey privkey;
 
-static struct GNUNET_CRYPTO_EcdsaPrivateKey privkey2;
+static struct GNUNET_IDENTITY_PrivateKey privkey2;
 
 static struct GNUNET_NAMESTORE_ZoneMonitor *zm;
 
@@ -129,7 +129,7 @@ end (void *cls)
 
 static void
 zone_proc (void *cls,
-           const struct GNUNET_CRYPTO_EcdsaPrivateKey *zone_key,
+           const struct GNUNET_IDENTITY_PrivateKey *zone_key,
            const char *name,
            unsigned int rd_count,
            const struct GNUNET_GNSRECORD_Data *rd)
@@ -302,8 +302,10 @@ run (void *cls,
      struct GNUNET_TESTING_Peer *peer)
 {
   res = 1;
-  GNUNET_CRYPTO_ecdsa_key_create (&privkey);
-  GNUNET_CRYPTO_ecdsa_key_create (&privkey2);
+  privkey.type = htonl (GNUNET_GNSRECORD_TYPE_PKEY);
+  privkey2.type = htonl (GNUNET_GNSRECORD_TYPE_PKEY);
+  GNUNET_CRYPTO_ecdsa_key_create (&privkey.ecdsa_key);
+  GNUNET_CRYPTO_ecdsa_key_create (&privkey2.ecdsa_key);
 
   cfg = mycfg;
   GNUNET_SCHEDULER_add_shutdown (&end,

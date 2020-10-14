@@ -214,7 +214,7 @@ struct RequestHandle
   /**
    * Private key for the zone
    */
-  const struct GNUNET_CRYPTO_EcdsaPrivateKey *zone_pkey;
+  const struct GNUNET_IDENTITY_PrivateKey *zone_pkey;
 
   /**
    * IDENTITY Operation
@@ -510,7 +510,7 @@ namestore_list_finished (void *cls)
  */
 static void
 namestore_list_iteration (void *cls,
-                          const struct GNUNET_CRYPTO_EcdsaPrivateKey *zone_key,
+                          const struct GNUNET_IDENTITY_PrivateKey *zone_key,
                           const char *rname,
                           unsigned int rd_len,
                           const struct GNUNET_GNSRECORD_Data *rd)
@@ -561,7 +561,7 @@ ns_lookup_error_cb (void *cls)
 
 static void
 ns_get_lookup_cb (void *cls,
-                  const struct GNUNET_CRYPTO_EcdsaPrivateKey *zone,
+                  const struct GNUNET_IDENTITY_PrivateKey *zone,
                   const char *label,
                   unsigned int rd_len,
                   const struct GNUNET_GNSRECORD_Data *rd)
@@ -689,7 +689,7 @@ namestore_get (struct GNUNET_REST_RequestHandle *con_handle,
 
 static void
 ns_lookup_cb (void *cls,
-              const struct GNUNET_CRYPTO_EcdsaPrivateKey *zone,
+              const struct GNUNET_IDENTITY_PrivateKey *zone,
               const char *label,
               unsigned int rd_count,
               const struct GNUNET_GNSRECORD_Data *rd)
@@ -946,7 +946,7 @@ list_ego (void *cls,
           const char *identifier)
 {
   struct EgoEntry *ego_entry;
-  struct GNUNET_CRYPTO_EcdsaPublicKey pk;
+  struct GNUNET_IDENTITY_PublicKey pk;
 
   if ((NULL == ego) && (ID_REST_STATE_INIT == state))
   {
@@ -957,7 +957,7 @@ list_ego (void *cls,
   {
     ego_entry = GNUNET_new (struct EgoEntry);
     GNUNET_IDENTITY_ego_get_public_key (ego, &pk);
-    ego_entry->keystring = GNUNET_CRYPTO_ecdsa_public_key_to_string (&pk);
+    ego_entry->keystring = GNUNET_IDENTITY_public_key_to_string (&pk);
     ego_entry->ego = ego;
     ego_entry->identifier = GNUNET_strdup (identifier);
     GNUNET_CONTAINER_DLL_insert_tail (ego_head,
@@ -983,7 +983,7 @@ list_ego (void *cls,
       /* Add */
       ego_entry = GNUNET_new (struct EgoEntry);
       GNUNET_IDENTITY_ego_get_public_key (ego, &pk);
-      ego_entry->keystring = GNUNET_CRYPTO_ecdsa_public_key_to_string (&pk);
+      ego_entry->keystring = GNUNET_IDENTITY_public_key_to_string (&pk);
       ego_entry->ego = ego;
       ego_entry->identifier = GNUNET_strdup (identifier);
       GNUNET_CONTAINER_DLL_insert_tail (ego_head,

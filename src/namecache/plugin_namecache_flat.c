@@ -208,7 +208,7 @@ store_and_free_entries (void *cls,
   size_t block_size;
 
   block_size = ntohl (entry->block->purpose.size)
-               + sizeof(struct GNUNET_CRYPTO_EcdsaPublicKey)
+               + sizeof(struct GNUNET_IDENTITY_PublicKey)
                + sizeof(struct GNUNET_CRYPTO_EcdsaSignature);
 
   GNUNET_STRINGS_base64_encode ((char *) entry->block,
@@ -320,10 +320,10 @@ namecache_cache_block (void *cls,
 
   namecache_expire_blocks (plugin);
   GNUNET_CRYPTO_hash (&block->derived_key,
-                      sizeof(struct GNUNET_CRYPTO_EcdsaPublicKey),
+                      sizeof(struct GNUNET_IDENTITY_PublicKey),
                       &query);
   block_size = ntohl (block->purpose.size)
-               + sizeof(struct GNUNET_CRYPTO_EcdsaPublicKey)
+               + sizeof(struct GNUNET_IDENTITY_PublicKey)
                + sizeof(struct GNUNET_CRYPTO_EcdsaSignature);
   if (block_size > 64 * 65536)
   {

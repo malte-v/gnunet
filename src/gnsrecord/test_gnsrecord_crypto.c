@@ -100,17 +100,18 @@ run (void *cls,
      const struct GNUNET_CONFIGURATION_Handle *cfg)
 {
   struct GNUNET_GNSRECORD_Block *block;
-  struct GNUNET_CRYPTO_EcdsaPublicKey pubkey;
+  struct GNUNET_IDENTITY_PublicKey pubkey;
   struct GNUNET_HashCode query_pub;
   struct GNUNET_HashCode query_priv;
   struct GNUNET_TIME_Absolute expire = GNUNET_TIME_absolute_get ();
-  struct GNUNET_CRYPTO_EcdsaPrivateKey privkey;
+  struct GNUNET_IDENTITY_PrivateKey privkey;
 
 
-  GNUNET_CRYPTO_ecdsa_key_create (&privkey);
+  privkey.type = htonl (GNUNET_GNSRECORD_TYPE_PKEY);
+  GNUNET_CRYPTO_ecdsa_key_create (&privkey.ecdsa_key);
   /* get public key */
-  GNUNET_CRYPTO_ecdsa_key_get_public (&privkey,
-                                      &pubkey);
+  GNUNET_IDENTITY_key_get_public (&privkey,
+                                  &pubkey);
 
   /* test query derivation */
   GNUNET_GNSRECORD_query_from_private_key (&privkey,

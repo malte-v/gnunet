@@ -143,16 +143,16 @@ block_plugin_revocation_evaluate (void *cls,
     GNUNET_break_op (0);
     return GNUNET_BLOCK_EVALUATION_RESULT_INVALID;
   }
-  if (0 >=
-      GNUNET_REVOCATION_check_pow (&rm->proof_of_work,
-                                   ic->matching_bits,
-                                   ic->epoch_duration))
+  struct GNUNET_REVOCATION_PowP *pow = (struct GNUNET_REVOCATION_PowP *) &rm[1];
+  if (GNUNET_YES != GNUNET_REVOCATION_check_pow (pow,
+                                                 ic->matching_bits,
+                                                 ic->epoch_duration))
   {
     GNUNET_break_op (0);
     return GNUNET_BLOCK_EVALUATION_RESULT_INVALID;
   }
-  GNUNET_CRYPTO_hash (&rm->proof_of_work.key,
-                      sizeof(struct GNUNET_CRYPTO_EcdsaPublicKey),
+  GNUNET_CRYPTO_hash (&pow->key,
+                      sizeof(struct GNUNET_IDENTITY_PublicKey),
                       &chash);
   if (GNUNET_YES ==
       GNUNET_BLOCK_GROUP_bf_test_and_set (group,
@@ -182,13 +182,14 @@ block_plugin_revocation_get_key (void *cls,
 {
   const struct RevokeMessage *rm = block;
 
-  if (block_size != sizeof(*rm))
+  if (block_size <= sizeof(*rm))
   {
     GNUNET_break_op (0);
     return GNUNET_SYSERR;
   }
-  GNUNET_CRYPTO_hash (&rm->proof_of_work.key,
-                      sizeof(struct GNUNET_CRYPTO_EcdsaPublicKey),
+  struct GNUNET_REVOCATION_PowP *pow = (struct GNUNET_REVOCATION_PowP *) &rm[1];
+  GNUNET_CRYPTO_hash (&pow->key,
+                      sizeof(struct GNUNET_IDENTITY_PublicKey),
                       key);
   return GNUNET_OK;
 }

@@ -48,7 +48,7 @@ struct LookupMessage
   /**
    * Zone that is to be used for lookup
    */
-  struct GNUNET_CRYPTO_EcdsaPublicKey zone;
+  struct GNUNET_IDENTITY_PublicKey zone;
 
   /**
    * Local options for where to look for results

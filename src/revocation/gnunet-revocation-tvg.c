@@ -65,15 +65,16 @@ run (void *cls,
      const char *cfgfile,
      const struct GNUNET_CONFIGURATION_Handle *cfg)
 {
-  struct GNUNET_CRYPTO_EcdsaPrivateKey id_priv;
-  struct GNUNET_CRYPTO_EcdsaPublicKey id_pub;
+  struct GNUNET_IDENTITY_PrivateKey id_priv;
+  struct GNUNET_IDENTITY_PublicKey id_pub;
   struct GNUNET_REVOCATION_PowP pow;
   struct GNUNET_REVOCATION_PowCalculationHandle *ph;
   struct GNUNET_TIME_Relative exp;
 
-  GNUNET_CRYPTO_ecdsa_key_create (&id_priv);
-  GNUNET_CRYPTO_ecdsa_key_get_public (&id_priv,
-                                      &id_pub);
+  id_priv.type = htonl (GNUNET_IDENTITY_TYPE_ECDSA);
+  GNUNET_CRYPTO_ecdsa_key_create (&id_priv.ecdsa_key);
+  GNUNET_IDENTITY_key_get_public (&id_priv,
+                                  &id_pub);
   fprintf (stdout, "Zone private key (d, little-endian scalar):\n");
   print_bytes (&id_priv, sizeof(id_priv), 0);
   fprintf (stdout, "\n");
