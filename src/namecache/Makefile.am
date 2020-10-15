@@ -83,6 +83,7 @@ gnunet_namecache_SOURCES = \
  gnunet-namecache.c
 gnunet_namecache_LDADD = \
   $(top_builddir)/src/gnsrecord/libgnunetgnsrecord.la \
+  $(top_builddir)/src/identity/libgnunetidentity.la \
   $(top_builddir)/src/util/libgnunetutil.la \
   libgnunetnamecache.la \
   $(GN_LIBINTL)
