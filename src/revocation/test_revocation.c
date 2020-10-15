@@ -164,8 +164,7 @@ ego_cb (void *cls, struct GNUNET_IDENTITY_Ego *ego)
     GNUNET_IDENTITY_ego_get_public_key (ego, &testpeers[1].pubkey);
     GNUNET_log (GNUNET_ERROR_TYPE_INFO, "Calculating proof of work...\n");
     privkey = GNUNET_IDENTITY_ego_get_private_key (ego);
-    proof_of_work = GNUNET_malloc (sizeof (struct GNUNET_REVOCATION_PowP) +
-                                   sizeof (struct GNUNET_CRYPTO_EcdsaSignature));
+    proof_of_work = GNUNET_malloc (GNUNET_REVOCATION_MAX_PROOF_SIZE);
     GNUNET_REVOCATION_pow_init (privkey,
                                 proof_of_work);
     testpeers[1].pow = GNUNET_REVOCATION_pow_start (proof_of_work,

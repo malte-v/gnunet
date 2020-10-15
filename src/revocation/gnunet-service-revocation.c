@@ -306,10 +306,12 @@ publicize_rm (const struct RevokeMessage *rm)
   struct RevokeMessage *cp;
   struct GNUNET_HashCode hc;
   struct GNUNET_SETU_Element e;
+  const struct GNUNET_IDENTITY_PublicKey *pk;
 
   struct GNUNET_REVOCATION_PowP *pow = (struct GNUNET_REVOCATION_PowP *) &rm[1];
-  GNUNET_CRYPTO_hash (&pow->key,
-                      sizeof(struct GNUNET_IDENTITY_PublicKey),
+  pk = (const struct GNUNET_IDENTITY_PublicKey *) &pow[1];
+  GNUNET_CRYPTO_hash (pk,
+                      GNUNET_IDENTITY_key_get_length (pk),
                       &hc);
   if (GNUNET_YES ==
       GNUNET_CONTAINER_multihashmap_contains (revocation_map,
@@ -832,6 +834,7 @@ run (void *cls,
   uint64_t left;
   struct RevokeMessage *rm;
   struct GNUNET_HashCode hc;
+  const struct GNUNET_IDENTITY_PublicKey *pk;
 
   GNUNET_CRYPTO_hash ("revocation-set-union-application-id",
                       strlen ("revocation-set-union-application-id"),
@@ -932,8 +935,9 @@ run (void *cls,
     }
     struct GNUNET_REVOCATION_PowP *pow = (struct
                                           GNUNET_REVOCATION_PowP *) &rm[1];
-    GNUNET_CRYPTO_hash (&pow->key,
-                        sizeof(struct GNUNET_IDENTITY_PublicKey),
+    pk = (const struct GNUNET_IDENTITY_PublicKey *) &pow[1];
+    GNUNET_CRYPTO_hash (pk,
+                        GNUNET_IDENTITY_key_get_length (pk),
                         &hc);
     GNUNET_break (GNUNET_OK ==
                   GNUNET_CONTAINER_multihashmap_put (revocation_map,
