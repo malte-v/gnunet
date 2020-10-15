@@ -50,6 +50,8 @@ libgnunetgnsrecord_la_LIBADD = \
   $(top_builddir)/src/util/libgnunetutil.la \
   $(top_builddir)/src/identity/libgnunetidentity.la \
   $(GN_LIBINTL)
+libgnunetgnsrecord_la_DEPENDENCIES = \
+  $(top_builddir)/src/identity/libgnunetidentity.la
 libgnunetgnsrecord_la_LDFLAGS = \
   $(GN_LIB_LDFLAGS)  \
   -version-info 0:0:0

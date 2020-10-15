@@ -55,7 +55,9 @@ SUBDIRS = \
   block \
   statistics \
   arm \
+  gnsrecord \
   $(TESTING) \
+  $(JSON_DIR) \
   $(CURL_DIR) \
   $(REST_DIR) \
   peerinfo \
@@ -82,8 +84,6 @@ SUBDIRS = \
   regex \
   dns \
   identity \
-  gnsrecord \
-  $(JSON_DIR) \
   namecache \
   namestore \
   peerinfo-tool \
