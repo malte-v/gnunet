@@ -1696,10 +1696,11 @@ recursive_pkey_resolution (struct GNS_ResolverHandle *rh,
                            const struct GNUNET_GNSRECORD_Data *rd)
 {
   struct AuthorityChain *ac;
+  struct GNUNET_IDENTITY_PublicKey auth;
 
   /* delegation to another zone */
-  if (sizeof(struct GNUNET_IDENTITY_PublicKey) !=
-      rd->data_size)
+  if (GNUNET_OK != GNUNET_GNSRECORD_record_to_identity_key (rd,
+                                                            &auth))
   {
     GNUNET_break_op (0);
     fail_resolution (rh);
@@ -1709,6 +1710,7 @@ recursive_pkey_resolution (struct GNS_ResolverHandle *rh,
   ac = GNUNET_new (struct AuthorityChain);
   ac->rh = rh;
   ac->gns_authority = GNUNET_YES;
+  ac->authority_info.gns_authority = auth;
   GNUNET_GNSRECORD_record_to_identity_key (rd,
                                            &ac->authority_info.gns_authority);
   ac->label = resolver_lookup_get_next_label (rh);
@@ -2272,7 +2274,8 @@ handle_gns_resolution_result (void *cls,
             ac->rh = rh;
             ac->gns_authority = GNUNET_YES;
             GNUNET_GNSRECORD_record_to_identity_key (&rd[i],
-                                                     &ac->authority_info.gns_authority);
+                                                     &ac->authority_info.
+                                                     gns_authority);
             ac->label = GNUNET_strdup (GNUNET_GNS_EMPTY_LABEL_AT);
             GNUNET_CONTAINER_DLL_insert_tail (rh->ac_head,
                                               rh->ac_tail,

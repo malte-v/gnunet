@@ -329,7 +329,10 @@ enum GNUNET_GenericReturnValue
 GNUNET_GNSRECORD_record_to_identity_key (const struct GNUNET_GNSRECORD_Data *rd,
                                          struct GNUNET_IDENTITY_PublicKey *key)
 {
-  switch (ntohl (rd->record_type))
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "Got record of type %u\n",
+              rd->record_type);
+  switch (rd->record_type)
   {
   case GNUNET_GNSRECORD_TYPE_PKEY:
     key->type = htonl (rd->record_type);
