@@ -65,6 +65,7 @@ libgnunetnamecache_la_SOURCES = \
   namecache.h
 libgnunetnamecache_la_LIBADD = \
   $(top_builddir)/src/gnsrecord/libgnunetgnsrecord.la \
+  $(top_builddir)/src/identity/libgnunetidentity.la \
   $(top_builddir)/src/util/libgnunetutil.la \
   $(GN_LIBINTL)
 libgnunetnamecache_la_LDFLAGS = \
