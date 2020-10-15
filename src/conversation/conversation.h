@@ -27,6 +27,8 @@
 #ifndef CONVERSATION_H
 #define CONVERSATION_H
 
+#include "gnunet_identity_service.h"
+
 #ifdef __cplusplus
 extern "C"
 {
