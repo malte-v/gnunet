@@ -36,6 +36,7 @@ gnunet_gnsrecord_tvg_SOURCES = \
  gnunet-gnsrecord-tvg.c
 gnunet_gnsrecord_tvg_LDADD = \
   $(top_builddir)/src/util/libgnunetutil.la \
+  $(top_builddir)/src/identity/libgnunetidentity.la \
   libgnunetgnsrecord.la \
   $(GN_LIBINTL)
 
