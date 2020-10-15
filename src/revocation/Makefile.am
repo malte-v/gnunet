@@ -30,6 +30,7 @@ libgnunet_plugin_block_revocation_la_LIBADD = \
   $(top_builddir)/src/block/libgnunetblockgroup.la \
   $(top_builddir)/src/block/libgnunetblock.la \
   $(top_builddir)/src/util/libgnunetutil.la  \
+  $(top_builddir)/src/identity/libgnunetidentity.la  \
   $(LTLIBINTL)
 libgnunet_plugin_block_revocation_la_DEPENDENCIES = \
   libgnunetrevocation.la \
@@ -81,6 +82,7 @@ gnunet_service_revocation_LDADD = \
   $(top_builddir)/src/core/libgnunetcore.la \
   $(top_builddir)/src/setu/libgnunetsetu.la \
   $(top_builddir)/src/statistics/libgnunetstatistics.la \
+  $(top_builddir)/src/identity/libgnunetidentity.la  \
   $(top_builddir)/src/util/libgnunetutil.la \
   -lm \
   $(GN_LIBINTL)
