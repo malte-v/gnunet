@@ -363,27 +363,80 @@ GNUNET_IDENTITY_delete (struct GNUNET_IDENTITY_Handle *id,
 void
 GNUNET_IDENTITY_cancel (struct GNUNET_IDENTITY_Operation *op);
 
+
+/**
+ * Get the compacted length of a #GNUNET_IDENTITY_PublicKey.
+ * Compacted means that it returns the minimum number of bytes this
+ * key is long, as opposed to the union structure inside
+ * #GNUNET_IDENTITY_PublicKey.
+ * Useful for compact serializations.
+ *
+ * @param key the key.
+ * @return -1 on error, else the compacted length of the key.
+ */
 ssize_t
 GNUNET_IDENTITY_key_get_length (const struct GNUNET_IDENTITY_PublicKey *key);
 
+
+/**
+ * Creates a (Base32) string representation of the public key.
+ * The resulting string encodes a compacted representation of the key.
+ * See also #GNUNET_IDENTITY_key_get_length.
+ *
+ * @param key the key.
+ * @return the string representation of the key, or NULL on error.
+ */
 char *
 GNUNET_IDENTITY_public_key_to_string (const struct
                                       GNUNET_IDENTITY_PublicKey *key);
 
 
+/**
+ * Creates a (Base32) string representation of the private key.
+ * The resulting string encodes a compacted representation of the key.
+ * See also #GNUNET_IDENTITY_key_get_length.
+ *
+ * @param key the key.
+ * @return the string representation of the key, or NULL on error.
+ */
 char *
 GNUNET_IDENTITY_private_key_to_string (const struct
                                        GNUNET_IDENTITY_PrivateKey *key);
 
 
+/**
+ * Parses a (Base32) string representation of the public key.
+ * See also #GNUNET_IDENTITY_public_key_to_string.
+ *
+ * @param str the encoded key.
+ * @param key where to write the key.
+ * @return GNUNET_SYSERR on error.
+ */
 enum GNUNET_GenericReturnValue
 GNUNET_IDENTITY_public_key_from_string (const char*str,
                                         struct GNUNET_IDENTITY_PublicKey *key);
 
+
+/**
+ * Parses a (Base32) string representation of the private key.
+ * See also #GNUNET_IDENTITY_private_key_to_string.
+ *
+ * @param str the encoded key.
+ * @param key where to write the key.
+ * @return GNUNET_SYSERR on error.
+ */
 enum GNUNET_GenericReturnValue
 GNUNET_IDENTITY_private_key_from_string (const char*str,
                                          struct GNUNET_IDENTITY_PrivateKey *key);
 
+
+/**
+ * Retrieves the public key representation of a private key.
+ *
+ * @param privkey the private key.
+ * @param key the public key result.
+ * @return GNUNET_SYSERR on error.
+ */
 enum GNUNET_GenericReturnValue
 GNUNET_IDENTITY_key_get_public (const struct GNUNET_IDENTITY_PrivateKey *privkey,
                                 struct GNUNET_IDENTITY_PublicKey *key);

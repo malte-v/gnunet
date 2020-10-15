@@ -659,19 +659,35 @@ size_t
 GNUNET_GNSRECORD_block_get_size (const struct GNUNET_GNSRECORD_Block *block);
 
 /**
- * Returns the expiration of a block
+ * Returns the expiration of a block.
+ *
+ * @param block the block.
+ * @return the block expiration.
  */
 struct GNUNET_TIME_Absolute
 GNUNET_GNSRECORD_block_get_expiration (const struct GNUNET_GNSRECORD_Block *block);
 
 
 /**
- * Builds the query from a block
+ * Builds the query hash from a block.
+ *
+ * @param block the block.
+ * @param query where to write the query hash.
+ * @return GNUNET_SYSERR on error.
  */
 enum GNUNET_GenericReturnValue
 GNUNET_GNSRECORD_query_from_block (const struct GNUNET_GNSRECORD_Block *block,
                                    struct GNUNET_HashCode *query);
 
+
+/**
+ * Build a #GNUNET_GNSRECORD_PublicKey from a
+ * zone delegation resource record set.
+ *
+ * @param the resource record set. MUST be a delegation record.
+ * @param key where to write the identtiy key.
+ * @return GNUNET_SYSERR on error or if the zone is not a delegation zone.
+ */
 enum GNUNET_GenericReturnValue
 GNUNET_GNSRECORD_record_to_identity_key (const struct GNUNET_GNSRECORD_Data *rd,
                                          struct GNUNET_IDENTITY_PublicKey *key);
