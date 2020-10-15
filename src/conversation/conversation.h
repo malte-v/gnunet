@@ -105,7 +105,7 @@ struct ClientPhoneRingMessage
   /**
    * Who is calling us?
    */
-  struct GNUNET_CRYPTO_EcdsaPublicKey caller_id;
+  struct GNUNET_IDENTITY_PublicKey caller_id;
 };
 
 
@@ -230,7 +230,7 @@ struct ClientCallMessage
   /**
    * Identity of the caller.
    */
-  struct GNUNET_CRYPTO_EcdsaPrivateKey caller_id;
+  struct GNUNET_IDENTITY_PrivateKey caller_id;
 };
 
 
@@ -301,7 +301,7 @@ struct CadetPhoneRingMessage
   /**
    * Who is calling us? (also who is signing).
    */
-  struct GNUNET_CRYPTO_EcdsaPublicKey caller_id;
+  struct GNUNET_IDENTITY_PublicKey caller_id;
 
   /**
    * When does the signature expire?
