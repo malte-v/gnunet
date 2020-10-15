@@ -145,6 +145,7 @@ libgnunetnamestore_la_SOURCES = \
   namestore.h
 libgnunetnamestore_la_LIBADD = \
   $(top_builddir)/src/gnsrecord/libgnunetgnsrecord.la  \
+  $(top_builddir)/src/identity/libgnunetidentity.la \
   $(top_builddir)/src/statistics/libgnunetstatistics.la \
   $(top_builddir)/src/util/libgnunetutil.la \
   $(GN_LIBINTL)
@@ -191,6 +192,7 @@ gnunet_service_namestore_SOURCES = \
 gnunet_service_namestore_LDADD = \
   $(top_builddir)/src/namecache/libgnunetnamecache.la \
   $(top_builddir)/src/gnsrecord/libgnunetgnsrecord.la \
+  $(top_builddir)/src/identity/libgnunetidentity.la \
   $(top_builddir)/src/statistics/libgnunetstatistics.la \
   $(top_builddir)/src/util/libgnunetutil.la \
   libgnunetnamestore.la \
@@ -201,7 +203,8 @@ gnunet_service_namestore_LDADD = \
 libgnunet_plugin_namestore_flat_la_SOURCES = \
   plugin_namestore_flat.c
 libgnunet_plugin_namestore_flat_la_LIBADD = \
-  $(top_builddir)/src/gnsrecord/libgnunetgnsrecord.la  \
+  $(top_builddir)/src/gnsrecord/libgnunetgnsrecord.la \
+  $(top_builddir)/src/identity/libgnunetidentity.la \
   $(top_builddir)/src/statistics/libgnunetstatistics.la \
   $(top_builddir)/src/util/libgnunetutil.la $(XLIBS) \
   $(LTLIBINTL)
@@ -213,6 +216,7 @@ libgnunet_plugin_namestore_sqlite_la_SOURCES = \
   plugin_namestore_sqlite.c
 libgnunet_plugin_namestore_sqlite_la_LIBADD = \
   $(top_builddir)/src/gnsrecord/libgnunetgnsrecord.la  \
+  $(top_builddir)/src/identity/libgnunetidentity.la \
   $(top_builddir)/src/sq/libgnunetsq.la \
   $(top_builddir)/src/statistics/libgnunetstatistics.la \
   $(top_builddir)/src/util/libgnunetutil.la $(XLIBS) -lsqlite3 \
@@ -224,6 +228,7 @@ libgnunet_plugin_namestore_postgres_la_SOURCES = \
   plugin_namestore_postgres.c
 libgnunet_plugin_namestore_postgres_la_LIBADD = \
   $(top_builddir)/src/gnsrecord/libgnunetgnsrecord.la  \
+  $(top_builddir)/src/identity/libgnunetidentity.la \
   $(top_builddir)/src/pq/libgnunetpq.la  \
   $(top_builddir)/src/statistics/libgnunetstatistics.la \
   $(top_builddir)/src/util/libgnunetutil.la $(XLIBS) -lpq \
@@ -237,6 +242,7 @@ test_namestore_api_store_flat_LDADD = \
   $(top_builddir)/src/testing/libgnunettesting.la \
   $(top_builddir)/src/util/libgnunetutil.la \
   $(top_builddir)/src/gnsrecord/libgnunetgnsrecord.la \
+  $(top_builddir)/src/identity/libgnunetidentity.la \
   libgnunetnamestore.la
 
 test_namestore_api_store_sqlite_SOURCES = \
@@ -245,6 +251,7 @@ test_namestore_api_store_sqlite_LDADD = \
   $(top_builddir)/src/testing/libgnunettesting.la \
   $(top_builddir)/src/util/libgnunetutil.la \
   $(top_builddir)/src/gnsrecord/libgnunetgnsrecord.la \
+  $(top_builddir)/src/identity/libgnunetidentity.la \
   libgnunetnamestore.la
 
 test_namestore_api_store_postgres_SOURCES = \
@@ -253,6 +260,7 @@ test_namestore_api_store_postgres_LDADD = \
   $(top_builddir)/src/testing/libgnunettesting.la \
   $(top_builddir)/src/util/libgnunetutil.la \
   $(top_builddir)/src/gnsrecord/libgnunetgnsrecord.la \
+  $(top_builddir)/src/identity/libgnunetidentity.la \
   libgnunetnamestore.la
 
 test_namestore_api_store_update_flat_SOURCES = \
