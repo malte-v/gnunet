@@ -235,7 +235,7 @@ struct GNUNET_RECLAIM_AttributeIterator
   /**
    * Private key of the zone.
    */
-  struct GNUNET_CRYPTO_EcdsaPrivateKey identity;
+  struct GNUNET_IDENTITY_PrivateKey identity;
 
   /**
    * The operation id this zone iteration operation has
@@ -302,7 +302,7 @@ struct GNUNET_RECLAIM_CredentialIterator
   /**
    * Private key of the zone.
    */
-  struct GNUNET_CRYPTO_EcdsaPrivateKey identity;
+  struct GNUNET_IDENTITY_PrivateKey identity;
 
   /**
    * The operation id this zone iteration operation has
@@ -704,7 +704,7 @@ check_attribute_result (void *cls, const struct AttributeResultMessage *msg)
 static void
 handle_attribute_result (void *cls, const struct AttributeResultMessage *msg)
 {
-  static struct GNUNET_CRYPTO_EcdsaPrivateKey identity_dummy;
+  static struct GNUNET_IDENTITY_PrivateKey identity_dummy;
   struct GNUNET_RECLAIM_Handle *h = cls;
   struct GNUNET_RECLAIM_AttributeIterator *it;
   struct GNUNET_RECLAIM_Operation *op;
@@ -806,7 +806,7 @@ static void
 handle_credential_result (void *cls, const struct
                            CredentialResultMessage *msg)
 {
-  static struct GNUNET_CRYPTO_EcdsaPrivateKey identity_dummy;
+  static struct GNUNET_IDENTITY_PrivateKey identity_dummy;
   struct GNUNET_RECLAIM_Handle *h = cls;
   struct GNUNET_RECLAIM_CredentialIterator *it;
   struct GNUNET_RECLAIM_Operation *op;
@@ -1134,7 +1134,7 @@ GNUNET_RECLAIM_disconnect (struct GNUNET_RECLAIM_Handle *h)
 struct GNUNET_RECLAIM_Operation *
 GNUNET_RECLAIM_attribute_store (
   struct GNUNET_RECLAIM_Handle *h,
-  const struct GNUNET_CRYPTO_EcdsaPrivateKey *pkey,
+  const struct GNUNET_IDENTITY_PrivateKey *pkey,
   const struct GNUNET_RECLAIM_Attribute *attr,
   const struct GNUNET_TIME_Relative *exp_interval,
   GNUNET_RECLAIM_ContinuationWithStatus cont,
@@ -1181,7 +1181,7 @@ GNUNET_RECLAIM_attribute_store (
 struct GNUNET_RECLAIM_Operation *
 GNUNET_RECLAIM_attribute_delete (
   struct GNUNET_RECLAIM_Handle *h,
-  const struct GNUNET_CRYPTO_EcdsaPrivateKey *pkey,
+  const struct GNUNET_IDENTITY_PrivateKey *pkey,
   const struct GNUNET_RECLAIM_Attribute *attr,
   GNUNET_RECLAIM_ContinuationWithStatus cont,
   void *cont_cls)
@@ -1226,7 +1226,7 @@ GNUNET_RECLAIM_attribute_delete (
 struct GNUNET_RECLAIM_Operation *
 GNUNET_RECLAIM_credential_store (
   struct GNUNET_RECLAIM_Handle *h,
-  const struct GNUNET_CRYPTO_EcdsaPrivateKey *pkey,
+  const struct GNUNET_IDENTITY_PrivateKey *pkey,
   const struct GNUNET_RECLAIM_Credential *attr,
   const struct GNUNET_TIME_Relative *exp_interval,
   GNUNET_RECLAIM_ContinuationWithStatus cont,
@@ -1273,7 +1273,7 @@ GNUNET_RECLAIM_credential_store (
 struct GNUNET_RECLAIM_Operation *
 GNUNET_RECLAIM_credential_delete (
   struct GNUNET_RECLAIM_Handle *h,
-  const struct GNUNET_CRYPTO_EcdsaPrivateKey *pkey,
+  const struct GNUNET_IDENTITY_PrivateKey *pkey,
   const struct GNUNET_RECLAIM_Credential *attr,
   GNUNET_RECLAIM_ContinuationWithStatus cont,
   void *cont_cls)
@@ -1330,7 +1330,7 @@ GNUNET_RECLAIM_credential_delete (
 struct GNUNET_RECLAIM_AttributeIterator *
 GNUNET_RECLAIM_get_attributes_start (
   struct GNUNET_RECLAIM_Handle *h,
-  const struct GNUNET_CRYPTO_EcdsaPrivateKey *identity,
+  const struct GNUNET_IDENTITY_PrivateKey *identity,
   GNUNET_SCHEDULER_TaskCallback error_cb,
   void *error_cb_cls,
   GNUNET_RECLAIM_AttributeResult proc,
@@ -1439,7 +1439,7 @@ GNUNET_RECLAIM_get_attributes_stop (struct GNUNET_RECLAIM_AttributeIterator *it)
 struct GNUNET_RECLAIM_CredentialIterator *
 GNUNET_RECLAIM_get_credentials_start (
   struct GNUNET_RECLAIM_Handle *h,
-  const struct GNUNET_CRYPTO_EcdsaPrivateKey *identity,
+  const struct GNUNET_IDENTITY_PrivateKey *identity,
   GNUNET_SCHEDULER_TaskCallback error_cb,
   void *error_cb_cls,
   GNUNET_RECLAIM_CredentialResult proc,
@@ -1541,8 +1541,8 @@ GNUNET_RECLAIM_get_credentials_stop (struct
 struct GNUNET_RECLAIM_Operation *
 GNUNET_RECLAIM_ticket_issue (
   struct GNUNET_RECLAIM_Handle *h,
-  const struct GNUNET_CRYPTO_EcdsaPrivateKey *iss,
-  const struct GNUNET_CRYPTO_EcdsaPublicKey *rp,
+  const struct GNUNET_IDENTITY_PrivateKey *iss,
+  const struct GNUNET_IDENTITY_PublicKey *rp,
   const struct GNUNET_RECLAIM_AttributeList *attrs,
   GNUNET_RECLAIM_IssueTicketCallback cb,
   void *cb_cls)
@@ -1590,7 +1590,7 @@ GNUNET_RECLAIM_ticket_issue (
 struct GNUNET_RECLAIM_Operation *
 GNUNET_RECLAIM_ticket_consume (
   struct GNUNET_RECLAIM_Handle *h,
-  const struct GNUNET_CRYPTO_EcdsaPrivateKey *identity,
+  const struct GNUNET_IDENTITY_PrivateKey *identity,
   const struct GNUNET_RECLAIM_Ticket *ticket,
   GNUNET_RECLAIM_AttributeTicketResult cb,
   void *cb_cls)
@@ -1636,7 +1636,7 @@ GNUNET_RECLAIM_ticket_consume (
 struct GNUNET_RECLAIM_TicketIterator *
 GNUNET_RECLAIM_ticket_iteration_start (
   struct GNUNET_RECLAIM_Handle *h,
-  const struct GNUNET_CRYPTO_EcdsaPrivateKey *identity,
+  const struct GNUNET_IDENTITY_PrivateKey *identity,
   GNUNET_SCHEDULER_TaskCallback error_cb,
   void *error_cb_cls,
   GNUNET_RECLAIM_TicketCallback proc,
@@ -1731,7 +1731,7 @@ GNUNET_RECLAIM_ticket_iteration_stop (struct GNUNET_RECLAIM_TicketIterator *it)
 struct GNUNET_RECLAIM_Operation *
 GNUNET_RECLAIM_ticket_revoke (
   struct GNUNET_RECLAIM_Handle *h,
-  const struct GNUNET_CRYPTO_EcdsaPrivateKey *identity,
+  const struct GNUNET_IDENTITY_PrivateKey *identity,
   const struct GNUNET_RECLAIM_Ticket *ticket,
   GNUNET_RECLAIM_ContinuationWithStatus cb,
   void *cb_cls)

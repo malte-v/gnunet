@@ -9,12 +9,10 @@ main (int argc, char *argv[])
   struct GNUNET_RECLAIM_AttributeList *al;
   struct GNUNET_RECLAIM_AttributeList *al_two;
   struct GNUNET_RECLAIM_AttributeListEntry *ale;
-  struct GNUNET_RECLAIM_Attribute *attr;
   char attrname[100];
   char attrdata[100];
   size_t ser_len_claimed;
   size_t ser_len_actual;
-  ssize_t deser_len;
   char *ser_data;
   int count = 0;
 
