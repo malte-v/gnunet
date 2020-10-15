@@ -969,7 +969,8 @@ secret_destroy (struct SharedSecret *ss)
     GNUNET_CONTAINER_DLL_remove (receiver->ss_head, receiver->ss_tail, ss);
     receiver->num_secrets--;
     // Uncomment this for alternativ 1 of backchannel functionality
-    // receiver->acks_available -= (ss->sequence_allowed - ss->sequence_used);
+    receiver->acks_available -= (ss->sequence_allowed - ss->sequence_used);
+    // Until here for alternativ 1
   }
   while (NULL != (kce = ss->kce_head))
     kce_destroy (kce);
@@ -1341,14 +1342,15 @@ handle_ack (void *cls, const struct GNUNET_PeerIdentity *pid, void *value)
                     ack->acks_available,
                     GNUNET_h2s (&ss->master));
         // Uncomment this for alternativ 1 of backchannel functionality
-        /*receiver->acks_available += (allowed - ss->sequence_allowed);
+        receiver->acks_available += (allowed - ss->sequence_allowed);
         GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                     "Tell transport we have more acks!\n");
         GNUNET_TRANSPORT_communicator_mq_update (ch,
                                                  receiver->d_qh,
                                                  (allowed
                                                   - ss->sequence_allowed),
-                                                  1);*/
+                                                 1);
+        // Until here for alternativ 1
         ss->sequence_allowed = allowed;
         /* move ss to head to avoid discarding it anytime soon! */
         GNUNET_CONTAINER_DLL_remove (receiver->ss_head, receiver->ss_tail, ss);
@@ -1356,7 +1358,7 @@ handle_ack (void *cls, const struct GNUNET_PeerIdentity *pid, void *value)
       }
 
       // Uncomment this for alternativ 2 of backchannel functionality
-      if (receiver->acks_available != ack->acks_available)
+      /*if (receiver->acks_available != ack->acks_available)
       {
         receiver->acks_available = ack->acks_available;
         GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
@@ -1365,7 +1367,7 @@ handle_ack (void *cls, const struct GNUNET_PeerIdentity *pid, void *value)
                                                  receiver->d_qh,
                                                  receiver->acks_available,
                                                  1);
-      }
+                                                 }*/
       // Until here for alternativ 2
       return GNUNET_NO;
     }
@@ -2198,9 +2200,11 @@ mq_send_d (struct GNUNET_MQ_Handle *mq,
                   ss->sequence_used,
                   ss->sequence_allowed);
     // Uncomment this for alternativ 1 of backchannel functionality
-    // if (ss->sequence_used >= ss->sequence_allowed)
+    if (ss->sequence_used >= ss->sequence_allowed)
+    // Until here for alternativ 1
     // Uncomment this for alternativ 2 of backchannel functionality
-    if (0 == ss->sequence_allowed)
+    // if (0 == ss->sequence_allowed)
+    // Until here for alternativ 2
     {
       continue;
     }

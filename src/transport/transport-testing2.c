@@ -554,9 +554,10 @@ handle_update_queue_message (void *cls,
   tc_queue->cs = msg->cs;
   tc_queue->priority = ntohl (msg->priority);
   // Uncomment this for alternativ 1 of backchannel functionality
-  // tc_queue->q_len += GNUNET_ntohll (msg->q_len);
+  tc_queue->q_len += GNUNET_ntohll (msg->q_len);
+  // Until here for alternativ 1
   // Uncomment this for alternativ 2 of backchannel functionality
-  tc_queue->q_len = GNUNET_ntohll (msg->q_len);
+  // tc_queue->q_len = GNUNET_ntohll (msg->q_len);
   // Until here for alternativ 2
   GNUNET_SERVICE_client_continue (client->client);
 }
@@ -1135,8 +1136,9 @@ GNUNET_TRANSPORT_TESTING_transport_communicator_send
   }
   GNUNET_assert (NULL != tc_queue);
   // Uncomment this for alternativ 1 of backchannel functionality
-  /*if (tc_queue->q_len != GNUNET_TRANSPORT_QUEUE_LENGTH_UNLIMITED)
-    tc_queue->q_len--;*/
+  if (tc_queue->q_len != GNUNET_TRANSPORT_QUEUE_LENGTH_UNLIMITED)
+    tc_queue->q_len--;
+  // Until here for alternativ 1
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Sending message\n");
   inbox_size = sizeof (struct GNUNET_MessageHeader) + payload_size;

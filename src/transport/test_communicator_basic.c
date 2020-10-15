@@ -85,7 +85,7 @@ static unsigned int iterations_left = TOTAL_ITERATIONS;
 #define TIMEOUT_MULTIPLIER 1
 
 #define DELAY \
-  GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_MICROSECONDS,30)
+  GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_MICROSECONDS,50)
 
 #define SHORT_BURST_WINDOW \
   GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_SECONDS,2)
