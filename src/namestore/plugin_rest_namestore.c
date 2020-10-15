@@ -30,7 +30,7 @@
 #include "gnunet_namestore_service.h"
 #include "gnunet_identity_service.h"
 #include "gnunet_rest_lib.h"
-#include "gnunet_json_lib.h"
+#include "gnunet_gnsrecord_json_lib.h"
 #include "microhttpd.h"
 #include <jansson.h>
 
@@ -535,9 +535,9 @@ namestore_list_iteration (void *cls,
   /** Only add if not empty **/
   if (j > 0)
   {
-    record_obj = GNUNET_JSON_from_gnsrecord (rname,
-                                             rd_filtered,
-                                             j);
+    record_obj = GNUNET_GNSRECORD_JSON_from_gnsrecord (rname,
+                                                       rd_filtered,
+                                                       j);
     json_array_append_new (handle->resp_object, record_obj);
   }
   GNUNET_NAMESTORE_zone_iterator_next (handle->list_it, 1);
@@ -587,9 +587,9 @@ ns_get_lookup_cb (void *cls,
   /** Only add if not empty **/
   if (j > 0)
   {
-    record_obj = GNUNET_JSON_from_gnsrecord (label,
-                                             rd_filtered,
-                                             j);
+    record_obj = GNUNET_GNSRECORD_JSON_from_gnsrecord (label,
+                                                       rd_filtered,
+                                                       j);
     json_array_append_new (handle->resp_object, record_obj);
   }
   GNUNET_SCHEDULER_add_now (&namestore_list_finished, handle);
@@ -755,7 +755,7 @@ namestore_add_or_update (struct GNUNET_REST_RequestHandle *con_handle,
                  handle->rest_handle->data_size);
   data_js = json_loads (term_data, JSON_DECODE_ANY, &err);
   struct GNUNET_JSON_Specification gnsspec[] =
-  { GNUNET_JSON_spec_gnsrecord (&handle->rd, &handle->rd_count,
+  { GNUNET_GNSRECORD_JSON_spec_gnsrecord (&handle->rd, &handle->rd_count,
                                 &handle->record_name),
     GNUNET_JSON_spec_end () };
   if (GNUNET_OK != GNUNET_JSON_parse (data_js, gnsspec, NULL, NULL))

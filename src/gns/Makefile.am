@@ -109,6 +109,7 @@ libgnunet_plugin_rest_gns_la_SOURCES = \
   plugin_rest_gns.c
 libgnunet_plugin_rest_gns_la_LIBADD = \
   $(top_builddir)/src/gnsrecord/libgnunetgnsrecord.la \
+  $(top_builddir)/src/gnsrecord/libgnunetgnsrecordjson.la \
   libgnunetgns.la \
   $(top_builddir)/src/rest/libgnunetrest.la \
   $(top_builddir)/src/identity/libgnunetidentity.la \

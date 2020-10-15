@@ -131,6 +131,7 @@ libgnunet_plugin_rest_namestore_la_LIBADD = \
   $(top_builddir)/src/identity/libgnunetidentity.la \
   $(top_builddir)/src/json/libgnunetjson.la \
   $(top_builddir)/src/gnsrecord/libgnunetgnsrecord.la \
+  $(top_builddir)/src/gnsrecord/libgnunetgnsrecordjson.la \
   $(top_builddir)/src/util/libgnunetutil.la $(XLIBS) \
   $(LTLIBINTL) -ljansson $(MHD_LIBS)
 libgnunet_plugin_rest_namestore_la_LDFLAGS = \

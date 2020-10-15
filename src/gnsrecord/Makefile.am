@@ -30,7 +30,8 @@ TESTS = \
 endif
 
 lib_LTLIBRARIES = \
-  libgnunetgnsrecord.la
+  libgnunetgnsrecord.la \
+  libgnunetgnsrecordjson.la
 
 gnunet_gnsrecord_tvg_SOURCES = \
  gnunet-gnsrecord-tvg.c
@@ -56,6 +57,17 @@ libgnunetgnsrecord_la_LDFLAGS = \
   $(GN_LIB_LDFLAGS)  \
   -version-info 0:0:0
 
+libgnunetgnsrecordjson_la_SOURCES = \
+  json_gnsrecord.c
+libgnunetgnsrecordjson_la_LIBADD = \
+  $(top_builddir)/src/util/libgnunetutil.la \
+  $(top_builddir)/src/identity/libgnunetidentity.la \
+  libgnunetgnsrecord.la \
+  -ljansson \
+  $(GN_LIBINTL)
+libgnunetgnsrecordjson_la_LDFLAGS = \
+  $(GN_LIB_LDFLAGS)  \
+  -version-info 0:0:0
 
 plugin_LTLIBRARIES = \
   libgnunet_plugin_gnsrecord_dns.la
