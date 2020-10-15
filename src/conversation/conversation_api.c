@@ -105,7 +105,7 @@ struct GNUNET_CONVERSATION_Caller
   /**
    * Identity of the person calling us.
    */
-  struct GNUNET_CRYPTO_EcdsaPublicKey caller_id;
+  struct GNUNET_IDENTITY_PublicKey caller_id;
 
   /**
    * Internal handle to identify the caller with the service.
@@ -192,7 +192,7 @@ struct GNUNET_CONVERSATION_Phone
   /**
    * My GNS zone.
    */
-  struct GNUNET_CRYPTO_EcdsaPrivateKey my_zone;
+  struct GNUNET_IDENTITY_PrivateKey my_zone;
 
   /**
    * State machine for the phone.
