@@ -37,6 +37,61 @@
 
 #define LOG(kind, ...) GNUNET_log_from (kind, "gnsrecord", __VA_ARGS__)
 
+ssize_t
+ecdsa_symmetric_decrypt (
+  const void *block,
+  size_t size,
+  const unsigned char *key,
+  const unsigned char *ctr,
+  void *result)
+{
+  gcry_cipher_hd_t handle;
+  int rc;
+
+  GNUNET_assert (0 == gcry_cipher_open (&handle, GCRY_CIPHER_AES256,
+                                        GCRY_CIPHER_MODE_CTR, 0));
+  rc = gcry_cipher_setkey (handle,
+                           key,
+                           GNUNET_CRYPTO_AES_KEY_LENGTH);
+  GNUNET_assert ((0 == rc) || ((char) rc == GPG_ERR_WEAK_KEY));
+  rc = gcry_cipher_setctr (handle,
+                           ctr,
+                           GNUNET_CRYPTO_AES_KEY_LENGTH / 2);
+  GNUNET_assert ((0 == rc) || ((char) rc == GPG_ERR_WEAK_KEY));
+  GNUNET_assert (0 == gcry_cipher_decrypt (handle, result, size, block, size));
+  gcry_cipher_close (handle);
+  return size;
+}
+
+
+
+ssize_t
+ecdsa_symmetric_encrypt (
+  const void *block,
+  size_t size,
+  const unsigned char *key,
+  const unsigned char *ctr,
+  void *result)
+{
+  gcry_cipher_hd_t handle;
+  int rc;
+
+  GNUNET_assert (0 == gcry_cipher_open (&handle, GCRY_CIPHER_AES256,
+                                        GCRY_CIPHER_MODE_CTR, 0));
+  rc = gcry_cipher_setkey (handle,
+                           key,
+                           GNUNET_CRYPTO_AES_KEY_LENGTH);
+  GNUNET_assert ((0 == rc) || ((char) rc == GPG_ERR_WEAK_KEY));
+  rc = gcry_cipher_setctr (handle,
+                           ctr,
+                           GNUNET_CRYPTO_AES_KEY_LENGTH / 2);
+  GNUNET_assert ((0 == rc) || ((char) rc == GPG_ERR_WEAK_KEY));
+  GNUNET_assert (0 == gcry_cipher_encrypt (handle, result, size, block, size));
+  gcry_cipher_close (handle);
+  return size;
+}
+
+
 
 /**
  * Derive session key and iv from label and public key.
@@ -47,25 +102,31 @@
  * @param pub public key to use for KDF
  */
 static void
-derive_block_aes_key (struct GNUNET_CRYPTO_SymmetricInitializationVector *iv,
-                      struct GNUNET_CRYPTO_SymmetricSessionKey *skey,
+derive_block_aes_key (unsigned char *ctr,
+                      unsigned char *key,
                       const char *label,
+                      uint64_t exp,
                       const struct GNUNET_CRYPTO_EcdsaPublicKey *pub)
 {
   static const char ctx_key[] = "gns-aes-ctx-key";
   static const char ctx_iv[] = "gns-aes-ctx-iv";
 
-  GNUNET_CRYPTO_kdf (skey, sizeof(struct GNUNET_CRYPTO_SymmetricSessionKey),
+  GNUNET_CRYPTO_kdf (key, GNUNET_CRYPTO_AES_KEY_LENGTH,
                      ctx_key, strlen (ctx_key),
                      pub, sizeof(struct GNUNET_CRYPTO_EcdsaPublicKey),
                      label, strlen (label),
                      NULL, 0);
-  GNUNET_CRYPTO_kdf (iv, sizeof(struct
-                                GNUNET_CRYPTO_SymmetricInitializationVector),
+  memset (ctr, 0, GNUNET_CRYPTO_AES_KEY_LENGTH / 2);
+  /** 4 byte nonce **/
+  GNUNET_CRYPTO_kdf (ctr, 4,
                      ctx_iv, strlen (ctx_iv),
                      pub, sizeof(struct GNUNET_CRYPTO_EcdsaPublicKey),
                      label, strlen (label),
                      NULL, 0);
+  /** Expiration time 64 bit. **/
+  memcpy (ctr + 4, &exp, sizeof (exp));
+  /** Set counter part to 1 **/
+  ctr[15] |= 0x01;
 }
 
 
@@ -93,8 +154,8 @@ block_create_ecdsa (const struct GNUNET_CRYPTO_EcdsaPrivateKey *key,
   struct GNUNET_GNSRECORD_Block *block;
   struct GNUNET_GNSRECORD_EcdsaBlock *ecblock;
   struct GNUNET_CRYPTO_EcdsaPrivateKey *dkey;
-  struct GNUNET_CRYPTO_SymmetricInitializationVector iv;
-  struct GNUNET_CRYPTO_SymmetricSessionKey skey;
+  unsigned char ctr[GNUNET_CRYPTO_AES_KEY_LENGTH / 2];
+  unsigned char skey[GNUNET_CRYPTO_AES_KEY_LENGTH];
   struct GNUNET_GNSRECORD_Data rdc[GNUNET_NZL (rd_count)];
   uint32_t rd_count_nbo;
   struct GNUNET_TIME_Absolute now;
@@ -144,10 +205,10 @@ block_create_ecdsa (const struct GNUNET_CRYPTO_EcdsaPrivateKey *key,
     ecblock = &block->ecdsa_block;
     block->type = htonl (GNUNET_GNSRECORD_TYPE_PKEY);
     ecblock->purpose.size = htonl (sizeof(uint32_t)
-                                 + payload_len
-                                 + sizeof(struct
-                                          GNUNET_CRYPTO_EccSignaturePurpose)
-                                 + sizeof(struct GNUNET_TIME_AbsoluteNBO));
+                                   + payload_len
+                                   + sizeof(struct
+                                            GNUNET_CRYPTO_EccSignaturePurpose)
+                                   + sizeof(struct GNUNET_TIME_AbsoluteNBO));
     ecblock->purpose.purpose = htonl (GNUNET_SIGNATURE_PURPOSE_GNS_RECORD_SIGN);
     ecblock->expiration_time = GNUNET_TIME_absolute_hton (expire);
     /* encrypt and sign */
@@ -156,17 +217,18 @@ block_create_ecdsa (const struct GNUNET_CRYPTO_EcdsaPrivateKey *key,
                                                    "gns");
     GNUNET_CRYPTO_ecdsa_key_get_public (dkey,
                                         &ecblock->derived_key);
-    derive_block_aes_key (&iv,
-                          &skey,
+    derive_block_aes_key (ctr,
+                          skey,
                           label,
+                          ecblock->expiration_time.abs_value_us__,
                           pkey);
     GNUNET_break (payload_len + sizeof(uint32_t) ==
-                  GNUNET_CRYPTO_symmetric_encrypt (payload,
-                                                   payload_len
-                                                   + sizeof(uint32_t),
-                                                   &skey,
-                                                   &iv,
-                                                   &ecblock[1]));
+                  ecdsa_symmetric_encrypt (payload,
+                                           payload_len
+                                           + sizeof(uint32_t),
+                                           skey,
+                                           ctr,
+                                           &ecblock[1]));
   }
   if (GNUNET_OK !=
       GNUNET_CRYPTO_ecdsa_sign_ (dkey,
@@ -326,8 +388,8 @@ block_decrypt_ecdsa (const struct GNUNET_GNSRECORD_EcdsaBlock *block,
   size_t payload_len = ntohl (block->purpose.size)
                        - sizeof(struct GNUNET_CRYPTO_EccSignaturePurpose)
                        - sizeof(struct GNUNET_TIME_AbsoluteNBO);
-  struct GNUNET_CRYPTO_SymmetricInitializationVector iv;
-  struct GNUNET_CRYPTO_SymmetricSessionKey skey;
+  unsigned char ctr[GNUNET_CRYPTO_AES_KEY_LENGTH / 2];
+  unsigned char key[GNUNET_CRYPTO_AES_KEY_LENGTH];
 
   if (ntohl (block->purpose.size) <
       sizeof(struct GNUNET_CRYPTO_EccSignaturePurpose)
@@ -336,18 +398,19 @@ block_decrypt_ecdsa (const struct GNUNET_GNSRECORD_EcdsaBlock *block,
     GNUNET_break_op (0);
     return GNUNET_SYSERR;
   }
-  derive_block_aes_key (&iv,
-                        &skey,
+  derive_block_aes_key (ctr,
+                        key,
                         label,
+                        block->expiration_time.abs_value_us__,
                         zone_key);
   {
     char payload[payload_len];
     uint32_t rd_count;
 
     GNUNET_break (payload_len ==
-                  GNUNET_CRYPTO_symmetric_decrypt (&block[1], payload_len,
-                                                   &skey, &iv,
-                                                   payload));
+                  ecdsa_symmetric_decrypt (&block[1], payload_len,
+                                           key, ctr,
+                                           payload));
     GNUNET_memcpy (&rd_count,
                    payload,
                    sizeof(uint32_t));
