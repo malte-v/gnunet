@@ -86,12 +86,12 @@ struct RECLAIM_TICKETS_ConsumeHandle
   /**
    * Audience Key
    */
-  struct GNUNET_CRYPTO_EcdsaPrivateKey identity;
+  struct GNUNET_IDENTITY_PrivateKey identity;
 
   /**
    * Audience Key
    */
-  struct GNUNET_CRYPTO_EcdsaPublicKey identity_pub;
+  struct GNUNET_IDENTITY_PublicKey identity_pub;
 
   /**
    * Lookup DLL
@@ -180,7 +180,7 @@ struct TicketIssueHandle
   /**
    * Issuer Key
    */
-  struct GNUNET_CRYPTO_EcdsaPrivateKey identity;
+  struct GNUNET_IDENTITY_PrivateKey identity;
 
   /**
    * Ticket to issue
@@ -263,7 +263,7 @@ struct RECLAIM_TICKETS_RevokeHandle
   /**
    * Issuer Key
    */
-  struct GNUNET_CRYPTO_EcdsaPrivateKey identity;
+  struct GNUNET_IDENTITY_PrivateKey identity;
 
   /**
    * Callback
@@ -490,7 +490,7 @@ rvk_ticket_update_finished (void *cls)
  */
 static void
 rvk_ticket_update (void *cls,
-                   const struct GNUNET_CRYPTO_EcdsaPrivateKey *zone,
+                   const struct GNUNET_IDENTITY_PrivateKey *zone,
                    const char *label,
                    unsigned int rd_count,
                    const struct GNUNET_GNSRECORD_Data *rd)
@@ -665,7 +665,7 @@ move_attr_finished (void *cls, int32_t success, const char *emsg)
  */
 static void
 rvk_move_attr_cb (void *cls,
-                  const struct GNUNET_CRYPTO_EcdsaPrivateKey *zone,
+                  const struct GNUNET_IDENTITY_PrivateKey *zone,
                   const char *label,
                   unsigned int rd_count,
                   const struct GNUNET_GNSRECORD_Data *rd)
@@ -850,7 +850,7 @@ remove_ticket_cont (void *cls, int32_t success, const char *emsg)
  */
 static void
 revoke_attrs_cb (void *cls,
-                 const struct GNUNET_CRYPTO_EcdsaPrivateKey *zone,
+                 const struct GNUNET_IDENTITY_PrivateKey *zone,
                  const char *label,
                  unsigned int rd_count,
                  const struct GNUNET_GNSRECORD_Data *rd)
@@ -913,7 +913,7 @@ rvk_attrs_err_cb (void *cls)
  */
 struct RECLAIM_TICKETS_RevokeHandle *
 RECLAIM_TICKETS_revoke (const struct GNUNET_RECLAIM_Ticket *ticket,
-                        const struct GNUNET_CRYPTO_EcdsaPrivateKey *identity,
+                        const struct GNUNET_IDENTITY_PrivateKey *identity,
                         RECLAIM_TICKETS_RevokeCallback cb,
                         void *cb_cls)
 {
@@ -925,7 +925,7 @@ RECLAIM_TICKETS_revoke (const struct GNUNET_RECLAIM_Ticket *ticket,
   rvk->cb_cls = cb_cls;
   rvk->identity = *identity;
   rvk->ticket = *ticket;
-  GNUNET_CRYPTO_ecdsa_key_get_public (&rvk->identity, &rvk->ticket.identity);
+  GNUNET_IDENTITY_key_get_public (&rvk->identity, &rvk->ticket.identity);
   /** Get shared attributes **/
   label = GNUNET_STRINGS_data_to_string_alloc (&ticket->rnd,
                                                sizeof(ticket->rnd));
@@ -1184,7 +1184,7 @@ lookup_authz_cb (void *cls,
  * @return handle to the operation
  */
 struct RECLAIM_TICKETS_ConsumeHandle *
-RECLAIM_TICKETS_consume (const struct GNUNET_CRYPTO_EcdsaPrivateKey *id,
+RECLAIM_TICKETS_consume (const struct GNUNET_IDENTITY_PrivateKey *id,
                          const struct GNUNET_RECLAIM_Ticket *ticket,
                          RECLAIM_TICKETS_ConsumeCallback cb,
                          void *cb_cls)
@@ -1195,7 +1195,7 @@ RECLAIM_TICKETS_consume (const struct GNUNET_CRYPTO_EcdsaPrivateKey *id,
   cth = GNUNET_new (struct RECLAIM_TICKETS_ConsumeHandle);
 
   cth->identity = *id;
-  GNUNET_CRYPTO_ecdsa_key_get_public (&cth->identity, &cth->identity_pub);
+  GNUNET_IDENTITY_key_get_public (&cth->identity, &cth->identity_pub);
   cth->attrs = GNUNET_new (struct GNUNET_RECLAIM_AttributeList);
   cth->presentations = GNUNET_new (struct GNUNET_RECLAIM_PresentationList);
   cth->ticket = *ticket;
@@ -1453,7 +1453,7 @@ filter_tickets_error_cb (void *cls)
  */
 static void
 filter_tickets_cb (void *cls,
-                   const struct GNUNET_CRYPTO_EcdsaPrivateKey *zone,
+                   const struct GNUNET_IDENTITY_PrivateKey *zone,
                    const char *label,
                    unsigned int rd_count,
                    const struct GNUNET_GNSRECORD_Data *rd)
@@ -1489,7 +1489,7 @@ filter_tickets_cb (void *cls,
       // cmp audience
       if (0 == memcmp (&tih->ticket.audience,
                        &ticket->audience,
-                       sizeof(struct GNUNET_CRYPTO_EcdsaPublicKey)))
+                       sizeof(struct GNUNET_IDENTITY_PublicKey)))
       {
         tih->ticket = *ticket;
         continue;
@@ -1602,7 +1602,7 @@ filter_tickets_finished_cb (void *cls)
 {
   struct TicketIssueHandle *tih = cls;
 
-  GNUNET_CRYPTO_ecdsa_key_get_public (&tih->identity, &tih->ticket.identity);
+  GNUNET_IDENTITY_key_get_public (&tih->identity, &tih->ticket.identity);
   GNUNET_RECLAIM_id_generate (&tih->ticket.rnd);
   issue_ticket (tih);
 }
@@ -1620,9 +1620,9 @@ filter_tickets_finished_cb (void *cls)
  * FIXME: Return handle??
  */
 void
-RECLAIM_TICKETS_issue (const struct GNUNET_CRYPTO_EcdsaPrivateKey *identity,
+RECLAIM_TICKETS_issue (const struct GNUNET_IDENTITY_PrivateKey *identity,
                        const struct GNUNET_RECLAIM_AttributeList *attrs,
-                       const struct GNUNET_CRYPTO_EcdsaPublicKey *audience,
+                       const struct GNUNET_IDENTITY_PublicKey *audience,
                        RECLAIM_TICKETS_TicketResult cb,
                        void *cb_cls)
 {
@@ -1680,7 +1680,7 @@ cleanup_iter (struct RECLAIM_TICKETS_Iterator *iter)
  */
 static void
 collect_tickets_cb (void *cls,
-                    const struct GNUNET_CRYPTO_EcdsaPrivateKey *zone,
+                    const struct GNUNET_IDENTITY_PrivateKey *zone,
                     const char *label,
                     unsigned int rd_count,
                     const struct GNUNET_GNSRECORD_Data *rd)
@@ -1765,7 +1765,7 @@ RECLAIM_TICKETS_iteration_stop (struct RECLAIM_TICKETS_Iterator *iter)
  */
 struct RECLAIM_TICKETS_Iterator *
 RECLAIM_TICKETS_iteration_start (
-  const struct GNUNET_CRYPTO_EcdsaPrivateKey *identity,
+  const struct GNUNET_IDENTITY_PrivateKey *identity,
   RECLAIM_TICKETS_TicketIter cb,
   void *cb_cls)
 {

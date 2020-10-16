@@ -147,7 +147,7 @@ typedef void
                                          struct GNUNET_CONVERSATION_Caller *
                                          caller,
                                          const struct
-                                         GNUNET_CRYPTO_EcdsaPublicKey *caller_id);
+                                         GNUNET_IDENTITY_PublicKey *caller_id);
 
 
 /**

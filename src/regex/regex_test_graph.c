@@ -177,8 +177,7 @@ REGEX_TEST_automaton_save_graph_step (void *cls, unsigned int count,
     }
     else
     {
-      GNUNET_asprintf (&s_acc, "\"%s\" [shape=doublecircle];\n", name,
-                       s->scc_id);
+      GNUNET_asprintf (&s_acc, "\"%s\" [shape=doublecircle];\n", name);
     }
   }
   else if (GNUNET_YES == ctx->coloring)
@@ -189,7 +188,7 @@ REGEX_TEST_automaton_save_graph_step (void *cls, unsigned int count,
   }
   else
   {
-    GNUNET_asprintf (&s_acc, "\"%s\" [shape=circle];\n", name, s->scc_id);
+    GNUNET_asprintf (&s_acc, "\"%s\" [shape=circle];\n", name);
   }
 
   GNUNET_assert (NULL != s_acc);
@@ -228,7 +227,7 @@ REGEX_TEST_automaton_save_graph_step (void *cls, unsigned int count,
       else
       {
         GNUNET_asprintf (&s_tran, "\"%s\" -> \"%s\" [label = \"ε\"];\n", name,
-                         to_name, s->scc_id);
+                         to_name);
       }
     }
     else
@@ -242,7 +241,7 @@ REGEX_TEST_automaton_save_graph_step (void *cls, unsigned int count,
       else
       {
         GNUNET_asprintf (&s_tran, "\"%s\" -> \"%s\" [label = \"%s\"];\n", name,
-                         to_name, ctran->label, s->scc_id);
+                         to_name, ctran->label);
       }
     }
 

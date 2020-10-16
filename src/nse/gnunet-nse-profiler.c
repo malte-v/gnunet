@@ -317,7 +317,7 @@ handle_estimate (void *cls,
   }
   size = GNUNET_snprintf (output_buffer,
                           sizeof(output_buffer),
-                          "%p %llu %llu %f %f %f\n",
+                          "%p %u %llu %f %f %f\n",
                           peer,
                           peers_running,
                           (unsigned long long) timestamp.abs_value_us,

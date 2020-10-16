@@ -48,9 +48,9 @@ static struct GNUNET_NAMECACHE_Handle *nch;
 
 static struct GNUNET_SCHEDULER_Task *endbadly_task;
 
-static struct GNUNET_CRYPTO_EcdsaPrivateKey privkey;
+static struct GNUNET_IDENTITY_PrivateKey privkey;
 
-static struct GNUNET_CRYPTO_EcdsaPublicKey pubkey;
+static struct GNUNET_IDENTITY_PublicKey pubkey;
 
 static int res;
 
@@ -246,9 +246,10 @@ run (void *cls,
   endbadly_task = GNUNET_SCHEDULER_add_delayed (TIMEOUT,
                                                 &endbadly,
                                                 NULL);
-  GNUNET_CRYPTO_ecdsa_key_create (&privkey);
-  GNUNET_CRYPTO_ecdsa_key_get_public (&privkey,
-                                      &pubkey);
+  memset (&privkey, 0, sizeof (privkey));
+  privkey.type = htonl (GNUNET_GNSRECORD_TYPE_PKEY);
+  GNUNET_CRYPTO_ecdsa_key_create (&privkey.ecdsa_key);
+  GNUNET_IDENTITY_key_get_public (&privkey, &pubkey);
   rd.flags = GNUNET_GNSRECORD_RF_NONE;
   rd.expiration_time = GNUNET_TIME_absolute_get ().abs_value_us + 1000000000;
   rd.record_type = TEST_RECORD_TYPE;
@@ -291,7 +292,7 @@ main (int argc,
   SETUP_CFG (plugin_name, cfg_name);
   res = 1;
   if (0 !=
-      GNUNET_TESTING_peer_run ("test-namestore-api-store-update",
+      GNUNET_TESTING_peer_run ("test--store-update",
                                cfg_name,
                                &run,
                                NULL))

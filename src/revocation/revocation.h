@@ -49,7 +49,7 @@ struct QueryMessage
   /**
    * Key to check.
    */
-  struct GNUNET_CRYPTO_EcdsaPublicKey key;
+  struct GNUNET_IDENTITY_PublicKey key;
 };
 
 
@@ -85,14 +85,11 @@ struct RevokeMessage
   struct GNUNET_MessageHeader header;
 
   /**
-   * For alignment.
+   * Length of PoW with signature.
    */
-  uint32_t reserved GNUNET_PACKED;
+  uint32_t pow_size GNUNET_PACKED;
 
-  /**
-   * Number that causes a hash collision with the @e public_key.
-   */
-  struct GNUNET_REVOCATION_PowP proof_of_work;
+  /** Followed by the PoW **/
 };
 
 

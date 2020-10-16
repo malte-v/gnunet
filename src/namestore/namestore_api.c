@@ -174,7 +174,7 @@ struct GNUNET_NAMESTORE_ZoneIterator
   /**
    * Private key of the zone.
    */
-  struct GNUNET_CRYPTO_EcdsaPrivateKey zone;
+  struct GNUNET_IDENTITY_PrivateKey zone;
 
   /**
    * The operation id this zone iteration operation has
@@ -493,7 +493,7 @@ handle_lookup_result (void *cls, const struct LabelLookupResponseMessage *msg)
 static int
 check_record_result (void *cls, const struct RecordResultMessage *msg)
 {
-  static struct GNUNET_CRYPTO_EcdsaPrivateKey priv_dummy;
+  static struct GNUNET_IDENTITY_PrivateKey priv_dummy;
   const char *name;
   size_t msg_len;
   size_t name_len;
@@ -981,7 +981,7 @@ warn_delay (void *cls)
 struct GNUNET_NAMESTORE_QueueEntry *
 GNUNET_NAMESTORE_records_store (
   struct GNUNET_NAMESTORE_Handle *h,
-  const struct GNUNET_CRYPTO_EcdsaPrivateKey *pkey,
+  const struct GNUNET_IDENTITY_PrivateKey *pkey,
   const char *label,
   unsigned int rd_count,
   const struct GNUNET_GNSRECORD_Data *rd,
@@ -1080,7 +1080,7 @@ GNUNET_NAMESTORE_records_store (
 struct GNUNET_NAMESTORE_QueueEntry *
 GNUNET_NAMESTORE_records_lookup (
   struct GNUNET_NAMESTORE_Handle *h,
-  const struct GNUNET_CRYPTO_EcdsaPrivateKey *pkey,
+  const struct GNUNET_IDENTITY_PrivateKey *pkey,
   const char *label,
   GNUNET_SCHEDULER_TaskCallback error_cb,
   void *error_cb_cls,
@@ -1140,8 +1140,8 @@ GNUNET_NAMESTORE_records_lookup (
 struct GNUNET_NAMESTORE_QueueEntry *
 GNUNET_NAMESTORE_zone_to_name (
   struct GNUNET_NAMESTORE_Handle *h,
-  const struct GNUNET_CRYPTO_EcdsaPrivateKey *zone,
-  const struct GNUNET_CRYPTO_EcdsaPublicKey *value_zone,
+  const struct GNUNET_IDENTITY_PrivateKey *zone,
+  const struct GNUNET_IDENTITY_PublicKey *value_zone,
   GNUNET_SCHEDULER_TaskCallback error_cb,
   void *error_cb_cls,
   GNUNET_NAMESTORE_RecordMonitor proc,
@@ -1196,7 +1196,7 @@ GNUNET_NAMESTORE_zone_to_name (
 struct GNUNET_NAMESTORE_ZoneIterator *
 GNUNET_NAMESTORE_zone_iteration_start (
   struct GNUNET_NAMESTORE_Handle *h,
-  const struct GNUNET_CRYPTO_EcdsaPrivateKey *zone,
+  const struct GNUNET_IDENTITY_PrivateKey *zone,
   GNUNET_SCHEDULER_TaskCallback error_cb,
   void *error_cb_cls,
   GNUNET_NAMESTORE_RecordMonitor proc,

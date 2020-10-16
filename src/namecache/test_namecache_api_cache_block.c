@@ -39,9 +39,9 @@ static struct GNUNET_NAMECACHE_Handle *nsh;
 
 static struct GNUNET_SCHEDULER_Task *endbadly_task;
 
-static struct GNUNET_CRYPTO_EcdsaPrivateKey privkey;
+static struct GNUNET_IDENTITY_PrivateKey privkey;
 
-static struct GNUNET_CRYPTO_EcdsaPublicKey pubkey;
+static struct GNUNET_IDENTITY_PublicKey pubkey;
 
 static int res;
 
@@ -172,23 +172,13 @@ run (void *cls,
 {
   struct GNUNET_GNSRECORD_Data rd;
   struct GNUNET_GNSRECORD_Block *block;
-  char *hostkey_file;
   const char *name = "dummy.dummy.gnunet";
 
   endbadly_task = GNUNET_SCHEDULER_add_delayed (TIMEOUT,
                                                 &endbadly, NULL);
-  GNUNET_asprintf (&hostkey_file,
-                   "zonefiles%s%s",
-                   DIR_SEPARATOR_STR,
-                   "N0UJMP015AFUNR2BTNM3FKPBLG38913BL8IDMCO2H0A1LIB81960.zkey");
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Using zonekey file `%s' \n",
-              hostkey_file);
-  GNUNET_assert (GNUNET_SYSERR !=
-                 GNUNET_CRYPTO_ecdsa_key_from_file (hostkey_file,
-                                                    GNUNET_YES,
-                                                    &privkey));
-  GNUNET_free (hostkey_file);
-  GNUNET_CRYPTO_ecdsa_key_get_public (&privkey, &pubkey);
+  privkey.type = htonl (GNUNET_GNSRECORD_TYPE_PKEY);
+  GNUNET_CRYPTO_ecdsa_key_create (&privkey.ecdsa_key);
+  GNUNET_IDENTITY_key_get_public (&privkey, &pubkey);
 
 
   rd.expiration_time = GNUNET_TIME_absolute_get ().abs_value_us + 10000000000;

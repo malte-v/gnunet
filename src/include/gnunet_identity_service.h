@@ -57,6 +57,21 @@ extern "C" {
  */
 #define GNUNET_IDENTITY_VERSION 0x00000100
 
+enum GNUNET_IDENTITY_KeyType
+{
+  /**
+   * The identity type. The value is the same as the
+   * PKEY record type.
+   */
+  GNUNET_IDENTITY_TYPE_ECDSA = 65536,
+
+  /**
+   * EDDSA identity. The value is the same as the EDKEY
+   * record type.
+   */
+  GNUNET_IDENTITY_TYPE_EDDSA = 65556
+};
+
 /**
  * Handle to access the identity service.
  */
@@ -66,6 +81,61 @@ struct GNUNET_IDENTITY_Handle;
  * Handle for a ego.
  */
 struct GNUNET_IDENTITY_Ego;
+
+
+/**
+ * A private key for an identity as per LSD0001.
+ */
+struct GNUNET_IDENTITY_PrivateKey
+{
+  /**
+   * Type of public key.
+   * Defined by the GNS zone type value.
+   * In NBO.
+   */
+  uint32_t type;
+
+  union
+  {
+    /**
+     * An ECDSA identity key.
+     */
+    struct GNUNET_CRYPTO_EcdsaPrivateKey ecdsa_key;
+
+    /**
+     * AN EdDSA identtiy key
+     */
+    struct GNUNET_CRYPTO_EddsaPrivateKey eddsa_key;
+  };
+};
+
+
+/**
+ * An identity key as per LSD0001.
+ */
+struct GNUNET_IDENTITY_PublicKey
+{
+  /**
+   * Type of public key.
+   * Defined by the GNS zone type value.
+   * In NBO.
+   */
+  uint32_t type;
+
+  union
+  {
+    /**
+     * An ECDSA identity key.
+     */
+    struct GNUNET_CRYPTO_EcdsaPublicKey ecdsa_key;
+
+    /**
+     * AN EdDSA identtiy key
+     */
+    struct GNUNET_CRYPTO_EddsaPublicKey eddsa_key;
+  };
+};
+
 
 /**
  * Handle for an operation with the identity service.
@@ -79,7 +149,7 @@ struct GNUNET_IDENTITY_Operation;
  * @param ego the ego
  * @return associated ECC key, valid as long as the ego is valid
  */
-const struct GNUNET_CRYPTO_EcdsaPrivateKey *
+const struct GNUNET_IDENTITY_PrivateKey *
 GNUNET_IDENTITY_ego_get_private_key (const struct GNUNET_IDENTITY_Ego *ego);
 
 
@@ -100,7 +170,7 @@ GNUNET_IDENTITY_ego_get_anonymous (void);
  */
 void
 GNUNET_IDENTITY_ego_get_public_key (struct GNUNET_IDENTITY_Ego *ego,
-                                    struct GNUNET_CRYPTO_EcdsaPublicKey *pk);
+                                    struct GNUNET_IDENTITY_PublicKey *pk);
 
 
 /**
@@ -224,7 +294,7 @@ GNUNET_IDENTITY_disconnect (struct GNUNET_IDENTITY_Handle *h);
 typedef void
 (*GNUNET_IDENTITY_CreateContinuation) (
   void *cls,
-  const struct GNUNET_CRYPTO_EcdsaPrivateKey *pk,
+  const struct GNUNET_IDENTITY_PrivateKey *pk,
   const char *emsg);
 
 
@@ -234,6 +304,7 @@ typedef void
  * @param id identity service to use
  * @param name desired name
  * @param privkey desired private key or NULL to create one
+ * @param ktype the type of key to create. Ignored if privkey != NULL.
  * @param cont function to call with the result (will only be called once)
  * @param cont_cls closure for @a cont
  * @return handle to abort the operation
@@ -241,7 +312,8 @@ typedef void
 struct GNUNET_IDENTITY_Operation *
 GNUNET_IDENTITY_create (struct GNUNET_IDENTITY_Handle *id,
                         const char *name,
-                        const struct GNUNET_CRYPTO_EcdsaPrivateKey *privkey,
+                        const struct GNUNET_IDENTITY_PrivateKey *privkey,
+                        enum GNUNET_IDENTITY_KeyType ktype,
                         GNUNET_IDENTITY_CreateContinuation cont,
                         void *cont_cls);
 
@@ -290,6 +362,84 @@ GNUNET_IDENTITY_delete (struct GNUNET_IDENTITY_Handle *id,
  */
 void
 GNUNET_IDENTITY_cancel (struct GNUNET_IDENTITY_Operation *op);
+
+
+/**
+ * Get the compacted length of a #GNUNET_IDENTITY_PublicKey.
+ * Compacted means that it returns the minimum number of bytes this
+ * key is long, as opposed to the union structure inside
+ * #GNUNET_IDENTITY_PublicKey.
+ * Useful for compact serializations.
+ *
+ * @param key the key.
+ * @return -1 on error, else the compacted length of the key.
+ */
+ssize_t
+GNUNET_IDENTITY_key_get_length (const struct GNUNET_IDENTITY_PublicKey *key);
+
+
+/**
+ * Creates a (Base32) string representation of the public key.
+ * The resulting string encodes a compacted representation of the key.
+ * See also #GNUNET_IDENTITY_key_get_length.
+ *
+ * @param key the key.
+ * @return the string representation of the key, or NULL on error.
+ */
+char *
+GNUNET_IDENTITY_public_key_to_string (const struct
+                                      GNUNET_IDENTITY_PublicKey *key);
+
+
+/**
+ * Creates a (Base32) string representation of the private key.
+ * The resulting string encodes a compacted representation of the key.
+ * See also #GNUNET_IDENTITY_key_get_length.
+ *
+ * @param key the key.
+ * @return the string representation of the key, or NULL on error.
+ */
+char *
+GNUNET_IDENTITY_private_key_to_string (const struct
+                                       GNUNET_IDENTITY_PrivateKey *key);
+
+
+/**
+ * Parses a (Base32) string representation of the public key.
+ * See also #GNUNET_IDENTITY_public_key_to_string.
+ *
+ * @param str the encoded key.
+ * @param key where to write the key.
+ * @return GNUNET_SYSERR on error.
+ */
+enum GNUNET_GenericReturnValue
+GNUNET_IDENTITY_public_key_from_string (const char*str,
+                                        struct GNUNET_IDENTITY_PublicKey *key);
+
+
+/**
+ * Parses a (Base32) string representation of the private key.
+ * See also #GNUNET_IDENTITY_private_key_to_string.
+ *
+ * @param str the encoded key.
+ * @param key where to write the key.
+ * @return GNUNET_SYSERR on error.
+ */
+enum GNUNET_GenericReturnValue
+GNUNET_IDENTITY_private_key_from_string (const char*str,
+                                         struct GNUNET_IDENTITY_PrivateKey *key);
+
+
+/**
+ * Retrieves the public key representation of a private key.
+ *
+ * @param privkey the private key.
+ * @param key the public key result.
+ * @return GNUNET_SYSERR on error.
+ */
+enum GNUNET_GenericReturnValue
+GNUNET_IDENTITY_key_get_public (const struct GNUNET_IDENTITY_PrivateKey *privkey,
+                                struct GNUNET_IDENTITY_PublicKey *key);
 
 
 /* ************* convenience API to lookup an ego ***************** */
@@ -344,7 +494,7 @@ GNUNET_IDENTITY_ego_lookup_cancel (struct GNUNET_IDENTITY_EgoLookup *el);
 typedef void
 (*GNUNET_IDENTITY_EgoSuffixCallback) (
   void *cls,
-  const struct GNUNET_CRYPTO_EcdsaPrivateKey *priv,
+  const struct GNUNET_IDENTITY_PrivateKey *priv,
   const char *ego_name);
 
 

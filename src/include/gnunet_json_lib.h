@@ -28,7 +28,6 @@
 #define GNUNET_JSON_LIB_H
 
 #include "gnunet_util_lib.h"
-#include "gnunet_gnsrecord_lib.h"
 #include <jansson.h>
 #include <microhttpd.h>
 
@@ -359,18 +358,6 @@ GNUNET_JSON_spec_rsa_signature (const char *name,
                                 struct GNUNET_CRYPTO_RsaSignature **sig);
 
 
-/**
- * JSON Specification for GNS Records.
- *
- * @param gnsrecord_object struct of GNUNET_GNSRECORD_Data to fill
- * @return JSON Specification
- */
-struct GNUNET_JSON_Specification
-GNUNET_JSON_spec_gnsrecord (struct GNUNET_GNSRECORD_Data **rd,
-                            unsigned int *rd_count,
-                            char **name);
-
-
 /* ****************** Generic generator interface ******************* */
 
 
@@ -445,18 +432,6 @@ GNUNET_JSON_from_rsa_public_key (const struct GNUNET_CRYPTO_RsaPublicKey *pk);
  */
 json_t *
 GNUNET_JSON_from_rsa_signature (const struct GNUNET_CRYPTO_RsaSignature *sig);
-
-/**
- * Convert Gns record to JSON.
- *
- * @param rname name of record
- * @param rd record data
- * @return corresponding JSON encoding
- */
-json_t *
-GNUNET_JSON_from_gnsrecord (const char *rname,
-                            const struct GNUNET_GNSRECORD_Data *rd,
-                            unsigned int rd_count);
 
 /* ******************* Helpers for MHD upload handling ******************* */
 

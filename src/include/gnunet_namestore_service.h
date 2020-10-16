@@ -41,6 +41,7 @@
 #include "gnunet_util_lib.h"
 #include "gnunet_block_lib.h"
 #include "gnunet_gnsrecord_lib.h"
+#include "gnunet_identity_service.h"
 
 #ifdef __cplusplus
 extern "C"
@@ -127,7 +128,7 @@ typedef void
 struct GNUNET_NAMESTORE_QueueEntry *
 GNUNET_NAMESTORE_records_store (struct GNUNET_NAMESTORE_Handle *h,
                                 const struct
-                                GNUNET_CRYPTO_EcdsaPrivateKey *pkey,
+                                GNUNET_IDENTITY_PrivateKey *pkey,
                                 const char *label,
                                 unsigned int rd_count,
                                 const struct GNUNET_GNSRECORD_Data *rd,
@@ -147,7 +148,7 @@ GNUNET_NAMESTORE_records_store (struct GNUNET_NAMESTORE_Handle *h,
 typedef void
 (*GNUNET_NAMESTORE_RecordMonitor) (void *cls,
                                    const struct
-                                   GNUNET_CRYPTO_EcdsaPrivateKey *zone,
+                                   GNUNET_IDENTITY_PrivateKey *zone,
                                    const char *label,
                                    unsigned int rd_count,
                                    const struct GNUNET_GNSRECORD_Data *rd);
@@ -170,7 +171,7 @@ typedef void
 struct GNUNET_NAMESTORE_QueueEntry *
 GNUNET_NAMESTORE_records_lookup (struct GNUNET_NAMESTORE_Handle *h,
                                  const struct
-                                 GNUNET_CRYPTO_EcdsaPrivateKey *pkey,
+                                 GNUNET_IDENTITY_PrivateKey *pkey,
                                  const char *label,
                                  GNUNET_SCHEDULER_TaskCallback error_cb,
                                  void *error_cb_cls,
@@ -197,9 +198,9 @@ GNUNET_NAMESTORE_records_lookup (struct GNUNET_NAMESTORE_Handle *h,
  */
 struct GNUNET_NAMESTORE_QueueEntry *
 GNUNET_NAMESTORE_zone_to_name (struct GNUNET_NAMESTORE_Handle *h,
-                               const struct GNUNET_CRYPTO_EcdsaPrivateKey *zone,
+                               const struct GNUNET_IDENTITY_PrivateKey *zone,
                                const struct
-                               GNUNET_CRYPTO_EcdsaPublicKey *value_zone,
+                               GNUNET_IDENTITY_PublicKey *value_zone,
                                GNUNET_SCHEDULER_TaskCallback error_cb,
                                void *error_cb_cls,
                                GNUNET_NAMESTORE_RecordMonitor proc,
@@ -246,7 +247,7 @@ GNUNET_NAMESTORE_cancel (struct GNUNET_NAMESTORE_QueueEntry *qe);
 struct GNUNET_NAMESTORE_ZoneIterator *
 GNUNET_NAMESTORE_zone_iteration_start (struct GNUNET_NAMESTORE_Handle *h,
                                        const struct
-                                       GNUNET_CRYPTO_EcdsaPrivateKey *zone,
+                                       GNUNET_IDENTITY_PrivateKey *zone,
                                        GNUNET_SCHEDULER_TaskCallback error_cb,
                                        void *error_cb_cls,
                                        GNUNET_NAMESTORE_RecordMonitor proc,
@@ -316,7 +317,7 @@ struct GNUNET_NAMESTORE_ZoneMonitor *
 GNUNET_NAMESTORE_zone_monitor_start (const struct
                                      GNUNET_CONFIGURATION_Handle *cfg,
                                      const struct
-                                     GNUNET_CRYPTO_EcdsaPrivateKey *zone,
+                                     GNUNET_IDENTITY_PrivateKey *zone,
                                      int iterate_first,
                                      GNUNET_SCHEDULER_TaskCallback error_cb,
                                      void *error_cb_cls,

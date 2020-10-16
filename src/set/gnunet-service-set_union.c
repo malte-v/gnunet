@@ -563,8 +563,8 @@ prepare_ibf_iterator (void *cls,
   struct IBF_Key salted_key;
 
   LOG (GNUNET_ERROR_TYPE_DEBUG,
-       "[OP %x] inserting %lx (hash %s) into ibf\n",
-       (void *) op,
+       "[OP %p] inserting %lx (hash %s) into ibf\n",
+       op,
        (unsigned long) ke->ibf_key.key_val,
        GNUNET_h2s (&ke->element->element_hash));
   salt_key (&ke->ibf_key,
@@ -929,7 +929,7 @@ handle_union_p2p_strata_estimator (void *cls,
       (0 == other_size))
   {
     LOG (GNUNET_ERROR_TYPE_DEBUG,
-         "Deciding to go for full set transmission (diff=%d, own set=%u)\n",
+         "Deciding to go for full set transmission (diff=%d, own set=%llu)\n",
          diff,
          op->state->initial_size);
     GNUNET_STATISTICS_update (_GSS_statistics,
@@ -1004,8 +1004,8 @@ send_offers_iterator (void *cls,
   GNUNET_assert (NULL != ev);
   *(struct GNUNET_HashCode *) &mh[1] = ke->element->element_hash;
   LOG (GNUNET_ERROR_TYPE_DEBUG,
-       "[OP %x] sending element offer (%s) to peer\n",
-       (void *) op,
+       "[OP %p] sending element offer (%s) to peer\n",
+       op,
        GNUNET_h2s (&ke->element->element_hash));
   GNUNET_MQ_send (op->mq, ev);
   return GNUNET_YES;
@@ -2004,8 +2004,8 @@ handle_union_p2p_demand (void *cls,
     emsg->reserved = htons (0);
     emsg->element_type = htons (ee->element.element_type);
     LOG (GNUNET_ERROR_TYPE_DEBUG,
-         "[OP %x] Sending demanded element (size %u, hash %s) to peer\n",
-         (void *) op,
+         "[OP %p] Sending demanded element (size %u, hash %s) to peer\n",
+         op,
          (unsigned int) ee->element.size,
          GNUNET_h2s (&ee->element_hash));
     GNUNET_MQ_send (op->mq, ev);
@@ -2120,8 +2120,8 @@ handle_union_p2p_offer (void *cls,
                      GNUNET_CONTAINER_MULTIHASHMAPOPTION_UNIQUE_FAST));
 
     LOG (GNUNET_ERROR_TYPE_DEBUG,
-         "[OP %x] Requesting element (hash %s)\n",
-         (void *) op, GNUNET_h2s (hash));
+         "[OP %p] Requesting element (hash %s)\n",
+         op, GNUNET_h2s (hash));
     ev = GNUNET_MQ_msg_header_extra (demands,
                                      sizeof(struct GNUNET_HashCode),
                                      GNUNET_MESSAGE_TYPE_SET_UNION_P2P_DEMAND);

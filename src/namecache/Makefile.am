@@ -65,6 +65,7 @@ libgnunetnamecache_la_SOURCES = \
   namecache.h
 libgnunetnamecache_la_LIBADD = \
   $(top_builddir)/src/gnsrecord/libgnunetgnsrecord.la \
+  $(top_builddir)/src/identity/libgnunetidentity.la \
   $(top_builddir)/src/util/libgnunetutil.la \
   $(GN_LIBINTL)
 libgnunetnamecache_la_LDFLAGS = \
@@ -82,6 +83,7 @@ gnunet_namecache_SOURCES = \
  gnunet-namecache.c
 gnunet_namecache_LDADD = \
   $(top_builddir)/src/gnsrecord/libgnunetgnsrecord.la \
+  $(top_builddir)/src/identity/libgnunetidentity.la \
   $(top_builddir)/src/util/libgnunetutil.la \
   libgnunetnamecache.la \
   $(GN_LIBINTL)
@@ -91,6 +93,7 @@ gnunet_service_namecache_SOURCES = \
 
 gnunet_service_namecache_LDADD = \
   $(top_builddir)/src/gnsrecord/libgnunetgnsrecord.la \
+  $(top_builddir)/src/identity/libgnunetidentity.la \
   $(top_builddir)/src/statistics/libgnunetstatistics.la \
   $(top_builddir)/src/util/libgnunetutil.la \
   libgnunetnamecache.la \
@@ -107,6 +110,8 @@ libgnunet_plugin_namecache_flat_la_SOURCES = \
 libgnunet_plugin_namecache_flat_la_LIBADD = \
   libgnunetnamecache.la  \
   $(top_builddir)/src/statistics/libgnunetstatistics.la \
+  $(top_builddir)/src/gnsrecord/libgnunetgnsrecord.la \
+  $(top_builddir)/src/identity/libgnunetidentity.la \
   $(top_builddir)/src/util/libgnunetutil.la $(XLIBS) \
   $(LTLIBINTL)
 libgnunet_plugin_namecache_flat_la_LDFLAGS = \
@@ -118,6 +123,8 @@ libgnunet_plugin_namecache_sqlite_la_LIBADD = \
   libgnunetnamecache.la  \
   $(top_builddir)/src/sq/libgnunetsq.la \
   $(top_builddir)/src/statistics/libgnunetstatistics.la \
+  $(top_builddir)/src/gnsrecord/libgnunetgnsrecord.la \
+  $(top_builddir)/src/identity/libgnunetidentity.la \
   $(top_builddir)/src/util/libgnunetutil.la $(XLIBS) -lsqlite3 \
   $(LTLIBINTL)
 libgnunet_plugin_namecache_sqlite_la_LDFLAGS = \
@@ -130,6 +137,8 @@ libgnunet_plugin_namecache_postgres_la_LIBADD = \
   libgnunetnamecache.la  \
   $(top_builddir)/src/pq/libgnunetpq.la  \
   $(top_builddir)/src/statistics/libgnunetstatistics.la \
+  $(top_builddir)/src/gnsrecord/libgnunetgnsrecord.la \
+  $(top_builddir)/src/identity/libgnunetidentity.la \
   $(top_builddir)/src/util/libgnunetutil.la $(XLIBS) -lpq \
   $(LTLIBINTL)
 libgnunet_plugin_namecache_postgres_la_LDFLAGS = \

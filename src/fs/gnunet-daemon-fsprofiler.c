@@ -592,14 +592,14 @@ run (void *cls, char *const *args GNUNET_UNUSED,
                                              &replication_level))
     replication_level = 1;
   GNUNET_snprintf (myoptname, sizeof(myoptname),
-                   "DOWNLOAD-PATTERN-%u", my_peerid);
+                   "DOWNLOAD-PATTERN-%llu", my_peerid);
   if (GNUNET_OK !=
       GNUNET_CONFIGURATION_get_value_string (cfg,
                                              "FSPROFILER", myoptname,
                                              &download_pattern))
     download_pattern = GNUNET_strdup ("");
   GNUNET_snprintf (myoptname, sizeof(myoptname),
-                   "PUBLISH-PATTERN-%u", my_peerid);
+                   "PUBLISH-PATTERN-%llu", my_peerid);
   if (GNUNET_OK !=
       GNUNET_CONFIGURATION_get_value_string (cfg,
                                              "FSPROFILER", myoptname,

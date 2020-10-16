@@ -82,7 +82,7 @@ struct ZoneIteration
   /**
    * Key of the zone we are iterating over.
    */
-  struct GNUNET_CRYPTO_EcdsaPrivateKey zone;
+  struct GNUNET_IDENTITY_PrivateKey zone;
 
   /**
    * Last sequence number in the zone iteration used to address next
@@ -174,7 +174,7 @@ struct ZoneMonitor
   /**
    * Private key of the zone.
    */
-  struct GNUNET_CRYPTO_EcdsaPrivateKey zone;
+  struct GNUNET_IDENTITY_PrivateKey zone;
 
   /**
    * Task active during initial iteration.
@@ -314,7 +314,7 @@ struct NickCache
   /**
    * Zone the cache entry is for.
    */
-  struct GNUNET_CRYPTO_EcdsaPrivateKey zone;
+  struct GNUNET_IDENTITY_PrivateKey zone;
 
   /**
    * Cached record data.
@@ -336,7 +336,7 @@ static struct NickCache nick_cache[NC_SIZE];
 /**
  * Public key of all zeros.
  */
-static const struct GNUNET_CRYPTO_EcdsaPrivateKey zero;
+static const struct GNUNET_IDENTITY_PrivateKey zero;
 
 /**
  * Configuration handle.
@@ -481,7 +481,7 @@ free_store_activity (struct StoreActivity *sa)
 static void
 lookup_nick_it (void *cls,
                 uint64_t seq,
-                const struct GNUNET_CRYPTO_EcdsaPrivateKey *private_key,
+                const struct GNUNET_IDENTITY_PrivateKey *private_key,
                 const char *label,
                 unsigned int rd_count,
                 const struct GNUNET_GNSRECORD_Data *rd)
@@ -521,7 +521,7 @@ lookup_nick_it (void *cls,
  * @param nick nick entry to cache
  */
 static void
-cache_nick (const struct GNUNET_CRYPTO_EcdsaPrivateKey *zone,
+cache_nick (const struct GNUNET_IDENTITY_PrivateKey *zone,
             const struct GNUNET_GNSRECORD_Data *nick)
 {
   struct NickCache *oldest;
@@ -564,9 +564,9 @@ cache_nick (const struct GNUNET_CRYPTO_EcdsaPrivateKey *zone,
  * @return NULL if no NICK record was found
  */
 static struct GNUNET_GNSRECORD_Data *
-get_nick_record (const struct GNUNET_CRYPTO_EcdsaPrivateKey *zone)
+get_nick_record (const struct GNUNET_IDENTITY_PrivateKey *zone)
 {
-  struct GNUNET_CRYPTO_EcdsaPublicKey pub;
+  struct GNUNET_IDENTITY_PublicKey pub;
   struct GNUNET_GNSRECORD_Data *nick;
   int res;
 
@@ -606,7 +606,7 @@ get_nick_record (const struct GNUNET_CRYPTO_EcdsaPrivateKey *zone)
                                            __LINE__);
     if (1 == do_log)
     {
-      GNUNET_CRYPTO_ecdsa_key_get_public (zone, &pub);
+      GNUNET_IDENTITY_key_get_public (zone, &pub);
       GNUNET_log (GNUNET_ERROR_TYPE_DEBUG | GNUNET_ERROR_TYPE_BULK,
                   "No nick name set for zone `%s'\n",
                   GNUNET_GNSRECORD_z2s (&pub));
@@ -720,7 +720,7 @@ merge_with_nick_records (const struct GNUNET_GNSRECORD_Data *nick_rd,
 static void
 send_lookup_response (struct NamestoreClient *nc,
                       uint32_t request_id,
-                      const struct GNUNET_CRYPTO_EcdsaPrivateKey *zone_key,
+                      const struct GNUNET_IDENTITY_PrivateKey *zone_key,
                       const char *name,
                       unsigned int rd_count,
                       const struct GNUNET_GNSRECORD_Data *rd)
@@ -899,14 +899,14 @@ static void
 refresh_block (struct NamestoreClient *nc,
                struct ZoneIteration *zi,
                uint32_t rid,
-               const struct GNUNET_CRYPTO_EcdsaPrivateKey *zone_key,
+               const struct GNUNET_IDENTITY_PrivateKey *zone_key,
                const char *name,
                unsigned int rd_count,
                const struct GNUNET_GNSRECORD_Data *rd)
 {
   struct GNUNET_GNSRECORD_Block *block;
   struct CacheOperation *cop;
-  struct GNUNET_CRYPTO_EcdsaPublicKey pkey;
+  struct GNUNET_IDENTITY_PublicKey pkey;
   struct GNUNET_GNSRECORD_Data *nick;
   struct GNUNET_GNSRECORD_Data *res;
   unsigned int res_count;
@@ -946,7 +946,7 @@ refresh_block (struct NamestoreClient *nc,
     block =
       GNUNET_GNSRECORD_block_create (zone_key, exp_time, name, res, res_count);
   GNUNET_assert (NULL != block);
-  GNUNET_CRYPTO_ecdsa_key_get_public (zone_key, &pkey);
+  GNUNET_IDENTITY_key_get_public (zone_key, &pkey);
   GNUNET_log (
     GNUNET_ERROR_TYPE_DEBUG,
     "Caching block for label `%s' with %u records and expiration %s in zone `%s' in namecache\n",
@@ -1214,7 +1214,7 @@ struct RecordLookupContext
 static void
 lookup_it (void *cls,
            uint64_t seq,
-           const struct GNUNET_CRYPTO_EcdsaPrivateKey *private_key,
+           const struct GNUNET_IDENTITY_PrivateKey *private_key,
            const char *label,
            unsigned int rd_count,
            const struct GNUNET_GNSRECORD_Data *rd)
@@ -1605,7 +1605,7 @@ struct ZoneToNameCtx
 static void
 handle_zone_to_name_it (void *cls,
                         uint64_t seq,
-                        const struct GNUNET_CRYPTO_EcdsaPrivateKey *zone_key,
+                        const struct GNUNET_IDENTITY_PrivateKey *zone_key,
                         const char *name,
                         unsigned int rd_count,
                         const struct GNUNET_GNSRECORD_Data *rd)
@@ -1738,7 +1738,7 @@ struct ZoneIterationProcResult
 static void
 zone_iterate_proc (void *cls,
                    uint64_t seq,
-                   const struct GNUNET_CRYPTO_EcdsaPrivateKey *zone_key,
+                   const struct GNUNET_IDENTITY_PrivateKey *zone_key,
                    const char *name,
                    unsigned int rd_count,
                    const struct GNUNET_GNSRECORD_Data *rd)
@@ -2009,7 +2009,7 @@ monitor_iteration_next (void *cls);
 static void
 monitor_iterate_cb (void *cls,
                     uint64_t seq,
-                    const struct GNUNET_CRYPTO_EcdsaPrivateKey *zone_key,
+                    const struct GNUNET_IDENTITY_PrivateKey *zone_key,
                     const char *name,
                     unsigned int rd_count,
                     const struct GNUNET_GNSRECORD_Data *rd)

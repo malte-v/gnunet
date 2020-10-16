@@ -195,8 +195,8 @@ announce_id (void *cls)
                  &my_full_id,
                  sizeof(my_full_id));
   LOG (GNUNET_ERROR_TYPE_DEBUG,
-       "Announcing my HELLO (%u bytes) in the DHT\n",
-       size);
+       "Announcing my HELLO (%lu bytes) in the DHT\n",
+       (unsigned long) size);
   GNUNET_DHT_put (dht_handle,    /* DHT handle */
                   &phash,       /* Key to use */
                   dht_replication_level,     /* Replication level */

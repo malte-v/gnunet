@@ -24,6 +24,7 @@ gnunet_service_zonemaster_SOURCES = \
 gnunet_service_zonemaster_LDADD = \
   $(top_builddir)/src/dht/libgnunetdht.la \
   $(top_builddir)/src/gnsrecord/libgnunetgnsrecord.la \
+  $(top_builddir)/src/identity/libgnunetidentity.la  \
   $(top_builddir)/src/statistics/libgnunetstatistics.la \
   $(top_builddir)/src/util/libgnunetutil.la \
   $(top_builddir)/src/namestore/libgnunetnamestore.la \
@@ -32,10 +33,10 @@ gnunet_service_zonemaster_LDADD = \
 
 gnunet_service_zonemaster_monitor_SOURCES = \
  gnunet-service-zonemaster-monitor.c
-
 gnunet_service_zonemaster_monitor_LDADD = \
   $(top_builddir)/src/dht/libgnunetdht.la \
   $(top_builddir)/src/gnsrecord/libgnunetgnsrecord.la \
+  $(top_builddir)/src/identity/libgnunetidentity.la  \
   $(top_builddir)/src/statistics/libgnunetstatistics.la \
   $(top_builddir)/src/util/libgnunetutil.la \
   $(top_builddir)/src/namestore/libgnunetnamestore.la \

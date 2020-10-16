@@ -62,14 +62,14 @@ GNUNET_GNSRECORD_string_to_lowercase (const char *src)
  * @return string form; will be overwritten by next call to #GNUNET_GNSRECORD_z2s
  */
 const char *
-GNUNET_GNSRECORD_z2s (const struct GNUNET_CRYPTO_EcdsaPublicKey *z)
+GNUNET_GNSRECORD_z2s (const struct GNUNET_IDENTITY_PublicKey *z)
 {
-  static char buf[sizeof(struct GNUNET_CRYPTO_EcdsaPublicKey) * 8];
+  static char buf[sizeof(struct GNUNET_IDENTITY_PublicKey) * 8];
   char *end;
 
   end = GNUNET_STRINGS_data_to_string ((const unsigned char *) z,
                                        sizeof(struct
-                                              GNUNET_CRYPTO_EcdsaPublicKey),
+                                              GNUNET_IDENTITY_PublicKey),
                                        buf, sizeof(buf));
   if (NULL == end)
   {
@@ -99,7 +99,7 @@ GNUNET_GNSRECORD_records_cmp (const struct GNUNET_GNSRECORD_Data *a,
   if (a->record_type != b->record_type)
   {
     LOG (GNUNET_ERROR_TYPE_DEBUG,
-         "Record type %lu != %lu\n", a->record_type, b->record_type);
+         "Record type %u != %u\n", a->record_type, b->record_type);
     return GNUNET_NO;
   }
   if ((a->expiration_time != b->expiration_time) &&
@@ -115,7 +115,7 @@ GNUNET_GNSRECORD_records_cmp (const struct GNUNET_GNSRECORD_Data *a,
       != (b->flags & GNUNET_GNSRECORD_RF_RCMP_FLAGS))
   {
     LOG (GNUNET_ERROR_TYPE_DEBUG,
-         "Flags %lu (%lu) != %lu (%lu)\n", a->flags,
+         "Flags %u (%u) != %u (%u)\n", a->flags,
          a->flags & GNUNET_GNSRECORD_RF_RCMP_FLAGS, b->flags,
          b->flags & GNUNET_GNSRECORD_RF_RCMP_FLAGS);
     return GNUNET_NO;
@@ -236,12 +236,12 @@ GNUNET_GNSRECORD_is_expired (const struct GNUNET_GNSRECORD_Data *rd)
  *         key in an encoding suitable for DNS labels.
  */
 const char *
-GNUNET_GNSRECORD_pkey_to_zkey (const struct GNUNET_CRYPTO_EcdsaPublicKey *pkey)
+GNUNET_GNSRECORD_pkey_to_zkey (const struct GNUNET_IDENTITY_PublicKey *pkey)
 {
   static char ret[128];
   char *pkeys;
 
-  pkeys = GNUNET_CRYPTO_ecdsa_public_key_to_string (pkey);
+  pkeys = GNUNET_IDENTITY_public_key_to_string (pkey);
   GNUNET_snprintf (ret,
                    sizeof(ret),
                    "%s",
@@ -262,15 +262,88 @@ GNUNET_GNSRECORD_pkey_to_zkey (const struct GNUNET_CRYPTO_EcdsaPublicKey *pkey)
  */
 int
 GNUNET_GNSRECORD_zkey_to_pkey (const char *zkey,
-                               struct GNUNET_CRYPTO_EcdsaPublicKey *pkey)
+                               struct GNUNET_IDENTITY_PublicKey *pkey)
 {
   if (GNUNET_OK !=
-      GNUNET_CRYPTO_ecdsa_public_key_from_string (zkey,
-                                                  strlen (zkey),
-                                                  pkey))
+      GNUNET_IDENTITY_public_key_from_string (zkey,
+                                              pkey))
     return GNUNET_SYSERR;
   return GNUNET_OK;
 }
 
+
+size_t
+GNUNET_GNSRECORD_block_get_size (const struct GNUNET_GNSRECORD_Block *block)
+{
+  switch (ntohl (block->type))
+  {
+  case GNUNET_GNSRECORD_TYPE_PKEY:
+    return sizeof (uint32_t)   /* zone type */
+           + sizeof (block->ecdsa_block)   /* EcdsaBlock */
+           + ntohl (block->ecdsa_block.purpose.size)   /* Length of signed data */
+           - sizeof (block->ecdsa_block.purpose);   /* Purpose already in EcdsaBlock */
+    break;
+  default:
+    return 0;
+  }
+  return 0;
+}
+
+
+struct GNUNET_TIME_Absolute
+GNUNET_GNSRECORD_block_get_expiration (const struct
+                                       GNUNET_GNSRECORD_Block *block)
+{
+
+  switch (ntohl (block->type))
+  {
+  case GNUNET_GNSRECORD_TYPE_PKEY:
+    return GNUNET_TIME_absolute_ntoh (block->ecdsa_block.expiration_time);
+  default:
+    return GNUNET_TIME_absolute_get_zero_ ();
+  }
+  return GNUNET_TIME_absolute_get_zero_ ();
+
+}
+
+
+enum GNUNET_GenericReturnValue
+GNUNET_GNSRECORD_query_from_block (const struct GNUNET_GNSRECORD_Block *block,
+                                   struct GNUNET_HashCode *query)
+{
+  switch (ntohl (block->type))
+  {
+  case GNUNET_GNSRECORD_TYPE_PKEY:
+    GNUNET_CRYPTO_hash (&block->ecdsa_block.derived_key,
+                        sizeof (block->ecdsa_block.derived_key),
+                        query);
+    return GNUNET_OK;
+  default:
+    return GNUNET_SYSERR;
+  }
+  return GNUNET_SYSERR;
+
+}
+
+enum GNUNET_GenericReturnValue
+GNUNET_GNSRECORD_record_to_identity_key (const struct GNUNET_GNSRECORD_Data *rd,
+                                         struct GNUNET_IDENTITY_PublicKey *key)
+{
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "Got record of type %u\n",
+              rd->record_type);
+  switch (rd->record_type)
+  {
+  case GNUNET_GNSRECORD_TYPE_PKEY:
+    key->type = htonl (rd->record_type);
+    memcpy (&key->ecdsa_key, rd->data, sizeof (key->ecdsa_key));
+    return GNUNET_OK;
+  default:
+    return GNUNET_SYSERR;
+  }
+  return GNUNET_SYSERR;
+
+
+}
 
 /* end of gnsrecord_misc.c */

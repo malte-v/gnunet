@@ -29,7 +29,7 @@
 #define RECLAIM_H
 
 #include "gnunet_common.h"
-
+#include "gnunet_identity_service.h"
 
 GNUNET_NETWORK_STRUCT_BEGIN
 
@@ -62,7 +62,7 @@ struct AttributeStoreMessage
   /**
    * Identity
    */
-  struct GNUNET_CRYPTO_EcdsaPrivateKey identity;
+  struct GNUNET_IDENTITY_PrivateKey identity;
 
   /* followed by the serialized attribute */
 };
@@ -91,7 +91,7 @@ struct AttributeDeleteMessage
   /**
    * Identity
    */
-  struct GNUNET_CRYPTO_EcdsaPrivateKey identity;
+  struct GNUNET_IDENTITY_PrivateKey identity;
 
   /* followed by the serialized attribute */
 };
@@ -151,7 +151,7 @@ struct AttributeResultMessage
   /**
    * The public key of the identity.
    */
-  struct GNUNET_CRYPTO_EcdsaPublicKey identity;
+  struct GNUNET_IDENTITY_PublicKey identity;
 
   /* followed by:
    * serialized attribute data
@@ -186,7 +186,7 @@ struct CredentialResultMessage
   /**
    * The public key of the identity.
    */
-  struct GNUNET_CRYPTO_EcdsaPublicKey identity;
+  struct GNUNET_IDENTITY_PublicKey identity;
 
   /* followed by:
    * serialized credential data
@@ -212,7 +212,7 @@ struct AttributeIterationStartMessage
   /**
    * Identity.
    */
-  struct GNUNET_CRYPTO_EcdsaPrivateKey identity;
+  struct GNUNET_IDENTITY_PrivateKey identity;
 };
 
 
@@ -251,7 +251,7 @@ struct CredentialIterationStartMessage
   /**
    * Identity.
    */
-  struct GNUNET_CRYPTO_EcdsaPrivateKey identity;
+  struct GNUNET_IDENTITY_PrivateKey identity;
 };
 
 
@@ -323,7 +323,7 @@ struct TicketIterationStartMessage
   /**
    * Identity.
    */
-  struct GNUNET_CRYPTO_EcdsaPrivateKey identity;
+  struct GNUNET_IDENTITY_PrivateKey identity;
 };
 
 
@@ -379,12 +379,12 @@ struct IssueTicketMessage
   /**
    * Identity.
    */
-  struct GNUNET_CRYPTO_EcdsaPrivateKey identity;
+  struct GNUNET_IDENTITY_PrivateKey identity;
 
   /**
    * Requesting party.
    */
-  struct GNUNET_CRYPTO_EcdsaPublicKey rp;
+  struct GNUNET_IDENTITY_PublicKey rp;
 
   /**
    * length of serialized attribute list
@@ -412,7 +412,7 @@ struct RevokeTicketMessage
   /**
    * Identity.
    */
-  struct GNUNET_CRYPTO_EcdsaPrivateKey identity;
+  struct GNUNET_IDENTITY_PrivateKey identity;
 
   /**
    * length of serialized attribute list
@@ -493,7 +493,7 @@ struct ConsumeTicketMessage
   /**
    * Identity.
    */
-  struct GNUNET_CRYPTO_EcdsaPrivateKey identity;
+  struct GNUNET_IDENTITY_PrivateKey identity;
 
   /**
    * The ticket to consume
@@ -539,7 +539,7 @@ struct ConsumeTicketResultMessage
   /**
    * The public key of the identity.
    */
-  struct GNUNET_CRYPTO_EcdsaPublicKey identity;
+  struct GNUNET_IDENTITY_PublicKey identity;
 
   /* followed by:
    * serialized attributes data

@@ -26,6 +26,7 @@
 #ifndef GNUNET_SERVICE_GNS_H
 #define GNUNET_SERVICE_GNS_H
 
+#include "gnunet_identity_service.h"
 
 /**
  * Find GNS zone belonging to TLD @a tld.
@@ -36,7 +37,7 @@
  */
 int
 GNS_find_tld (const char *tld_str,
-              struct GNUNET_CRYPTO_EcdsaPublicKey *pkey);
+              struct GNUNET_IDENTITY_PublicKey *pkey);
 
 
 /**

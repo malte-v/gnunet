@@ -1050,7 +1050,7 @@ process_result_with_request (void *cls,
     GNUNET_asprintf (
       &dc->emsg,
       _ (
-        "Internal error or bogus download URI (expected %u bytes at depth %u and offset %llu/%llu, got %u bytes)"),
+        "Internal error or bogus download URI (expected %lu bytes at depth %u and offset %llu/%llu, got %lu bytes)"),
       bs,
       dr->depth,
       (unsigned long long) dr->offset,

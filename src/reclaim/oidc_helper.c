@@ -155,7 +155,7 @@ fix_base64 (char *str)
 }
 
 static json_t*
-generate_userinfo_json(const struct GNUNET_CRYPTO_EcdsaPublicKey *sub_key,
+generate_userinfo_json(const struct GNUNET_IDENTITY_PublicKey *sub_key,
                        const struct GNUNET_RECLAIM_AttributeList *attrs,
                        const struct GNUNET_RECLAIM_PresentationList *presentations)
 {
@@ -180,7 +180,7 @@ generate_userinfo_json(const struct GNUNET_CRYPTO_EcdsaPublicKey *sub_key,
   subject =
     GNUNET_STRINGS_data_to_string_alloc (sub_key,
                                          sizeof(struct
-                                                GNUNET_CRYPTO_EcdsaPublicKey));
+                                                GNUNET_IDENTITY_PublicKey));
   body = json_object ();
   aggr_names = json_object ();
   aggr_sources = json_object ();
@@ -295,7 +295,7 @@ generate_userinfo_json(const struct GNUNET_CRYPTO_EcdsaPublicKey *sub_key,
  * @return Userinfo JSON
  */
 char *
-OIDC_generate_userinfo (const struct GNUNET_CRYPTO_EcdsaPublicKey *sub_key,
+OIDC_generate_userinfo (const struct GNUNET_IDENTITY_PublicKey *sub_key,
                         const struct GNUNET_RECLAIM_AttributeList *attrs,
                         const struct GNUNET_RECLAIM_PresentationList *presentations)
 {
@@ -321,8 +321,8 @@ OIDC_generate_userinfo (const struct GNUNET_CRYPTO_EcdsaPublicKey *sub_key,
  * @return a new base64-encoded JWT string.
  */
 char *
-OIDC_generate_id_token (const struct GNUNET_CRYPTO_EcdsaPublicKey *aud_key,
-                        const struct GNUNET_CRYPTO_EcdsaPublicKey *sub_key,
+OIDC_generate_id_token (const struct GNUNET_IDENTITY_PublicKey *aud_key,
+                        const struct GNUNET_IDENTITY_PublicKey *sub_key,
                         const struct GNUNET_RECLAIM_AttributeList *attrs,
                         const struct GNUNET_RECLAIM_PresentationList *presentations,
                         const struct GNUNET_TIME_Relative *expiration_time,
@@ -356,11 +356,11 @@ OIDC_generate_id_token (const struct GNUNET_CRYPTO_EcdsaPublicKey *aud_key,
   subject =
     GNUNET_STRINGS_data_to_string_alloc (sub_key,
                                          sizeof(struct
-                                                GNUNET_CRYPTO_EcdsaPublicKey));
+                                                GNUNET_IDENTITY_PublicKey));
   audience =
     GNUNET_STRINGS_data_to_string_alloc (aud_key,
                                          sizeof(struct
-                                                GNUNET_CRYPTO_EcdsaPublicKey));
+                                                GNUNET_IDENTITY_PublicKey));
   header = create_jwt_header ();
 
   // aud REQUIRED public key client_id must be there
@@ -438,7 +438,7 @@ OIDC_generate_id_token (const struct GNUNET_CRYPTO_EcdsaPublicKey *aud_key,
  * @return a new authorization code (caller must free)
  */
 char *
-OIDC_build_authz_code (const struct GNUNET_CRYPTO_EcdsaPrivateKey *issuer,
+OIDC_build_authz_code (const struct GNUNET_IDENTITY_PrivateKey *issuer,
                        const struct GNUNET_RECLAIM_Ticket *ticket,
                        const struct GNUNET_RECLAIM_AttributeList *attrs,
                        const struct GNUNET_RECLAIM_PresentationList *presentations,
@@ -544,7 +544,7 @@ OIDC_build_authz_code (const struct GNUNET_CRYPTO_EcdsaPrivateKey *issuer,
   buf_ptr += payload_len;
   // Sign and store signature
   if (GNUNET_SYSERR ==
-      GNUNET_CRYPTO_ecdsa_sign_ (issuer,
+      GNUNET_CRYPTO_ecdsa_sign_ (&issuer->ecdsa_key,
                                  purpose,
                                  (struct GNUNET_CRYPTO_EcdsaSignature *)
                                  buf_ptr))
@@ -576,7 +576,7 @@ OIDC_build_authz_code (const struct GNUNET_CRYPTO_EcdsaPrivateKey *issuer,
  * @return GNUNET_OK if successful, else GNUNET_SYSERR
  */
 int
-OIDC_parse_authz_code (const struct GNUNET_CRYPTO_EcdsaPublicKey *audience,
+OIDC_parse_authz_code (const struct GNUNET_IDENTITY_PublicKey *audience,
                        const char *code,
                        const char *code_verifier,
                        struct GNUNET_RECLAIM_Ticket *ticket,
@@ -687,7 +687,7 @@ OIDC_parse_authz_code (const struct GNUNET_CRYPTO_EcdsaPublicKey *audience,
       GNUNET_CRYPTO_ecdsa_verify_ (GNUNET_SIGNATURE_PURPOSE_RECLAIM_CODE_SIGN,
                                    purpose,
                                    signature,
-                                   &ticket->identity))
+                                   &ticket->identity.ecdsa_key))
   {
     GNUNET_free (code_payload);
     if (NULL != *nonce_str)

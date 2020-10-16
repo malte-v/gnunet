@@ -2010,8 +2010,8 @@ do_transmit (void *cls, size_t size, void *buf)
       GNUNET_assert (pos->message_size <= session->bytes_in_queue);
       session->bytes_in_queue -= pos->message_size;
       LOG (GNUNET_ERROR_TYPE_DEBUG,
-           "Failed to transmit %u byte message to `%s'.\n",
-           pos->message_size,
+           "Failed to transmit %lu byte message to `%s'.\n",
+           (unsigned long) pos->message_size,
            GNUNET_i2s (&session->target));
       ret += pos->message_size;
       GNUNET_CONTAINER_DLL_insert_after (hd, tl, tl, pos);
@@ -2067,9 +2067,9 @@ do_transmit (void *cls, size_t size, void *buf)
     session->bytes_in_queue -= pos->message_size;
     GNUNET_assert (size >= pos->message_size);
     LOG (GNUNET_ERROR_TYPE_DEBUG,
-         "Transmitting message of type %u size %u to peer %s at %s\n",
+         "Transmitting message of type %u size %lu to peer %s at %s\n",
          ntohs (((struct GNUNET_MessageHeader *) pos->msg)->type),
-         pos->message_size,
+         (unsigned long) pos->message_size,
          GNUNET_i2s (&session->target),
          tcp_plugin_address_to_string (session->plugin,
                                        session->address->address,
@@ -2192,8 +2192,8 @@ tcp_plugin_send (void *cls,
   pm->transmit_cont_cls = cont_cls;
 
   LOG (GNUNET_ERROR_TYPE_DEBUG,
-       "Asked to transmit %u bytes to `%s', added message to list.\n",
-       msgbuf_size,
+       "Asked to transmit %lu bytes to `%s', added message to list.\n",
+       (unsigned long) msgbuf_size,
        GNUNET_i2s (&session->target));
 
   if (GNUNET_YES ==

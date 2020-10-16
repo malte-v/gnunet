@@ -28,6 +28,7 @@
 #include "gnunet_rest_lib.h"
 #include "gnunet_json_lib.h"
 #include "gnunet_gnsrecord_lib.h"
+#include "gnunet_gnsrecord_json_lib.h"
 #include "gnunet_gns_service.h"
 #include "microhttpd.h"
 #include <jansson.h>
@@ -264,7 +265,7 @@ handle_gns_response (void *cls,
     return;
   }
 
-  result_obj = GNUNET_JSON_from_gnsrecord (handle->name, rd, rd_count);
+  result_obj = GNUNET_GNSRECORD_JSON_from_gnsrecord (handle->name, rd, rd_count);
 
   result = json_dumps (result_obj, 0);
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Result %s\n", result);

@@ -110,7 +110,7 @@ struct Iterator
   /**
    * Key of the zone we are iterating over.
    */
-  struct GNUNET_CRYPTO_EcdsaPrivateKey identity;
+  struct GNUNET_IDENTITY_PrivateKey identity;
 
   /**
    * Namestore iterator
@@ -266,7 +266,7 @@ struct AttributeDeleteHandle
   /**
    * Identity
    */
-  struct GNUNET_CRYPTO_EcdsaPrivateKey identity;
+  struct GNUNET_IDENTITY_PrivateKey identity;
 
 
   /**
@@ -334,12 +334,12 @@ struct AttributeStoreHandle
   /**
    * Identity
    */
-  struct GNUNET_CRYPTO_EcdsaPrivateKey identity;
+  struct GNUNET_IDENTITY_PrivateKey identity;
 
   /**
    * Identity pubkey
    */
-  struct GNUNET_CRYPTO_EcdsaPublicKey identity_pkey;
+  struct GNUNET_IDENTITY_PublicKey identity_pkey;
 
   /**
    * QueueEntry
@@ -862,7 +862,7 @@ handle_revoke_ticket_message (void *cls, const struct RevokeTicketMessage *rm)
  */
 static void
 consume_result_cb (void *cls,
-                   const struct GNUNET_CRYPTO_EcdsaPublicKey *identity,
+                   const struct GNUNET_IDENTITY_PublicKey *identity,
                    const struct GNUNET_RECLAIM_AttributeList *attrs,
                    const struct GNUNET_RECLAIM_PresentationList *presentations,
                    int32_t success,
@@ -1082,7 +1082,7 @@ handle_attribute_store_message (void *cls,
   ash->r_id = ntohl (sam->id);
   ash->identity = sam->identity;
   ash->exp.rel_value_us = GNUNET_ntohll (sam->exp);
-  GNUNET_CRYPTO_ecdsa_key_get_public (&sam->identity, &ash->identity_pkey);
+  GNUNET_IDENTITY_key_get_public (&sam->identity, &ash->identity_pkey);
 
   GNUNET_SERVICE_client_continue (idp->client);
   ash->client = idp;
@@ -1157,7 +1157,7 @@ cred_error (void *cls)
 */
 static void
 cred_add_cb (void *cls,
-             const struct GNUNET_CRYPTO_EcdsaPrivateKey *zone,
+             const struct GNUNET_IDENTITY_PrivateKey *zone,
              const char *label,
              unsigned int rd_count,
              const struct GNUNET_GNSRECORD_Data *rd)
@@ -1266,7 +1266,7 @@ handle_credential_store_message (void *cls,
   ash->r_id = ntohl (sam->id);
   ash->identity = sam->identity;
   ash->exp.rel_value_us = GNUNET_ntohll (sam->exp);
-  GNUNET_CRYPTO_ecdsa_key_get_public (&sam->identity, &ash->identity_pkey);
+  GNUNET_IDENTITY_key_get_public (&sam->identity, &ash->identity_pkey);
 
   GNUNET_SERVICE_client_continue (idp->client);
   ash->client = idp;
@@ -1311,7 +1311,7 @@ send_delete_response (struct AttributeDeleteHandle *adh, int32_t success)
  */
 static void
 ticket_iter (void *cls,
-             const struct GNUNET_CRYPTO_EcdsaPrivateKey *zone,
+             const struct GNUNET_IDENTITY_PrivateKey *zone,
              const char *label,
              unsigned int rd_count,
              const struct GNUNET_GNSRECORD_Data *rd)
@@ -1739,7 +1739,7 @@ attr_iter_error (void *cls)
  */
 static void
 attr_iter_cb (void *cls,
-              const struct GNUNET_CRYPTO_EcdsaPrivateKey *zone,
+              const struct GNUNET_IDENTITY_PrivateKey *zone,
               const char *label,
               unsigned int rd_count,
               const struct GNUNET_GNSRECORD_Data *rd)
@@ -1764,7 +1764,7 @@ attr_iter_cb (void *cls,
                              GNUNET_MESSAGE_TYPE_RECLAIM_ATTRIBUTE_RESULT);
   arm->id = htonl (ai->request_id);
   arm->attr_len = htons (rd->data_size);
-  GNUNET_CRYPTO_ecdsa_key_get_public (zone, &arm->identity);
+  GNUNET_IDENTITY_key_get_public (zone, &arm->identity);
   data_tmp = (char *) &arm[1];
   GNUNET_memcpy (data_tmp, rd->data, rd->data_size);
   GNUNET_MQ_send (ai->client->mq, env);
@@ -1923,7 +1923,7 @@ cred_iter_error (void *cls)
  */
 static void
 cred_iter_cb (void *cls,
-              const struct GNUNET_CRYPTO_EcdsaPrivateKey *zone,
+              const struct GNUNET_IDENTITY_PrivateKey *zone,
               const char *label,
               unsigned int rd_count,
               const struct GNUNET_GNSRECORD_Data *rd)
@@ -1948,7 +1948,7 @@ cred_iter_cb (void *cls,
                              GNUNET_MESSAGE_TYPE_RECLAIM_CREDENTIAL_RESULT);
   arm->id = htonl (ai->request_id);
   arm->credential_len = htons (rd->data_size);
-  GNUNET_CRYPTO_ecdsa_key_get_public (zone, &arm->identity);
+  GNUNET_IDENTITY_key_get_public (zone, &arm->identity);
   data_tmp = (char *) &arm[1];
   GNUNET_memcpy (data_tmp, rd->data, rd->data_size);
 

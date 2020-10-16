@@ -314,14 +314,14 @@ database_shutdown (struct Plugin *plugin)
 static int
 namestore_sqlite_store_records (void *cls,
                                 const struct
-                                GNUNET_CRYPTO_EcdsaPrivateKey *zone_key,
+                                GNUNET_IDENTITY_PrivateKey *zone_key,
                                 const char *label,
                                 unsigned int rd_count,
                                 const struct GNUNET_GNSRECORD_Data *rd)
 {
   struct Plugin *plugin = cls;
   int n;
-  struct GNUNET_CRYPTO_EcdsaPublicKey pkey;
+  struct GNUNET_IDENTITY_PublicKey pkey;
   uint64_t rvalue;
   ssize_t data_size;
 
@@ -331,7 +331,7 @@ namestore_sqlite_store_records (void *cls,
   for (unsigned int i = 0; i < rd_count; i++)
     if (GNUNET_GNSRECORD_TYPE_PKEY == rd[i].record_type)
     {
-      GNUNET_break (sizeof(struct GNUNET_CRYPTO_EcdsaPublicKey) ==
+      GNUNET_break (sizeof(struct GNUNET_IDENTITY_PublicKey) ==
                     rd[i].data_size);
       GNUNET_memcpy (&pkey,
                      rd[i].data,
@@ -461,7 +461,7 @@ static int
 get_records_and_call_iterator (struct Plugin *plugin,
                                sqlite3_stmt *stmt,
                                const struct
-                               GNUNET_CRYPTO_EcdsaPrivateKey *zone_key,
+                               GNUNET_IDENTITY_PrivateKey *zone_key,
                                uint64_t limit,
                                GNUNET_NAMESTORE_RecordIterator iter,
                                void *iter_cls)
@@ -496,7 +496,7 @@ get_records_and_call_iterator (struct Plugin *plugin,
       size_t data_size;
       void *data;
       char *label;
-      struct GNUNET_CRYPTO_EcdsaPrivateKey zk;
+      struct GNUNET_IDENTITY_PrivateKey zk;
       struct GNUNET_SQ_ResultSpec rs[] = {
         GNUNET_SQ_result_spec_uint64 (&seq),
         GNUNET_SQ_result_spec_uint32 (&record_count),
@@ -578,7 +578,7 @@ get_records_and_call_iterator (struct Plugin *plugin,
 static int
 namestore_sqlite_lookup_records (void *cls,
                                  const struct
-                                 GNUNET_CRYPTO_EcdsaPrivateKey *zone,
+                                 GNUNET_IDENTITY_PrivateKey *zone,
                                  const char *label,
                                  GNUNET_NAMESTORE_RecordIterator iter,
                                  void *iter_cls)
@@ -629,7 +629,7 @@ namestore_sqlite_lookup_records (void *cls,
 static int
 namestore_sqlite_iterate_records (void *cls,
                                   const struct
-                                  GNUNET_CRYPTO_EcdsaPrivateKey *zone,
+                                  GNUNET_IDENTITY_PrivateKey *zone,
                                   uint64_t serial,
                                   uint64_t limit,
                                   GNUNET_NAMESTORE_RecordIterator iter,
@@ -695,9 +695,9 @@ namestore_sqlite_iterate_records (void *cls,
  */
 static int
 namestore_sqlite_zone_to_name (void *cls,
-                               const struct GNUNET_CRYPTO_EcdsaPrivateKey *zone,
+                               const struct GNUNET_IDENTITY_PrivateKey *zone,
                                const struct
-                               GNUNET_CRYPTO_EcdsaPublicKey *value_zone,
+                               GNUNET_IDENTITY_PublicKey *value_zone,
                                GNUNET_NAMESTORE_RecordIterator iter,
                                void *iter_cls)
 {

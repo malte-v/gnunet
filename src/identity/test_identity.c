@@ -253,7 +253,7 @@ success_rename_cont (void *cls, const char *emsg)
  */
 static void
 create_cb (void *cls,
-           const struct GNUNET_CRYPTO_EcdsaPrivateKey *pk,
+           const struct GNUNET_IDENTITY_PrivateKey *pk,
            const char *emsg)
 {
   CHECK (NULL != pk);
@@ -279,7 +279,11 @@ run (void *cls,
   GNUNET_SCHEDULER_add_shutdown (&cleanup, NULL);
   h = GNUNET_IDENTITY_connect (cfg, &notification_cb, NULL);
   CHECK (NULL != h);
-  op = GNUNET_IDENTITY_create (h, "test-id", NULL, &create_cb, NULL);
+  op = GNUNET_IDENTITY_create (h,
+                               "test-id",
+                               NULL,
+                               GNUNET_IDENTITY_TYPE_ECDSA,
+                               &create_cb, NULL);
 }
 
 

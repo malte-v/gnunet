@@ -338,9 +338,9 @@ print_address (void *cls,
   ar->pc = pc;
   ar->expiration = expiration;
   GNUNET_asprintf (&ar->result,
-                   "%s:%u:%u",
+                   "%s:%lu:%u",
                    address->transport_name,
-                   address->address_length,
+                   (unsigned long) address->address_length,
                    address->local_info);
   ar->atsc = GNUNET_TRANSPORT_address_to_string (cfg,
                                                  address,

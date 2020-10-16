@@ -575,7 +575,7 @@ GNUNET_ATS_TEST_logging_write_to_file (struct LoggingHandle *l,
 
         /* Assembling slave string */
         GNUNET_asprintf (&data,
-                         "%llu;%llu;%u;%u;%u;%u;%u;%u;%.3f;%u;%u;%u;%u;%u;%u;%u;%.3f;%.3f\n",
+                         "%llu;%llu;%u;%u;%u;%u;%u;%u;%.3f;%u;%u;%llu;%u;%u;%u;%u;%.3f;%.3f\n",
                          (long long unsigned
                           int) cur_lt->timestamp.abs_value_us,
                          (long long unsigned
@@ -593,7 +593,7 @@ GNUNET_ATS_TEST_logging_write_to_file (struct LoggingHandle *l,
                          (double) plt->app_rtt / 1000,
                          plt->bandwidth_in,
                          plt->bandwidth_out,
-                         plt->ats_delay,
+                         plt->ats_delay.rel_value_us,
                          plt->ats_distance,
                          plt->ats_network_type,
                          plt->ats_utilization_out,

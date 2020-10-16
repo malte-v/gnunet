@@ -90,28 +90,30 @@ run (void *cls,
   struct GNUNET_TIME_Absolute exp_abs = GNUNET_TIME_absolute_get ();
   struct GNUNET_GNSRECORD_Block *rrblock;
   char *bdata;
-  struct GNUNET_CRYPTO_EcdsaPrivateKey id_priv;
-  struct GNUNET_CRYPTO_EcdsaPublicKey id_pub;
-  struct GNUNET_CRYPTO_EcdsaPrivateKey pkey_data_p;
-  struct GNUNET_CRYPTO_EcdsaPublicKey pkey_data;
+  struct GNUNET_IDENTITY_PrivateKey id_priv;
+  struct GNUNET_IDENTITY_PublicKey id_pub;
+  struct GNUNET_IDENTITY_PrivateKey pkey_data_p;
+  struct GNUNET_IDENTITY_PublicKey pkey_data;
   void *data;
   size_t data_size;
   char *rdata;
   size_t rdata_size;
 
-  GNUNET_CRYPTO_ecdsa_key_create (&id_priv);
-  GNUNET_CRYPTO_ecdsa_key_get_public (&id_priv,
-                                      &id_pub);
+  id_priv.type = htonl (GNUNET_GNSRECORD_TYPE_PKEY);
+  GNUNET_CRYPTO_ecdsa_key_create (&id_priv.ecdsa_key);
+  GNUNET_IDENTITY_key_get_public (&id_priv,
+                                  &id_pub);
   fprintf (stdout, "Zone private key (d, little-endian scalar):\n");
-  print_bytes (&id_priv, sizeof(id_priv), 0);
+  print_bytes (&id_priv, GNUNET_IDENTITY_key_get_length (&id_pub), 0); //FIXME length for privkey?
   fprintf (stdout, "\n");
   fprintf (stdout, "Zone public key (zk):\n");
-  print_bytes (&id_pub, sizeof(id_pub), 0);
+  print_bytes (&id_pub, GNUNET_IDENTITY_key_get_length (&id_pub), 0);
   fprintf (stdout, "\n");
 
-  GNUNET_CRYPTO_ecdsa_key_create (&pkey_data_p);
-  GNUNET_CRYPTO_ecdsa_key_get_public (&pkey_data_p,
-                                      &pkey_data);
+  pkey_data_p.type = htonl (GNUNET_GNSRECORD_TYPE_PKEY);
+  GNUNET_CRYPTO_ecdsa_key_create (&pkey_data_p.ecdsa_key);
+  GNUNET_IDENTITY_key_get_public (&pkey_data_p,
+                                  &pkey_data);
   fprintf (stdout,
            "Label: %s\nRRCOUNT: %d\n\n", TEST_RECORD_LABEL, TEST_RRCOUNT);
   memset (rd, 0, sizeof (struct GNUNET_GNSRECORD_Data) * 2);
@@ -147,19 +149,20 @@ run (void *cls,
                                            TEST_RECORD_LABEL,
                                            rd,
                                            TEST_RRCOUNT);
-  size_t bdata_size = ntohl (rrblock->purpose.size)
+  size_t bdata_size = ntohl (rrblock->ecdsa_block.purpose.size)
                       - sizeof(struct GNUNET_CRYPTO_EccSignaturePurpose)
                       - sizeof(struct GNUNET_TIME_AbsoluteNBO);
-  size_t rrblock_size = ntohl (rrblock->purpose.size)
+  size_t ecblock_size = ntohl (rrblock->ecdsa_block.purpose.size)
                         + sizeof(struct GNUNET_CRYPTO_EcdsaPublicKey)
                         + sizeof(struct GNUNET_CRYPTO_EcdsaSignature);
+  size_t block_size = ecblock_size + sizeof (uint32_t);
 
-  bdata = (char*) &rrblock[1];
+  bdata = (char*) &(&rrblock->ecdsa_block)[1];
   fprintf (stdout, "BDATA:\n");
   print_bytes (bdata, bdata_size, 8);
   fprintf (stdout, "\n");
   fprintf (stdout, "RRBLOCK:\n");
-  print_bytes (rrblock, rrblock_size, 8);
+  print_bytes (rrblock, block_size, 8);
   fprintf (stdout, "\n");
 
 }

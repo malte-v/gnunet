@@ -403,7 +403,7 @@ static void
 phone_event_handler (void *cls,
                      enum GNUNET_CONVERSATION_PhoneEventCode code,
                      struct GNUNET_CONVERSATION_Caller *caller,
-                     const struct GNUNET_CRYPTO_EcdsaPublicKey *caller_id)
+                     const struct GNUNET_IDENTITY_PublicKey *caller_id)
 {
   const char *cid;
 
@@ -507,7 +507,7 @@ call_event_handler (void *cls, enum GNUNET_CONVERSATION_CallEventCode code)
 
 static void
 caller_ego_create_cont (void *cls,
-                        const struct GNUNET_CRYPTO_EcdsaPrivateKey *pk,
+                        const struct GNUNET_IDENTITY_PrivateKey *pk,
                         const char *emsg)
 {
   (void) cls;
@@ -536,7 +536,7 @@ identity_cb (void *cls,
              const char *name)
 {
   struct GNUNET_GNSRECORD_Data rd;
-  struct GNUNET_CRYPTO_EcdsaPublicKey pub;
+  struct GNUNET_IDENTITY_PublicKey pub;
 
   (void) cls;
   (void) ctx;
@@ -594,7 +594,7 @@ identity_cb (void *cls,
 
 static void
 phone_ego_create_cont (void *cls,
-                       const struct GNUNET_CRYPTO_EcdsaPrivateKey *pk,
+                       const struct GNUNET_IDENTITY_PrivateKey *pk,
                        const char *emsg)
 {
   (void) cls;
