@@ -427,8 +427,7 @@ regex_find_path (const struct GNUNET_HashCode *key,
 
   LOG (GNUNET_ERROR_TYPE_DEBUG,
        "Accept state found, now searching for paths to %s\n",
-       GNUNET_h2s (key),
-       (unsigned int) ctx->position);
+       GNUNET_h2s (key));
   get_h = GNUNET_DHT_get_start (ctx->info->dht,     /* handle */
                                 GNUNET_BLOCK_TYPE_REGEX_ACCEPT, /* type */
                                 key,     /* key to search */
@@ -534,8 +533,8 @@ regex_result_iterator (void *cls,
     return GNUNET_YES;   // We found an accept state!
   }
   LOG (GNUNET_ERROR_TYPE_DEBUG,
-       "* %u, %u, [%u]\n",
-       ctx->position,
+       "* %lu, %lu, [%u]\n",
+       (unsigned long) ctx->position,
        strlen (ctx->info->description),
        GNUNET_BLOCK_is_accepting (block, result->size));
   regex_next_edge (block, result->size, ctx);
@@ -729,7 +728,7 @@ REGEX_INTERNAL_search (struct GNUNET_DHT_Handle *dht,
        "Initial key for `%s' is %s (based on `%.*s')\n",
        string,
        GNUNET_h2s (&key),
-       size,
+       (int) size,
        string);
   ctx = GNUNET_new (struct RegexSearchContext);
   ctx->position = size;

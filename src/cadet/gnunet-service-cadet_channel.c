@@ -442,7 +442,7 @@ GCCH_2s (const struct CadetChannel *ch)
                    ? "loopback"
                    : GNUNET_i2s (GCP_get_id (GCT_get_destination (ch->t))),
                    GNUNET_h2s (&ch->port),
-                   ch->ctn,
+                   ch->ctn.cn,
                    (NULL == ch->owner)
                    ? 0
                    : ntohl (ch->owner->ccn.channel_of_client),
@@ -1899,10 +1899,10 @@ GCCH_handle_local_data (struct CadetChannel *ch,
   GNUNET_memcpy (&crm->data_message[1], buf, buf_len);
   GNUNET_CONTAINER_DLL_insert_tail (ch->head_sent, ch->tail_sent, crm);
   LOG (GNUNET_ERROR_TYPE_DEBUG,
-       "Sending message %u from local client to %s with %u bytes\n",
+       "Sending message %u from local client to %s with %lu bytes\n",
        ntohl (crm->data_message->mid.mid),
        GCCH_2s (ch),
-       buf_len);
+       (unsigned long) buf_len);
   if (NULL != ch->retry_data_task)
   {
     GNUNET_SCHEDULER_cancel (ch->retry_data_task);
@@ -2044,7 +2044,7 @@ GCCH_debug (struct CadetChannel *ch, enum GNUNET_ErrorType level)
     LOG2 (level, "CHN *** DEBUG NULL CHANNEL ***\n");
     return;
   }
-  LOG2 (level, "CHN %s:%X (%p)\n", GCT_2s (ch->t), ch->ctn, ch);
+  LOG2 (level, "CHN %s:%X (%p)\n", GCT_2s (ch->t), ch->ctn.cn, ch);
   if (NULL != ch->owner)
   {
     LOG2 (level,
@@ -2062,7 +2062,7 @@ GCCH_debug (struct CadetChannel *ch, enum GNUNET_ErrorType level)
           ntohl (ch->dest->ccn.channel_of_client));
   }
   LOG2 (level,
-        "CHN  Message IDs recv: %d (%LLX), send: %d\n",
+        "CHN  Message IDs recv: %d (%llX), send: %d\n",
         ntohl (ch->mid_recv.mid),
         (unsigned long long) ch->mid_futures,
         ntohl (ch->mid_send.mid));

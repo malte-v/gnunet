@@ -630,8 +630,7 @@ create_internal (const struct GNUNET_CONFIGURATION_Handle *cfg,
   else
   {
     LOG (GNUNET_ERROR_TYPE_DEBUG,
-         "Creating new set (lazy copy)\n",
-         op);
+         "Creating new set (lazy copy)\n");
     mqm = GNUNET_MQ_msg (copy_msg,
                          GNUNET_MESSAGE_TYPE_SET_COPY_LAZY_CONNECT);
     copy_msg->cookie = *cookie;
