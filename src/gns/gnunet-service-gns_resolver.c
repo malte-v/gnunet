@@ -1296,7 +1296,7 @@ handle_gns_cname_result (struct GNS_ResolverHandle *rh,
     {
       GNUNET_asprintf (&res,
                        "%.*s",
-                       strlen (cname) - (strlen (tld) + 1),
+                       (int) (strlen (cname) - (strlen (tld) + 1)),
                        cname);
     }
     else
@@ -1305,7 +1305,7 @@ handle_gns_cname_result (struct GNS_ResolverHandle *rh,
                        "%.*s.%.*s",
                        (int) rh->name_resolution_pos,
                        rh->name,
-                       (int) strlen (cname) - (strlen (tld) + 1),
+                       (int) (strlen (cname) - (strlen (tld) + 1)),
                        cname);
     }
     rh->name_resolution_pos = strlen (res);
