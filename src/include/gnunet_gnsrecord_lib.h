@@ -153,6 +153,11 @@ extern "C" {
  */
 #define GNUNET_GNSRECORD_TYPE_RECLAIM_PRESENTATION 65555
 
+/**
+ * Record type for EDKEY delegations.
+ */
+#define GNUNET_GNSRECORD_TYPE_EDKEY GNUNET_IDENTITY_TYPE_EDDSA
+
 
 /**
  * Flags that can be set for a record.

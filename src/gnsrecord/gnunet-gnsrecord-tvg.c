@@ -104,10 +104,10 @@ run (void *cls,
   GNUNET_IDENTITY_key_get_public (&id_priv,
                                   &id_pub);
   fprintf (stdout, "Zone private key (d, little-endian scalar):\n");
-  print_bytes (&id_priv, sizeof(id_priv), 0);
+  print_bytes (&id_priv, GNUNET_IDENTITY_key_get_length (&id_pub), 0); //FIXME length for privkey?
   fprintf (stdout, "\n");
   fprintf (stdout, "Zone public key (zk):\n");
-  print_bytes (&id_pub, sizeof(id_pub), 0);
+  print_bytes (&id_pub, GNUNET_IDENTITY_key_get_length (&id_pub), 0);
   fprintf (stdout, "\n");
 
   pkey_data_p.type = htonl (GNUNET_GNSRECORD_TYPE_PKEY);

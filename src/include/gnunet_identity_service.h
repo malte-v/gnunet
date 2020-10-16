@@ -69,7 +69,7 @@ enum GNUNET_IDENTITY_KeyType
    * EDDSA identity. The value is the same as the EDKEY
    * record type.
    */
-  GNUNET_IDENTITY_TYPE_EDDSA = 65599 // FIXME
+  GNUNET_IDENTITY_TYPE_EDDSA = 65556
 };
 
 /**

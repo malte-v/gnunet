@@ -67,7 +67,7 @@ run (void *cls,
 {
   struct GNUNET_IDENTITY_PrivateKey id_priv;
   struct GNUNET_IDENTITY_PublicKey id_pub;
-  struct GNUNET_REVOCATION_PowP pow;
+  struct GNUNET_REVOCATION_PowP *pow;
   struct GNUNET_REVOCATION_PowCalculationHandle *ph;
   struct GNUNET_TIME_Relative exp;
 
@@ -81,10 +81,10 @@ run (void *cls,
   fprintf (stdout, "Zone public key (zk):\n");
   print_bytes (&id_pub, sizeof(id_pub), 0);
   fprintf (stdout, "\n");
-  memset (&pow, 0, sizeof (pow));
+  pow = GNUNET_malloc (GNUNET_REVOCATION_MAX_PROOF_SIZE);
   GNUNET_REVOCATION_pow_init (&id_priv,
-                              &pow);
-  ph = GNUNET_REVOCATION_pow_start (&pow,
+                              pow);
+  ph = GNUNET_REVOCATION_pow_start (pow,
                                     TEST_EPOCHS,
                                     TEST_DIFFICULTY);
   fprintf (stdout, "Difficulty (%d base difficulty + %d epochs): %d\n\n",
@@ -98,12 +98,12 @@ run (void *cls,
   }
   exp = GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_YEARS,
                                        TEST_EPOCHS);
-  GNUNET_assert (GNUNET_OK == GNUNET_REVOCATION_check_pow (&pow,
+  GNUNET_assert (GNUNET_OK == GNUNET_REVOCATION_check_pow (pow,
                                                            TEST_DIFFICULTY,
                                                            exp));
   fprintf (stdout, "Proof:\n");
-  print_bytes (&pow,
-               sizeof (pow),
+  print_bytes (pow,
+               GNUNET_REVOCATION_proof_get_size (pow),
                8);
 }
 
