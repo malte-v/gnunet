@@ -745,10 +745,10 @@ http_server_plugin_send (void *cls,
   char *stat_txt;
 
   LOG (GNUNET_ERROR_TYPE_DEBUG,
-       "Session %p/request %p: Sending message with %u to peer `%s'\n",
+       "Session %p/request %p: Sending message with %lu to peer `%s'\n",
        session,
        session->server_send,
-       msgbuf_size,
+       (unsigned long) msgbuf_size,
        GNUNET_i2s (&session->target));
 
   /* create new message and schedule */
@@ -1270,8 +1270,8 @@ server_parse_url (struct HTTP_Server_Plugin *plugin,
   if (hash_length != plugin->peer_id_length)
   {
     LOG (GNUNET_ERROR_TYPE_DEBUG,
-         "URL target is %u bytes, expecting %u\n",
-         hash_length, plugin->peer_id_length);
+         "URL target is %lu bytes, expecting %u\n",
+         (unsigned long) hash_length, plugin->peer_id_length);
     return GNUNET_SYSERR;
   }
   if (GNUNET_OK !=
@@ -1616,8 +1616,8 @@ server_send_callback (void *cls,
   {
     sc->connected = GNUNET_YES;
     LOG (GNUNET_ERROR_TYPE_DEBUG,
-         "Sent %u bytes to peer `%s' with session %p \n",
-         bytes_read,
+         "Sent %lu bytes to peer `%s' with session %p \n",
+         (unsigned long) bytes_read,
          GNUNET_i2s (&s->target),
          s);
     GNUNET_asprintf (&stat_txt,
@@ -1761,14 +1761,14 @@ server_access_cb (void *cls,
 
   LOG (GNUNET_ERROR_TYPE_DEBUG,
        _ (
-         "Access from connection %p (%u of %u) for `%s' `%s' url `%s' with upload data size %u\n"),
+         "Access from connection %p (%u of %u) for `%s' `%s' url `%s' with upload data size %lu\n"),
        sc,
        plugin->cur_request,
        plugin->max_request,
        method,
        version,
        url,
-       (*upload_data_size));
+       (unsigned long) (*upload_data_size));
   if (NULL == sc)
   {
     /* CORS pre-flight request */
@@ -1868,19 +1868,19 @@ server_access_cb (void *cls,
 
       /* (*upload_data_size > 0) for every segment received */
       LOG (GNUNET_ERROR_TYPE_DEBUG,
-           "Session %p / Connection %p: Peer `%s' PUT on address `%s' received %u bytes\n",
+           "Session %p / Connection %p: Peer `%s' PUT on address `%s' received %lu bytes\n",
            s, sc,
            GNUNET_i2s (&s->target),
            http_common_plugin_address_to_string (plugin->protocol,
                                                  s->address->address,
                                                  s->address->address_length),
-           *upload_data_size);
+           (unsigned long) *upload_data_size);
       delay = GNUNET_TIME_absolute_get_remaining (s->next_receive);
       if (0 == delay.rel_value_us)
       {
         LOG (GNUNET_ERROR_TYPE_DEBUG,
-             "PUT with %u bytes forwarded to MST\n",
-             *upload_data_size);
+             "PUT with %lu bytes forwarded to MST\n",
+             (unsigned long) *upload_data_size);
         if (s->msg_tk == NULL)
         {
           s->msg_tk = GNUNET_MST_create (&server_receive_mst_cb,

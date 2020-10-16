@@ -1089,7 +1089,7 @@ gen_topo_from_file (struct TopologyContext *tc,
       if (tc->num_peers <= peer_id)
       {
         LOG (GNUNET_ERROR_TYPE_ERROR,
-             _ ("Topology file needs more peers than given ones\n"), filename);
+             _ ("Topology file needs more peers than given ones\n"));
         goto _exit;
       }
       state = OTHER_PEER_INDEX;
@@ -1114,7 +1114,7 @@ gen_topo_from_file (struct TopologyContext *tc,
       if (tc->num_peers <= other_peer_id)
       {
         LOG (GNUNET_ERROR_TYPE_ERROR,
-             _ ("Topology file needs more peers than given ones\n"), filename);
+             _ ("Topology file needs more peers than given ones\n"));
         goto _exit;
       }
       if (peer_id != other_peer_id)
@@ -1150,7 +1150,7 @@ gen_topo_from_file (struct TopologyContext *tc,
       }
       else
         LOG (GNUNET_ERROR_TYPE_WARNING,
-             _ ("Ignoring to connect peer %u to peer %u\n"),
+             _ ("Ignoring to connect peer %lu to peer %lu\n"),
              peer_id,
              other_peer_id);
       while (('\n' != data[offset]) && ('|' != data[offset]) && (offset < fs))

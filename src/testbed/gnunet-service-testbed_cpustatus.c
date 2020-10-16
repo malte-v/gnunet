@@ -608,7 +608,7 @@ GST_stats_init (const struct GNUNET_CONFIGURATION_Handle *cfg)
     return;
   }
   fn = NULL;
-  (void) GNUNET_asprintf (&fn, "%s/%.*s-%jd.dat", stats_dir, len,
+  (void) GNUNET_asprintf (&fn, "%s/%.*s-%jd.dat", stats_dir, (int)len,
                           hostname, (intmax_t) getpid ());
   GNUNET_free (stats_dir);
   GNUNET_free (hostname);

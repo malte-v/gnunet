@@ -1433,7 +1433,7 @@ LEGACY_SERVICE_run (int argc,
   {
     clock_offset = skew_offset - skew_variance;
     GNUNET_TIME_set_offset (clock_offset);
-    LOG (GNUNET_ERROR_TYPE_DEBUG, "Skewing clock by %dll ms\n", clock_offset);
+    LOG (GNUNET_ERROR_TYPE_DEBUG, "Skewing clock by %lld ms\n", clock_offset);
   }
   /* actually run service */
   err = 0;

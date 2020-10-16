@@ -195,7 +195,7 @@ block_plugin_dht_get_key (void *cls,
   {
     GNUNET_log_from (GNUNET_ERROR_TYPE_ERROR,
                      "block-dht",
-                     _ ("Size mismatch for block\n"),
+                     _ ("Size mismatch for block with type %u\n"),
                      GNUNET_BLOCK_TYPE_DHT_HELLO);
     return GNUNET_NO;
   }

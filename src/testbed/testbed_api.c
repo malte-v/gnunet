@@ -448,7 +448,7 @@ handle_opsuccess (
   uint64_t op_id;
 
   op_id = GNUNET_ntohll (msg->operation_id);
-  LOG_DEBUG ("Operation %lu successful\n", op_id);
+  LOG_DEBUG ("Operation %llu successful\n", op_id);
   if (NULL == (opc = find_opc (c, op_id)))
   {
     LOG_DEBUG ("Operation not found\n");
