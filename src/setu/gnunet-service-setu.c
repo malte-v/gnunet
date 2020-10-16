@@ -2787,8 +2787,6 @@ check_incoming_msg (void *cls,
  *
  * @param cls the operation state
  * @param msg the received message
- * @return #GNUNET_OK if the channel should be kept alive,
- *         #GNUNET_SYSERR to destroy the channel
  */
 static void
 handle_incoming_msg (void *cls,
