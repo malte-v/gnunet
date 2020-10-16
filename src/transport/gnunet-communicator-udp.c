@@ -134,7 +134,7 @@
  * sense. Might make sense to adapt to RTT if we had
  * a good measurement...
  */
-#define MAX_SECRETS 128
+#define MAX_SECRETS 128000
 
 /**
  * How often do we rekey based on number of bytes transmitted?
@@ -671,6 +671,11 @@ struct BroadcastInterface
 };
 
 /**
+   * Timeout for this receiver address.
+   */
+struct GNUNET_TIME_Absolute *rekey_timeout;
+
+/**
  * Shared secret we finished the last kce working queue for.
  */
 struct SharedSecret *ss_finished;
@@ -953,11 +958,19 @@ kce_generate (struct SharedSecret *ss, uint32_t seq)
  * @param ss shared secret to destroy
  */
 static void
-secret_destroy (struct SharedSecret *ss)
+secret_destroy (struct SharedSecret *ss, int withoutKce)
 {
   struct SenderAddress *sender;
   struct ReceiverAddress *receiver;
   struct KeyCacheEntry *kce;
+
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "secret destroy %u %u\n",
+              withoutKce,
+              ss->sequence_allowed);
+
+  if (withoutKce && (ss->sequence_allowed > 0))
+    return;
 
   if (NULL != (sender = ss->sender))
   {
@@ -1319,8 +1332,11 @@ handle_ack (void *cls, const struct GNUNET_PeerIdentity *pid, void *value)
 {
   const struct UDPAck *ack = cls;
   struct ReceiverAddress *receiver = value;
+  struct SharedSecret *pos;
+
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "in handle ack\n");
+  struct SharedSecret *ss_to_destroy;
 
   (void) pid;
   for (struct SharedSecret *ss = receiver->ss_head; NULL != ss; ss = ss->next)
@@ -1355,6 +1371,14 @@ handle_ack (void *cls, const struct GNUNET_PeerIdentity *pid, void *value)
         /* move ss to head to avoid discarding it anytime soon! */
         GNUNET_CONTAINER_DLL_remove (receiver->ss_head, receiver->ss_tail, ss);
         GNUNET_CONTAINER_DLL_insert (receiver->ss_head, receiver->ss_tail, ss);
+        pos = receiver->ss_head;
+        while ( NULL != pos)
+        {
+          ss_to_destroy = pos;
+          pos = pos->next;
+
+          secret_destroy (ss_to_destroy, GNUNET_YES);
+        }
       }
 
       // Uncomment this for alternativ 2 of backchannel functionality
@@ -1465,6 +1489,9 @@ kce_generate_cb (void *cls)
 static void
 consider_ss_ack (struct SharedSecret *ss, int initial)
 {
+  struct SharedSecret *ss_to_destroy;
+  struct SharedSecret *pos;
+
   GNUNET_assert (NULL != ss->sender);
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Considering SS UDPAck %s\n",
@@ -1508,9 +1535,18 @@ consider_ss_ack (struct SharedSecret *ss, int initial)
                                           &ss_finished->sender->target,
                                           COMMUNICATOR_ADDRESS_PREFIX,
                                           &ack.header);
+    pos = ss->sender->ss_head;
+    while ( NULL != pos)
+    {
+      ss_to_destroy = pos;
+      pos = pos->next;
+      secret_destroy (ss_to_destroy, GNUNET_YES);
+    }
     kce_task = NULL;
   }
-  else if ((NULL == kce_task) && (KCN_THRESHOLD > ss->sender->acks_available))
+  else if (((NULL == kce_task) && (KCN_THRESHOLD >
+                                   ss->sender->acks_available)) ||
+           (ss->sender->num_secrets > MAX_SECRETS) )
   {
 
     // kce_generate (ss, ++ss->sequence_allowed);
@@ -2102,6 +2138,19 @@ mq_send_kx (struct GNUNET_MQ_Handle *mq,
   size_t dpos;
   gcry_cipher_hd_t out_cipher;
   struct SharedSecret *ss;
+  struct SharedSecret *ss_to_destroy;
+  struct SharedSecret *pos;
+
+  if (receiver->num_secrets > MAX_SECRETS)
+  {
+    pos = receiver->ss_head;
+    while ( NULL != pos)
+    {
+      ss_to_destroy = pos;
+      pos = pos->next;
+      secret_destroy (ss_to_destroy, GNUNET_YES);
+    }
+  }
 
 
   GNUNET_assert (mq == receiver->kx_mq);
@@ -2179,6 +2228,8 @@ mq_send_d (struct GNUNET_MQ_Handle *mq,
 {
   struct ReceiverAddress *receiver = impl_state;
   uint16_t msize = ntohs (msg->size);
+  struct GNUNET_TIME_Relative rt;
+  struct SharedSecret *pos;
 
   GNUNET_assert (mq == receiver->d_mq);
   if ((msize > receiver->d_mtu) ||
@@ -2244,6 +2295,32 @@ mq_send_d (struct GNUNET_MQ_Handle *mq,
       GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                   "No more acks\n");
     }
+
+    /* (NULL == rekey_timeout)
+      rekey_timeout = GNUNET_TIME_relative_to_absolute (REKEY_TIME_INTERVAL);
+    else
+    {
+      rt = GNUNET_TIME_absolute_get_remaining (rekey_timeout);
+      if (0 == rt.rel_value_us)
+      {
+        rekey_timeout = NULL;
+        pos = receiver->ss_head;
+        while ( NULL != pos)
+        {
+          ss_to_destroy = pos;
+          pos = pos->next;
+          secret_destroy (ss_to_destroy, GNUNET_NO);
+        }
+        if (0 != receiver->acks_available)
+          GNUNET_TRANSPORT_communicator_mq_update (ch,
+                                                   receiver->d_qh,
+                                                   // TODO We can not do this. But how can we signal this queue is not able to handle a message. Test code interprets q-len as additional length.
+                                                   -receiver->acks_available,
+                                                   1);
+      }
+      }*/
+
+
     return;
   }
 }
