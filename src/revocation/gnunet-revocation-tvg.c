@@ -76,10 +76,10 @@ run (void *cls,
   GNUNET_IDENTITY_key_get_public (&id_priv,
                                   &id_pub);
   fprintf (stdout, "Zone private key (d, little-endian scalar):\n");
-  print_bytes (&id_priv, sizeof(id_priv), 0);
+  print_bytes (&id_priv, sizeof(id_priv), 8);
   fprintf (stdout, "\n");
   fprintf (stdout, "Zone public key (zk):\n");
-  print_bytes (&id_pub, sizeof(id_pub), 0);
+  print_bytes (&id_pub, sizeof(id_pub), 8);
   fprintf (stdout, "\n");
   pow = GNUNET_malloc (GNUNET_REVOCATION_MAX_PROOF_SIZE);
   GNUNET_REVOCATION_pow_init (&id_priv,
