@@ -147,7 +147,8 @@ GNUNET_buffer_write_path (struct GNUNET_Buffer *buf, const char *str);
  * @param ... format arguments
  */
 void
-GNUNET_buffer_write_fstr (struct GNUNET_Buffer *buf, const char *fmt, ...);
+GNUNET_buffer_write_fstr (struct GNUNET_Buffer *buf, const char *fmt, ...)
+__attribute__ ((format (printf, 2, 3)));
 
 
 /**
