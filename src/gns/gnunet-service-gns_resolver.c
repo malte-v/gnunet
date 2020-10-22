@@ -1699,8 +1699,10 @@ recursive_pkey_resolution (struct GNS_ResolverHandle *rh,
   struct GNUNET_IDENTITY_PublicKey auth;
 
   /* delegation to another zone */
-  if (GNUNET_OK != GNUNET_GNSRECORD_record_to_identity_key (rd,
-                                                            &auth))
+  if (GNUNET_OK != GNUNET_GNSRECORD_identity_from_data (rd->data,
+                                                        rd->data_size,
+                                                        rd->record_type,
+                                                        &auth))
   {
     GNUNET_break_op (0);
     fail_resolution (rh);
@@ -1711,8 +1713,6 @@ recursive_pkey_resolution (struct GNS_ResolverHandle *rh,
   ac->rh = rh;
   ac->gns_authority = GNUNET_YES;
   ac->authority_info.gns_authority = auth;
-  GNUNET_GNSRECORD_record_to_identity_key (rd,
-                                           &ac->authority_info.gns_authority);
   ac->label = resolver_lookup_get_next_label (rh);
   /* add AC to tail */
   GNUNET_CONTAINER_DLL_insert_tail (rh->ac_head,
@@ -2258,14 +2258,25 @@ handle_gns_resolution_result (void *cls,
         break;
 
       case GNUNET_GNSRECORD_TYPE_PKEY:
+      case GNUNET_GNSRECORD_TYPE_EDKEY:
         {
-          if (rd[i].data_size != sizeof(struct GNUNET_CRYPTO_EcdsaPublicKey))
+          struct GNUNET_IDENTITY_PublicKey pubkey;
+          if (rd[i].data_size < sizeof(uint32_t))
+          {
+            GNUNET_break_op (0);
+            break;
+          }
+          if (GNUNET_OK !=
+              GNUNET_GNSRECORD_identity_from_data (rd[i].data,
+                                                   rd[i].data_size,
+                                                   rd[i].record_type,
+                                                   &pubkey))
           {
             GNUNET_break_op (0);
             break;
           }
           rd_off++;
-          if (GNUNET_GNSRECORD_TYPE_PKEY != rh->record_type)
+          if (rd[i].record_type != rh->record_type)
           {
             /* try to resolve "@" */
             struct AuthorityChain *ac;
@@ -2273,9 +2284,7 @@ handle_gns_resolution_result (void *cls,
             ac = GNUNET_new (struct AuthorityChain);
             ac->rh = rh;
             ac->gns_authority = GNUNET_YES;
-            GNUNET_GNSRECORD_record_to_identity_key (&rd[i],
-                                                     &ac->authority_info.
-                                                     gns_authority);
+            ac->authority_info.gns_authority = pubkey;
             ac->label = GNUNET_strdup (GNUNET_GNS_EMPTY_LABEL_AT);
             GNUNET_CONTAINER_DLL_insert_tail (rh->ac_head,
                                               rh->ac_tail,
@@ -2365,6 +2374,7 @@ handle_gns_resolution_result (void *cls,
     return;
 
   case GNUNET_GNSRECORD_TYPE_PKEY:
+  case GNUNET_GNSRECORD_TYPE_EDKEY:
     GNUNET_break_op (1 == rd_count);  /* PKEY should be unique */
     recursive_pkey_resolution (rh,
                                &rd[0]);

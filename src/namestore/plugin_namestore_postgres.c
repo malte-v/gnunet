@@ -195,13 +195,14 @@ namestore_postgres_store_records (void *cls,
           0,
           sizeof(pkey));
   for (unsigned int i = 0; i < rd_count; i++)
-    if (GNUNET_GNSRECORD_TYPE_PKEY == rd[i].record_type)
+    if (GNUNET_YES ==
+        GNUNET_GNSRECORD_is_zonekey_type (rd[i].record_type))
     {
-      GNUNET_break (sizeof(struct GNUNET_IDENTITY_PublicKey) ==
-                    rd[i].data_size);
-      GNUNET_memcpy (&pkey,
-                     rd[i].data,
-                     rd[i].data_size);
+      GNUNET_break (GNUNET_OK ==
+                    GNUNET_GNSRECORD_identity_from_data (rd[i].data,
+                                                         rd[i].data_size,
+                                                         rd[i].record_type,
+                                                         &pkey));
       break;
     }
   rvalue = GNUNET_CRYPTO_random_u64 (GNUNET_CRYPTO_QUALITY_WEAK,

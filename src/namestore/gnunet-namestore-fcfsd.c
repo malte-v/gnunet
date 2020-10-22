@@ -349,7 +349,8 @@ iterate_cb (void *cls,
     return;
   }
 
-  if (GNUNET_GNSRECORD_TYPE_PKEY != rd->record_type)
+  if ((GNUNET_GNSRECORD_TYPE_PKEY != rd->record_type) &&
+      (GNUNET_GNSRECORD_TYPE_EDKEY != rd->record_type))
   {
     GNUNET_NAMESTORE_zone_iterator_next (zr->list_it,
                                          1);
@@ -621,6 +622,7 @@ zone_to_name_cb (void *cls,
 {
   struct Request *request = cls;
   struct GNUNET_GNSRECORD_Data r;
+  char *rdata;
 
   (void) rd;
   (void) zone_key;
@@ -635,10 +637,21 @@ zone_to_name_cb (void *cls,
     run_httpd_now ();
     return;
   }
-  r.data = &request->pub;
-  r.data_size = sizeof(request->pub);
+  if (GNUNET_OK != GNUNET_GNSRECORD_data_from_identity (&request->pub,
+                                                        &rdata,
+                                                        &r.data_size,
+                                                        &r.record_type))
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_INFO,
+                _ ("Error creating record data.\n"));
+    request->phase = RP_FAIL;
+    MHD_resume_connection (request->con);
+    run_httpd_now ();
+    return;
+  }
+
+  r.data = rdata;
   r.expiration_time = UINT64_MAX;
-  r.record_type = GNUNET_GNSRECORD_TYPE_PKEY;
   r.flags = GNUNET_GNSRECORD_RF_NONE;
   request->qe = GNUNET_NAMESTORE_records_store (ns,
                                                 &fcfs_zone_pkey,
@@ -646,6 +659,7 @@ zone_to_name_cb (void *cls,
                                                 1, &r,
                                                 &put_continuation,
                                                 request);
+  GNUNET_free (rdata);
 }
 
 

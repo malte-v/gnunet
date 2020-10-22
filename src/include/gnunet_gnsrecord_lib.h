@@ -686,16 +686,48 @@ GNUNET_GNSRECORD_query_from_block (const struct GNUNET_GNSRECORD_Block *block,
 
 
 /**
- * Build a #GNUNET_GNSRECORD_PublicKey from a
- * zone delegation resource record set.
+ * Build a #GNUNET_GNSRECORD_PublicKey from
+ * zone delegation resource record data.
  *
- * @param the resource record set. MUST be a delegation record.
- * @param key where to write the identtiy key.
- * @return GNUNET_SYSERR on error or if the zone is not a delegation zone.
+ * @param data the record data-
+ * @param data_size the data size.
+ * @param type the record type
+ * @param key the identity key to store the data in (must be allocated).
+ * @return GNUNET_OK if successful.
  */
 enum GNUNET_GenericReturnValue
-GNUNET_GNSRECORD_record_to_identity_key (const struct GNUNET_GNSRECORD_Data *rd,
-                                         struct GNUNET_IDENTITY_PublicKey *key);
+GNUNET_GNSRECORD_identity_from_data (const char *data,
+                                     size_t data_size,
+                                     uint32_t type,
+                                     struct GNUNET_IDENTITY_PublicKey *key);
+
+
+/**
+ * Create record data and size from an identity key.
+ *
+ * @param key the identity key to use.
+ * @param data the record data (will be allocated)
+ * @param data_size the allocated data size.
+ * @param type the resulting record type
+ * @return GNUNET_OK if successful.
+ */
+enum GNUNET_GenericReturnValue
+GNUNET_GNSRECORD_data_from_identity (const struct GNUNET_IDENTITY_PublicKey *key,
+                                     char **data,
+                                     size_t *data_size,
+                                     uint32_t *type);
+
+
+/**
+ * Check if this type is one of the supported GNS zone
+ * types.
+ *
+ * @param type the type to check
+ * @return GNUNET_YES if it is one of the supported types.
+ */
+enum GNUNET_GenericReturnValue
+GNUNET_GNSRECORD_is_zonekey_type (uint32_t type);
+
 
 #if 0 /* keep Emacsens' auto-indent happy */
 {

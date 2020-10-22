@@ -272,6 +272,51 @@ GNUNET_GNSRECORD_zkey_to_pkey (const char *zkey,
 }
 
 
+enum GNUNET_GenericReturnValue
+GNUNET_GNSRECORD_identity_from_data (const char *data,
+                                     size_t data_size,
+                                     uint32_t type,
+                                     struct GNUNET_IDENTITY_PublicKey *key)
+{
+  if (GNUNET_NO == GNUNET_GNSRECORD_is_zonekey_type (type))
+    return GNUNET_SYSERR;
+  if (data_size > sizeof (struct GNUNET_IDENTITY_PublicKey))
+    return GNUNET_SYSERR;
+  key->type = type;
+  memcpy (key, data, data_size);
+  return GNUNET_OK;
+}
+
+enum GNUNET_GenericReturnValue
+GNUNET_GNSRECORD_data_from_identity (const struct
+                                     GNUNET_IDENTITY_PublicKey *key,
+                                     char **data,
+                                     size_t *data_size,
+                                     uint32_t *type)
+{
+  *type = key->type;
+  *data_size = GNUNET_IDENTITY_key_get_length (key);
+  if (0 == *data_size)
+    return GNUNET_SYSERR;
+  *data = GNUNET_malloc (*data_size);
+  memcpy (*data, key, *data_size);
+  return GNUNET_OK;
+}
+
+
+enum GNUNET_GenericReturnValue
+GNUNET_GNSRECORD_is_zonekey_type (uint32_t type)
+{
+  switch (type)
+  {
+    case GNUNET_GNSRECORD_TYPE_PKEY:
+    case GNUNET_GNSRECORD_TYPE_EDKEY:
+      return GNUNET_YES;
+    default:
+      return GNUNET_NO;
+  }
+}
+
 size_t
 GNUNET_GNSRECORD_block_get_size (const struct GNUNET_GNSRECORD_Block *block)
 {
@@ -325,6 +370,7 @@ GNUNET_GNSRECORD_query_from_block (const struct GNUNET_GNSRECORD_Block *block,
 
 }
 
+
 enum GNUNET_GenericReturnValue
 GNUNET_GNSRECORD_record_to_identity_key (const struct GNUNET_GNSRECORD_Data *rd,
                                          struct GNUNET_IDENTITY_PublicKey *key)
@@ -345,5 +391,6 @@ GNUNET_GNSRECORD_record_to_identity_key (const struct GNUNET_GNSRECORD_Data *rd,
 
 
 }
+
 
 /* end of gnsrecord_misc.c */

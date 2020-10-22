@@ -168,12 +168,17 @@ check_pkey (unsigned int rd_len, const struct GNUNET_GNSRECORD_Data *rd,
             char *pk, int *found_rec)
 {
   int i;
+  struct GNUNET_IDENTITY_PublicKey pubkey;
 
   for (i = 0; i < rd_len; i++)
   {
     char *s;
-    if ((GNUNET_GNSRECORD_TYPE_PKEY != rd[i].record_type) ||
-        (rd[i].data_size != sizeof(struct GNUNET_CRYPTO_EcdsaPublicKey)) )
+    if (sizeof (uint32_t) > rd[i].data_size)
+      continue;
+    if (GNUNET_OK != GNUNET_GNSRECORD_identity_from_data (rd[i].data,
+                                                          rd[i].data_size,
+                                                          rd[i].record_type,
+                                                          &pubkey))
       continue;
     s = GNUNET_GNSRECORD_value_to_string (rd[i].record_type,
                                           rd[i].data,

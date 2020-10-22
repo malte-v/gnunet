@@ -70,16 +70,24 @@ run (void *cls,
   struct GNUNET_REVOCATION_PowP *pow;
   struct GNUNET_REVOCATION_PowCalculationHandle *ph;
   struct GNUNET_TIME_Relative exp;
+  char ztld[128];
 
   id_priv.type = htonl (GNUNET_IDENTITY_TYPE_ECDSA);
   GNUNET_CRYPTO_ecdsa_key_create (&id_priv.ecdsa_key);
   GNUNET_IDENTITY_key_get_public (&id_priv,
                                   &id_pub);
-  fprintf (stdout, "Zone private key (d, little-endian scalar):\n");
+  GNUNET_STRINGS_data_to_string (&id_pub,
+                                 GNUNET_IDENTITY_key_get_length (&id_pub),
+                                 ztld,
+                                 sizeof (ztld));
+  fprintf (stdout, "Zone private key (d, little-endian scalar, with ztype prepended):\n");
   print_bytes (&id_priv, sizeof(id_priv), 8);
   fprintf (stdout, "\n");
-  fprintf (stdout, "Zone public key (zk):\n");
-  print_bytes (&id_pub, sizeof(id_pub), 8);
+  fprintf (stdout, "Zone identifier (zid):\n");
+  print_bytes (&id_pub, GNUNET_IDENTITY_key_get_length (&id_pub), 8);
+  fprintf (stdout, "\n");
+  fprintf (stdout, "Encoded zone identifier (zkl = zTLD):\n");
+  fprintf (stdout, "%s\n", ztld);
   fprintf (stdout, "\n");
   pow = GNUNET_malloc (GNUNET_REVOCATION_MAX_PROOF_SIZE);
   GNUNET_REVOCATION_pow_init (&id_priv,

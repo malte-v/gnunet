@@ -98,16 +98,24 @@ run (void *cls,
   size_t data_size;
   char *rdata;
   size_t rdata_size;
+  char ztld[128];
 
   id_priv.type = htonl (GNUNET_GNSRECORD_TYPE_PKEY);
   GNUNET_CRYPTO_ecdsa_key_create (&id_priv.ecdsa_key);
   GNUNET_IDENTITY_key_get_public (&id_priv,
                                   &id_pub);
-  fprintf (stdout, "Zone private key (d, little-endian scalar):\n");
+  fprintf (stdout, "Zone private key (d, little-endian, with ztype prepended):\n");
   print_bytes (&id_priv, GNUNET_IDENTITY_key_get_length (&id_pub), 8); //FIXME length for privkey?
   fprintf (stdout, "\n");
-  fprintf (stdout, "Zone public key (zk):\n");
+  fprintf (stdout, "Zone identifier (zid):\n");
   print_bytes (&id_pub, GNUNET_IDENTITY_key_get_length (&id_pub), 8);
+  GNUNET_STRINGS_data_to_string (&id_pub,
+                                 GNUNET_IDENTITY_key_get_length (&id_pub),
+                                 ztld,
+                                 sizeof (ztld));
+  fprintf (stdout, "\n");
+  fprintf (stdout, "Encoded zone identifier (zkl = zTLD):\n");
+  fprintf (stdout, "%s\n", ztld);
   fprintf (stdout, "\n");
 
   pkey_data_p.type = htonl (GNUNET_GNSRECORD_TYPE_PKEY);

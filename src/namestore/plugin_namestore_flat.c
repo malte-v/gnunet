@@ -698,11 +698,14 @@ zone_to_name (void *cls,
 
   for (unsigned int i = 0; i < entry->record_count; i++)
   {
-    if (GNUNET_GNSRECORD_TYPE_PKEY != entry->record_data[i].record_type)
+    if (GNUNET_NO ==
+        GNUNET_GNSRECORD_is_zonekey_type (entry->record_data[i].record_type))
+      continue;
+    if (ztn->value_zone->type != entry->record_data[i].record_type)
       continue;
     if (0 == memcmp (ztn->value_zone,
                      entry->record_data[i].data,
-                     sizeof(struct GNUNET_IDENTITY_PublicKey)))
+                     entry->record_data[i].data_size))
     {
       ztn->iter (ztn->iter_cls,
                  i + 1,    /* zero is illegal! */

@@ -661,11 +661,11 @@ get_existing_record (void *cls,
       return;
 
     case GNUNET_GNSRECORD_TYPE_PKEY:
+    case GNUNET_GNSRECORD_TYPE_EDKEY:
       fprintf (
         stderr,
         _ (
-          "A %s record exists already under `%s', no other records can be added.\n"),
-        "PKEY",
+          "A zone key record exists already under `%s', no other records can be added.\n"),
         rec_name);
       ret = 1;
       test_finished ();
@@ -703,13 +703,13 @@ get_existing_record (void *cls,
     break;
 
   case GNUNET_GNSRECORD_TYPE_PKEY:
+  case GNUNET_GNSRECORD_TYPE_EDKEY:
     if (0 != rd_count)
     {
       fprintf (stderr,
                _ (
-                 "Records already exist under `%s', cannot add `%s' record.\n"),
-               rec_name,
-               "PKEY");
+                 "Records already exist under `%s', cannot add record.\n"),
+               rec_name);
       ret = 1;
       test_finished ();
       return;
