@@ -739,7 +739,8 @@ GNUNET_STRINGS_relative_time_to_string (struct GNUNET_TIME_Relative delta,
       }
     }
   }
-  GNUNET_snprintf (buf, sizeof(buf), "%llu %s", dval, unit);
+  GNUNET_snprintf (buf, sizeof(buf), "%llu %s",
+                   (unsigned long long) dval, unit);
   return buf;
 }
 

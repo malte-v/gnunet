@@ -472,7 +472,7 @@ handle_statistics_value (void *cls,
   LOG (GNUNET_ERROR_TYPE_DEBUG,
        "Received valid statistic on `%s:%s': %llu\n",
        service, name,
-       GNUNET_ntohll (smsg->value));
+       (unsigned long long) GNUNET_ntohll (smsg->value));
   if (GNUNET_OK !=
       h->current->proc (h->current->cls,
                         service,
