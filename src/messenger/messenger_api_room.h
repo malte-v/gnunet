@@ -1,6 +1,6 @@
 /*
    This file is part of GNUnet.
-   Copyright (C) 2020 GNUnet e.V.
+   Copyright (C) 2020--2021 GNUnet e.V.
 
    GNUnet is free software: you can redistribute it and/or modify it
    under the terms of the GNU Affero General Public License as published
@@ -36,6 +36,11 @@
 #include "messenger_api_contact.h"
 #include "messenger_api_message.h"
 
+struct GNUNET_MESSENGER_RoomMessageEntry {
+  struct GNUNET_MESSENGER_Contact* sender;
+  struct GNUNET_MESSENGER_Message* message;
+};
+
 struct GNUNET_MESSENGER_Room
 {
   struct GNUNET_MESSENGER_Handle *handle;
@@ -45,17 +50,17 @@ struct GNUNET_MESSENGER_Room
 
   struct GNUNET_ShortHashCode *contact_id;
 
-  struct GNUNET_CONTAINER_MultiShortmap *members;
   struct GNUNET_MESSENGER_ListTunnels entries;
 
   struct GNUNET_CONTAINER_MultiHashMap *messages;
+  struct GNUNET_CONTAINER_MultiShortmap *members;
 };
 
 /**
  * Creates and allocates a new room for a <i>handle</i> with a given <i>key</i> for the client API.
  *
- * @param handle Handle
- * @param key Key of room
+ * @param[in/out] handle Handle
+ * @param[in] key Key of room
  * @return New room
  */
 struct GNUNET_MESSENGER_Room*
@@ -64,7 +69,7 @@ create_room (struct GNUNET_MESSENGER_Handle *handle, const struct GNUNET_HashCod
 /**
  * Destroys a room and frees its memory fully from the client API.
  *
- * @param room Room
+ * @param[in/out] room Room
  */
 void
 destroy_room (struct GNUNET_MESSENGER_Room *room);
@@ -73,23 +78,48 @@ destroy_room (struct GNUNET_MESSENGER_Room *room);
  * Returns a message locally stored from a map for a given <i>hash</i> in a <i>room</i>. If no matching
  * message is found, NULL gets returned.
  *
- * @param room Room
- * @param hash Hash of message
+ * @param[in] room Room
+ * @param[in] hash Hash of message
  * @return Message or NULL
  */
 const struct GNUNET_MESSENGER_Message*
 get_room_message (const struct GNUNET_MESSENGER_Room *room, const struct GNUNET_HashCode *hash);
 
 /**
+ * Returns a messages sender locally stored from a map for a given <i>hash</i> in a <i>room</i>. If no
+ * matching message is found, NULL gets returned.
+ *
+ * @param[in] room Room
+ * @param[in] hash Hash of message
+ * @return Contact of sender or NULL
+ */
+struct GNUNET_MESSENGER_Contact*
+get_room_sender (const struct GNUNET_MESSENGER_Room *room, const struct GNUNET_HashCode *hash);
+
+/**
  * Handles a <i>message</i> with a given <i>hash</i> in a <i>room</i> for the client API to update
  * members and its information. The function also stores the message in map locally for access afterwards.
  *
- * @param room Room
- * @param message Message
- * @param hash Hash of message
+ * @param[in/out] room Room
+ * @param[in/out] sender Contact of sender
+ * @param[in] message Message
+ * @param[in] hash Hash of message
  */
 void
-handle_room_message (struct GNUNET_MESSENGER_Room *room, const struct GNUNET_MESSENGER_Message *message,
-                     const struct GNUNET_HashCode *hash);
+handle_room_message (struct GNUNET_MESSENGER_Room *room, struct GNUNET_MESSENGER_Contact *sender,
+                     const struct GNUNET_MESSENGER_Message *message, const struct GNUNET_HashCode *hash);
+
+/**
+ * Iterates through all members of a given <i>room</i> to forward each of them to a selected
+ * <i>callback</i> with a custom closure.
+ *
+ * @param[in/out] room Room
+ * @param[in] callback Function called for each member
+ * @param[in/out] cls Closure
+ * @return Amount of members iterated
+ */
+int
+iterate_room_members (struct GNUNET_MESSENGER_Room *room, GNUNET_MESSENGER_MemberCallback callback,
+                      void* cls);
 
 #endif //GNUNET_MESSENGER_API_ROOM_H

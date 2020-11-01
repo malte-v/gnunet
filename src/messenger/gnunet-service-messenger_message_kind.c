@@ -1,6 +1,6 @@
 /*
    This file is part of GNUnet.
-   Copyright (C) 2020 GNUnet e.V.
+   Copyright (C) 2020--2021 GNUnet e.V.
 
    GNUnet is free software: you can redistribute it and/or modify it
    under the terms of the GNU Affero General Public License as published
@@ -24,11 +24,15 @@
  */
 
 #include "gnunet-service-messenger_message_kind.h"
-#include "gnunet-service-messenger_util.h"
+
+#include "messenger_api_util.h"
 
 struct GNUNET_MESSENGER_Message*
-create_message_info (struct GNUNET_MESSENGER_Ego *ego, struct GNUNET_CONTAINER_MultiShortmap *members)
+create_message_info (const struct GNUNET_MESSENGER_Ego *ego)
 {
+  if (!ego)
+    return NULL;
+
   struct GNUNET_MESSENGER_Message *message = create_message (GNUNET_MESSENGER_KIND_INFO);
 
   if (!message)
@@ -36,18 +40,17 @@ create_message_info (struct GNUNET_MESSENGER_Ego *ego, struct GNUNET_CONTAINER_M
 
   GNUNET_memcpy(&(message->body.info.host_key), &(ego->pub), sizeof(ego->pub));
 
-  if (GNUNET_YES == generate_free_member_id (&(message->body.info.unique_id), members))
-    return message;
-  else
-  {
-    destroy_message (message);
-    return NULL;
-  }
+  message->body.info.messenger_version = GNUNET_MESSENGER_VERSION;
+
+  return message;
 }
 
 struct GNUNET_MESSENGER_Message*
-create_message_join (struct GNUNET_MESSENGER_Ego *ego)
+create_message_join (const struct GNUNET_MESSENGER_Ego *ego)
 {
+  if (!ego)
+    return NULL;
+
   struct GNUNET_MESSENGER_Message *message = create_message (GNUNET_MESSENGER_KIND_JOIN);
 
   if (!message)
@@ -67,6 +70,9 @@ create_message_leave ()
 struct GNUNET_MESSENGER_Message*
 create_message_name (const char *name)
 {
+  if (!name)
+    return NULL;
+
   struct GNUNET_MESSENGER_Message *message = create_message (GNUNET_MESSENGER_KIND_NAME);
 
   if (!message)
@@ -79,6 +85,9 @@ create_message_name (const char *name)
 struct GNUNET_MESSENGER_Message*
 create_message_key (const struct GNUNET_IDENTITY_PrivateKey *key)
 {
+  if (!key)
+    return NULL;
+
   struct GNUNET_MESSENGER_Message *message = create_message (GNUNET_MESSENGER_KIND_KEY);
 
   if (!message)
@@ -91,6 +100,9 @@ create_message_key (const struct GNUNET_IDENTITY_PrivateKey *key)
 struct GNUNET_MESSENGER_Message*
 create_message_peer (const struct GNUNET_MESSENGER_Service *service)
 {
+  if (!service)
+    return NULL;
+
   struct GNUNET_MESSENGER_Message *message = create_message (GNUNET_MESSENGER_KIND_PEER);
 
   if (!message)
@@ -108,6 +120,9 @@ create_message_peer (const struct GNUNET_MESSENGER_Service *service)
 struct GNUNET_MESSENGER_Message*
 create_message_id (const struct GNUNET_ShortHashCode *unique_id)
 {
+  if (!unique_id)
+    return NULL;
+
   struct GNUNET_MESSENGER_Message *message = create_message (GNUNET_MESSENGER_KIND_ID);
 
   if (!message)
@@ -121,6 +136,9 @@ create_message_id (const struct GNUNET_ShortHashCode *unique_id)
 struct GNUNET_MESSENGER_Message*
 create_message_miss (const struct GNUNET_PeerIdentity *peer)
 {
+  if (!peer)
+    return NULL;
+
   struct GNUNET_MESSENGER_Message *message = create_message (GNUNET_MESSENGER_KIND_MISS);
 
   if (!message)
@@ -136,6 +154,9 @@ create_message_miss (const struct GNUNET_PeerIdentity *peer)
 struct GNUNET_MESSENGER_Message*
 create_message_merge (const struct GNUNET_HashCode *previous)
 {
+  if (!previous)
+    return NULL;
+
   struct GNUNET_MESSENGER_Message *message = create_message (GNUNET_MESSENGER_KIND_MERGE);
 
   if (!message)
@@ -149,6 +170,9 @@ create_message_merge (const struct GNUNET_HashCode *previous)
 struct GNUNET_MESSENGER_Message*
 create_message_request (const struct GNUNET_HashCode *hash)
 {
+  if (!hash)
+    return NULL;
+
   struct GNUNET_HashCode zero;
   memset (&zero, 0, sizeof(zero));
 
@@ -168,6 +192,9 @@ create_message_request (const struct GNUNET_HashCode *hash)
 struct GNUNET_MESSENGER_Message*
 create_message_invite (const struct GNUNET_PeerIdentity *door, const struct GNUNET_HashCode *key)
 {
+  if ((!door) || (!key))
+    return NULL;
+
   struct GNUNET_MESSENGER_Message *message = create_message (GNUNET_MESSENGER_KIND_INVITE);
 
   if (!message)
@@ -182,11 +209,31 @@ create_message_invite (const struct GNUNET_PeerIdentity *door, const struct GNUN
 struct GNUNET_MESSENGER_Message*
 create_message_text (const char *text)
 {
+  if (!text)
+    return NULL;
+
   struct GNUNET_MESSENGER_Message *message = create_message (GNUNET_MESSENGER_KIND_TEXT);
 
   if (!message)
     return NULL;
 
   message->body.text.text = GNUNET_strdup(text);
+  return message;
+}
+
+struct GNUNET_MESSENGER_Message*
+create_message_delete (const struct GNUNET_HashCode *hash, const struct GNUNET_TIME_Relative delay)
+{
+  if (!hash)
+    return NULL;
+
+  struct GNUNET_MESSENGER_Message *message = create_message (GNUNET_MESSENGER_KIND_DELETE);
+
+  if (!message)
+    return NULL;
+
+  GNUNET_memcpy(&(message->body.delete.hash), hash, sizeof(struct GNUNET_HashCode));
+  message->body.delete.delay = GNUNET_TIME_relative_hton (delay);
+
   return message;
 }

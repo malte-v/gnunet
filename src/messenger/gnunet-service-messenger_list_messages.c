@@ -1,6 +1,6 @@
 /*
    This file is part of GNUnet.
-   Copyright (C) 2020 GNUnet e.V.
+   Copyright (C) 2020--2021 GNUnet e.V.
 
    GNUnet is free software: you can redistribute it and/or modify it
    under the terms of the GNU Affero General Public License as published
@@ -54,6 +54,8 @@ clear_list_messages (struct GNUNET_MESSENGER_ListMessages *messages)
 void
 add_to_list_messages (struct GNUNET_MESSENGER_ListMessages *messages, const struct GNUNET_HashCode *hash)
 {
+  GNUNET_assert((messages) && (hash));
+
   struct GNUNET_MESSENGER_ListMessage *element = GNUNET_new(struct GNUNET_MESSENGER_ListMessage);
 
   GNUNET_memcpy(&(element->hash), hash, sizeof(struct GNUNET_HashCode));
@@ -62,8 +64,21 @@ add_to_list_messages (struct GNUNET_MESSENGER_ListMessages *messages, const stru
 }
 
 void
+copy_list_messages (struct GNUNET_MESSENGER_ListMessages *messages, const struct GNUNET_MESSENGER_ListMessages *origin)
+{
+  GNUNET_assert((messages) && (origin));
+
+  struct GNUNET_MESSENGER_ListMessage *element;
+
+  for (element = origin->head; element; element = element->next)
+    add_to_list_messages (messages, &(element->hash));
+}
+
+void
 remove_from_list_messages (struct GNUNET_MESSENGER_ListMessages *messages, const struct GNUNET_HashCode *hash)
 {
+  GNUNET_assert((messages) && (hash));
+
   struct GNUNET_MESSENGER_ListMessage *element;
 
   for (element = messages->head; element; element = element->next)
@@ -73,4 +88,63 @@ remove_from_list_messages (struct GNUNET_MESSENGER_ListMessages *messages, const
       GNUNET_free(element);
       break;
     }
+}
+
+void
+load_list_messages (struct GNUNET_MESSENGER_ListMessages *messages, const char *path)
+{
+  GNUNET_assert((messages) && (path));
+
+  if (GNUNET_YES != GNUNET_DISK_file_test (path))
+    return;
+
+  enum GNUNET_DISK_AccessPermissions permission = (GNUNET_DISK_PERM_USER_READ | GNUNET_DISK_PERM_USER_WRITE);
+
+  struct GNUNET_DISK_FileHandle *handle = GNUNET_DISK_file_open(
+      path, GNUNET_DISK_OPEN_READ, permission
+  );
+
+  if (!handle)
+    return;
+
+  GNUNET_DISK_file_seek(handle, 0, GNUNET_DISK_SEEK_SET);
+
+  struct GNUNET_HashCode hash;
+  ssize_t len;
+
+  do {
+    len = GNUNET_DISK_file_read(handle, &hash, sizeof(hash));
+
+    if (len != sizeof(hash))
+      break;
+
+    add_to_list_messages(messages, &hash);
+  } while (len == sizeof(hash));
+
+  GNUNET_DISK_file_close(handle);
+}
+
+void
+save_list_messages (struct GNUNET_MESSENGER_ListMessages *messages, const char *path)
+{
+  GNUNET_assert((messages) && (path));
+
+  enum GNUNET_DISK_AccessPermissions permission = (GNUNET_DISK_PERM_USER_READ | GNUNET_DISK_PERM_USER_WRITE);
+
+  struct GNUNET_DISK_FileHandle *handle = GNUNET_DISK_file_open(
+      path, GNUNET_DISK_OPEN_CREATE | GNUNET_DISK_OPEN_WRITE, permission
+  );
+
+  if (!handle)
+    return;
+
+  GNUNET_DISK_file_seek(handle, 0, GNUNET_DISK_SEEK_SET);
+
+  struct GNUNET_MESSENGER_ListMessage *element;
+
+  for (element = messages->head; element; element = element->next)
+    GNUNET_DISK_file_write(handle, &(element->hash), sizeof(element->hash));
+
+  GNUNET_DISK_file_sync(handle);
+  GNUNET_DISK_file_close(handle);
 }

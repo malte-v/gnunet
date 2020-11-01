@@ -1,6 +1,6 @@
 /*
    This file is part of GNUnet.
-   Copyright (C) 2020 GNUnet e.V.
+   Copyright (C) 2020--2021 GNUnet e.V.
 
    GNUnet is free software: you can redistribute it and/or modify it
    under the terms of the GNU Affero General Public License as published
@@ -31,34 +31,34 @@
 /**
  * Returns the count of peers in a list (typically from the basement of a room).
  *
- * @param tunnels List of peer identities
+ * @param[in] tunnels List of peer identities
  * @return Count of the entries in the list
  */
 size_t
 count_of_tunnels (const struct GNUNET_MESSENGER_ListTunnels *tunnels);
 
 /**
- * Returns GNUNET_YES or GNUNET_NO to determine if the peer at index <i>src</i> should
+ * Returns #GNUNET_YES or #GNUNET_NO to determine if the peer at index <i>src</i> should
  * or should not connect outgoing to the peer at index <i>dst</i> to construct a complete
  * basement with a given <i>count</i> of peers.
  *
- * @param count Count of peers
- * @param src Source index
- * @param dst Destination index
- * @return GNUNET_YES or GNUNET_NO based on topologic requirement
+ * @param[in] count Count of peers
+ * @param[in] src Source index
+ * @param[in] dst Destination index
+ * @return #GNUNET_YES or #GNUNET_NO based on topologic requirement
  */
 int
 should_connect_tunnel_to (size_t count, size_t src, size_t dst);
 
 /**
- * Returns GNUNET_YES or GNUNET_NO to determine if the peers of index <i>src</i> and
+ * Returns #GNUNET_YES or #GNUNET_NO to determine if the peers of index <i>src</i> and
  * index <i>dst</i> should be connected in any direction to construct a complete
  * basement with a given <i>count</i> of peers.
  *
- * @param count Count of peers
- * @param src Source index
- * @param dst Destination index
- * @return GNUNET_YES or GNUNET_NO based on topologic requirement
+ * @param[in] count Count of peers
+ * @param[in] src Source index
+ * @param[in] dst Destination index
+ * @return #GNUNET_YES or #GNUNET_NO based on topologic requirement
  */
 int
 required_connection_between (size_t count, size_t src, size_t dst);

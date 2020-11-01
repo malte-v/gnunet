@@ -1,6 +1,6 @@
 /*
    This file is part of GNUnet.
-   Copyright (C) 2020 GNUnet e.V.
+   Copyright (C) 2020--2021 GNUnet e.V.
 
    GNUnet is free software: you can redistribute it and/or modify it
    under the terms of the GNU Affero General Public License as published
@@ -33,6 +33,7 @@
 struct GNUNET_MESSENGER_Contact
 {
   char *name;
+  size_t rc;
 
   struct GNUNET_IDENTITY_PublicKey public_key;
 };
@@ -40,7 +41,7 @@ struct GNUNET_MESSENGER_Contact
 /**
  * Creates and allocates a new contact with a given public <i>key</i> from an EGO.
  *
- * @param key Public key
+ * @param[in] key Public key
  * @return New contact
  */
 struct GNUNET_MESSENGER_Contact*
@@ -49,7 +50,7 @@ create_contact (const struct GNUNET_IDENTITY_PublicKey *key);
 /**
  * Destroys a contact and frees its memory fully.
  *
- * @param contact Contact
+ * @param[in/out] contact Contact
  */
 void
 destroy_contact (struct GNUNET_MESSENGER_Contact *contact);
@@ -57,7 +58,7 @@ destroy_contact (struct GNUNET_MESSENGER_Contact *contact);
 /**
  * Returns the current name of a given <i>contact</i> or NULL if no valid name was assigned yet.
  *
- * @param contact Contact
+ * @param[in] contact Contact
  * @return Name of the contact or NULL
  */
 const char*
@@ -66,8 +67,8 @@ get_contact_name (const struct GNUNET_MESSENGER_Contact *contact);
 /**
  * Changes the current name of a given <i>contact</i> by copying it from the parameter <i>name</i>.
  *
- * @param contact Contact
- * @param name Valid name (may not be NULL!)
+ * @param[in/out] contact Contact
+ * @param[in] name Name
  */
 void
 set_contact_name (struct GNUNET_MESSENGER_Contact *contact, const char *name);
@@ -75,19 +76,39 @@ set_contact_name (struct GNUNET_MESSENGER_Contact *contact, const char *name);
 /**
  * Returns the public key of a given <i>contact</i>.
  *
- * @param contact Contact
+ * @param[in] contact Contact
  * @return Public key of the contact
  */
 const struct GNUNET_IDENTITY_PublicKey*
 get_contact_key (const struct GNUNET_MESSENGER_Contact *contact);
 
 /**
- * Returns the resulting hashcode of the public key from a given <i>contact</i>.
+ * Increases the reference counter of a given <i>contact</i> which is zero as default.
  *
- * @param contact Contact
- * @return Hash of the contacts public key
+ * @param[in/out] contact Contact
  */
-const struct GNUNET_HashCode*
-get_contact_id_from_key (const struct GNUNET_MESSENGER_Contact *contact);
+void
+increase_contact_rc (struct GNUNET_MESSENGER_Contact *contact);
+
+/**
+ * Decreases the reference counter if possible (can not underflow!) of a given <i>contact</i>
+ * and returns #GNUNET_YES if the counter is equal to zero, otherwise #GNUNET_NO.
+ *
+ * @param[in/out] contact Contact
+ * @return #GNUNET_YES or #GNUNET_NO depending on the reference counter
+ */
+int
+decrease_contact_rc (struct GNUNET_MESSENGER_Contact *contact);
+
+/**
+ * Calculates the context <i>hash</i> of a member in a room and returns it.
+ *
+ * @param[in] key Key of room
+ * @param[in] id Member id
+ * @param[out] hash Member context
+ */
+void
+get_context_from_member (const struct GNUNET_HashCode *key, const struct GNUNET_ShortHashCode *id,
+                         struct GNUNET_HashCode *context);
 
 #endif //GNUNET_MESSENGER_API_CONTACT_H

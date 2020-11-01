@@ -1,6 +1,6 @@
 /*
    This file is part of GNUnet.
-   Copyright (C) 2020 GNUnet e.V.
+   Copyright (C) 2020--2021 GNUnet e.V.
 
    GNUnet is free software: you can redistribute it and/or modify it
    under the terms of the GNU Affero General Public License as published
@@ -47,7 +47,7 @@ struct GNUNET_MESSENGER_ListTunnels
 /**
  * Initializes list of tunnels peer identities as empty list.
  *
- * @param tunnels List of peer identities
+ * @param[out] tunnels List of peer identities
  */
 void
 init_list_tunnels (struct GNUNET_MESSENGER_ListTunnels *tunnels);
@@ -55,7 +55,7 @@ init_list_tunnels (struct GNUNET_MESSENGER_ListTunnels *tunnels);
 /**
  * Clears the list of tunnels peer identities.
  *
- * @param tunnels List of peer identities
+ * @param[in/out] tunnels List of peer identities
  */
 void
 clear_list_tunnels (struct GNUNET_MESSENGER_ListTunnels *tunnels);
@@ -63,8 +63,8 @@ clear_list_tunnels (struct GNUNET_MESSENGER_ListTunnels *tunnels);
 /**
  * Adds a specific <i>peer</i> from a tunnel to the end of the list.
  *
- * @param tunnels List of peer identities
- * @param peer Peer identity of tunnel
+ * @param[in/out] tunnels List of peer identities
+ * @param[in] peer Peer identity of tunnel
  */
 void
 add_to_list_tunnels (struct GNUNET_MESSENGER_ListTunnels *tunnels, const struct GNUNET_PeerIdentity *peer);
@@ -79,8 +79,8 @@ add_to_list_tunnels (struct GNUNET_MESSENGER_ListTunnels *tunnels, const struct 
  * the found element in the list. If no matching element is found, <i>index</i> will
  * contain the total amount of elements in the list.
  *
- * @param tunnels List of peer identities
- * @param peer Peer identity of tunnel
+ * @param[in/out] tunnels List of peer identities
+ * @param[in] peer Peer identity of tunnel
  * @param[out] index Index of found element (optional)
  * @return Element in the list with matching peer identity
  */
@@ -89,11 +89,11 @@ find_list_tunnels (struct GNUNET_MESSENGER_ListTunnels *tunnels, const struct GN
 
 /**
  * Tests linearly if the list of tunnels peer identities contains a specific
- * <i>peer</i> identity and returns GNUNET_YES on success, otherwise GNUNET_NO.
+ * <i>peer</i> identity and returns #GNUNET_YES on success, otherwise #GNUNET_NO.
  *
- * @param tunnels List of peer identities
- * @param peer Peer identity of tunnel
- * @return GNUNET_YES on success, otherwise GNUNET_NO
+ * @param[in/out] tunnels List of peer identities
+ * @param[in] peer Peer identity of tunnel
+ * @return #GNUNET_YES on success, otherwise #GNUNET_NO
  */
 int
 contains_list_tunnels (struct GNUNET_MESSENGER_ListTunnels *tunnels, const struct GNUNET_PeerIdentity *peer);
@@ -102,11 +102,29 @@ contains_list_tunnels (struct GNUNET_MESSENGER_ListTunnels *tunnels, const struc
  * Removes a specific <i>element</i> from the list of tunnels peer identities and returns
  * the next element in the list.
  *
- * @param tunnels List of peer identities
- * @param element Element of the list
+ * @param[in/out] tunnels List of peer identities
+ * @param[in/out] element Element of the list
  * @return Next element in the list
  */
 struct GNUNET_MESSENGER_ListTunnel*
 remove_from_list_tunnels (struct GNUNET_MESSENGER_ListTunnels *tunnels, struct GNUNET_MESSENGER_ListTunnel *element);
+
+/**
+ * Loads the list of tunnels peer identities from a file under a given <i>path</i>.
+ *
+ * @param[out] messages List of hashes
+ * @param[in] path Path of file
+ */
+void
+load_list_tunnels (struct GNUNET_MESSENGER_ListTunnels *tunnels, const char *path);
+
+/**
+ * Saves the list of tunnels peer identities to a file under a given <i>path</i>.
+ *
+ * @param[in] messages List of hashes
+ * @param[in] path Path of file
+ */
+void
+save_list_tunnels (struct GNUNET_MESSENGER_ListTunnels *tunnels, const char *path);
 
 #endif //GNUNET_MESSENGER_API_LIST_TUNNELS_H

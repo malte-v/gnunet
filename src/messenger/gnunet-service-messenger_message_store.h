@@ -1,6 +1,6 @@
 /*
    This file is part of GNUnet.
-   Copyright (C) 2020 GNUnet e.V.
+   Copyright (C) 2020--2021 GNUnet e.V.
 
    GNUnet is free software: you can redistribute it and/or modify it
    under the terms of the GNU Affero General Public License as published
@@ -36,85 +36,127 @@ struct GNUNET_MESSENGER_MessageEntry
   uint16_t length;
 };
 
+struct GNUNET_MESSENGER_Message;
+
+struct GNUNET_MESSENGER_MessageLink
+{
+  uint8_t multiple;
+
+  struct GNUNET_HashCode first;
+  struct GNUNET_HashCode second;
+};
+
 struct GNUNET_MESSENGER_MessageStore
 {
   struct GNUNET_DISK_FileHandle *storage_messages;
 
   struct GNUNET_CONTAINER_MultiHashMap *entries;
   struct GNUNET_CONTAINER_MultiHashMap *messages;
+  struct GNUNET_CONTAINER_MultiHashMap *links;
+
+  int rewrite_entries;
+  int write_links;
 };
 
 /**
- * Initializes a message store as fully empty.
+ * Initializes a message <i>store</i> as fully empty.
  *
- * @param store Message store
+ * @param[out] store Message store
  */
 void
 init_message_store (struct GNUNET_MESSENGER_MessageStore *store);
 
 /**
- * Clears a message store, wipes its content and deallocates its memory.
+ * Clears a message <i>store</i>, wipes its content and deallocates its memory.
  *
- * @param store Message store
+ * @param[in/out] store Message store
  */
 void
 clear_message_store (struct GNUNET_MESSENGER_MessageStore *store);
 
 /**
- * Loads messages from a directory into a message store.
+ * Loads messages from a <i>directory</i> into a message <i>store</i>.
  *
- * @param store Message store
- * @param directory Path to a directory
+ * @param[out] store Message store
+ * @param[in] directory Path to a directory
  */
 void
 load_message_store (struct GNUNET_MESSENGER_MessageStore *store, const char *directory);
 
 /**
- * Saves messages from a message store into a directory.
+ * Saves messages from a message <i>store</i> into a <i>directory</i>.
  *
- * @param store Message store
- * @param directory Path to a directory
+ * @param[in] store Message store
+ * @param[in] directory Path to a directory
  */
 void
 save_message_store (struct GNUNET_MESSENGER_MessageStore *store, const char *directory);
 
 /**
- * Checks if a message matching a given <i>hash</i> is stored in a message store. The function returns
- * GNUNET_YES if a match is found, GNUNET_NO otherwise.
+ * Checks if a message matching a given <i>hash</i> is stored in a message <i>store</i>.
+ * The function returns #GNUNET_YES if a match is found, #GNUNET_NO otherwise.
  *
  * The message has not to be loaded from disk into memory for this check!
  *
- * @param store Message store
- * @param hash Hash of message
- * @return GNUNET_YES on match, otherwise GNUNET_NO
+ * @param[in] store Message store
+ * @param[in] hash Hash of message
+ * @return #GNUNET_YES on match, otherwise #GNUNET_NO
  */
 int
-contains_store_message (struct GNUNET_MESSENGER_MessageStore *store, const struct GNUNET_HashCode *hash);
+contains_store_message (const struct GNUNET_MESSENGER_MessageStore *store, const struct GNUNET_HashCode *hash);
 
 /**
- * Returns the message from a message store matching a given <i>hash</i>. If no matching message is found,
- * NULL gets returned.
+ * Returns the message from a message <i>store</i> matching a given <i>hash</i>. If no matching
+ * message is found, NULL gets returned.
  *
  * This function requires the message to be loaded into memory!
  * @see contains_store_message()
  *
- * @param store Message store
- * @param hash Hash of message
+ * @param[in/out] store Message store
+ * @param[in] hash Hash of message
  * @return Message or NULL
  */
 const struct GNUNET_MESSENGER_Message*
 get_store_message (struct GNUNET_MESSENGER_MessageStore *store, const struct GNUNET_HashCode *hash);
 
 /**
+ * Returns the message link from a message <i>store</i> matching a given <i>hash</i>. If the
+ * flag is set to #GNUNET_YES, only links from deleted messages will be returned or NULL.
+ *
+ * Otherwise message links will also returned for messages found in the store under the given
+ * hash. The link which will be returned copies link information from the message for
+ * temporary usage.
+ *
+ * @param[in/out] store Message store
+ * @param[in] hash Hash of message
+ * @param[in] deleted_only Flag
+ * @return Message link or NULL
+ */
+const struct GNUNET_MESSENGER_MessageLink*
+get_store_message_link (struct GNUNET_MESSENGER_MessageStore *store, const struct GNUNET_HashCode *hash,
+                        int deleted_only);
+
+/**
  * Stores a message into the message store. The result indicates if the operation was successful.
  *
- * @param store Message store
- * @param hash Hash of message
- * @param message Message
- * @return GNUNET_OK on success, otherwise GNUNET_NO
+ * @param[in/out] store Message store
+ * @param[in] hash Hash of message
+ * @param[in/out] message Message
+ * @return #GNUNET_OK on success, otherwise #GNUNET_NO
  */
 int
 put_store_message (struct GNUNET_MESSENGER_MessageStore *store, const struct GNUNET_HashCode *hash,
                    struct GNUNET_MESSENGER_Message *message);
+
+/**
+ * Deletes a message in the message store. It will be removed from disk space and memory. The result
+ * indicates if the operation was successful.
+ *
+ * @param[in/out] store Message store
+ * @param[in] hash Hash of message
+ * @return #GNUNET_OK on success, #GNUNET_SYSERR on failure
+ */
+int
+delete_store_message (struct GNUNET_MESSENGER_MessageStore *store, const struct GNUNET_HashCode *hash);
 
 #endif //GNUNET_SERVICE_MESSENGER_MESSAGE_STORE_H

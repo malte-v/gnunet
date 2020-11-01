@@ -1,6 +1,6 @@
 /*
    This file is part of GNUnet.
-   Copyright (C) 2020 GNUnet e.V.
+   Copyright (C) 2020--2021 GNUnet e.V.
 
    GNUnet is free software: you can redistribute it and/or modify it
    under the terms of the GNU Affero General Public License as published
@@ -35,7 +35,7 @@
 
 #include "gnunet_messenger_service.h"
 
-#include "messenger_api_contact.h"
+#include "messenger_api_contact_store.h"
 #include "messenger_api_room.h"
 
 struct GNUNET_MESSENGER_Handle
@@ -56,17 +56,18 @@ struct GNUNET_MESSENGER_Handle
   struct GNUNET_TIME_Relative reconnect_time;
   struct GNUNET_SCHEDULER_Task *reconnect_task;
 
+  struct GNUNET_MESSENGER_ContactStore contact_store;
+
   struct GNUNET_CONTAINER_MultiHashMap *rooms;
-  struct GNUNET_CONTAINER_MultiHashMap *contacts;
 };
 
 /**
  * Creates and allocates a new handle using a given configuration and a custom message callback
  * with a given closure for the client API.
  *
- * @param cfg Configuration
- * @param msg_callback Message callback
- * @param msg_cls Closure
+ * @param[in] cfg Configuration
+ * @param[in] msg_callback Message callback
+ * @param[in/out] msg_cls Closure
  * @return New handle
  */
 struct GNUNET_MESSENGER_Handle*
@@ -76,7 +77,7 @@ create_handle (const struct GNUNET_CONFIGURATION_Handle *cfg, GNUNET_MESSENGER_I
 /**
  * Destroys a <i>handle</i> and frees its memory fully from the client API.
  *
- * @param handle Handle
+ * @param[in/out] handle Handle
  */
 void
 destroy_handle (struct GNUNET_MESSENGER_Handle *handle);
@@ -84,8 +85,8 @@ destroy_handle (struct GNUNET_MESSENGER_Handle *handle);
 /**
  * Sets the name of a <i>handle</i> to a specific <i>name</i>.
  *
- * @param handle Handle
- * @param name New name
+ * @param[in/out] handle Handle
+ * @param[in] name New name
  */
 void
 set_handle_name (struct GNUNET_MESSENGER_Handle *handle, const char *name);
@@ -93,7 +94,7 @@ set_handle_name (struct GNUNET_MESSENGER_Handle *handle, const char *name);
 /**
  * Returns the current name of a given <i>handle</i> or NULL if no valid name was assigned yet.
  *
- * @param handle Handle
+ * @param[in] handle Handle
  * @return Name of the handle or NULL
  */
 const char*
@@ -102,8 +103,8 @@ get_handle_name (const struct GNUNET_MESSENGER_Handle *handle);
 /**
  * Sets the public key of a given <i>handle</i> to a specific public key.
  *
- * @param handle Handle
- * @param pubkey Public key
+ * @param[in/out] handle Handle
+ * @param[in] pubkey Public key
  */
 void
 set_handle_key (struct GNUNET_MESSENGER_Handle *handle, const struct GNUNET_IDENTITY_PublicKey *pubkey);
@@ -111,41 +112,37 @@ set_handle_key (struct GNUNET_MESSENGER_Handle *handle, const struct GNUNET_IDEN
 /**
  * Returns the public key of a given <i>handle</i>.
  *
- * @param handle Handle
+ * @param[in] handle Handle
  * @return Public key of the handle
  */
 const struct GNUNET_IDENTITY_PublicKey*
 get_handle_key (const struct GNUNET_MESSENGER_Handle *handle);
 
 /**
- * Returns a contact known to a <i>handle</i> identified by a given public key. If not matching
- * contact is found, NULL gets returned.
+ * Returns the used contact store of a given <i>handle</i>.
  *
- * @param handle Handle
- * @param pubkey Public key of EGO
- * @return Contact or NULL
+ * @param[in/out] handle Handle
+ * @return Contact store
  */
-struct GNUNET_MESSENGER_Contact*
-get_handle_contact_by_pubkey (const struct GNUNET_MESSENGER_Handle *handle,
-                              const struct GNUNET_IDENTITY_PublicKey *pubkey);
+struct GNUNET_MESSENGER_ContactStore*
+get_handle_contact_store (struct GNUNET_MESSENGER_Handle *handle);
 
 /**
- * Changes the public key for a <i>contact</i> known to a <i>handle</i> to a specific public key and
- * updates local map entries to access the contact by its updated key.
+ * Returns the contact of a given <i>handle</i> in a room identified by a
+ * given <i>key</i>.
  *
- * @param handle Handle
- * @param contact Contact
- * @param pubkey Public key of EGO
+ * @param[in/out] handle Handle
+ * @param[in] key Key of room
+ * @return Contact
  */
-void
-swap_handle_contact_by_pubkey (struct GNUNET_MESSENGER_Handle *handle, struct GNUNET_MESSENGER_Contact *contact,
-                               const struct GNUNET_IDENTITY_PublicKey *pubkey);
+struct GNUNET_MESSENGER_Contact*
+get_handle_contact (struct GNUNET_MESSENGER_Handle *handle, const struct GNUNET_HashCode *key);
 
 /**
  * Marks a room known to a <i>handle</i> identified by a given <i>key</i> as open.
  *
- * @param handle Handle
- * @param key Key of room
+ * @param[in/out] handle Handle
+ * @param[in] key Key of room
  */
 void
 open_handle_room (struct GNUNET_MESSENGER_Handle *handle, const struct GNUNET_HashCode *key);
@@ -154,9 +151,9 @@ open_handle_room (struct GNUNET_MESSENGER_Handle *handle, const struct GNUNET_Ha
  * Adds a tunnel for a room known to a <i>handle</i> identified by a given <i>key</i> to a
  * list of opened connections.
  *
- * @param handle Handle
- * @param door Peer identity
- * @param key Key of room
+ * @param[in/out] handle Handle
+ * @param[in] door Peer identity
+ * @param[in] key Key of room
  */
 void
 entry_handle_room_at (struct GNUNET_MESSENGER_Handle *handle, const struct GNUNET_PeerIdentity *door,
@@ -165,8 +162,8 @@ entry_handle_room_at (struct GNUNET_MESSENGER_Handle *handle, const struct GNUNE
 /**
  * Destroys and so implicitly closes a room known to a <i>handle</i> identified by a given <i>key</i>.
  *
- * @param handle Handle
- * @param key Key of room
+ * @param[in/out] handle Handle
+ * @param[in] key Key of room
  */
 void
 close_handle_room (struct GNUNET_MESSENGER_Handle *handle, const struct GNUNET_HashCode *key);

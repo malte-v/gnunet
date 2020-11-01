@@ -1,6 +1,6 @@
 /*
    This file is part of GNUnet.
-   Copyright (C) 2020 GNUnet e.V.
+   Copyright (C) 2020--2021 GNUnet e.V.
 
    GNUnet is free software: you can redistribute it and/or modify it
    under the terms of the GNU Affero General Public License as published
@@ -30,12 +30,14 @@
 #include "gnunet_crypto_lib.h"
 #include "gnunet_container_lib.h"
 
+struct GNUNET_MESSENGER_SrvHandle;
+
 struct GNUNET_MESSENGER_ListHandle
 {
   struct GNUNET_MESSENGER_ListHandle *prev;
   struct GNUNET_MESSENGER_ListHandle *next;
 
-  void *handle;
+  struct GNUNET_MESSENGER_SrvHandle *handle;
 };
 
 struct GNUNET_MESSENGER_ListHandles
@@ -45,17 +47,17 @@ struct GNUNET_MESSENGER_ListHandles
 };
 
 /**
- * Initializes list of handles as empty list.
+ * Initializes list of <i>handles</i> as empty list.
  *
- * @param handles List of handles
+ * @param[out] handles List of handles
  */
 void
 init_list_handles (struct GNUNET_MESSENGER_ListHandles *handles);
 
 /**
- * Destroys remaining handles and clears the list.
+ * Destroys remaining <i>handles</i> and clears the list.
  *
- * @param handles List of handles
+ * @param[in/out] handles List of handles
  */
 void
 clear_list_handles (struct GNUNET_MESSENGER_ListHandles *handles);
@@ -63,34 +65,34 @@ clear_list_handles (struct GNUNET_MESSENGER_ListHandles *handles);
 /**
  * Adds a specific <i>handle</i> to the end of the list.
  *
- * @param handles List of handles
- * @param handle Handle
+ * @param[in/out] handles List of handles
+ * @param[in/out] handle Handle
  */
 void
-add_list_handle (struct GNUNET_MESSENGER_ListHandles *handles, void *handle);
+add_list_handle (struct GNUNET_MESSENGER_ListHandles *handles, struct GNUNET_MESSENGER_SrvHandle *handle);
 
 /**
- * Removes the first entry matching with a specific <i>handle</i> from the list and
- * returns GNUNET_YES on success or GNUNET_NO on failure.
+ * Removes the first entry matching with a specific <i>handle</i> from the list of
+ * <i>handles</i> and returns #GNUNET_YES on success or #GNUNET_NO on failure.
  *
- * @param handles List of handles
- * @param handle Handle
- * @return GNUNET_YES on success, otherwise GNUNET_NO
+ * @param[in/out] handles List of handles
+ * @param[in/out] handle Handle
+ * @return #GNUNET_YES on success, otherwise #GNUNET_NO
  */
 int
-remove_list_handle (struct GNUNET_MESSENGER_ListHandles *handles, void *handle);
+remove_list_handle (struct GNUNET_MESSENGER_ListHandles *handles, struct GNUNET_MESSENGER_SrvHandle *handle);
 
 /**
- * Searches linearly through the list of handles for members of a specific room
+ * Searches linearly through the list of <i>handles</i> for members of a specific room
  * which is identified by a given <i>key</i>.
  *
  * If no handle is found which is a current member, NULL gets returned.
  *
- * @param handles List of handles
- * @param key Common key of a room
+ * @param[in] handles List of handles
+ * @param[in] key Common key of a room
  * @return First handle which is a current member
  */
-void*
-find_list_handle_by_member (struct GNUNET_MESSENGER_ListHandles *handles, const struct GNUNET_HashCode *key);
+struct GNUNET_MESSENGER_SrvHandle*
+find_list_handle_by_member (const struct GNUNET_MESSENGER_ListHandles *handles, const struct GNUNET_HashCode *key);
 
 #endif //GNUNET_SERVICE_MESSENGER_LIST_HANDLES_H

@@ -1,6 +1,6 @@
 /*
    This file is part of GNUnet.
-   Copyright (C) 2020 GNUnet e.V.
+   Copyright (C) 2020--2021 GNUnet e.V.
 
    GNUnet is free software: you can redistribute it and/or modify it
    under the terms of the GNU Affero General Public License as published
@@ -25,75 +25,59 @@
 
 #include "gnunet-service-messenger_message_handle.h"
 
-void
-handle_message_join (struct GNUNET_MESSENGER_SrvRoom *room, struct GNUNET_MESSENGER_SrvTunnel *tunnel,
-                     struct GNUNET_MESSENGER_Message *message, const struct GNUNET_HashCode *hash)
+static void
+handle_session_switch (struct GNUNET_MESSENGER_MemberSession *session,
+                       const struct GNUNET_MESSENGER_Message *message, const struct GNUNET_HashCode *hash)
 {
-  struct GNUNET_MESSENGER_SrvContact *contact = get_room_contact (room, &(message->header.sender_id));
+  struct GNUNET_MESSENGER_MemberSession *next = switch_member_session(session, message, hash);
+
+  if (next != session)
+    add_member_session(next->member, next);
+}
+
+void
+handle_message_join (struct GNUNET_MESSENGER_SrvRoom *room, struct GNUNET_MESSENGER_MemberSession *session,
+                     const struct GNUNET_MESSENGER_Message *message, const struct GNUNET_HashCode *hash)
+{
+  GNUNET_log(GNUNET_ERROR_TYPE_INFO, "Member (%s) joins room (%s).\n",
+             GNUNET_sh2s (&(message->header.sender_id)), GNUNET_h2s(get_room_key(room)));
+
+  if (GNUNET_OK != reset_member_session(session, hash))
+    GNUNET_log(GNUNET_ERROR_TYPE_ERROR, "Resetting member session failed!\n");
+}
+
+void
+handle_message_leave (struct GNUNET_MESSENGER_SrvRoom *room, struct GNUNET_MESSENGER_MemberSession *session,
+                      const struct GNUNET_MESSENGER_Message *message, const struct GNUNET_HashCode *hash)
+{
+  GNUNET_log(GNUNET_ERROR_TYPE_INFO, "Member (%s) leaves room (%s).\n",
+             GNUNET_sh2s (&(message->header.sender_id)), GNUNET_h2s(get_room_key(room)));
+
+  close_member_session(session);
+}
+
+void
+handle_message_name (struct GNUNET_MESSENGER_SrvRoom *room, struct GNUNET_MESSENGER_MemberSession *session,
+                     const struct GNUNET_MESSENGER_Message *message, const struct GNUNET_HashCode *hash)
+{
+  struct GNUNET_MESSENGER_Contact *contact = get_member_session_contact(session);
 
   if (!contact)
-    add_room_contact (room, &(message->header.sender_id), &(message->body.join.key));
+    return;
 
-  struct GNUNET_MESSENGER_MemberInfo *info = get_room_member_info (room, &(message->header.sender_id));
-
-  if (!info)
-  {
-    info = GNUNET_new(struct GNUNET_MESSENGER_MemberInfo);
-
-    info->access = GNUNET_MESSENGER_MEMBER_UNKNOWN;
-    init_list_messages (&(info->session_messages));
-  }
-  else
-    clear_list_messages (&(info->session_messages));
-
-  if (GNUNET_YES == GNUNET_CONTAINER_multishortmap_put (room->member_infos, &(message->header.sender_id), info,
-                                                        GNUNET_CONTAINER_MULTIHASHMAPOPTION_UNIQUE_FAST))
-    add_to_list_messages (&(info->session_messages), hash);
+  set_contact_name (contact, message->body.name.name);
 }
 
 void
-handle_message_leave (struct GNUNET_MESSENGER_SrvRoom *room, struct GNUNET_MESSENGER_SrvTunnel *tunnel,
-                      struct GNUNET_MESSENGER_Message *message, const struct GNUNET_HashCode *hash)
+handle_message_key (struct GNUNET_MESSENGER_SrvRoom *room, struct GNUNET_MESSENGER_MemberSession *session,
+                    const struct GNUNET_MESSENGER_Message *message, const struct GNUNET_HashCode *hash)
 {
-  struct GNUNET_MESSENGER_MemberInfo *info = get_room_member_info (room, &(message->header.sender_id));
-
-  if (info)
-    clear_list_messages (&(info->session_messages));
+  handle_session_switch (session, message, hash);
 }
 
 void
-handle_message_name (struct GNUNET_MESSENGER_SrvRoom *room, struct GNUNET_MESSENGER_SrvTunnel *tunnel,
-                     struct GNUNET_MESSENGER_Message *message, const struct GNUNET_HashCode *hash)
-{
-  struct GNUNET_MESSENGER_SrvContact *contact = get_room_contact (room, &(message->header.sender_id));
-
-  if (contact)
-    set_contact_name (contact, message->body.name.name);
-
-  struct GNUNET_MESSENGER_MemberInfo *info = get_room_member_info (room, &(message->header.sender_id));
-
-  if (info)
-    add_to_list_messages (&(info->session_messages), hash);
-}
-
-void
-handle_message_key (struct GNUNET_MESSENGER_SrvRoom *room, struct GNUNET_MESSENGER_SrvTunnel *tunnel,
-                    struct GNUNET_MESSENGER_Message *message, const struct GNUNET_HashCode *hash)
-{
-  struct GNUNET_MESSENGER_SrvContact *contact = get_room_contact (room, &(message->header.sender_id));
-
-  if (contact)
-    swap_service_contact_by_pubkey (room->service, contact, &(message->body.key.key));
-
-  struct GNUNET_MESSENGER_MemberInfo *info = get_room_member_info (room, &(message->header.sender_id));
-
-  if (info)
-    add_to_list_messages (&(info->session_messages), hash);
-}
-
-void
-handle_message_peer (struct GNUNET_MESSENGER_SrvRoom *room, struct GNUNET_MESSENGER_SrvTunnel *tunnel,
-                     struct GNUNET_MESSENGER_Message *message, const struct GNUNET_HashCode *hash)
+handle_message_peer (struct GNUNET_MESSENGER_SrvRoom *room, struct GNUNET_MESSENGER_MemberSession *session,
+                     const struct GNUNET_MESSENGER_Message *message, const struct GNUNET_HashCode *hash)
 {
   if (GNUNET_NO == contains_list_tunnels (&(room->basement), &(message->body.peer.peer)))
     add_to_list_tunnels (&(room->basement), &(message->body.peer.peer));
@@ -103,20 +87,15 @@ handle_message_peer (struct GNUNET_MESSENGER_SrvRoom *room, struct GNUNET_MESSEN
 }
 
 void
-handle_message_id (struct GNUNET_MESSENGER_SrvRoom *room, struct GNUNET_MESSENGER_SrvTunnel *tunnel,
-                   struct GNUNET_MESSENGER_Message *message, const struct GNUNET_HashCode *hash)
+handle_message_id (struct GNUNET_MESSENGER_SrvRoom *room, struct GNUNET_MESSENGER_MemberSession *session,
+                   const struct GNUNET_MESSENGER_Message *message, const struct GNUNET_HashCode *hash)
 {
-  struct GNUNET_MESSENGER_MemberInfo *info = get_room_member_info (room, &(message->header.sender_id));
-
-  if (info)
-    add_to_list_messages (&(info->session_messages), hash);
-
-  switch_room_member_id (room, &(message->header.sender_id), &(message->body.id.id), hash);
+  handle_session_switch (session, message, hash);
 }
 
 void
-handle_message_miss (struct GNUNET_MESSENGER_SrvRoom *room, struct GNUNET_MESSENGER_SrvTunnel *tunnel,
-                     struct GNUNET_MESSENGER_Message *message, const struct GNUNET_HashCode *hash)
+handle_message_miss (struct GNUNET_MESSENGER_SrvRoom *room, struct GNUNET_MESSENGER_MemberSession *session,
+                     const struct GNUNET_MESSENGER_Message *message, const struct GNUNET_HashCode *hash)
 {
   struct GNUNET_MESSENGER_ListTunnel *element = find_list_tunnels (&(room->basement), &(message->body.peer.peer), NULL);
 
@@ -127,4 +106,17 @@ handle_message_miss (struct GNUNET_MESSENGER_SrvRoom *room, struct GNUNET_MESSEN
 
   if (room->peer_message)
     rebuild_room_basement_structure (room);
+}
+
+void
+handle_message_delete (struct GNUNET_MESSENGER_SrvRoom *room, struct GNUNET_MESSENGER_MemberSession *session,
+                       const struct GNUNET_MESSENGER_Message *message, const struct GNUNET_HashCode *hash)
+{
+  struct GNUNET_TIME_Relative delay = GNUNET_TIME_relative_ntoh (message->body.delete.delay);
+  struct GNUNET_TIME_Absolute action = GNUNET_TIME_absolute_ntoh (message->header.timestamp);
+
+  action = GNUNET_TIME_absolute_add (action, delay);
+  delay = GNUNET_TIME_absolute_get_difference (GNUNET_TIME_absolute_get (), action);
+
+  delete_room_message (room, session, &(message->body.delete.hash), delay);
 }

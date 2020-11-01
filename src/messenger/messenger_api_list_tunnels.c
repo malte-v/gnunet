@@ -1,6 +1,6 @@
 /*
    This file is part of GNUnet.
-   Copyright (C) 2020 GNUnet e.V.
+   Copyright (C) 2020--2021 GNUnet e.V.
 
    GNUnet is free software: you can redistribute it and/or modify it
    under the terms of the GNU Affero General Public License as published
@@ -62,6 +62,8 @@ compare_list_tunnels (void *cls, struct GNUNET_MESSENGER_ListTunnel *element0,
 void
 add_to_list_tunnels (struct GNUNET_MESSENGER_ListTunnels *tunnels, const struct GNUNET_PeerIdentity *peer)
 {
+  GNUNET_assert((tunnels) && (peer));
+
   struct GNUNET_MESSENGER_ListTunnel *element = GNUNET_new(struct GNUNET_MESSENGER_ListTunnel);
 
   element->peer = GNUNET_PEER_intern (peer);
@@ -73,6 +75,8 @@ add_to_list_tunnels (struct GNUNET_MESSENGER_ListTunnels *tunnels, const struct 
 struct GNUNET_MESSENGER_ListTunnel*
 find_list_tunnels (struct GNUNET_MESSENGER_ListTunnels *tunnels, const struct GNUNET_PeerIdentity *peer, size_t *index)
 {
+  GNUNET_assert((tunnels) && (peer));
+
   struct GNUNET_MESSENGER_ListTunnel *element;
   struct GNUNET_PeerIdentity pid;
 
@@ -96,12 +100,16 @@ find_list_tunnels (struct GNUNET_MESSENGER_ListTunnels *tunnels, const struct GN
 int
 contains_list_tunnels (struct GNUNET_MESSENGER_ListTunnels *tunnels, const struct GNUNET_PeerIdentity *peer)
 {
+  GNUNET_assert((tunnels) && (peer));
+
   return find_list_tunnels (tunnels, peer, NULL) != NULL ? GNUNET_YES : GNUNET_NO;
 }
 
 struct GNUNET_MESSENGER_ListTunnel*
 remove_from_list_tunnels (struct GNUNET_MESSENGER_ListTunnels *tunnels, struct GNUNET_MESSENGER_ListTunnel *element)
 {
+  GNUNET_assert((tunnels) && (element));
+
   struct GNUNET_MESSENGER_ListTunnel *next = element->next;
 
   GNUNET_CONTAINER_DLL_remove(tunnels->head, tunnels->tail, element);
@@ -109,4 +117,68 @@ remove_from_list_tunnels (struct GNUNET_MESSENGER_ListTunnels *tunnels, struct G
   GNUNET_free(element);
 
   return next;
+}
+
+void
+load_list_tunnels (struct GNUNET_MESSENGER_ListTunnels *tunnels, const char *path)
+{
+  GNUNET_assert((tunnels) && (path));
+
+  if (GNUNET_YES != GNUNET_DISK_file_test (path))
+    return;
+
+  enum GNUNET_DISK_AccessPermissions permission = (GNUNET_DISK_PERM_USER_READ | GNUNET_DISK_PERM_USER_WRITE);
+
+  struct GNUNET_DISK_FileHandle *handle = GNUNET_DISK_file_open(
+      path, GNUNET_DISK_OPEN_READ, permission
+  );
+
+  if (!handle)
+    return;
+
+  GNUNET_DISK_file_seek(handle, 0, GNUNET_DISK_SEEK_SET);
+
+  struct GNUNET_PeerIdentity peer;
+  ssize_t len;
+
+  do {
+    len = GNUNET_DISK_file_read(handle, &peer, sizeof(peer));
+
+    if (len != sizeof(peer))
+      break;
+
+    add_to_list_tunnels(tunnels, &peer);
+  } while (len == sizeof(peer));
+
+  GNUNET_DISK_file_close(handle);
+}
+
+void
+save_list_tunnels (struct GNUNET_MESSENGER_ListTunnels *tunnels, const char *path)
+{
+  GNUNET_assert((tunnels) && (path));
+
+  enum GNUNET_DISK_AccessPermissions permission = (GNUNET_DISK_PERM_USER_READ | GNUNET_DISK_PERM_USER_WRITE);
+
+  struct GNUNET_DISK_FileHandle *handle = GNUNET_DISK_file_open(
+      path, GNUNET_DISK_OPEN_CREATE | GNUNET_DISK_OPEN_WRITE, permission
+  );
+
+  if (!handle)
+    return;
+
+  GNUNET_DISK_file_seek(handle, 0, GNUNET_DISK_SEEK_SET);
+
+  struct GNUNET_MESSENGER_ListTunnel *element;
+  struct GNUNET_PeerIdentity pid;
+
+  for (element = tunnels->head; element; element = element->next)
+  {
+    GNUNET_PEER_resolve (element->peer, &pid);
+
+    GNUNET_DISK_file_write(handle, &pid, sizeof(pid));
+  }
+
+  GNUNET_DISK_file_sync(handle);
+  GNUNET_DISK_file_close(handle);
 }

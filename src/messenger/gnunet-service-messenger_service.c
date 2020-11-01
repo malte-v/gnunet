@@ -1,6 +1,6 @@
 /*
    This file is part of GNUnet.
-   Copyright (C) 2020 GNUnet e.V.
+   Copyright (C) 2020--2021 GNUnet e.V.
 
    GNUnet is free software: you can redistribute it and/or modify it
    under the terms of the GNU Affero General Public License as published
@@ -24,11 +24,8 @@
  */
 
 #include "gnunet-service-messenger_service.h"
-
 #include "gnunet-service-messenger_message_kind.h"
-
 #include "gnunet-service-messenger.h"
-#include "gnunet-service-messenger_util.h"
 
 static void
 callback_shutdown_service (void *cls)
@@ -43,23 +40,11 @@ callback_shutdown_service (void *cls)
   }
 }
 
-static void
-callback_update_ego (void *cls,
-                     struct GNUNET_IDENTITY_Ego *ego,
-                     void **ctx,
-                     const char *identifier)
-{
-  if ((!ego) || (!identifier))
-    return;
-
-  struct GNUNET_MESSENGER_Service *service = cls;
-
-  update_service_ego(service, identifier, GNUNET_IDENTITY_ego_get_private_key(ego));
-}
-
 struct GNUNET_MESSENGER_Service*
 create_service (const struct GNUNET_CONFIGURATION_Handle *config, struct GNUNET_SERVICE_Handle *service_handle)
 {
+  GNUNET_assert((config) && (service_handle));
+
   struct GNUNET_MESSENGER_Service *service = GNUNET_new(struct GNUNET_MESSENGER_Service);
 
   service->config = config;
@@ -90,24 +75,16 @@ create_service (const struct GNUNET_CONFIGURATION_Handle *config, struct GNUNET_
   }
 
   service->cadet = GNUNET_CADET_connect (service->config);
-  service->identity = GNUNET_IDENTITY_connect (service->config, &callback_update_ego, service);
 
-  service->egos = GNUNET_CONTAINER_multihashmap_create (8, GNUNET_NO);
+  init_ego_store(get_service_ego_store(service), service->config);
 
   init_list_handles (&(service->handles));
 
-  service->contacts = GNUNET_CONTAINER_multihashmap_create (8, GNUNET_NO);
   service->rooms = GNUNET_CONTAINER_multihashmap_create (8, GNUNET_NO);
 
-  return service;
-}
+  init_contact_store(get_service_contact_store(service));
 
-static int
-iterate_destroy_egos (void *cls, const struct GNUNET_HashCode *key, void *value)
-{
-  struct GNUNET_MESSENGER_Ego *ego = value;
-  GNUNET_free(ego);
-  return GNUNET_YES;
+  return service;
 }
 
 static int
@@ -118,17 +95,11 @@ iterate_destroy_rooms (void *cls, const struct GNUNET_HashCode *key, void *value
   return GNUNET_YES;
 }
 
-static int
-iterate_destroy_contacts (void *cls, const struct GNUNET_HashCode *key, void *value)
-{
-  struct GNUNET_MESSENGER_SrvContact *contact = value;
-  destroy_contact (contact);
-  return GNUNET_YES;
-}
-
 void
 destroy_service (struct GNUNET_MESSENGER_Service *service)
 {
+  GNUNET_assert(service);
+
   if (service->shutdown)
   {
     GNUNET_SCHEDULER_cancel (service->shutdown);
@@ -136,29 +107,19 @@ destroy_service (struct GNUNET_MESSENGER_Service *service)
     service->shutdown = NULL;
   }
 
-  GNUNET_CONTAINER_multihashmap_iterate (service->egos, iterate_destroy_egos, NULL);
-
+  clear_ego_store(get_service_ego_store(service));
   clear_list_handles (&(service->handles));
 
   GNUNET_CONTAINER_multihashmap_iterate (service->rooms, iterate_destroy_rooms, NULL);
-  GNUNET_CONTAINER_multihashmap_iterate (service->contacts, iterate_destroy_contacts, NULL);
-
-  GNUNET_CONTAINER_multihashmap_destroy (service->egos);
   GNUNET_CONTAINER_multihashmap_destroy (service->rooms);
-  GNUNET_CONTAINER_multihashmap_destroy (service->contacts);
+
+  clear_contact_store(get_service_contact_store(service));
 
   if (service->cadet)
   {
     GNUNET_CADET_disconnect (service->cadet);
 
     service->cadet = NULL;
-  }
-
-  if (service->identity)
-  {
-    GNUNET_IDENTITY_disconnect (service->identity);
-
-    service->identity = NULL;
   }
 
   if (service->dir)
@@ -173,44 +134,27 @@ destroy_service (struct GNUNET_MESSENGER_Service *service)
   GNUNET_free(service);
 }
 
-struct GNUNET_MESSENGER_Ego*
-lookup_service_ego (struct GNUNET_MESSENGER_Service *service, const char *identifier)
+struct GNUNET_MESSENGER_EgoStore*
+get_service_ego_store (struct GNUNET_MESSENGER_Service *service)
 {
-  GNUNET_assert(identifier);
+  GNUNET_assert(service);
 
-  struct GNUNET_HashCode hash;
-
-  GNUNET_CRYPTO_hash(identifier, strlen(identifier), &hash);
-  return GNUNET_CONTAINER_multihashmap_get(service->egos, &hash);
+  return &(service->ego_store);
 }
 
-void
-update_service_ego (struct GNUNET_MESSENGER_Service *service, const char *identifier,
-                    const struct GNUNET_IDENTITY_PrivateKey* key)
+struct GNUNET_MESSENGER_ContactStore*
+get_service_contact_store (struct GNUNET_MESSENGER_Service *service)
 {
-  GNUNET_assert((identifier) && (key));
+  GNUNET_assert(service);
 
-  struct GNUNET_HashCode hash;
-
-  GNUNET_CRYPTO_hash(identifier, strlen(identifier), &hash);
-
-  struct GNUNET_MESSENGER_Ego* ego = GNUNET_CONTAINER_multihashmap_get(service->egos, &hash);
-
-  if (!ego)
-  {
-    ego = GNUNET_new(struct GNUNET_MESSENGER_Ego);
-    GNUNET_CONTAINER_multihashmap_put(service->egos, &hash, ego, GNUNET_CONTAINER_MULTIHASHMAPOPTION_UNIQUE_FAST);
-  }
-
-  GNUNET_memcpy(&(ego->priv), key, sizeof(*key));
-
-  if (GNUNET_OK != GNUNET_IDENTITY_key_get_public(key, &(ego->pub)))
-    GNUNET_log(GNUNET_ERROR_TYPE_WARNING, "Updating invalid ego key failed!\n");
+  return &(service->contact_store);
 }
 
 struct GNUNET_MESSENGER_SrvHandle*
 add_service_handle (struct GNUNET_MESSENGER_Service *service, struct GNUNET_MQ_Handle *mq)
 {
+  GNUNET_assert((service) && (mq));
+
   struct GNUNET_MESSENGER_SrvHandle *handle = create_handle (service, mq);
 
   if (handle)
@@ -224,6 +168,8 @@ add_service_handle (struct GNUNET_MESSENGER_Service *service, struct GNUNET_MQ_H
 void
 remove_service_handle (struct GNUNET_MESSENGER_Service *service, struct GNUNET_MESSENGER_SrvHandle *handle)
 {
+  GNUNET_assert((service) && (handle));
+
   if (!handle)
     return;
 
@@ -234,68 +180,16 @@ remove_service_handle (struct GNUNET_MESSENGER_Service *service, struct GNUNET_M
 int
 get_service_peer_identity (const struct GNUNET_MESSENGER_Service *service, struct GNUNET_PeerIdentity *peer)
 {
+  GNUNET_assert((service) && (peer));
+
   return GNUNET_CRYPTO_get_peer_identity (service->config, peer);
 }
 
-struct GNUNET_MESSENGER_SrvContact*
-get_service_contact_by_pubkey (struct GNUNET_MESSENGER_Service *service, const struct GNUNET_IDENTITY_PublicKey *pubkey)
-{
-  struct GNUNET_HashCode hash;
-
-  GNUNET_CRYPTO_hash (pubkey, sizeof(*pubkey), &hash);
-
-  struct GNUNET_MESSENGER_SrvContact *contact = GNUNET_CONTAINER_multihashmap_get (service->contacts, &hash);
-
-  if (contact)
-    return contact;
-
-  contact = create_contact (pubkey);
-
-  if (GNUNET_OK == GNUNET_CONTAINER_multihashmap_put (service->contacts, &hash, contact,
-                                                      GNUNET_CONTAINER_MULTIHASHMAPOPTION_UNIQUE_FAST))
-    return contact;
-
-  destroy_contact (contact);
-  return NULL;
-}
-
-void
-swap_service_contact_by_pubkey (struct GNUNET_MESSENGER_Service *service, struct GNUNET_MESSENGER_SrvContact *contact,
-                                const struct GNUNET_IDENTITY_PublicKey *pubkey)
-{
-  const struct GNUNET_HashCode *hash = get_contact_id_from_key (contact);
-
-  if (GNUNET_YES == GNUNET_CONTAINER_multihashmap_remove (service->contacts, hash, contact))
-  {
-    GNUNET_memcpy(&(contact->public_key), pubkey, sizeof(*pubkey));
-
-    hash = get_contact_id_from_key (contact);
-
-    GNUNET_CONTAINER_multihashmap_put (service->contacts, hash, contact,
-                                       GNUNET_CONTAINER_MULTIHASHMAPOPTION_UNIQUE_FAST);
-  }
-}
-
-struct GNUNET_ShortHashCode*
-generate_service_new_member_id (struct GNUNET_MESSENGER_Service *service, const struct GNUNET_HashCode *key)
-{
-  struct GNUNET_MESSENGER_SrvRoom *room = get_service_room (service, key);
-
-  if (room)
-  {
-    return generate_room_member_id (room);
-  }
-  else
-  {
-    struct GNUNET_ShortHashCode *random_id = GNUNET_new(struct GNUNET_ShortHashCode);
-    generate_free_member_id (random_id, NULL);
-    return random_id;
-  }
-}
-
 struct GNUNET_MESSENGER_SrvRoom*
-get_service_room (struct GNUNET_MESSENGER_Service *service, const struct GNUNET_HashCode *key)
+get_service_room (const struct GNUNET_MESSENGER_Service *service, const struct GNUNET_HashCode *key)
 {
+  GNUNET_assert((service) && (key));
+
   return GNUNET_CONTAINER_multihashmap_get (service->rooms, key);
 }
 
@@ -303,6 +197,8 @@ int
 open_service_room (struct GNUNET_MESSENGER_Service *service, struct GNUNET_MESSENGER_SrvHandle *handle,
                    const struct GNUNET_HashCode *key)
 {
+  GNUNET_assert((service) && (handle) && (key));
+
   struct GNUNET_MESSENGER_SrvRoom *room = get_service_room (service, key);
 
   if (room)
@@ -310,8 +206,10 @@ open_service_room (struct GNUNET_MESSENGER_Service *service, struct GNUNET_MESSE
 
   room = create_room (handle, key);
 
-  if ((GNUNET_YES == open_room (room, handle)) && (GNUNET_OK
-      == GNUNET_CONTAINER_multihashmap_put (service->rooms, key, room, GNUNET_CONTAINER_MULTIHASHMAPOPTION_UNIQUE_FAST)))
+  if ((GNUNET_YES == open_room (room, handle)) &&
+      (GNUNET_OK == GNUNET_CONTAINER_multihashmap_put (service->rooms,
+                                                       key, room,
+                                                       GNUNET_CONTAINER_MULTIHASHMAPOPTION_UNIQUE_FAST)))
     return GNUNET_YES;
 
   destroy_room (room);
@@ -322,11 +220,13 @@ int
 entry_service_room (struct GNUNET_MESSENGER_Service *service, struct GNUNET_MESSENGER_SrvHandle *handle,
                     const struct GNUNET_PeerIdentity *door, const struct GNUNET_HashCode *key)
 {
+  GNUNET_assert((service) && (handle) && (door) && (key));
+
   struct GNUNET_MESSENGER_SrvRoom *room = get_service_room (service, key);
 
   if (room)
   {
-    if (GNUNET_YES == entry_room_at (room, handle, door))
+    if (GNUNET_YES == enter_room_at (room, handle, door))
       return GNUNET_YES;
     else
       return GNUNET_NO;
@@ -334,8 +234,10 @@ entry_service_room (struct GNUNET_MESSENGER_Service *service, struct GNUNET_MESS
 
   room = create_room (handle, key);
 
-  if ((GNUNET_YES == entry_room_at (room, handle, door)) && (GNUNET_OK
-      == GNUNET_CONTAINER_multihashmap_put (service->rooms, key, room, GNUNET_CONTAINER_MULTIHASHMAPOPTION_UNIQUE_FAST)))
+  if ((GNUNET_YES == enter_room_at (room, handle, door)) &&
+      (GNUNET_OK == GNUNET_CONTAINER_multihashmap_put (service->rooms,
+                                                       key, room,
+                                                       GNUNET_CONTAINER_MULTIHASHMAPOPTION_UNIQUE_FAST)))
   {
     return GNUNET_YES;
   }
@@ -351,20 +253,14 @@ int
 close_service_room (struct GNUNET_MESSENGER_Service *service, struct GNUNET_MESSENGER_SrvHandle *handle,
                     const struct GNUNET_HashCode *key)
 {
+  GNUNET_assert((service) && (handle) && (key));
+
   struct GNUNET_MESSENGER_SrvRoom *room = get_service_room (service, key);
 
   if (!room)
     return GNUNET_NO;
 
-  struct GNUNET_MESSENGER_Message *message = create_message_leave ();
-
-  if (message)
-  {
-    struct GNUNET_HashCode hash;
-
-    send_room_message (room, handle, message, &hash);
-    destroy_message (message);
-  }
+  send_room_message (room, handle, create_message_leave ());
 
   const struct GNUNET_ShortHashCode *id = get_handle_member_id (handle, key);
 
@@ -393,124 +289,18 @@ close_service_room (struct GNUNET_MESSENGER_Service *service, struct GNUNET_MESS
   return GNUNET_YES;
 }
 
-static void
-get_room_data_subdir (struct GNUNET_MESSENGER_Service *service, struct GNUNET_MESSENGER_SrvRoom *room, char **dir)
-{
-  GNUNET_asprintf (dir, "%s%s%c%s%c", service->dir, "rooms", DIR_SEPARATOR, GNUNET_h2s (&(room->key)), DIR_SEPARATOR);
-}
-
-void
-load_service_room_and_messages (struct GNUNET_MESSENGER_Service *service, struct GNUNET_MESSENGER_SrvRoom *room)
-{
-  char *room_dir;
-  get_room_data_subdir (service, room, &room_dir);
-
-  if (GNUNET_YES == GNUNET_DISK_directory_test (room_dir, GNUNET_YES))
-  {
-    load_message_store (&room->store, room_dir);
-
-    char *config_file;
-    GNUNET_asprintf (&config_file, "%s%s", room_dir, "room.cfg");
-
-    struct GNUNET_CONFIGURATION_Handle *cfg = GNUNET_CONFIGURATION_create ();
-
-    if ((GNUNET_YES == GNUNET_DISK_file_test (config_file)) && (GNUNET_OK
-        == GNUNET_CONFIGURATION_parse (cfg, config_file)))
-    {
-      unsigned long long access;
-
-      if (GNUNET_OK == GNUNET_CONFIGURATION_get_value_number (cfg, "room", "access-rule", &access))
-        room->strict_access = (int) (access);
-
-      char *message_string;
-
-      if ((GNUNET_OK == GNUNET_CONFIGURATION_get_value_string (cfg, "room", "last-message", &message_string)) && (message_string))
-      {
-        struct GNUNET_HashCode hash;
-
-        GNUNET_CRYPTO_hash_from_string(message_string, &hash);
-
-        const struct GNUNET_MESSENGER_Message *message = get_room_message (room, room->host, &hash, GNUNET_NO);
-
-        if (message)
-          update_room_last_messages (room, message, &hash);
-
-        GNUNET_free(message_string);
-      }
-    }
-
-    GNUNET_CONFIGURATION_destroy (cfg);
-
-    GNUNET_free(config_file);
-  }
-
-  GNUNET_free(room_dir);
-}
-
-void
-save_service_room_and_messages (struct GNUNET_MESSENGER_Service *service, struct GNUNET_MESSENGER_SrvRoom *room)
-{
-  if (GNUNET_YES != GNUNET_CONTAINER_multihashmap_contains (service->rooms, &(room->key)))
-  {
-    return;
-  }
-
-  char *room_dir;
-  get_room_data_subdir (service, room, &room_dir);
-
-  if ((GNUNET_YES == GNUNET_DISK_directory_test (room_dir, GNUNET_NO)) || (GNUNET_OK
-      == GNUNET_DISK_directory_create (room_dir)))
-  {
-    save_message_store (&room->store, room_dir);
-
-    char *config_file;
-    GNUNET_asprintf (&config_file, "%s%s", room_dir, "room.cfg");
-
-    struct GNUNET_CONFIGURATION_Handle *cfg = GNUNET_CONFIGURATION_create ();
-
-    GNUNET_CONFIGURATION_set_value_number (cfg, "room", "access-rule", room->strict_access);
-
-    if (room->last_messages.head)
-      GNUNET_CONFIGURATION_set_value_string (cfg, "room", "last-message",
-                                             GNUNET_h2s_full (&(room->last_messages.head->hash)));
-
-    GNUNET_CONFIGURATION_write (cfg, config_file);
-    GNUNET_CONFIGURATION_destroy (cfg);
-
-    GNUNET_free(config_file);
-  }
-
-  GNUNET_free(room_dir);
-}
-
 void
 handle_service_message (struct GNUNET_MESSENGER_Service *service, struct GNUNET_MESSENGER_SrvRoom *room,
+                        const struct GNUNET_MESSENGER_MemberSession *session,
                         const struct GNUNET_MESSENGER_Message *message, const struct GNUNET_HashCode *hash)
 {
-  struct GNUNET_MESSENGER_ListHandle *element = service->handles.head;
+  GNUNET_assert((service) && (room) && (session) && (message) && (hash));
 
-  const uint16_t length = get_message_size (message);
+  struct GNUNET_MESSENGER_ListHandle *element = service->handles.head;
 
   while (element)
   {
-    struct GNUNET_MESSENGER_SrvHandle *handle = (struct GNUNET_MESSENGER_SrvHandle*) element->handle;
-
-    if ((handle->mq) && (get_handle_member_id (handle, &(room->key))))
-    {
-      struct GNUNET_MESSENGER_RecvMessage *msg;
-      struct GNUNET_MQ_Envelope *env;
-
-      env = GNUNET_MQ_msg_extra(msg, length, GNUNET_MESSAGE_TYPE_MESSENGER_ROOM_RECV_MESSAGE);
-
-      GNUNET_memcpy(&(msg->key), &(room->key), sizeof(room->key));
-      GNUNET_memcpy(&(msg->hash), hash, sizeof(*hash));
-
-      char *buffer = ((char*) msg) + sizeof(*msg);
-      encode_message (message, length, buffer);
-
-      GNUNET_MQ_send (handle->mq, env);
-    }
-
+    notify_handle_message (element->handle, get_room_key(room), session, message, hash);
     element = element->next;
   }
 }

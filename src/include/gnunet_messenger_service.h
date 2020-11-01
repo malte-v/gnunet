@@ -48,6 +48,14 @@ extern "C" {
 #include "gnunet_scheduler_lib.h"
 #include "gnunet_time_lib.h"
 
+/**
+ * Version number of GNUnet Messenger API.
+ */
+#define GNUNET_MESSENGER_VERSION 0x00000001
+
+/**
+ * Identifier of GNUnet MESSENGER Service.
+ */
 #define GNUNET_MESSENGER_SERVICE_NAME "messenger"
 
 /**
@@ -141,10 +149,17 @@ enum GNUNET_MESSENGER_MessageKind
   GNUNET_MESSENGER_KIND_PRIVATE = 14,
 
   /**
+   * The delete kind. The message contains a #GNUNET_MESSENGER_MessageDelete body.
+   */
+  GNUNET_MESSENGER_KIND_DELETE = 15,
+
+  /**
    * The unknown kind. The message contains an unknown body.
    */
   GNUNET_MESSENGER_KIND_UNKNOWN = 0
 };
+
+#define GNUNET_MESSENGER_KIND_MAX (GNUNET_MESSENGER_KIND_DELETE)
 
 /**
  * Get the name of a message <i>kind</i>.
@@ -157,6 +172,9 @@ GNUNET_MESSENGER_name_of_kind (enum GNUNET_MESSENGER_MessageKind kind);
 
 /**
  * The header of a #GNUNET_MESSENGER_Message.
+ * This allows authentification of the sender, temporal ordering and finding potentially missed messages.
+ *
+ * Message-header-size: 40+ bytes
  */
 struct GNUNET_MESSENGER_MessageHeader
 {
@@ -188,6 +206,9 @@ struct GNUNET_MESSENGER_MessageHeader
 
 /**
  * An info message body.
+ * This allows ensuring member ids are unique and this first message can be verified.
+ *
+ * Message-body-size: 8+ bytes
  */
 struct GNUNET_MESSENGER_MessageInfo
 {
@@ -197,13 +218,16 @@ struct GNUNET_MESSENGER_MessageInfo
   struct GNUNET_IDENTITY_PublicKey host_key;
 
   /**
-   * The new unique id for the receiver in a room.
+   * The version of GNUnet Messenger API.
    */
-  struct GNUNET_ShortHashCode unique_id;
+  uint32_t messenger_version;
 };
 
 /**
  * A join message body.
+ * This allows informing others about joining the room with a given key pair.
+ *
+ * Message-body-size: 4+ bytes
  */
 struct GNUNET_MESSENGER_MessageJoin
 {
@@ -215,6 +239,9 @@ struct GNUNET_MESSENGER_MessageJoin
 
 /**
  * A leave message body.
+ * This allows informing others about leaving the room.
+ *
+ * Message-body-size: 0 bytes
  */
 struct GNUNET_MESSENGER_MessageLeave
 {
@@ -222,6 +249,9 @@ struct GNUNET_MESSENGER_MessageLeave
 
 /**
  * A name message body.
+ * This allows replacing the current name with another one.
+ *
+ * Message-body-size: 0+ bytes
  */
 struct GNUNET_MESSENGER_MessageName
 {
@@ -233,6 +263,9 @@ struct GNUNET_MESSENGER_MessageName
 
 /**
  * A key message body.
+ * This allows replacing the current key pair with another one.
+ *
+ * Message-body-size: 4+ bytes
  */
 struct GNUNET_MESSENGER_MessageKey
 {
@@ -244,6 +277,9 @@ struct GNUNET_MESSENGER_MessageKey
 
 /**
  * A peer message body.
+ * This allows informing others to open a peer as a door to the current room.
+ *
+ * Message-body-size: 32 bytes
  */
 struct GNUNET_MESSENGER_MessagePeer
 {
@@ -255,6 +291,9 @@ struct GNUNET_MESSENGER_MessagePeer
 
 /**
  * An id message body.
+ * This allows replacing the member id with a newly unique generated one.
+ *
+ * Message-body-size: 8 bytes
  */
 struct GNUNET_MESSENGER_MessageId
 {
@@ -266,6 +305,9 @@ struct GNUNET_MESSENGER_MessageId
 
 /**
  * A miss message body.
+ * This allows informing others about a disconnection of any door.
+ *
+ * Message-body-size: 32 bytes
  */
 struct GNUNET_MESSENGER_MessageMiss
 {
@@ -277,6 +319,9 @@ struct GNUNET_MESSENGER_MessageMiss
 
 /**
  * A merge message body.
+ * This allows merging message history branches together.
+ *
+ * Message-body-size: 16 bytes
  */
 struct GNUNET_MESSENGER_MessageMerge
 {
@@ -288,6 +333,9 @@ struct GNUNET_MESSENGER_MessageMerge
 
 /**
  * A request message body.
+ * This allows requesting the content of a specific message which is currently missing.
+ *
+ * Message-body-size: 16 bytes
  */
 struct GNUNET_MESSENGER_MessageRequest
 {
@@ -299,6 +347,9 @@ struct GNUNET_MESSENGER_MessageRequest
 
 /**
  * An invite message body.
+ * This allows sharing information about other rooms in form of an invitation.
+ *
+ * Message-body-size: 48 bytes
  */
 struct GNUNET_MESSENGER_MessageInvite
 {
@@ -315,6 +366,9 @@ struct GNUNET_MESSENGER_MessageInvite
 
 /**
  * A text message body.
+ * This allows general communication in text form.
+ *
+ * Message-body-size: 0+ bytes
  */
 struct GNUNET_MESSENGER_MessageText
 {
@@ -326,6 +380,9 @@ struct GNUNET_MESSENGER_MessageText
 
 /**
  * A file message body.
+ * This allows sending necessary details about an uploaded encrypted file to allow access to it.
+ *
+ * Message-body-size: 335+ bytes
  */
 struct GNUNET_MESSENGER_MessageFile
 {
@@ -352,6 +409,9 @@ struct GNUNET_MESSENGER_MessageFile
 
 /**
  * A private message body.
+ * This allows to encapsulate any message to be encrypted for only one specific member to receive in a room.
+ *
+ * Message-body-size: 32+ bytes
  */
 struct GNUNET_MESSENGER_MessagePrivate
 {
@@ -369,6 +429,25 @@ struct GNUNET_MESSENGER_MessagePrivate
    * The data of the encrypted message.
    */
   char *data;
+};
+
+/**
+ * A delete message body
+ * This allows deletion of an own previous message with any custom automatic delay.
+ *
+ * Message-body-size: 24 bytes
+ */
+struct GNUNET_MESSENGER_MessageDelete
+{
+  /**
+   * The hash of the message to delete.
+   */
+  struct GNUNET_HashCode hash;
+
+  /**
+   * The delay of the delete operation to get processed.
+   */
+  struct GNUNET_TIME_RelativeNBO delay;
 };
 
 /**
@@ -392,6 +471,7 @@ struct GNUNET_MESSENGER_MessageBody
     struct GNUNET_MESSENGER_MessageText text;
     struct GNUNET_MESSENGER_MessageFile file;
     struct GNUNET_MESSENGER_MessagePrivate private;
+    struct GNUNET_MESSENGER_MessageDelete delete;
   };
 };
 
@@ -412,11 +492,27 @@ struct GNUNET_MESSENGER_Message
 };
 
 /**
+ * Enum for the different supported flags used by message handling
+ */
+enum GNUNET_MESSENGER_MessageFlags
+{
+  /**
+   * The none flag. The flag indicates that the message is not affected by any special context.
+   */
+  GNUNET_MESSENGER_FLAG_NONE = 0,
+
+  /**
+   * The private flag. The flag indicates that the message was privately encrypted.
+   */
+  GNUNET_MESSENGER_FLAG_PRIVATE = 1,
+};
+
+/**
  * Method called whenever the EGO of a <i>handle</i> changes or if the first connection fails
  * to load a valid EGO and the anonymous key pair will be used instead.
  *
- * @param cls Closure from <i>GNUNET_MESSENGER_connect</i>
- * @param handle Messenger handle
+ * @param[in/out] cls Closure from #GNUNET_MESSENGER_connect
+ * @param[in/out] handle Messenger handle
  */
 typedef void
 (*GNUNET_MESSENGER_IdentityCallback) (void *cls, struct GNUNET_MESSENGER_Handle *handle);
@@ -424,25 +520,45 @@ typedef void
 /**
  * Method called whenever a message is sent or received from a <i>room</i>.
  *
- * @param cls Closure from <i>GNUNET_MESSENGER_connect</i>
- * @param room Room handle
- * @param message Newly received or sent message
- * @param hash Hash identifying the message
+ * The flag <i>private_message</i> will be #GNUNET_YES if a message was
+ * received privately, otherwise #GNUNET_NO.
+ *
+ * @param[in/out] cls Closure from #GNUNET_MESSENGER_connect
+ * @param[in] room Room handle
+ * @param[in] sender Sender of message
+ * @param[in] message Newly received or sent message
+ * @param[in] hash Hash identifying the message
+ * @param[in] flags Flags of the message
  */
 typedef void
-(*GNUNET_MESSENGER_MessageCallback) (void *cls, const struct GNUNET_MESSENGER_Room *room,
-                                     const struct GNUNET_MESSENGER_Message *message, const struct GNUNET_HashCode *hash);
+(*GNUNET_MESSENGER_MessageCallback) (void *cls, struct GNUNET_MESSENGER_Room *room,
+                                     const struct GNUNET_MESSENGER_Contact *sender,
+                                     const struct GNUNET_MESSENGER_Message *message,
+                                     const struct GNUNET_HashCode *hash,
+                                     enum GNUNET_MESSENGER_MessageFlags flags);
+
+/**
+ * Method called for each member in a <i>room</i> during iteration. If the method returns
+ * #GNUNET_YES the iteration continues, otherwise it will quit the iteration.
+ *
+ * @param[in/out] cls Closure from #GNUNET_MESSENGER_iterate_members
+ * @param[in] room Room handle
+ * @param[in] contact Contact handle
+ */
+typedef int
+(*GNUNET_MESSENGER_MemberCallback) (void* cls, struct GNUNET_MESSENGER_Room *room,
+                                    const struct GNUNET_MESSENGER_Contact *contact);
 
 /**
  * Set up a handle for the messenger related functions and connects to all necessary services. It will look up the ego
  * key identified by its <i>name</i> and use it for signing all messages from the handle.
  *
- * @param cfg Configuration to use
- * @param name Name to look up an ego or NULL to stay anonymous
- * @param identity_callback Function called when the EGO of the handle changes
- * @param identity_cls Closure for the <i>identity_callback</i> handler
- * @param msg_callback Function called when a new message is sent or received
- * @param msg_cls Closure for the <i>msg_callback</i> handler
+ * @param[in] cfg Configuration to use
+ * @param[in] name Name to look up an ego or NULL to stay anonymous
+ * @param[in] identity_callback Function called when the EGO of the handle changes
+ * @param[in/out] identity_cls Closure for the <i>identity_callback</i> handler
+ * @param[in] msg_callback Function called when a new message is sent or received
+ * @param[in/out] msg_cls Closure for the <i>msg_callback</i> handler
  * @return Messenger handle to use, NULL on error
  */
 struct GNUNET_MESSENGER_Handle*
@@ -458,8 +574,8 @@ GNUNET_MESSENGER_connect (const struct GNUNET_CONFIGURATION_Handle *cfg, const c
  * Keep in mind that this will fully delete the old ego key (if any is used) even if any other service wants to use it
  * as default.
  *
- * @param handle Messenger handle to use
- * @return GNUNET_OK on success, GNUNET_SYSERR on failure
+ * @param[in/out] handle Messenger handle to use
+ * @return #GNUNET_OK on success, #GNUNET_SYSERR on failure
  */
 int
 GNUNET_MESSENGER_update (struct GNUNET_MESSENGER_Handle *handle);
@@ -467,7 +583,7 @@ GNUNET_MESSENGER_update (struct GNUNET_MESSENGER_Handle *handle);
 /**
  * Disconnect all of the messengers used services and clears up its used memory.
  *
- * @param handle Messenger handle to use
+ * @param[in/out] handle Messenger handle to use
  */
 void
 GNUNET_MESSENGER_disconnect (struct GNUNET_MESSENGER_Handle *handle);
@@ -475,7 +591,7 @@ GNUNET_MESSENGER_disconnect (struct GNUNET_MESSENGER_Handle *handle);
 /**
  * Get the name (if specified, otherwise NULL) used by the messenger.
  *
- * @param handle Messenger handle to use
+ * @param[in] handle Messenger handle to use
  * @return Name used by the messenger or NULL
  */
 const char*
@@ -483,21 +599,21 @@ GNUNET_MESSENGER_get_name (const struct GNUNET_MESSENGER_Handle *handle);
 
 /**
  * Set the name for the messenger. This will rename the currently used ego and move all stored files related to the current
- * name to its new directory. If anything fails during this process the function returns GNUNET_NO and the name for
+ * name to its new directory. If anything fails during this process the function returns #GNUNET_NO and the name for
  * the messenger won't change as specified.
  *
- * @param handle Messenger handle to use
- * @param name Name for the messenger to change to
- * @return GNUNET_YES on success, GNUNET_NO on failure and GNUNET_SYSERR if <i>handle</i> is NULL
+ * @param[in/out] handle Messenger handle to use
+ * @param[in] name Name for the messenger to change to
+ * @return #GNUNET_YES on success, #GNUNET_NO on failure and #GNUNET_SYSERR if <i>handle</i> is NULL
  */
 int
 GNUNET_MESSENGER_set_name (struct GNUNET_MESSENGER_Handle *handle, const char *name);
 
 /**
- * Get the public key used by the messenger.
+ * Get the public key used by the messenger or NULL if the anonymous key was used.
  *
- * @param handle Messenger handle to use
- * @return Used ego's public key
+ * @param[in] handle Messenger handle to use
+ * @return Used ego's public key or NULL
  */
 const struct GNUNET_IDENTITY_PublicKey*
 GNUNET_MESSENGER_get_key (const struct GNUNET_MESSENGER_Handle *handle);
@@ -509,38 +625,38 @@ GNUNET_MESSENGER_get_key (const struct GNUNET_MESSENGER_Handle *handle);
  * Notice that there can only be one room related to a specific <i>key</i>. So trying to open two rooms with the same
  * <i>key</i> will result in opening the room once but returning the handle both times because the room stays open.
  *
- * You can also open a room after entering it through a <b>door</b> using <i>GNUNET_MESSENGER_entry_room(...)</i>. This
+ * You can also open a room after entering it through a <b>door</b> using #GNUNET_MESSENGER_enter_room. This
  * will notify all entered <b>doors</b> to list you as new <b>door</b>.
  *
  * ( All <b>doors</b> form a ring structured network to shorten the latency sending and receiving messages. )
  *
- * @param handle Messenger handle to use
- * @param key Hash identifying the port
+ * @param[in/out] handle Messenger handle to use
+ * @param[in] key Hash identifying the port
  * @return Room handle, NULL on error
  */
 struct GNUNET_MESSENGER_Room*
 GNUNET_MESSENGER_open_room (struct GNUNET_MESSENGER_Handle *handle, const struct GNUNET_HashCode *key);
 
 /**
- * Enter a room to send and receive messages through a <b>door</b> opened using <i>GNUNET_MESSENGER_open_room(...)</i>.
+ * Enter a room to send and receive messages through a <b>door</b> opened using #GNUNET_MESSENGER_open_room.
  *
  * Notice that there can only be one room related to a specific <i>key</i>. So trying to enter two rooms with the same
  * <i>key</i> will result in entering the room once but returning the handle both times because the room stays entered.
  * You can however enter a room through multiple <b>doors</b> in parallel which results in connecting both ends. But
  * entering the room through the same <b>door</b> won't have any effect after the first time.
  *
- * You can also enter a room through a <b>door</b> after opening it using <i>GNUNET_MESSENGER_open_room(...)</i>. But the
+ * You can also enter a room through a <b>door</b> after opening it using #GNUNET_MESSENGER_open_room. But the
  * <b>door</b> may not be your own peer identity.
  *
  * ( All <b>doors</b> form a ring structured network to shorten the latency sending and receiving messages. )
  *
- * @param handle Messenger handle to use
- * @param door Peer identity of an open <b>door</b>
- * @param key Hash identifying the port
+ * @param[in/out] handle Messenger handle to use
+ * @param[in] door Peer identity of an open <b>door</b>
+ * @param[in] key Hash identifying the port
  * @return Room handle, NULL on error
  */
 struct GNUNET_MESSENGER_Room*
-GNUNET_MESSENGER_entry_room (struct GNUNET_MESSENGER_Handle *handle, const struct GNUNET_PeerIdentity *door,
+GNUNET_MESSENGER_enter_room (struct GNUNET_MESSENGER_Handle *handle, const struct GNUNET_PeerIdentity *door,
                              const struct GNUNET_HashCode *key);
 
 /**
@@ -550,37 +666,37 @@ GNUNET_MESSENGER_entry_room (struct GNUNET_MESSENGER_Handle *handle, const struc
  * ( After a member closes a <b>door</b>, all members entered through that specific <b>door</b> have to use another one
  * or open the room on their own. )
  *
- * @param room Room handle
+ * @param[in/out] room Room handle
  */
 void
 GNUNET_MESSENGER_close_room (struct GNUNET_MESSENGER_Room *room);
 
 /**
- * Get the contact of a member in a <i>room</i> identified by their <i>id</i>.
+ * Get the contact of a member in a <i>room</i> which sent a specific message identified with a given <i>hash</i>.
  *
  * Notice that contacts are independent of rooms but will be removed if all rooms containing these contacts get closed.
  *
- * @param room Room handle
- * @param id Hash identifying a member
- * @return Contact handle, NULL if <i>id</i> is not in use
+ * @param[in] room Room handle
+ * @param[in] hash Hash identifying a message
+ * @return Contact handle, NULL otherwise
  */
 struct GNUNET_MESSENGER_Contact*
-GNUNET_MESSENGER_get_member (const struct GNUNET_MESSENGER_Room *room, const struct GNUNET_ShortHashCode *id);
+GNUNET_MESSENGER_get_sender (const struct GNUNET_MESSENGER_Room *room, const struct GNUNET_HashCode *hash);
 
 /**
  * Get the name used by the <i>contact</i>.
  *
- * @param contact Contact handle
+ * @param[in] contact Contact handle
  * @return Name of <i>contact</i> or NULL
  */
 const char*
 GNUNET_MESSENGER_contact_get_name (const struct GNUNET_MESSENGER_Contact *contact);
 
 /**
- * Get the public key used by the <i>contact</i>.
+ * Get the public key used by the <i>contact</i> or NULL if the anonymous key was used.
  *
- * @param contact Contact handle
- * @return Public key of the ego used by <i>contact</i>
+ * @param[in] contact Contact handle
+ * @return Public key of the ego used by <i>contact</i> or NULL
  */
 const struct GNUNET_IDENTITY_PublicKey*
 GNUNET_MESSENGER_contact_get_key (const struct GNUNET_MESSENGER_Contact *contact);
@@ -593,21 +709,43 @@ GNUNET_MESSENGER_contact_get_key (const struct GNUNET_MESSENGER_Contact *contact
  *
  * Notice that all messages sent and received are also stored and can be propagated to new members entering the room.
  *
- * @param room Room handle
- * @param message New message to send
+ * If you provide a specific <i>contact</i> as receiver of the given message, the message will automatically be
+ * encrypted and sent as a private message (see #GNUNET_MESSENGER_MessagePrivate). Therefore the selected contact
+ * will be the only member receiving the actual message.
+ *
+ * Sending a message to all members in a given room can be done by providing NULL as contact.
+ *
+ * @param[in/out] room Room handle
+ * @param[in] message New message to send
+ * @param[in] contact Contact or NULL
  */
 void
-GNUNET_MESSENGER_send_message (struct GNUNET_MESSENGER_Room *room, const struct GNUNET_MESSENGER_Message *message);
+GNUNET_MESSENGER_send_message (struct GNUNET_MESSENGER_Room *room, const struct GNUNET_MESSENGER_Message *message,
+                               const struct GNUNET_MESSENGER_Contact* contact);
 
 /**
  * Get the message in a <i>room</i> identified by its <i>hash</i>.
  *
- * @param room Room handle
- * @param hash Hash identifying a message
+ * @param[in] room Room handle
+ * @param[in] hash Hash identifying a message
  * @return Message struct or NULL if no message with that hash is known
  */
 const struct GNUNET_MESSENGER_Message*
 GNUNET_MESSENGER_get_message (const struct GNUNET_MESSENGER_Room *room, const struct GNUNET_HashCode *hash);
+
+/**
+ * Iterates through all members of a given <i>room</i> and calls a selected <i>callback</i>
+ * for each of them with a provided closure. The callback will receive the contact of each
+ * member. The function returns the amount of members iterated with the given callback.
+ *
+ * @param[in] room Room handle
+ * @param[in] callback Function called for each member
+ * @param[in] cls Closure for the <i>callback</i> handler
+ * @return Amount of members iterated
+ */
+int
+GNUNET_MESSENGER_iterate_members (struct GNUNET_MESSENGER_Room *room, GNUNET_MESSENGER_MemberCallback callback,
+                                  void* cls);
 
 #if 0 /* keep Emacsens' auto-indent happy */
 {

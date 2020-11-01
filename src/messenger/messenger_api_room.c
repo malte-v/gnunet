@@ -1,6 +1,6 @@
 /*
    This file is part of GNUnet.
-   Copyright (C) 2020 GNUnet e.V.
+   Copyright (C) 2020--2021 GNUnet e.V.
 
    GNUnet is free software: you can redistribute it and/or modify it
    under the terms of the GNU Affero General Public License as published
@@ -30,6 +30,8 @@
 struct GNUNET_MESSENGER_Room*
 create_room (struct GNUNET_MESSENGER_Handle *handle, const struct GNUNET_HashCode *key)
 {
+  GNUNET_assert((handle) && (key));
+
   struct GNUNET_MESSENGER_Room *room = GNUNET_new(struct GNUNET_MESSENGER_Room);
 
   room->handle = handle;
@@ -38,11 +40,10 @@ create_room (struct GNUNET_MESSENGER_Handle *handle, const struct GNUNET_HashCod
   room->opened = GNUNET_NO;
   room->contact_id = NULL;
 
-  room->members = GNUNET_CONTAINER_multishortmap_create (8, GNUNET_NO);
-
   init_list_tunnels (&(room->entries));
 
   room->messages = GNUNET_CONTAINER_multihashmap_create (8, GNUNET_NO);
+  room->members = GNUNET_CONTAINER_multishortmap_create (8, GNUNET_NO);
 
   return room;
 }
@@ -50,9 +51,10 @@ create_room (struct GNUNET_MESSENGER_Handle *handle, const struct GNUNET_HashCod
 static int
 iterate_destroy_message (void *cls, const struct GNUNET_HashCode *key, void *value)
 {
-  struct GNUNET_MESSENGER_Message *message = value;
+  struct GNUNET_MESSENGER_RoomMessageEntry *entry = value;
 
-  destroy_message (message);
+  destroy_message (entry->message);
+  GNUNET_free(entry);
 
   return GNUNET_YES;
 }
@@ -60,8 +62,7 @@ iterate_destroy_message (void *cls, const struct GNUNET_HashCode *key, void *val
 void
 destroy_room (struct GNUNET_MESSENGER_Room *room)
 {
-  if (room->members)
-    GNUNET_CONTAINER_multishortmap_destroy (room->members);
+  GNUNET_assert(room);
 
   clear_list_tunnels (&(room->entries));
 
@@ -72,6 +73,9 @@ destroy_room (struct GNUNET_MESSENGER_Room *room)
     GNUNET_CONTAINER_multihashmap_destroy (room->messages);
   }
 
+  if (room->members)
+    GNUNET_CONTAINER_multishortmap_destroy (room->members);
+
   if (room->contact_id)
     GNUNET_free(room->contact_id);
 
@@ -81,65 +85,111 @@ destroy_room (struct GNUNET_MESSENGER_Room *room)
 const struct GNUNET_MESSENGER_Message*
 get_room_message (const struct GNUNET_MESSENGER_Room *room, const struct GNUNET_HashCode *hash)
 {
-  return GNUNET_CONTAINER_multihashmap_get (room->messages, hash);
+  GNUNET_assert((room) && (hash));
+
+  struct GNUNET_MESSENGER_RoomMessageEntry *entry = GNUNET_CONTAINER_multihashmap_get (
+      room->messages, hash
+  );
+
+  return (entry? entry->message : NULL);
 }
 
-static void
-handle_join_message (struct GNUNET_MESSENGER_Room *room, const struct GNUNET_MESSENGER_Message *message,
-                     const struct GNUNET_HashCode *hash)
+struct GNUNET_MESSENGER_Contact*
+get_room_sender (const struct GNUNET_MESSENGER_Room *room, const struct GNUNET_HashCode *hash)
 {
-  struct GNUNET_MESSENGER_Contact *contact = get_handle_contact_by_pubkey (room->handle, &(message->body.join.key));
+  GNUNET_assert((room) && (hash));
 
-  if (contact)
-    GNUNET_CONTAINER_multishortmap_put (room->members, &(message->header.sender_id), contact,
-                                        GNUNET_CONTAINER_MULTIHASHMAPOPTION_UNIQUE_FAST);
+  struct GNUNET_MESSENGER_RoomMessageEntry *entry = GNUNET_CONTAINER_multihashmap_get (
+      room->messages, hash
+  );
+
+  return (entry? entry->sender : NULL);
 }
 
 static void
-handle_leave_message (struct GNUNET_MESSENGER_Room *room, const struct GNUNET_MESSENGER_Message *message,
-                      const struct GNUNET_HashCode *hash)
+handle_join_message (struct GNUNET_MESSENGER_Room *room, struct GNUNET_MESSENGER_Contact *sender,
+                     const struct GNUNET_MESSENGER_Message *message, const struct GNUNET_HashCode *hash)
 {
-  GNUNET_CONTAINER_multishortmap_remove_all (room->members, &(message->header.sender_id));
+  if (!sender)
+  {
+    struct GNUNET_MESSENGER_ContactStore *store = get_handle_contact_store(room->handle);
+    struct GNUNET_HashCode context;
+
+    get_context_from_member(&(room->key), &(message->header.sender_id), &context);
+
+    sender = get_store_contact(store, &context, &(message->body.join.key));
+  }
+
+  if ((GNUNET_YES != GNUNET_CONTAINER_multishortmap_contains_value(room->members, &(message->header.sender_id), sender)) &&
+      (GNUNET_OK == GNUNET_CONTAINER_multishortmap_put(room->members, &(message->header.sender_id), sender,
+                                                       GNUNET_CONTAINER_MULTIHASHMAPOPTION_MULTIPLE)))
+    increase_contact_rc(sender);
 }
 
 static void
-handle_name_message (struct GNUNET_MESSENGER_Room *room, const struct GNUNET_MESSENGER_Message *message,
-                     const struct GNUNET_HashCode *hash)
+handle_leave_message (struct GNUNET_MESSENGER_Room *room, struct GNUNET_MESSENGER_Contact *sender,
+                      const struct GNUNET_MESSENGER_Message *message, const struct GNUNET_HashCode *hash)
 {
-  struct GNUNET_MESSENGER_Contact *contact = GNUNET_CONTAINER_multishortmap_get (room->members,
-                                                                                 &(message->header.sender_id));
+  if ((!sender) ||
+      (GNUNET_YES != GNUNET_CONTAINER_multishortmap_remove(room->members, &(message->header.sender_id), sender)))
+    return;
 
-  if (contact)
-    set_contact_name (contact, message->body.name.name);
+  struct GNUNET_HashCode context;
+  get_context_from_member(&(room->key), &(message->header.sender_id), &context);
+
+  struct GNUNET_MESSENGER_ContactStore *store = get_handle_contact_store(room->handle);
+
+  if (GNUNET_YES == decrease_contact_rc(sender))
+    remove_store_contact(store, sender, &context);
 }
 
 static void
-handle_key_message (struct GNUNET_MESSENGER_Room *room, const struct GNUNET_MESSENGER_Message *message,
-                    const struct GNUNET_HashCode *hash)
+handle_name_message (struct GNUNET_MESSENGER_Room *room, struct GNUNET_MESSENGER_Contact *sender,
+                     const struct GNUNET_MESSENGER_Message *message, const struct GNUNET_HashCode *hash)
 {
-  struct GNUNET_MESSENGER_Contact *contact = GNUNET_CONTAINER_multishortmap_get (room->members,
-                                                                                 &(message->header.sender_id));
+  if (!sender)
+    return;
 
-  if (contact)
-    swap_handle_contact_by_pubkey (room->handle, contact, &(message->body.key.key));
+  set_contact_name (sender, message->body.name.name);
 }
 
 static void
-handle_id_message (struct GNUNET_MESSENGER_Room *room, const struct GNUNET_MESSENGER_Message *message,
-                   const struct GNUNET_HashCode *hash)
+handle_key_message (struct GNUNET_MESSENGER_Room *room, struct GNUNET_MESSENGER_Contact *sender,
+                    const struct GNUNET_MESSENGER_Message *message, const struct GNUNET_HashCode *hash)
 {
-  struct GNUNET_MESSENGER_Contact *contact = GNUNET_CONTAINER_multishortmap_get (room->members,
-                                                                                 &(message->header.sender_id));
+  if (!sender)
+    return;
 
-  if ((contact) && (GNUNET_OK
-      == GNUNET_CONTAINER_multishortmap_put (room->members, &(message->body.id.id), contact,
-                                             GNUNET_CONTAINER_MULTIHASHMAPOPTION_UNIQUE_FAST)))
-    GNUNET_CONTAINER_multishortmap_remove (room->members, &(message->header.sender_id), contact);
+  struct GNUNET_HashCode context;
+  get_context_from_member(&(room->key), &(message->header.sender_id), &context);
+
+  struct GNUNET_MESSENGER_ContactStore *store = get_handle_contact_store(room->handle);
+
+  update_store_contact(store, sender, &context, &context, &(message->body.key.key));
 }
 
 static void
-handle_miss_message (struct GNUNET_MESSENGER_Room *room, const struct GNUNET_MESSENGER_Message *message,
-                     const struct GNUNET_HashCode *hash)
+handle_id_message (struct GNUNET_MESSENGER_Room *room, struct GNUNET_MESSENGER_Contact *sender,
+                   const struct GNUNET_MESSENGER_Message *message, const struct GNUNET_HashCode *hash)
+{
+  if ((!sender) ||
+      (GNUNET_YES != GNUNET_CONTAINER_multishortmap_remove(room->members, &(message->header.sender_id), sender)) ||
+      (GNUNET_OK != GNUNET_CONTAINER_multishortmap_put(room->members, &(message->body.id.id), sender,
+                                                       GNUNET_CONTAINER_MULTIHASHMAPOPTION_MULTIPLE)))
+    return;
+
+  struct GNUNET_HashCode context, next_context;
+  get_context_from_member(&(room->key), &(message->header.sender_id), &context);
+  get_context_from_member(&(room->key), &(message->body.id.id), &next_context);
+
+  struct GNUNET_MESSENGER_ContactStore *store = get_handle_contact_store(room->handle);
+
+  update_store_contact(store, sender, &context, &next_context, get_contact_key(sender));
+}
+
+static void
+handle_miss_message (struct GNUNET_MESSENGER_Room *room, struct GNUNET_MESSENGER_Contact *sender,
+                     const struct GNUNET_MESSENGER_Message *message, const struct GNUNET_HashCode *hash)
 {
   if ((room->contact_id) && (0 == GNUNET_memcmp(&(message->header.sender_id), room->contact_id)))
   {
@@ -150,9 +200,25 @@ handle_miss_message (struct GNUNET_MESSENGER_Room *room, const struct GNUNET_MES
   }
 }
 
+static void
+handle_delete_message (struct GNUNET_MESSENGER_Room *room, struct GNUNET_MESSENGER_Contact *sender,
+                     const struct GNUNET_MESSENGER_Message *message, const struct GNUNET_HashCode *hash)
+{
+  struct GNUNET_MESSENGER_RoomMessageEntry *entry = GNUNET_CONTAINER_multihashmap_get (
+      room->messages, &(message->body.delete.hash)
+  );
+
+  if ((entry) && ((entry->sender == sender) || (get_handle_contact (room->handle, &(room->key)) == sender)) &&
+      (GNUNET_YES == GNUNET_CONTAINER_multihashmap_remove (room->messages, &(message->body.delete.hash), entry)))
+  {
+    destroy_message (entry->message);
+    GNUNET_free(entry);
+  }
+}
+
 void
-handle_room_message (struct GNUNET_MESSENGER_Room *room, const struct GNUNET_MESSENGER_Message *message,
-                     const struct GNUNET_HashCode *hash)
+handle_room_message (struct GNUNET_MESSENGER_Room *room, struct GNUNET_MESSENGER_Contact *sender,
+                     const struct GNUNET_MESSENGER_Message *message, const struct GNUNET_HashCode *hash)
 {
   if (GNUNET_NO != GNUNET_CONTAINER_multihashmap_contains (room->messages, hash))
     return;
@@ -160,30 +226,78 @@ handle_room_message (struct GNUNET_MESSENGER_Room *room, const struct GNUNET_MES
   switch (message->header.kind)
   {
   case GNUNET_MESSENGER_KIND_JOIN:
-    handle_join_message (room, message, hash);
+    handle_join_message (room, sender, message, hash);
     break;
   case GNUNET_MESSENGER_KIND_LEAVE:
-    handle_leave_message (room, message, hash);
+    handle_leave_message (room, sender, message, hash);
     break;
   case GNUNET_MESSENGER_KIND_NAME:
-    handle_name_message (room, message, hash);
+    handle_name_message (room, sender, message, hash);
     break;
   case GNUNET_MESSENGER_KIND_KEY:
-    handle_key_message (room, message, hash);
+    handle_key_message (room, sender, message, hash);
     break;
   case GNUNET_MESSENGER_KIND_ID:
-    handle_id_message (room, message, hash);
+    handle_id_message (room, sender, message, hash);
     break;
   case GNUNET_MESSENGER_KIND_MISS:
-    handle_miss_message (room, message, hash);
+    handle_miss_message (room, sender, message, hash);
+    break;
+  case GNUNET_MESSENGER_KIND_DELETE:
+    handle_delete_message (room, sender, message, hash);
     break;
   default:
     break;
   }
 
-  struct GNUNET_MESSENGER_Message *clone = copy_message (message);
+  struct GNUNET_MESSENGER_RoomMessageEntry *entry = GNUNET_new(struct GNUNET_MESSENGER_RoomMessageEntry);
 
-  if (GNUNET_OK != GNUNET_CONTAINER_multihashmap_put (room->messages, hash, clone,
+  if (!entry)
+    return;
+
+  entry->sender = sender;
+  entry->message = copy_message (message);
+
+  if (GNUNET_OK != GNUNET_CONTAINER_multihashmap_put (room->messages, hash, entry,
                                                       GNUNET_CONTAINER_MULTIHASHMAPOPTION_UNIQUE_FAST))
-    destroy_message (clone);
+  {
+    destroy_message (entry->message);
+    GNUNET_free(entry);
+  }
+}
+
+struct GNUNET_MESSENGER_MemberCall
+{
+  struct GNUNET_MESSENGER_Room *room;
+  GNUNET_MESSENGER_MemberCallback callback;
+  void *cls;
+};
+
+static int
+iterate_local_members (void* cls, const struct GNUNET_ShortHashCode *key, void *value)
+{
+  struct GNUNET_MESSENGER_MemberCall *call = cls;
+  struct GNUNET_MESSENGER_Contact *contact = value;
+
+  return call->callback(call->cls, call->room, contact);
+}
+
+int
+iterate_room_members (struct GNUNET_MESSENGER_Room *room, GNUNET_MESSENGER_MemberCallback callback,
+                      void* cls)
+{
+  GNUNET_assert(room);
+
+  if (!callback)
+    return GNUNET_CONTAINER_multishortmap_iterate(room->members, NULL, NULL);
+
+  struct GNUNET_MESSENGER_MemberCall call;
+
+  call.room = room;
+  call.callback = callback;
+  call.cls = cls;
+
+  GNUNET_assert(callback);
+
+  return GNUNET_CONTAINER_multishortmap_iterate(room->members, iterate_local_members, &call);
 }

@@ -1,6 +1,6 @@
 /*
    This file is part of GNUnet.
-   Copyright (C) 2020 GNUnet e.V.
+   Copyright (C) 2020--2021 GNUnet e.V.
 
    GNUnet is free software: you can redistribute it and/or modify it
    under the terms of the GNU Affero General Public License as published
@@ -55,8 +55,10 @@ clear_list_handles (struct GNUNET_MESSENGER_ListHandles *handles)
 }
 
 void
-add_list_handle (struct GNUNET_MESSENGER_ListHandles *handles, void *handle)
+add_list_handle (struct GNUNET_MESSENGER_ListHandles *handles, struct GNUNET_MESSENGER_SrvHandle *handle)
 {
+  GNUNET_assert((handles) && (handle));
+
   struct GNUNET_MESSENGER_ListHandle *element = GNUNET_new(struct GNUNET_MESSENGER_ListHandle);
 
   element->handle = handle;
@@ -65,8 +67,10 @@ add_list_handle (struct GNUNET_MESSENGER_ListHandles *handles, void *handle)
 }
 
 int
-remove_list_handle (struct GNUNET_MESSENGER_ListHandles *handles, void *handle)
+remove_list_handle (struct GNUNET_MESSENGER_ListHandles *handles, struct GNUNET_MESSENGER_SrvHandle *handle)
 {
+  GNUNET_assert((handles) && (handle));
+
   struct GNUNET_MESSENGER_ListHandle *element;
 
   for (element = handles->head; element; element = element->next)
@@ -82,9 +86,11 @@ remove_list_handle (struct GNUNET_MESSENGER_ListHandles *handles, void *handle)
   return GNUNET_YES;
 }
 
-void*
-find_list_handle_by_member (struct GNUNET_MESSENGER_ListHandles *handles, const struct GNUNET_HashCode *key)
+struct GNUNET_MESSENGER_SrvHandle*
+find_list_handle_by_member (const struct GNUNET_MESSENGER_ListHandles *handles, const struct GNUNET_HashCode *key)
 {
+  GNUNET_assert((handles) && (key));
+
   struct GNUNET_MESSENGER_ListHandle *element;
 
   for (element = handles->head; element; element = element->next)

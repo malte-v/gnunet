@@ -1,6 +1,6 @@
 /*
    This file is part of GNUnet.
-   Copyright (C) 2020 GNUnet e.V.
+   Copyright (C) 2020--2021 GNUnet e.V.
 
    GNUnet is free software: you can redistribute it and/or modify it
    under the terms of the GNU Affero General Public License as published
@@ -59,13 +59,12 @@ end (void *cls)
 
   if (messenger)
   {
-    GNUNET_MESSENGER_disconnect(messenger);
+    GNUNET_MESSENGER_disconnect (messenger);
     messenger = NULL;
   }
 
   status = 0;
 }
-
 
 static void
 end_badly (void *cls)
@@ -81,7 +80,7 @@ end_operation (void *cls)
 {
   op_task = NULL;
 
-  fprintf (stderr, "Testcase failed (operation: '%s').\n", cls? (const char*) cls : "unknown");
+  fprintf (stderr, "Testcase failed (operation: '%s').\n", cls ? (const char*) cls : "unknown");
 
   if (die_task)
     GNUNET_SCHEDULER_cancel (die_task);
@@ -105,7 +104,7 @@ on_identity (void *cls, struct GNUNET_MESSENGER_Handle *handle)
     op_task = NULL;
   }
 
-  const char* name = GNUNET_MESSENGER_get_name(handle);
+  const char *name = GNUNET_MESSENGER_get_name (handle);
 
   if (NULL != name)
   {
@@ -113,26 +112,21 @@ on_identity (void *cls, struct GNUNET_MESSENGER_Handle *handle)
     return;
   }
 
-  if (GNUNET_SYSERR != GNUNET_MESSENGER_update(handle))
+  if (GNUNET_SYSERR != GNUNET_MESSENGER_update (handle))
   {
     op_task = GNUNET_SCHEDULER_add_now (&end_operation, "update-fail");
     return;
   }
 
-  struct GNUNET_IDENTITY_Ego* ego = GNUNET_IDENTITY_ego_get_anonymous();
-  struct GNUNET_IDENTITY_PublicKey anonymous_key;
+  const struct GNUNET_IDENTITY_PublicKey *key = GNUNET_MESSENGER_get_key (handle);
 
-  GNUNET_IDENTITY_ego_get_public_key(ego, &anonymous_key);
-
-  const struct GNUNET_IDENTITY_PublicKey* key = GNUNET_MESSENGER_get_key(handle);
-
-  if (0 != GNUNET_memcmp(key, (&anonymous_key)))
+  if (key)
   {
     op_task = GNUNET_SCHEDULER_add_now (&end_operation, "key-anonymous");
     return;
   }
 
-  GNUNET_MESSENGER_disconnect(handle);
+  GNUNET_MESSENGER_disconnect (handle);
 
   messenger = NULL;
 
@@ -150,14 +144,12 @@ on_identity (void *cls, struct GNUNET_MESSENGER_Handle *handle)
  * @param peer Peer for testing
  */
 static void
-run (void *cls,
-     const struct GNUNET_CONFIGURATION_Handle *cfg,
-     struct GNUNET_TESTING_Peer *peer)
+run (void *cls, const struct GNUNET_CONFIGURATION_Handle *cfg, struct GNUNET_TESTING_Peer *peer)
 {
   die_task = GNUNET_SCHEDULER_add_delayed (TOTAL_TIMEOUT, &end_badly, NULL);
 
   op_task = GNUNET_SCHEDULER_add_delayed (BASE_TIMEOUT, &end_operation, "connect");
-  messenger = GNUNET_MESSENGER_connect(cfg, NULL, &on_identity, NULL, NULL, NULL);
+  messenger = GNUNET_MESSENGER_connect (cfg, NULL, &on_identity, NULL, NULL, NULL);
 }
 
 /**
@@ -168,11 +160,9 @@ run (void *cls,
  * @return 0 ok, 1 on error
  */
 int
-main(int argc, char **argv)
+main (int argc, char **argv)
 {
-  if (0 != GNUNET_TESTING_peer_run("test-messenger",
-                                   "test_messenger_api.conf",
-                                   &run, NULL))
+  if (0 != GNUNET_TESTING_peer_run ("test-messenger", "test_messenger_api.conf", &run, NULL))
     return 1;
 
   return status;

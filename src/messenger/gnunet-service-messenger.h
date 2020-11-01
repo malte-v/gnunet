@@ -1,6 +1,6 @@
 /*
    This file is part of GNUnet.
-   Copyright (C) 2020 GNUnet e.V.
+   Copyright (C) 2020--2021 GNUnet e.V.
 
    GNUnet is free software: you can redistribute it and/or modify it
    under the terms of the GNU Affero General Public License as published
@@ -74,7 +74,6 @@ struct GNUNET_MESSENGER_NameMessage
 struct GNUNET_MESSENGER_KeyMessage
 {
   struct GNUNET_MessageHeader header;
-  struct GNUNET_IDENTITY_PublicKey pubkey;
 };
 
 /**
@@ -105,7 +104,20 @@ struct GNUNET_MESSENGER_MemberMessage
 struct GNUNET_MESSENGER_SendMessage
 {
   struct GNUNET_MessageHeader header;
+
   struct GNUNET_HashCode key;
+  uint32_t flags;
+};
+
+/**
+ * Message to request something from a room
+ */
+struct GNUNET_MESSENGER_GetMessage
+{
+  struct GNUNET_MessageHeader header;
+
+  struct GNUNET_HashCode key;
+  struct GNUNET_HashCode hash;
 };
 
 /**
@@ -114,8 +126,12 @@ struct GNUNET_MESSENGER_SendMessage
 struct GNUNET_MESSENGER_RecvMessage
 {
   struct GNUNET_MessageHeader header;
+
   struct GNUNET_HashCode key;
+  struct GNUNET_HashCode sender;
+  struct GNUNET_HashCode context;
   struct GNUNET_HashCode hash;
+  uint32_t flags;
 };
 
 #endif //GNUNET_SERVICE_MESSENGER_H

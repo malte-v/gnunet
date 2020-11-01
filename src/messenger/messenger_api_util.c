@@ -1,6 +1,6 @@
 /*
    This file is part of GNUnet.
-   Copyright (C) 2020 GNUnet e.V.
+   Copyright (C) 2020--2021 GNUnet e.V.
 
    GNUnet is free software: you can redistribute it and/or modify it
    under the terms of the GNU Affero General Public License as published
@@ -19,11 +19,11 @@
  */
 /**
  * @author Tobias Frisch
- * @file src/messenger/gnunet-service-messenger_util.c
- * @brief GNUnet MESSENGER service
+ * @file src/messenger/messenger_api_util.c
+ * @brief messenger api: client implementation of GNUnet MESSENGER service
  */
 
-#include "gnunet-service-messenger_util.h"
+#include "messenger_api_util.h"
 
 static void
 callback_close_channel (void *cls)
@@ -37,13 +37,18 @@ callback_close_channel (void *cls)
 void
 delayed_disconnect_channel (struct GNUNET_CADET_Channel *channel)
 {
-  GNUNET_SCHEDULER_add_delayed_with_priority (GNUNET_TIME_relative_get_zero_ (), GNUNET_SCHEDULER_PRIORITY_URGENT,
+  GNUNET_assert(channel);
+
+  GNUNET_SCHEDULER_add_delayed_with_priority (GNUNET_TIME_relative_get_zero_ (),
+                                              GNUNET_SCHEDULER_PRIORITY_URGENT,
                                               callback_close_channel, channel);
 }
 
 int
 generate_free_member_id (struct GNUNET_ShortHashCode *id, const struct GNUNET_CONTAINER_MultiShortmap *members)
 {
+  GNUNET_assert(id);
+
   size_t counter = 1 + (members ? GNUNET_CONTAINER_multishortmap_size (members) : 0);
 
   do
@@ -61,4 +66,19 @@ generate_free_member_id (struct GNUNET_ShortHashCode *id, const struct GNUNET_CO
     return GNUNET_YES;
 
   return GNUNET_NO;
+}
+
+const struct GNUNET_IDENTITY_PublicKey*
+get_anonymous_public_key ()
+{
+  static struct GNUNET_IDENTITY_PublicKey public_key;
+  static struct GNUNET_IDENTITY_Ego* ego = NULL;
+
+  if (!ego)
+  {
+    ego = GNUNET_IDENTITY_ego_get_anonymous();
+    GNUNET_IDENTITY_ego_get_public_key(ego, &public_key);
+  }
+
+  return &public_key;
 }
