@@ -1015,13 +1015,13 @@ GNUNET_IDENTITY_read_key_from_buffer (struct GNUNET_IDENTITY_PublicKey *key,
 {
   if (len < sizeof (key->type))
     return -1;
-  GNUNET_memcpy(& (key->type), buffer, sizeof (key->type));
+  GNUNET_memcpy(&(key->type), buffer, sizeof (key->type));
   const ssize_t length = GNUNET_IDENTITY_key_get_length(key);
   if (len < length)
 	  return -1;
   if (length < 0)
     return -2;
-  GNUNET_memcpy(key, buffer, length);
+  GNUNET_memcpy(&(key->ecdsa_key), buffer + sizeof (key->type), length - sizeof (key->type));
   return length;
 }
 
@@ -1036,7 +1036,8 @@ GNUNET_IDENTITY_write_key_to_buffer (const struct GNUNET_IDENTITY_PublicKey *key
 	  return -1;
   if (length < 0)
 	return -2;
-  GNUNET_memcpy(buffer, key, length);
+  GNUNET_memcpy(buffer, &(key->type), sizeof (key->type));
+  GNUNET_memcpy(buffer + sizeof (key->type), &(key->ecdsa_key), length - sizeof (key->type));
   return length;
 }
 
