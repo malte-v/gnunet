@@ -95,7 +95,7 @@ struct GNUNET_REVOCATION_PowP
 /**
  * The signature object we use for the PoW
  */
-struct GNUNET_REVOCATION_EcdsaSignaturePurposePS
+struct GNUNET_REVOCATION_SignaturePurposePS
 {
   /**
    * The signature purpose
@@ -103,14 +103,9 @@ struct GNUNET_REVOCATION_EcdsaSignaturePurposePS
   struct GNUNET_CRYPTO_EccSignaturePurpose purpose;
 
   /**
-   * Type of the key
-   */
-  uint32_t ktype;
-
-  /**
    * The revoked public key
    */
-  struct GNUNET_CRYPTO_EcdsaPublicKey key;
+  struct GNUNET_IDENTITY_PublicKey key;
 
   /**
    * The timestamp of the revocation

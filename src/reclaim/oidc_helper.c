@@ -525,7 +525,7 @@ OIDC_build_authz_code (const struct GNUNET_IDENTITY_PrivateKey *issuer,
   // Get length
   code_payload_len = sizeof(struct GNUNET_CRYPTO_EccSignaturePurpose)
                      + payload_len + sizeof(struct
-                                            GNUNET_CRYPTO_EcdsaSignature);
+                                            GNUNET_IDENTITY_Signature);
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Length of data to encode: %lu\n",
               code_payload_len);
@@ -544,10 +544,10 @@ OIDC_build_authz_code (const struct GNUNET_IDENTITY_PrivateKey *issuer,
   buf_ptr += payload_len;
   // Sign and store signature
   if (GNUNET_SYSERR ==
-      GNUNET_CRYPTO_ecdsa_sign_ (&issuer->ecdsa_key,
-                                 purpose,
-                                 (struct GNUNET_CRYPTO_EcdsaSignature *)
-                                 buf_ptr))
+      GNUNET_IDENTITY_private_key_sign_ (issuer,
+                                         purpose,
+                                         (struct GNUNET_IDENTITY_Signature *)
+                                         buf_ptr))
   {
     GNUNET_break (0);
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR, "Unable to sign code\n");
@@ -593,7 +593,7 @@ OIDC_parse_authz_code (const struct GNUNET_IDENTITY_PublicKey *audience,
   char *code_challenge;
   char *code_verifier_hash;
   struct GNUNET_CRYPTO_EccSignaturePurpose *purpose;
-  struct GNUNET_CRYPTO_EcdsaSignature *signature;
+  struct GNUNET_IDENTITY_Signature *signature;
   uint32_t code_challenge_len;
   uint32_t attrs_ser_len;
   uint32_t pres_ser_len;
@@ -609,7 +609,7 @@ OIDC_parse_authz_code (const struct GNUNET_IDENTITY_PublicKey *audience,
                                      (void **) &code_payload);
   if (code_payload_len < sizeof(struct GNUNET_CRYPTO_EccSignaturePurpose)
       + sizeof(struct OIDC_Parameters)
-      + sizeof(struct GNUNET_CRYPTO_EcdsaSignature))
+      + sizeof(struct GNUNET_IDENTITY_Signature))
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR, "Authorization code malformed\n");
     GNUNET_free (code_payload);
@@ -620,10 +620,10 @@ OIDC_parse_authz_code (const struct GNUNET_IDENTITY_PublicKey *audience,
   plaintext_len = code_payload_len;
   plaintext_len -= sizeof(struct GNUNET_CRYPTO_EccSignaturePurpose);
   ptr = (char *) &purpose[1];
-  plaintext_len -= sizeof(struct GNUNET_CRYPTO_EcdsaSignature);
+  plaintext_len -= sizeof(struct GNUNET_IDENTITY_Signature);
   plaintext = ptr;
   ptr += plaintext_len;
-  signature = (struct GNUNET_CRYPTO_EcdsaSignature *) ptr;
+  signature = (struct GNUNET_IDENTITY_Signature *) ptr;
   params = (struct OIDC_Parameters *) plaintext;
 
   // cmp code_challenge code_verifier
@@ -684,10 +684,10 @@ OIDC_parse_authz_code (const struct GNUNET_IDENTITY_PublicKey *audience,
     return GNUNET_SYSERR;
   }
   if (GNUNET_OK !=
-      GNUNET_CRYPTO_ecdsa_verify_ (GNUNET_SIGNATURE_PURPOSE_RECLAIM_CODE_SIGN,
-                                   purpose,
-                                   signature,
-                                   &ticket->identity.ecdsa_key))
+      GNUNET_IDENTITY_public_key_verify_ (GNUNET_SIGNATURE_PURPOSE_RECLAIM_CODE_SIGN,
+                                          purpose,
+                                          signature,
+                                          &(ticket->identity)))
   {
     GNUNET_free (code_payload);
     if (NULL != *nonce_str)
