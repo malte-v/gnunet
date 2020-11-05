@@ -138,6 +138,33 @@ struct GNUNET_IDENTITY_PublicKey
 
 
 /**
+ * An identity signature as per LSD0001.
+ */
+struct GNUNET_IDENTITY_Signature
+{
+  /**
+   * Type of signature.
+   * Defined by the GNS zone type value.
+   * In NBO.
+   */
+  uint32_t type;
+
+  union
+  {
+	/**
+	 * An ECDSA signature
+	 */
+    struct GNUNET_CRYPTO_EcdsaSignature ecdsa_signature;
+
+    /**
+     * AN EdDSA signature
+     */
+    struct GNUNET_CRYPTO_EddsaSignature eddsa_signature;
+  };
+};
+
+
+/**
  * Handle for an operation with the identity service.
  */
 struct GNUNET_IDENTITY_Operation;
@@ -376,6 +403,194 @@ GNUNET_IDENTITY_cancel (struct GNUNET_IDENTITY_Operation *op);
  */
 ssize_t
 GNUNET_IDENTITY_key_get_length (const struct GNUNET_IDENTITY_PublicKey *key);
+
+
+/**
+ * Get the compacted length of a #GNUNET_IDENTITY_Signature.
+ * Compacted means that it returns the minimum number of bytes this
+ * signature is long, as opposed to the union structure inside
+ * #GNUNET_IDENTITY_Signature.
+ * Useful for compact serializations.
+ *
+ * @param sig the signature.
+ * @return -1 on error, else the compacted length of the signature.
+ */
+ssize_t
+GNUNET_IDENTITY_signature_get_length (const struct GNUNET_IDENTITY_Signature *sig);
+
+
+/**
+ * Reads a #GNUNET_IDENTITY_PublicKey from a compact buffer.
+ * The buffer has to contain at least the compacted length of
+ * a #GNUNET_IDENTITY_PublicKey bytes.
+ * If the buffer is too small, the function returns -1 as error.
+ * If the buffer does not contain a valid key, it returns -2 as error.
+ *
+ * @param key the key
+ * @param buffer the buffer
+ * @param len the length of buffer
+ * @return -1 or -2 on error, else the amount of bytes read from the buffer
+ */
+ssize_t
+GNUNET_IDENTITY_read_key_from_buffer (struct GNUNET_IDENTITY_PublicKey *key,
+                                      const void* buffer,
+									  size_t len);
+
+
+/**
+ * Writes a #GNUNET_IDENTITY_PublicKey to a compact buffer.
+ * The buffer requires space for at least the compacted length of
+ * a #GNUNET_IDENTITY_PublicKey in bytes.
+ * If the buffer is too small, the function returns -1 as error.
+ * If the key is not valid, it returns -2 as error.
+ *
+ * @param key the key
+ * @param buffer the buffer
+ * @param len the length of buffer
+ * @return -1 or -2 on error, else the amount of bytes written to the buffer
+ */
+ssize_t
+GNUNET_IDENTITY_write_key_to_buffer (const struct GNUNET_IDENTITY_PublicKey *key,
+                                     void* buffer,
+									 size_t len);
+
+
+/**
+ * @brief Sign a given block.
+ *
+ * The @a purpose data is the beginning of the data of which the signature is
+ * to be created. The `size` field in @a purpose must correctly indicate the
+ * number of bytes of the data structure, including its header. If possible,
+ * use #GNUNET_IDENTITY_private_key_sign() instead of this function.
+ *
+ * @param priv private key to use for the signing
+ * @param purpose what to sign (size, purpose)
+ * @param[out] sig where to write the signature
+ * @return #GNUNET_SYSERR on error, #GNUNET_OK on success
+ */
+int
+GNUNET_IDENTITY_private_key_sign_ (const struct GNUNET_IDENTITY_PrivateKey *priv,
+		                           const struct GNUNET_CRYPTO_EccSignaturePurpose *purpose,
+								   struct GNUNET_IDENTITY_Signature *sig);
+
+
+/**
+ * @brief Sign a given block with #GNUNET_IDENTITY_PrivateKey.
+ *
+ * The @a ps data must be a fixed-size struct for which the signature is to be
+ * created. The `size` field in @a ps->purpose must correctly indicate the
+ * number of bytes of the data structure, including its header.
+ *
+ * @param priv private key to use for the signing
+ * @param ps packed struct with what to sign, MUST begin with a purpose
+ * @param[out] sig where to write the signature
+ */
+#define GNUNET_IDENTITY_private_key_sign(priv,ps,sig) do {                \
+    /* check size is set correctly */                                     \
+    GNUNET_assert (htonl ((ps)->purpose.size) == sizeof (*(ps)));         \
+    /* check 'ps' begins with the purpose */                              \
+    GNUNET_static_assert (((void*) (ps)) ==                               \
+                          ((void*) &(ps)->purpose));                      \
+    GNUNET_assert (GNUNET_OK ==                                           \
+    		       GNUNET_IDENTITY_private_key_sign_ (priv,               \
+                                              &(ps)->purpose,             \
+                                              sig));                      \
+} while (0)
+
+
+/**
+ * @brief Verify a given signature.
+ *
+ * The @a validate data is the beginning of the data of which the signature
+ * is to be verified. The `size` field in @a validate must correctly indicate
+ * the number of bytes of the data structure, including its header.  If @a
+ * purpose does not match the purpose given in @a validate (the latter must be
+ * in big endian), signature verification fails.  If possible,
+ * use #GNUNET_IDENTITY_public_key_verify() instead of this function (only if @a validate
+ * is not fixed-size, you must use this function directly).
+ *
+ * @param purpose what is the purpose that the signature should have?
+ * @param validate block to validate (size, purpose, data)
+ * @param sig signature that is being validated
+ * @param pub public key of the signer
+ * @returns #GNUNET_OK if ok, #GNUNET_SYSERR if invalid
+ */
+int
+GNUNET_IDENTITY_public_key_verify_ (uint32_t purpose,
+		                            const struct GNUNET_CRYPTO_EccSignaturePurpose *validate,
+								    const struct GNUNET_IDENTITY_Signature *sig,
+								    const struct GNUNET_IDENTITY_PublicKey *pub);
+
+
+/**
+ * @brief Verify a given signature with #GNUNET_IDENTITY_PublicKey.
+ *
+ * The @a ps data must be a fixed-size struct for which the signature is to be
+ * created. The `size` field in @a ps->purpose must correctly indicate the
+ * number of bytes of the data structure, including its header.
+ *
+ * @param purp purpose of the signature, must match 'ps->purpose.purpose'
+ *              (except in host byte order)
+ * @param ps packed struct with what to sign, MUST begin with a purpose
+ * @param sig where to read the signature from
+ * @param pub public key to use for the verifying
+ */
+#define GNUNET_IDENTITY_public_key_verify(purp,ps,sig,pub) ({             \
+    /* check size is set correctly */                                     \
+    GNUNET_assert (ntohl ((ps)->purpose.size) == sizeof (*(ps)));         \
+    /* check 'ps' begins with the purpose */                              \
+    GNUNET_static_assert (((void*) (ps)) ==                               \
+                          ((void*) &(ps)->purpose));                      \
+	GNUNET_IDENTITY_public_key_verify_(purp,                              \
+                                       &(ps)->purpose,                    \
+                                       sig,                               \
+                                       pub);                              \
+  })
+
+
+/**
+ * Encrypt a block with #GNUNET_IDENTITY_PublicKey and derives a
+ * #GNUNET_CRYPTO_EcdhePublicKey which is required for decryption
+ * using ecdh to derive a symmetric key.
+ *
+ * @param block the block to encrypt
+ * @param size the size of the @a block
+ * @param pub public key to use for ecdh
+ * @param ecc where to write the ecc public key
+ * @param result the output parameter in which to store the encrypted result
+ *               can be the same or overlap with @c block
+ * @returns the size of the encrypted block, -1 for errors.
+ *          Due to the use of CFB and therefore an effective stream cipher,
+ *          this size should be the same as @c len.
+ */
+ssize_t
+GNUNET_IDENTITY_public_key_encrypt(const void *block,
+                                   size_t size,
+                                   const struct GNUNET_IDENTITY_PublicKey *pub,
+								   struct GNUNET_CRYPTO_EcdhePublicKey *ecc,
+								   void *result);
+
+
+/**
+ * Decrypt a given block with #GNUNET_IDENTITY_PrivateKey and a given
+ * #GNUNET_CRYPTO_EcdhePublicKey using ecdh to derive a symmetric key.
+ *
+ * @param block the data to decrypt, encoded as returned by encrypt
+ * @param size the size of the @a block to decrypt
+ * @param priv private key to use for ecdh
+ * @param ecc the ecc public key
+ * @param result address to store the result at
+ *               can be the same or overlap with @c block
+ * @return -1 on failure, size of decrypted block on success.
+ *         Due to the use of CFB and therefore an effective stream cipher,
+ *         this size should be the same as @c size.
+ */
+ssize_t
+GNUNET_IDENTITY_private_key_decrypt(const void *block,
+                                    size_t size,
+                                    const struct GNUNET_IDENTITY_PrivateKey *priv,
+									const struct GNUNET_CRYPTO_EcdhePublicKey *ecc,
+								    void *result);
 
 
 /**

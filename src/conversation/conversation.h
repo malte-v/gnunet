@@ -313,7 +313,7 @@ struct CadetPhoneRingMessage
   /**
    * Signature over a `struct CadetPhoneRingInfoPS`
    */
-  struct GNUNET_CRYPTO_EcdsaSignature signature;
+  struct GNUNET_IDENTITY_Signature signature;
 };
 
 

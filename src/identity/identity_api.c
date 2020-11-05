@@ -990,6 +990,170 @@ GNUNET_IDENTITY_key_get_length (const struct GNUNET_IDENTITY_PublicKey *key)
 }
 
 
+ssize_t
+GNUNET_IDENTITY_signature_get_length (const struct GNUNET_IDENTITY_Signature *sig)
+{
+  switch (ntohl (sig->type))
+  {
+  case GNUNET_IDENTITY_TYPE_ECDSA:
+	return sizeof (sig->type) + sizeof (sig->ecdsa_signature);
+	break;
+  case GNUNET_IDENTITY_TYPE_EDDSA:
+	return sizeof (sig->type) + sizeof (sig->eddsa_signature);
+	break;
+  default:
+	GNUNET_break (0);
+  }
+  return -1;
+}
+
+
+ssize_t
+GNUNET_IDENTITY_read_key_from_buffer (struct GNUNET_IDENTITY_PublicKey *key,
+                                      const void* buffer,
+									  size_t len)
+{
+  if (len < sizeof (key->type))
+    return -1;
+  GNUNET_memcpy(& (key->type), buffer, sizeof (key->type));
+  const ssize_t length = GNUNET_IDENTITY_key_get_length(key);
+  if (len < length)
+	  return -1;
+  if (length < 0)
+    return -2;
+  GNUNET_memcpy(key, buffer, length);
+  return length;
+}
+
+
+ssize_t
+GNUNET_IDENTITY_write_key_to_buffer (const struct GNUNET_IDENTITY_PublicKey *key,
+                                     void* buffer,
+									 size_t len)
+{
+  const ssize_t length = GNUNET_IDENTITY_key_get_length(key);
+  if (len < length)
+	  return -1;
+  if (length < 0)
+	return -2;
+  GNUNET_memcpy(buffer, key, length);
+  return length;
+}
+
+
+int
+GNUNET_IDENTITY_private_key_sign_ (const struct GNUNET_IDENTITY_PrivateKey *priv,
+		                           const struct GNUNET_CRYPTO_EccSignaturePurpose *purpose,
+								   struct GNUNET_IDENTITY_Signature *sig)
+{
+  sig->type = priv->type;
+  switch (ntohl (priv->type))
+  {
+  case GNUNET_IDENTITY_TYPE_ECDSA:
+	return GNUNET_CRYPTO_ecdsa_sign_ (& (priv->ecdsa_key), purpose, & (sig->ecdsa_signature));
+	break;
+  case GNUNET_IDENTITY_TYPE_EDDSA:
+	return GNUNET_CRYPTO_eddsa_sign_ (& (priv->eddsa_key), purpose, & (sig->eddsa_signature));
+	break;
+  default:
+	GNUNET_break (0);
+  }
+
+  return GNUNET_SYSERR;
+}
+
+
+int
+GNUNET_IDENTITY_public_key_verify_ (uint32_t purpose,
+		                            const struct GNUNET_CRYPTO_EccSignaturePurpose *validate,
+								    const struct GNUNET_IDENTITY_Signature *sig,
+								    const struct GNUNET_IDENTITY_PublicKey *pub)
+{
+  /* check type matching of 'sig' and 'pub' */
+  GNUNET_assert (ntohl (pub->type) == ntohl (sig->type));
+  switch (ntohl (pub->type))
+  {
+  case GNUNET_IDENTITY_TYPE_ECDSA:
+	return GNUNET_CRYPTO_ecdsa_verify_ (purpose, validate, & (sig->ecdsa_signature), & (pub->ecdsa_key));
+	break;
+  case GNUNET_IDENTITY_TYPE_EDDSA:
+	return GNUNET_CRYPTO_eddsa_verify_ (purpose, validate, & (sig->eddsa_signature), & (pub->eddsa_key));
+	break;
+  default:
+	GNUNET_break (0);
+  }
+
+  return GNUNET_SYSERR;
+}
+
+
+ssize_t
+GNUNET_IDENTITY_public_key_encrypt(const void *block,
+                                   size_t size,
+                                   const struct GNUNET_IDENTITY_PublicKey *pub,
+								   struct GNUNET_CRYPTO_EcdhePublicKey *ecc,
+								   void *result)
+{
+  struct GNUNET_CRYPTO_EcdhePrivateKey pk;
+  GNUNET_CRYPTO_ecdhe_key_create(&pk);
+  struct GNUNET_HashCode hash;
+  switch (ntohl (pub->type))
+  {
+  case GNUNET_IDENTITY_TYPE_ECDSA:
+    if (GNUNET_CRYPTO_ecdh_ecdsa(&pk, &(pub->ecdsa_key), &hash) == GNUNET_SYSERR)
+      return -1;
+    break;
+  case GNUNET_IDENTITY_TYPE_EDDSA:
+    if (GNUNET_CRYPTO_ecdh_eddsa(&pk, &(pub->eddsa_key), &hash) == GNUNET_SYSERR)
+      return -1;
+    break;
+  default:
+    return -1;
+  }
+  GNUNET_CRYPTO_ecdhe_key_get_public(&pk, ecc);
+  GNUNET_CRYPTO_ecdhe_key_clear(&pk);
+  struct GNUNET_CRYPTO_SymmetricSessionKey key;
+  struct GNUNET_CRYPTO_SymmetricInitializationVector iv;
+  GNUNET_CRYPTO_hash_to_aes_key(&hash, &key, &iv);
+  GNUNET_CRYPTO_zero_keys(&hash, sizeof(hash));
+  const ssize_t encrypted = GNUNET_CRYPTO_symmetric_encrypt(block, size, &key, &iv, result);
+  GNUNET_CRYPTO_zero_keys(&key, sizeof(key));
+  GNUNET_CRYPTO_zero_keys(&iv, sizeof(iv));
+  return encrypted;
+}
+
+
+ssize_t
+GNUNET_IDENTITY_private_key_decrypt(const void *block,
+                                    size_t size,
+                                    const struct GNUNET_IDENTITY_PrivateKey *priv,
+									const struct GNUNET_CRYPTO_EcdhePublicKey *ecc,
+								    void *result) {
+  struct GNUNET_HashCode hash;
+  switch (ntohl (priv->type))
+  {
+  case GNUNET_IDENTITY_TYPE_ECDSA:
+	if (GNUNET_CRYPTO_ecdsa_ecdh(&(priv->ecdsa_key), ecc, &hash) == GNUNET_SYSERR)
+	  return -1;
+	break;
+  case GNUNET_IDENTITY_TYPE_EDDSA:
+	if (GNUNET_CRYPTO_eddsa_ecdh(&(priv->eddsa_key), ecc, &hash) == GNUNET_SYSERR)
+	  return -1;
+	break;
+  default:
+	return -1;
+  }
+  struct GNUNET_CRYPTO_SymmetricSessionKey key;
+  struct GNUNET_CRYPTO_SymmetricInitializationVector iv;
+  GNUNET_CRYPTO_hash_to_aes_key(&hash, &key, &iv);
+  GNUNET_CRYPTO_zero_keys(&hash, sizeof(hash));
+  const ssize_t decrypted = GNUNET_CRYPTO_symmetric_decrypt(block, size, &key, &iv, result);
+  GNUNET_CRYPTO_zero_keys(&key, sizeof(key));
+  GNUNET_CRYPTO_zero_keys(&iv, sizeof(iv));
+  return decrypted;
+}
+
+
 char *
 GNUNET_IDENTITY_public_key_to_string (const struct
                                       GNUNET_IDENTITY_PublicKey *key)

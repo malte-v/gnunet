@@ -282,9 +282,9 @@ GNUNET_GNSRECORD_identity_from_data (const char *data,
     return GNUNET_SYSERR;
   if (data_size > sizeof (struct GNUNET_IDENTITY_PublicKey))
     return GNUNET_SYSERR;
-  key->type = type;
-  memcpy (key, data, data_size);
-  return GNUNET_OK;
+  return (GNUNET_IDENTITY_read_key_from_buffer(key, data, data_size) == data_size?
+		  GNUNET_OK :
+		  GNUNET_SYSERR);
 }
 
 enum GNUNET_GenericReturnValue
@@ -299,8 +299,9 @@ GNUNET_GNSRECORD_data_from_identity (const struct
   if (0 == *data_size)
     return GNUNET_SYSERR;
   *data = GNUNET_malloc (*data_size);
-  memcpy (*data, key, *data_size);
-  return GNUNET_OK;
+  return (GNUNET_IDENTITY_write_key_to_buffer(key, data, *data_size) == *data_size?
+		  GNUNET_OK :
+		  GNUNET_SYSERR);
 }
 
 
