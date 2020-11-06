@@ -406,23 +406,9 @@ GNUNET_IDENTITY_key_get_length (const struct GNUNET_IDENTITY_PublicKey *key);
 
 
 /**
- * Get the compacted length of a #GNUNET_IDENTITY_Signature.
- * Compacted means that it returns the minimum number of bytes this
- * signature is long, as opposed to the union structure inside
- * #GNUNET_IDENTITY_Signature.
- * Useful for compact serializations.
- *
- * @param sig the signature.
- * @return -1 on error, else the compacted length of the signature.
- */
-ssize_t
-GNUNET_IDENTITY_signature_get_length (const struct GNUNET_IDENTITY_Signature *sig);
-
-
-/**
  * Reads a #GNUNET_IDENTITY_PublicKey from a compact buffer.
  * The buffer has to contain at least the compacted length of
- * a #GNUNET_IDENTITY_PublicKey bytes.
+ * a #GNUNET_IDENTITY_PublicKey in bytes.
  * If the buffer is too small, the function returns -1 as error.
  * If the buffer does not contain a valid key, it returns -2 as error.
  *
@@ -453,6 +439,56 @@ ssize_t
 GNUNET_IDENTITY_write_key_to_buffer (const struct GNUNET_IDENTITY_PublicKey *key,
                                      void* buffer,
 									 size_t len);
+
+
+/**
+ * Get the compacted length of a #GNUNET_IDENTITY_Signature.
+ * Compacted means that it returns the minimum number of bytes this
+ * signature is long, as opposed to the union structure inside
+ * #GNUNET_IDENTITY_Signature.
+ * Useful for compact serializations.
+ *
+ * @param sig the signature.
+ * @return -1 on error, else the compacted length of the signature.
+ */
+ssize_t
+GNUNET_IDENTITY_signature_get_length (const struct GNUNET_IDENTITY_Signature *sig);
+
+
+/**
+ * Reads a #GNUNET_IDENTITY_Signature from a compact buffer.
+ * The buffer has to contain at least the compacted length of
+ * a #GNUNET_IDENTITY_Signature in bytes.
+ * If the buffer is too small, the function returns -1 as error.
+ * If the buffer does not contain a valid key, it returns -2 as error.
+ *
+ * @param sig the signature
+ * @param buffer the buffer
+ * @param len the length of buffer
+ * @return -1 or -2 on error, else the amount of bytes read from the buffer
+ */
+ssize_t
+GNUNET_IDENTITY_read_signature_from_buffer (struct GNUNET_IDENTITY_Signature *sig,
+                                            const void* buffer,
+									        size_t len);
+
+
+/**
+ * Writes a #GNUNET_IDENTITY_Signature to a compact buffer.
+ * The buffer requires space for at least the compacted length of
+ * a #GNUNET_IDENTITY_Signature in bytes.
+ * If the buffer is too small, the function returns -1 as error.
+ * If the key is not valid, it returns -2 as error.
+ *
+ * @param sig the signature
+ * @param buffer the buffer
+ * @param len the length of buffer
+ * @return -1 or -2 on error, else the amount of bytes written to the buffer
+ */
+ssize_t
+GNUNET_IDENTITY_write_signature_to_buffer (const struct GNUNET_IDENTITY_Signature *sig,
+                                           void* buffer,
+									       size_t len);
 
 
 /**

@@ -991,24 +991,6 @@ GNUNET_IDENTITY_key_get_length (const struct GNUNET_IDENTITY_PublicKey *key)
 
 
 ssize_t
-GNUNET_IDENTITY_signature_get_length (const struct GNUNET_IDENTITY_Signature *sig)
-{
-  switch (ntohl (sig->type))
-  {
-  case GNUNET_IDENTITY_TYPE_ECDSA:
-	return sizeof (sig->type) + sizeof (sig->ecdsa_signature);
-	break;
-  case GNUNET_IDENTITY_TYPE_EDDSA:
-	return sizeof (sig->type) + sizeof (sig->eddsa_signature);
-	break;
-  default:
-	GNUNET_break (0);
-  }
-  return -1;
-}
-
-
-ssize_t
 GNUNET_IDENTITY_read_key_from_buffer (struct GNUNET_IDENTITY_PublicKey *key,
                                       const void* buffer,
 									  size_t len)
@@ -1038,6 +1020,58 @@ GNUNET_IDENTITY_write_key_to_buffer (const struct GNUNET_IDENTITY_PublicKey *key
 	return -2;
   GNUNET_memcpy(buffer, &(key->type), sizeof (key->type));
   GNUNET_memcpy(buffer + sizeof (key->type), &(key->ecdsa_key), length - sizeof (key->type));
+  return length;
+}
+
+
+ssize_t
+GNUNET_IDENTITY_signature_get_length (const struct GNUNET_IDENTITY_Signature *sig)
+{
+  switch (ntohl (sig->type))
+  {
+  case GNUNET_IDENTITY_TYPE_ECDSA:
+	return sizeof (sig->type) + sizeof (sig->ecdsa_signature);
+	break;
+  case GNUNET_IDENTITY_TYPE_EDDSA:
+	return sizeof (sig->type) + sizeof (sig->eddsa_signature);
+	break;
+  default:
+	GNUNET_break (0);
+  }
+  return -1;
+}
+
+
+ssize_t
+GNUNET_IDENTITY_read_signature_from_buffer (struct GNUNET_IDENTITY_Signature *sig,
+                                            const void* buffer,
+									        size_t len)
+{
+  if (len < sizeof (sig->type))
+	return -1;
+  GNUNET_memcpy(&(sig->type), buffer, sizeof (sig->type));
+  const ssize_t length = GNUNET_IDENTITY_signature_get_length(sig);
+  if (len < length)
+	  return -1;
+  if (length < 0)
+	return -2;
+  GNUNET_memcpy(&(sig->ecdsa_signature), buffer + sizeof (sig->type), length - sizeof (sig->type));
+  return length;
+}
+
+
+ssize_t
+GNUNET_IDENTITY_write_signature_to_buffer (const struct GNUNET_IDENTITY_Signature *sig,
+                                           void* buffer,
+									       size_t len)
+{
+  const ssize_t length = GNUNET_IDENTITY_signature_get_length(sig);
+  if (len < length)
+	  return -1;
+  if (length < 0)
+	return -2;
+  GNUNET_memcpy(buffer, &(sig->type), sizeof (sig->type));
+  GNUNET_memcpy(buffer + sizeof (sig->type), &(sig->ecdsa_signature), length - sizeof (sig->type));
   return length;
 }
 
