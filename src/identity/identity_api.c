@@ -1135,11 +1135,11 @@ GNUNET_IDENTITY_public_key_encrypt(const void *block,
   switch (ntohl (pub->type))
   {
   case GNUNET_IDENTITY_TYPE_ECDSA:
-    if (GNUNET_CRYPTO_ecdh_ecdsa(&pk, &(pub->ecdsa_key), &hash) == GNUNET_SYSERR)
+    if (GNUNET_SYSERR == GNUNET_CRYPTO_ecdh_ecdsa(&pk, &(pub->ecdsa_key), &hash))
       return -1;
     break;
   case GNUNET_IDENTITY_TYPE_EDDSA:
-    if (GNUNET_CRYPTO_ecdh_eddsa(&pk, &(pub->eddsa_key), &hash) == GNUNET_SYSERR)
+    if (GNUNET_SYSERR == GNUNET_CRYPTO_ecdh_eddsa(&pk, &(pub->eddsa_key), &hash))
       return -1;
     break;
   default:
@@ -1168,15 +1168,15 @@ GNUNET_IDENTITY_private_key_decrypt(const void *block,
   switch (ntohl (priv->type))
   {
   case GNUNET_IDENTITY_TYPE_ECDSA:
-	if (GNUNET_CRYPTO_ecdsa_ecdh(&(priv->ecdsa_key), ecc, &hash) == GNUNET_SYSERR)
-	  return -1;
-	break;
+    if (GNUNET_SYSERR == GNUNET_CRYPTO_ecdsa_ecdh(&(priv->ecdsa_key), ecc, &hash))
+      return -1;
+    break;
   case GNUNET_IDENTITY_TYPE_EDDSA:
-	if (GNUNET_CRYPTO_eddsa_ecdh(&(priv->eddsa_key), ecc, &hash) == GNUNET_SYSERR)
-	  return -1;
-	break;
+    if (GNUNET_SYSERR == GNUNET_CRYPTO_eddsa_ecdh(&(priv->eddsa_key), ecc, &hash))
+      return -1;
+    break;
   default:
-	return -1;
+    return -1;
   }
   struct GNUNET_CRYPTO_SymmetricSessionKey key;
   struct GNUNET_CRYPTO_SymmetricInitializationVector iv;
