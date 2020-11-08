@@ -523,7 +523,7 @@ GNUNET_IDENTITY_private_key_sign_ (const struct GNUNET_IDENTITY_PrivateKey *priv
  */
 #define GNUNET_IDENTITY_private_key_sign(priv,ps,sig) do {                \
     /* check size is set correctly */                                     \
-    GNUNET_assert (htonl ((ps)->purpose.size) == sizeof (*(ps)));         \
+    GNUNET_assert (ntohl ((ps)->purpose.size) == sizeof (*(ps)));         \
     /* check 'ps' begins with the purpose */                              \
     GNUNET_static_assert (((void*) (ps)) ==                               \
                           ((void*) &(ps)->purpose));                      \
