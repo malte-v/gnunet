@@ -1083,11 +1083,11 @@ GNUNET_IDENTITY_write_signature_to_buffer (const struct
 
 
 int
-GNUNET_IDENTITY_private_key_sign_ (const struct
-                                   GNUNET_IDENTITY_PrivateKey *priv,
-                                   const struct
-                                   GNUNET_CRYPTO_EccSignaturePurpose *purpose,
-                                   struct GNUNET_IDENTITY_Signature *sig)
+GNUNET_IDENTITY_sign_ (const struct
+                       GNUNET_IDENTITY_PrivateKey *priv,
+                       const struct
+                       GNUNET_CRYPTO_EccSignaturePurpose *purpose,
+                       struct GNUNET_IDENTITY_Signature *sig)
 {
   sig->type = priv->type;
   switch (ntohl (priv->type))
@@ -1109,11 +1109,11 @@ GNUNET_IDENTITY_private_key_sign_ (const struct
 
 
 int
-GNUNET_IDENTITY_public_key_verify_ (uint32_t purpose,
-                                    const struct
-                                    GNUNET_CRYPTO_EccSignaturePurpose *validate,
-                                    const struct GNUNET_IDENTITY_Signature *sig,
-                                    const struct GNUNET_IDENTITY_PublicKey *pub)
+GNUNET_IDENTITY_signature_verify_ (uint32_t purpose,
+                                   const struct
+                                   GNUNET_CRYPTO_EccSignaturePurpose *validate,
+                                   const struct GNUNET_IDENTITY_Signature *sig,
+                                   const struct GNUNET_IDENTITY_PublicKey *pub)
 {
   /* check type matching of 'sig' and 'pub' */
   GNUNET_assert (ntohl (pub->type) == ntohl (sig->type));

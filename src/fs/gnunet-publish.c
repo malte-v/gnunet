@@ -591,13 +591,12 @@ directory_trim_complete (struct GNUNET_FS_ShareTreeItem *directory_scan_result)
     GNUNET_SCHEDULER_shutdown ();
     return;
   }
-  if (NULL == namespace)
-    priv = NULL;
-  else
+  priv = NULL;
+  if (NULL != namespace)
   {
     pk = GNUNET_IDENTITY_ego_get_private_key (namespace);
-    if (GNUNET_IDENTITY_TYPE_ECDSA == ntohl (pk->type))
-      priv = &pk->ecdsa_key;
+    GNUNET_assert (GNUNET_IDENTITY_TYPE_ECDSA == ntohl (pk->type));
+    priv = &pk->ecdsa_key;
   }
   pc = GNUNET_FS_publish_start (ctx,
                                 fi,

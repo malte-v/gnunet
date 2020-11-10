@@ -154,10 +154,12 @@ fix_base64 (char *str)
   replace_char (str, '/', '_');
 }
 
+
 static json_t*
-generate_userinfo_json(const struct GNUNET_IDENTITY_PublicKey *sub_key,
-                       const struct GNUNET_RECLAIM_AttributeList *attrs,
-                       const struct GNUNET_RECLAIM_PresentationList *presentations)
+generate_userinfo_json (const struct GNUNET_IDENTITY_PublicKey *sub_key,
+                        const struct GNUNET_RECLAIM_AttributeList *attrs,
+                        const struct
+                        GNUNET_RECLAIM_PresentationList *presentations)
 {
   struct GNUNET_RECLAIM_AttributeListEntry *le;
   struct GNUNET_RECLAIM_PresentationListEntry *ple;
@@ -206,7 +208,8 @@ generate_userinfo_json(const struct GNUNET_IDENTITY_PublicKey *sub_key,
                                                    ple->presentation->data,
                                                    ple->presentation->data_size);
     json_object_set_new (aggr_sources_jwt,
-                         GNUNET_RECLAIM_presentation_number_to_typename (ple->presentation->type),
+                         GNUNET_RECLAIM_presentation_number_to_typename (
+                           ple->presentation->type),
                          json_string (pres_val_str) );
     json_object_set_new (aggr_sources, source_name, aggr_sources_jwt);
     GNUNET_free (pres_val_str);
@@ -286,6 +289,7 @@ generate_userinfo_json(const struct GNUNET_IDENTITY_PublicKey *sub_key,
   return body;
 }
 
+
 /**
  * Generate userinfo JSON as string
  *
@@ -297,12 +301,13 @@ generate_userinfo_json(const struct GNUNET_IDENTITY_PublicKey *sub_key,
 char *
 OIDC_generate_userinfo (const struct GNUNET_IDENTITY_PublicKey *sub_key,
                         const struct GNUNET_RECLAIM_AttributeList *attrs,
-                        const struct GNUNET_RECLAIM_PresentationList *presentations)
+                        const struct
+                        GNUNET_RECLAIM_PresentationList *presentations)
 {
   char *body_str;
-  json_t* body = generate_userinfo_json (sub_key,
-                                         attrs,
-                                         presentations);
+  json_t*body = generate_userinfo_json (sub_key,
+                                        attrs,
+                                        presentations);
   body_str = json_dumps (body, JSON_INDENT (0) | JSON_COMPACT);
   json_decref (body);
   return body_str;
@@ -324,7 +329,8 @@ char *
 OIDC_generate_id_token (const struct GNUNET_IDENTITY_PublicKey *aud_key,
                         const struct GNUNET_IDENTITY_PublicKey *sub_key,
                         const struct GNUNET_RECLAIM_AttributeList *attrs,
-                        const struct GNUNET_RECLAIM_PresentationList *presentations,
+                        const struct
+                        GNUNET_RECLAIM_PresentationList *presentations,
                         const struct GNUNET_TIME_Relative *expiration_time,
                         const char *nonce,
                         const char *secret_key)
@@ -441,7 +447,8 @@ char *
 OIDC_build_authz_code (const struct GNUNET_IDENTITY_PrivateKey *issuer,
                        const struct GNUNET_RECLAIM_Ticket *ticket,
                        const struct GNUNET_RECLAIM_AttributeList *attrs,
-                       const struct GNUNET_RECLAIM_PresentationList *presentations,
+                       const struct
+                       GNUNET_RECLAIM_PresentationList *presentations,
                        const char *nonce_str,
                        const char *code_challenge)
 {
@@ -544,10 +551,10 @@ OIDC_build_authz_code (const struct GNUNET_IDENTITY_PrivateKey *issuer,
   buf_ptr += payload_len;
   // Sign and store signature
   if (GNUNET_SYSERR ==
-      GNUNET_IDENTITY_private_key_sign_ (issuer,
-                                         purpose,
-                                         (struct GNUNET_IDENTITY_Signature *)
-                                         buf_ptr))
+      GNUNET_IDENTITY_sign_ (issuer,
+                             purpose,
+                             (struct GNUNET_IDENTITY_Signature *)
+                             buf_ptr))
   {
     GNUNET_break (0);
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR, "Unable to sign code\n");
@@ -684,10 +691,11 @@ OIDC_parse_authz_code (const struct GNUNET_IDENTITY_PublicKey *audience,
     return GNUNET_SYSERR;
   }
   if (GNUNET_OK !=
-      GNUNET_IDENTITY_public_key_verify_ (GNUNET_SIGNATURE_PURPOSE_RECLAIM_CODE_SIGN,
-                                          purpose,
-                                          signature,
-                                          &(ticket->identity)))
+      GNUNET_IDENTITY_signature_verify_ (
+        GNUNET_SIGNATURE_PURPOSE_RECLAIM_CODE_SIGN,
+        purpose,
+        signature,
+        &(ticket->identity)))
   {
     GNUNET_free (code_payload);
     if (NULL != *nonce_str)
@@ -840,7 +848,8 @@ OIDC_check_scopes_for_claim_request (const char*scopes,
         }
       }
 
-    } else if (0 == strcmp (attr, scope_variable))
+    }
+    else if (0 == strcmp (attr, scope_variable))
     {
       /** attribute matches requested scope **/
       GNUNET_free (scope_variables);

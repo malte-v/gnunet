@@ -501,7 +501,7 @@ GNUNET_IDENTITY_write_signature_to_buffer (const struct
  * The @a purpose data is the beginning of the data of which the signature is
  * to be created. The `size` field in @a purpose must correctly indicate the
  * number of bytes of the data structure, including its header. If possible,
- * use #GNUNET_IDENTITY_private_key_sign() instead of this function.
+ * use #GNUNET_IDENTITY_sign() instead of this function.
  *
  * @param priv private key to use for the signing
  * @param purpose what to sign (size, purpose)
@@ -509,7 +509,7 @@ GNUNET_IDENTITY_write_signature_to_buffer (const struct
  * @return #GNUNET_SYSERR on error, #GNUNET_OK on success
  */
 int
-GNUNET_IDENTITY_private_key_sign_ (const struct
+GNUNET_IDENTITY_sign_ (const struct
                                    GNUNET_IDENTITY_PrivateKey *priv,
                                    const struct
                                    GNUNET_CRYPTO_EccSignaturePurpose *purpose,
@@ -527,7 +527,7 @@ GNUNET_IDENTITY_private_key_sign_ (const struct
  * @param ps packed struct with what to sign, MUST begin with a purpose
  * @param[out] sig where to write the signature
  */
-#define GNUNET_IDENTITY_private_key_sign(priv,ps,sig) do {                \
+#define GNUNET_IDENTITY_sign(priv,ps,sig) do {                \
     /* check size is set correctly */                                     \
     GNUNET_assert (ntohl ((ps)->purpose.size) == sizeof (*(ps)));         \
     /* check 'ps' begins with the purpose */                              \
@@ -548,7 +548,7 @@ GNUNET_IDENTITY_private_key_sign_ (const struct
  * the number of bytes of the data structure, including its header.  If @a
  * purpose does not match the purpose given in @a validate (the latter must be
  * in big endian), signature verification fails.  If possible,
- * use #GNUNET_IDENTITY_public_key_verify() instead of this function (only if @a validate
+ * use #GNUNET_IDENTITY_signature_verify() instead of this function (only if @a validate
  * is not fixed-size, you must use this function directly).
  *
  * @param purpose what is the purpose that the signature should have?
@@ -558,12 +558,12 @@ GNUNET_IDENTITY_private_key_sign_ (const struct
  * @returns #GNUNET_OK if ok, #GNUNET_SYSERR if invalid
  */
 int
-GNUNET_IDENTITY_public_key_verify_ (uint32_t purpose,
-                                    const struct
-                                    GNUNET_CRYPTO_EccSignaturePurpose *validate,
-                                    const struct GNUNET_IDENTITY_Signature *sig,
-                                    const struct
-                                    GNUNET_IDENTITY_PublicKey *pub);
+GNUNET_IDENTITY_signature_verify_ (uint32_t purpose,
+                                   const struct
+                                   GNUNET_CRYPTO_EccSignaturePurpose *validate,
+                                   const struct GNUNET_IDENTITY_Signature *sig,
+                                   const struct
+                                   GNUNET_IDENTITY_PublicKey *pub);
 
 
 /**
@@ -579,7 +579,7 @@ GNUNET_IDENTITY_public_key_verify_ (uint32_t purpose,
  * @param sig where to read the signature from
  * @param pub public key to use for the verifying
  */
-#define GNUNET_IDENTITY_public_key_verify(purp,ps,sig,pub) ({             \
+#define GNUNET_IDENTITY_signature_verify(purp,ps,sig,pub) ({             \
     /* check size is set correctly */                                     \
     GNUNET_assert (ntohl ((ps)->purpose.size) == sizeof (*(ps)));         \
     /* check 'ps' begins with the purpose */                              \
@@ -608,11 +608,11 @@ GNUNET_IDENTITY_public_key_verify_ (uint32_t purpose,
  *          this size should be the same as @c len.
  */
 ssize_t
-GNUNET_IDENTITY_public_key_encrypt (const void *block,
-                                    size_t size,
-                                    const struct GNUNET_IDENTITY_PublicKey *pub,
-                                    struct GNUNET_CRYPTO_EcdhePublicKey *ecc,
-                                    void *result);
+GNUNET_IDENTITY_encrypt (const void *block,
+                         size_t size,
+                         const struct GNUNET_IDENTITY_PublicKey *pub,
+                         struct GNUNET_CRYPTO_EcdhePublicKey *ecc,
+                         void *result);
 
 
 /**
@@ -630,13 +630,13 @@ GNUNET_IDENTITY_public_key_encrypt (const void *block,
  *         this size should be the same as @c size.
  */
 ssize_t
-GNUNET_IDENTITY_private_key_decrypt (const void *block,
-                                     size_t size,
-                                     const struct
-                                     GNUNET_IDENTITY_PrivateKey *priv,
-                                     const struct
-                                     GNUNET_CRYPTO_EcdhePublicKey *ecc,
-                                     void *result);
+GNUNET_IDENTITY_decrypt (const void *block,
+                         size_t size,
+                         const struct
+                         GNUNET_IDENTITY_PrivateKey *priv,
+                         const struct
+                         GNUNET_CRYPTO_EcdhePublicKey *ecc,
+                         void *result);
 
 
 /**
