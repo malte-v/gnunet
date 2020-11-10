@@ -510,10 +510,10 @@ GNUNET_IDENTITY_write_signature_to_buffer (const struct
  */
 int
 GNUNET_IDENTITY_sign_ (const struct
-                                   GNUNET_IDENTITY_PrivateKey *priv,
-                                   const struct
-                                   GNUNET_CRYPTO_EccSignaturePurpose *purpose,
-                                   struct GNUNET_IDENTITY_Signature *sig);
+                       GNUNET_IDENTITY_PrivateKey *priv,
+                       const struct
+                       GNUNET_CRYPTO_EccSignaturePurpose *purpose,
+                       struct GNUNET_IDENTITY_Signature *sig);
 
 
 /**
@@ -534,9 +534,9 @@ GNUNET_IDENTITY_sign_ (const struct
     GNUNET_static_assert (((void*) (ps)) ==                               \
                           ((void*) &(ps)->purpose));                      \
     GNUNET_assert (GNUNET_OK ==                                           \
-                   GNUNET_IDENTITY_private_key_sign_ (priv,               \
-                                                      &(ps)->purpose,             \
-                                                      sig));                      \
+                   GNUNET_IDENTITY_sign_ (priv,               \
+                                          &(ps)->purpose,             \
+                                          sig));                      \
 } while (0)
 
 
