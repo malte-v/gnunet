@@ -103,14 +103,11 @@ struct GNUNET_REVOCATION_SignaturePurposePS
   struct GNUNET_CRYPTO_EccSignaturePurpose purpose;
 
   /**
-   * The revoked public key
-   */
-  struct GNUNET_IDENTITY_PublicKey key;
-
-  /**
    * The timestamp of the revocation
    */
   struct GNUNET_TIME_AbsoluteNBO timestamp;
+
+  /** Followed by the zone public key type and key **/
 };
 
 GNUNET_NETWORK_STRUCT_END

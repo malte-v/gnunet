@@ -151,9 +151,9 @@ struct GNUNET_IDENTITY_Signature
 
   union
   {
-	/**
-	 * An ECDSA signature
-	 */
+    /**
+     * An ECDSA signature
+     */
     struct GNUNET_CRYPTO_EcdsaSignature ecdsa_signature;
 
     /**
@@ -419,8 +419,8 @@ GNUNET_IDENTITY_key_get_length (const struct GNUNET_IDENTITY_PublicKey *key);
  */
 ssize_t
 GNUNET_IDENTITY_read_key_from_buffer (struct GNUNET_IDENTITY_PublicKey *key,
-                                      const void* buffer,
-									  size_t len);
+                                      const void*buffer,
+                                      size_t len);
 
 
 /**
@@ -436,9 +436,10 @@ GNUNET_IDENTITY_read_key_from_buffer (struct GNUNET_IDENTITY_PublicKey *key,
  * @return -1 or -2 on error, else the amount of bytes written to the buffer
  */
 ssize_t
-GNUNET_IDENTITY_write_key_to_buffer (const struct GNUNET_IDENTITY_PublicKey *key,
-                                     void* buffer,
-									 size_t len);
+GNUNET_IDENTITY_write_key_to_buffer (const struct
+                                     GNUNET_IDENTITY_PublicKey *key,
+                                     void*buffer,
+                                     size_t len);
 
 
 /**
@@ -452,7 +453,8 @@ GNUNET_IDENTITY_write_key_to_buffer (const struct GNUNET_IDENTITY_PublicKey *key
  * @return -1 on error, else the compacted length of the signature.
  */
 ssize_t
-GNUNET_IDENTITY_signature_get_length (const struct GNUNET_IDENTITY_Signature *sig);
+GNUNET_IDENTITY_signature_get_length (const struct
+                                      GNUNET_IDENTITY_Signature *sig);
 
 
 /**
@@ -468,9 +470,10 @@ GNUNET_IDENTITY_signature_get_length (const struct GNUNET_IDENTITY_Signature *si
  * @return -1 or -2 on error, else the amount of bytes read from the buffer
  */
 ssize_t
-GNUNET_IDENTITY_read_signature_from_buffer (struct GNUNET_IDENTITY_Signature *sig,
-                                            const void* buffer,
-									        size_t len);
+GNUNET_IDENTITY_read_signature_from_buffer (struct
+                                            GNUNET_IDENTITY_Signature *sig,
+                                            const void*buffer,
+                                            size_t len);
 
 
 /**
@@ -486,9 +489,10 @@ GNUNET_IDENTITY_read_signature_from_buffer (struct GNUNET_IDENTITY_Signature *si
  * @return -1 or -2 on error, else the amount of bytes written to the buffer
  */
 ssize_t
-GNUNET_IDENTITY_write_signature_to_buffer (const struct GNUNET_IDENTITY_Signature *sig,
-                                           void* buffer,
-									       size_t len);
+GNUNET_IDENTITY_write_signature_to_buffer (const struct
+                                           GNUNET_IDENTITY_Signature *sig,
+                                           void*buffer,
+                                           size_t len);
 
 
 /**
@@ -505,9 +509,11 @@ GNUNET_IDENTITY_write_signature_to_buffer (const struct GNUNET_IDENTITY_Signatur
  * @return #GNUNET_SYSERR on error, #GNUNET_OK on success
  */
 int
-GNUNET_IDENTITY_private_key_sign_ (const struct GNUNET_IDENTITY_PrivateKey *priv,
-		                           const struct GNUNET_CRYPTO_EccSignaturePurpose *purpose,
-								   struct GNUNET_IDENTITY_Signature *sig);
+GNUNET_IDENTITY_private_key_sign_ (const struct
+                                   GNUNET_IDENTITY_PrivateKey *priv,
+                                   const struct
+                                   GNUNET_CRYPTO_EccSignaturePurpose *purpose,
+                                   struct GNUNET_IDENTITY_Signature *sig);
 
 
 /**
@@ -528,9 +534,9 @@ GNUNET_IDENTITY_private_key_sign_ (const struct GNUNET_IDENTITY_PrivateKey *priv
     GNUNET_static_assert (((void*) (ps)) ==                               \
                           ((void*) &(ps)->purpose));                      \
     GNUNET_assert (GNUNET_OK ==                                           \
-    		       GNUNET_IDENTITY_private_key_sign_ (priv,               \
-                                              &(ps)->purpose,             \
-                                              sig));                      \
+                   GNUNET_IDENTITY_private_key_sign_ (priv,               \
+                                                      &(ps)->purpose,             \
+                                                      sig));                      \
 } while (0)
 
 
@@ -553,9 +559,11 @@ GNUNET_IDENTITY_private_key_sign_ (const struct GNUNET_IDENTITY_PrivateKey *priv
  */
 int
 GNUNET_IDENTITY_public_key_verify_ (uint32_t purpose,
-		                            const struct GNUNET_CRYPTO_EccSignaturePurpose *validate,
-								    const struct GNUNET_IDENTITY_Signature *sig,
-								    const struct GNUNET_IDENTITY_PublicKey *pub);
+                                    const struct
+                                    GNUNET_CRYPTO_EccSignaturePurpose *validate,
+                                    const struct GNUNET_IDENTITY_Signature *sig,
+                                    const struct
+                                    GNUNET_IDENTITY_PublicKey *pub);
 
 
 /**
@@ -577,10 +585,10 @@ GNUNET_IDENTITY_public_key_verify_ (uint32_t purpose,
     /* check 'ps' begins with the purpose */                              \
     GNUNET_static_assert (((void*) (ps)) ==                               \
                           ((void*) &(ps)->purpose));                      \
-	GNUNET_IDENTITY_public_key_verify_(purp,                              \
-                                       &(ps)->purpose,                    \
-                                       sig,                               \
-                                       pub);                              \
+    GNUNET_IDENTITY_public_key_verify_ (purp,                              \
+                                        &(ps)->purpose,                    \
+                                        sig,                               \
+                                        pub);                              \
   })
 
 
@@ -600,11 +608,11 @@ GNUNET_IDENTITY_public_key_verify_ (uint32_t purpose,
  *          this size should be the same as @c len.
  */
 ssize_t
-GNUNET_IDENTITY_public_key_encrypt(const void *block,
-                                   size_t size,
-                                   const struct GNUNET_IDENTITY_PublicKey *pub,
-								   struct GNUNET_CRYPTO_EcdhePublicKey *ecc,
-								   void *result);
+GNUNET_IDENTITY_public_key_encrypt (const void *block,
+                                    size_t size,
+                                    const struct GNUNET_IDENTITY_PublicKey *pub,
+                                    struct GNUNET_CRYPTO_EcdhePublicKey *ecc,
+                                    void *result);
 
 
 /**
@@ -622,11 +630,13 @@ GNUNET_IDENTITY_public_key_encrypt(const void *block,
  *         this size should be the same as @c size.
  */
 ssize_t
-GNUNET_IDENTITY_private_key_decrypt(const void *block,
-                                    size_t size,
-                                    const struct GNUNET_IDENTITY_PrivateKey *priv,
-									const struct GNUNET_CRYPTO_EcdhePublicKey *ecc,
-								    void *result);
+GNUNET_IDENTITY_private_key_decrypt (const void *block,
+                                     size_t size,
+                                     const struct
+                                     GNUNET_IDENTITY_PrivateKey *priv,
+                                     const struct
+                                     GNUNET_CRYPTO_EcdhePublicKey *ecc,
+                                     void *result);
 
 
 /**
@@ -689,7 +699,8 @@ GNUNET_IDENTITY_private_key_from_string (const char*str,
  * @return GNUNET_SYSERR on error.
  */
 enum GNUNET_GenericReturnValue
-GNUNET_IDENTITY_key_get_public (const struct GNUNET_IDENTITY_PrivateKey *privkey,
+GNUNET_IDENTITY_key_get_public (const struct
+                                GNUNET_IDENTITY_PrivateKey *privkey,
                                 struct GNUNET_IDENTITY_PublicKey *key);
 
 
