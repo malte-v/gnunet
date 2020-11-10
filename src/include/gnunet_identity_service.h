@@ -585,10 +585,10 @@ GNUNET_IDENTITY_signature_verify_ (uint32_t purpose,
     /* check 'ps' begins with the purpose */                              \
     GNUNET_static_assert (((void*) (ps)) ==                               \
                           ((void*) &(ps)->purpose));                      \
-    GNUNET_IDENTITY_public_key_verify_ (purp,                              \
-                                        &(ps)->purpose,                    \
-                                        sig,                               \
-                                        pub);                              \
+    GNUNET_IDENTITY_signature_verify_ (purp,                              \
+                                       &(ps)->purpose,                    \
+                                       sig,                               \
+                                       pub);                              \
   })
 
 
