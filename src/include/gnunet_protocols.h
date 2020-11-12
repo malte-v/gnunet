@@ -1,6 +1,6 @@
 /*
      This file is part of GNUnet.
-     Copyright (C) 2001--2020 GNUnet e.V.
+     Copyright (C) 2001--2018 GNUnet e.V.
 
      GNUnet is free software: you can redistribute it and/or modify it
      under the terms of the GNU Affero General Public License as published
@@ -20,7 +20,6 @@
 
 /**
  * @author Christian Grothoff
- * @author Tobias Frisch
  *
  * @file
  * Constants for network protocols
@@ -3518,46 +3517,6 @@ extern "C" {
 
 #define GNUNET_MESSAGE_TYPE_RECLAIM_REFERENCE_RESULT 1501
 
-
-/*********************************************************************************/
-/**********************************  MESSENGER  **********************************/
-/*********************************************************************************/
-/* MESSENGER: message types 1600-1629
- * 1600-1609 Connection-level Messages
- * 1610-1619 Room-level Messages
- */
-
-/*********************************  Connection  **********************************/
-
-#define GNUNET_MESSAGE_TYPE_MESSENGER_CONNECTION_CREATE 1600
-
-#define GNUNET_MESSAGE_TYPE_MESSENGER_CONNECTION_UPDATE 1601
-
-#define GNUNET_MESSAGE_TYPE_MESSENGER_CONNECTION_DESTROY 1602
-
-#define GNUNET_MESSAGE_TYPE_MESSENGER_CONNECTION_GET_NAME 1603
-
-#define GNUNET_MESSAGE_TYPE_MESSENGER_CONNECTION_SET_NAME 1604
-
-#define GNUNET_MESSAGE_TYPE_MESSENGER_CONNECTION_GET_KEY 1605
-
-#define GNUNET_MESSAGE_TYPE_MESSENGER_CONNECTION_MEMBER_ID 1606
-
-/************************************  Room  *************************************/
-
-#define GNUNET_MESSAGE_TYPE_MESSENGER_ROOM_OPEN 1610
-
-#define GNUNET_MESSAGE_TYPE_MESSENGER_ROOM_ENTRY 1611
-
-#define GNUNET_MESSAGE_TYPE_MESSENGER_ROOM_CLOSE 1612
-
-#define GNUNET_MESSAGE_TYPE_MESSENGER_ROOM_SEND_MESSAGE 1614
-
-#define GNUNET_MESSAGE_TYPE_MESSENGER_ROOM_RECV_MESSAGE 1615
-
-#define GNUNET_MESSAGE_TYPE_MESSENGER_ROOM_GET_MESSAGE 1616
-
-/*********************************************************************************/
 
 /**
  * Type used to match 'all' message types.

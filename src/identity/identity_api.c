@@ -1138,11 +1138,11 @@ GNUNET_IDENTITY_signature_verify_ (uint32_t purpose,
 
 
 ssize_t
-GNUNET_IDENTITY_encrypt (const void *block,
-                         size_t size,
-                         const struct GNUNET_IDENTITY_PublicKey *pub,
-                         struct GNUNET_CRYPTO_EcdhePublicKey *ecc,
-                         void *result)
+GNUNET_IDENTITY_public_key_encrypt (const void *block,
+                                    size_t size,
+                                    const struct GNUNET_IDENTITY_PublicKey *pub,
+                                    struct GNUNET_CRYPTO_EcdhePublicKey *ecc,
+                                    void *result)
 {
   struct GNUNET_CRYPTO_EcdhePrivateKey pk;
   GNUNET_CRYPTO_ecdhe_key_create (&pk);
@@ -1177,11 +1177,13 @@ GNUNET_IDENTITY_encrypt (const void *block,
 
 
 ssize_t
-GNUNET_IDENTITY_decrypt (const void *block,
-                         size_t size,
-                         const struct GNUNET_IDENTITY_PrivateKey *priv,
-                         const struct GNUNET_CRYPTO_EcdhePublicKey *ecc,
-                         void *result)
+GNUNET_IDENTITY_private_key_decrypt (const void *block,
+                                     size_t size,
+                                     const struct
+                                     GNUNET_IDENTITY_PrivateKey *priv,
+                                     const struct
+                                     GNUNET_CRYPTO_EcdhePublicKey *ecc,
+                                     void *result)
 {
   struct GNUNET_HashCode hash;
   switch (ntohl (priv->type))
