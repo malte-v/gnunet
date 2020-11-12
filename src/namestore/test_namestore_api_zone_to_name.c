@@ -212,12 +212,13 @@ run (void *cls,
   GNUNET_CRYPTO_random_block (GNUNET_CRYPTO_QUALITY_WEAK,
                               &s_zone_value,
                               sizeof(s_zone_value));
+  s_zone_value.type = htonl (GNUNET_GNSRECORD_TYPE_PKEY);
   {
     struct GNUNET_GNSRECORD_Data rd;
 
     rd.expiration_time = GNUNET_TIME_absolute_get ().abs_value_us;
     rd.record_type = GNUNET_GNSRECORD_TYPE_PKEY;
-    rd.data_size = sizeof(s_zone_value);
+    rd.data_size = GNUNET_IDENTITY_key_get_length (&s_zone_value);
     rd.data = &s_zone_value;
     rd.flags = 0;
 

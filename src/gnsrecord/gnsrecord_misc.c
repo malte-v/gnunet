@@ -107,8 +107,8 @@ GNUNET_GNSRECORD_records_cmp (const struct GNUNET_GNSRECORD_Data *a,
   {
     LOG (GNUNET_ERROR_TYPE_DEBUG,
          "Expiration time %llu != %llu\n",
-         a->expiration_time,
-         b->expiration_time);
+         (unsigned long long) a->expiration_time,
+         (unsigned long long) b->expiration_time);
     return GNUNET_NO;
   }
   if ((a->flags & GNUNET_GNSRECORD_RF_RCMP_FLAGS)
@@ -282,10 +282,12 @@ GNUNET_GNSRECORD_identity_from_data (const char *data,
     return GNUNET_SYSERR;
   if (data_size > sizeof (struct GNUNET_IDENTITY_PublicKey))
     return GNUNET_SYSERR;
-  key->type = type;
-  memcpy (key, data, data_size);
-  return GNUNET_OK;
+  return (GNUNET_IDENTITY_read_key_from_buffer (key, data, data_size) ==
+          data_size?
+          GNUNET_OK :
+          GNUNET_SYSERR);
 }
+
 
 enum GNUNET_GenericReturnValue
 GNUNET_GNSRECORD_data_from_identity (const struct
@@ -294,13 +296,15 @@ GNUNET_GNSRECORD_data_from_identity (const struct
                                      size_t *data_size,
                                      uint32_t *type)
 {
-  *type = key->type;
+  *type = ntohl (key->type);
   *data_size = GNUNET_IDENTITY_key_get_length (key);
   if (0 == *data_size)
     return GNUNET_SYSERR;
   *data = GNUNET_malloc (*data_size);
-  memcpy (*data, key, *data_size);
-  return GNUNET_OK;
+  return (GNUNET_IDENTITY_write_key_to_buffer (key, *data, *data_size) ==
+          *data_size?
+          GNUNET_OK :
+          GNUNET_SYSERR);
 }
 
 
@@ -309,13 +313,14 @@ GNUNET_GNSRECORD_is_zonekey_type (uint32_t type)
 {
   switch (type)
   {
-    case GNUNET_GNSRECORD_TYPE_PKEY:
-    case GNUNET_GNSRECORD_TYPE_EDKEY:
-      return GNUNET_YES;
-    default:
-      return GNUNET_NO;
+  case GNUNET_GNSRECORD_TYPE_PKEY:
+  case GNUNET_GNSRECORD_TYPE_EDKEY:
+    return GNUNET_YES;
+  default:
+    return GNUNET_NO;
   }
 }
+
 
 size_t
 GNUNET_GNSRECORD_block_get_size (const struct GNUNET_GNSRECORD_Block *block)

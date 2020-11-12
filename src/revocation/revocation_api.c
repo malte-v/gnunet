@@ -423,33 +423,33 @@ calculate_score (const struct GNUNET_REVOCATION_PowCalculationHandle *ph)
 
 
 enum GNUNET_GenericReturnValue
-check_signature_ecdsa (const struct GNUNET_REVOCATION_PowP *pow,
-                       const struct GNUNET_CRYPTO_EcdsaPublicKey *key)
+check_signature_identity (const struct GNUNET_REVOCATION_PowP *pow,
+                          const struct GNUNET_IDENTITY_PublicKey *key)
 {
-  struct GNUNET_REVOCATION_EcdsaSignaturePurposePS spurp;
-  struct GNUNET_CRYPTO_EcdsaSignature *sig;
+  struct GNUNET_REVOCATION_SignaturePurposePS *spurp;
+  struct GNUNET_IDENTITY_Signature *sig;
   const struct GNUNET_IDENTITY_PublicKey *pk;
   size_t ksize;
 
   pk = (const struct GNUNET_IDENTITY_PublicKey *) &pow[1];
   ksize = GNUNET_IDENTITY_key_get_length (pk);
 
-  spurp.ktype = pk->type;
-  spurp.key = pk->ecdsa_key;
-  spurp.timestamp = pow->timestamp;
-  spurp.purpose.purpose = htonl (GNUNET_SIGNATURE_PURPOSE_REVOCATION);
-  spurp.purpose.size = htonl (sizeof(struct GNUNET_CRYPTO_EccSignaturePurpose)
-                              + GNUNET_IDENTITY_key_get_length (pk)
-                              + sizeof (struct GNUNET_TIME_AbsoluteNBO));
+  spurp = GNUNET_malloc (sizeof (*spurp) + ksize);
+  spurp->timestamp = pow->timestamp;
+  spurp->purpose.purpose = htonl (GNUNET_SIGNATURE_PURPOSE_REVOCATION);
+  spurp->purpose.size = htonl (sizeof(*spurp) + ksize);
+  GNUNET_IDENTITY_write_key_to_buffer (pk,
+                                       (char*) &spurp[1],
+                                       ksize);
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Expected signature payload len: %u\n",
-              ntohl (spurp.purpose.size));
-  sig = (struct GNUNET_CRYPTO_EcdsaSignature *) ((char*)&pow[1] + ksize);
+              ntohl (spurp->purpose.size));
+  sig = (struct GNUNET_IDENTITY_Signature *) ((char*) &pow[1] + ksize);
   if (GNUNET_OK !=
-      GNUNET_CRYPTO_ecdsa_verify_ (GNUNET_SIGNATURE_PURPOSE_REVOCATION,
-                                   &spurp.purpose,
-                                   sig,
-                                   key))
+      GNUNET_IDENTITY_signature_verify_ (GNUNET_SIGNATURE_PURPOSE_REVOCATION,
+                                         &spurp->purpose,
+                                         sig,
+                                         key))
   {
     return GNUNET_SYSERR;
   }
@@ -463,14 +463,7 @@ check_signature (const struct GNUNET_REVOCATION_PowP *pow)
   const struct GNUNET_IDENTITY_PublicKey *pk;
 
   pk = (const struct GNUNET_IDENTITY_PublicKey *) &pow[1];
-  switch (ntohl (pk->type))
-  {
-  case GNUNET_IDENTITY_TYPE_ECDSA:
-    return check_signature_ecdsa (pow, &pk->ecdsa_key);
-  default:
-    return GNUNET_SYSERR;
-  }
-  return GNUNET_SYSERR;
+  return check_signature_identity (pow, pk);
 }
 
 
@@ -576,11 +569,11 @@ GNUNET_REVOCATION_check_pow (const struct GNUNET_REVOCATION_PowP *pow,
 
 
 enum GNUNET_GenericReturnValue
-sign_pow_ecdsa (const struct GNUNET_CRYPTO_EcdsaPrivateKey *key,
-                struct GNUNET_REVOCATION_PowP *pow)
+sign_pow_identity (const struct GNUNET_IDENTITY_PrivateKey *key,
+                   struct GNUNET_REVOCATION_PowP *pow)
 {
   struct GNUNET_TIME_Absolute ts = GNUNET_TIME_absolute_get ();
-  struct GNUNET_REVOCATION_EcdsaSignaturePurposePS rp;
+  struct GNUNET_REVOCATION_SignaturePurposePS *rp;
   const struct GNUNET_IDENTITY_PublicKey *pk;
   size_t ksize;
   char *sig;
@@ -594,21 +587,24 @@ sign_pow_ecdsa (const struct GNUNET_CRYPTO_EcdsaPrivateKey *key,
   pk = (const struct GNUNET_IDENTITY_PublicKey *) &pow[1];
   ksize = GNUNET_IDENTITY_key_get_length (pk);
   pow->timestamp = GNUNET_TIME_absolute_hton (ts);
-  rp.timestamp = pow->timestamp;
-  rp.purpose.purpose = htonl (GNUNET_SIGNATURE_PURPOSE_REVOCATION);
-  rp.purpose.size = htonl (sizeof(struct GNUNET_CRYPTO_EccSignaturePurpose)
-                           + ksize
-                           + sizeof (struct GNUNET_TIME_AbsoluteNBO));
+  rp = GNUNET_malloc (sizeof (*rp) + ksize);
+  rp->timestamp = pow->timestamp;
+  rp->purpose.purpose = htonl (GNUNET_SIGNATURE_PURPOSE_REVOCATION);
+  rp->purpose.size = htonl (sizeof(*rp) + ksize);
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Signature payload len: %u\n",
-              ntohl (rp.purpose.size));
-  rp.ktype = pk->type;
-  rp.key = pk->ecdsa_key;
-  sig = ((char*)&pow[1]) + ksize;
-  return GNUNET_CRYPTO_ecdsa_sign_ (key,
-                                    &rp.purpose,
-                                    (void*) sig);
-
+              ntohl (rp->purpose.size));
+  GNUNET_IDENTITY_write_key_to_buffer (pk,
+                                       ((char*) &rp[1]),
+                                       ksize);
+  sig = ((char*) &pow[1]) + ksize;
+  int result = GNUNET_IDENTITY_sign_ (key,
+                                      &rp->purpose,
+                                      (void*) sig);
+  if (result == GNUNET_SYSERR)
+    return GNUNET_NO;
+  else
+    return result;
 }
 
 
@@ -620,14 +616,7 @@ sign_pow (const struct GNUNET_IDENTITY_PrivateKey *key,
 
   pk = (struct GNUNET_IDENTITY_PublicKey *) &pow[1];
   GNUNET_IDENTITY_key_get_public (key, pk);
-  switch (ntohl (pk->type))
-  {
-  case GNUNET_IDENTITY_TYPE_ECDSA:
-    return sign_pow_ecdsa (&key->ecdsa_key, pow);
-  default:
-    return GNUNET_NO;
-  }
-  return GNUNET_NO;
+  return sign_pow_identity (key, pow);
 }
 
 
@@ -777,20 +766,17 @@ size_t
 GNUNET_REVOCATION_proof_get_size (const struct GNUNET_REVOCATION_PowP *pow)
 {
   size_t size;
+  size_t ksize;
   const struct GNUNET_IDENTITY_PublicKey *pk;
+  const struct GNUNET_IDENTITY_Signature *sig;
 
   size = sizeof (struct GNUNET_REVOCATION_PowP);
   pk = (const struct GNUNET_IDENTITY_PublicKey *) &pow[1];
-  size += GNUNET_IDENTITY_key_get_length (pk);
-
-  switch (ntohl (pk->type))
-  {
-  case GNUNET_IDENTITY_TYPE_ECDSA:
-    return size + sizeof (struct GNUNET_CRYPTO_EcdsaSignature);
-  default:
-    return 0;
-  }
-  return 0;
+  ksize = GNUNET_IDENTITY_key_get_length (pk);
+  size += ksize;
+  sig = (struct GNUNET_IDENTITY_Signature *) ((char*) &pow[1] + ksize);
+  size += GNUNET_IDENTITY_signature_get_length (sig);
+  return size;
 }
 
 
