@@ -62,7 +62,8 @@ gnunet_messenger_SOURCES = \
 gnunet_messenger_LDADD = \
  libgnunetmessenger_common.la \
  libgnunetmessenger.la \
- $(top_builddir)/src/util/libgnunetutil.la
+ $(top_builddir)/src/util/libgnunetutil.la \
+ $(top_builddir)/src/identity/libgnunetidentity.la
 gnunet_messenger_LDFLAGS = \
   $(GN_LIBINTL)
 
