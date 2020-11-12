@@ -70,28 +70,81 @@ struct GNUNET_MESSENGER_Contact;
  */
 enum GNUNET_MESSENGER_MessageKind
 {
+  /**
+   * The info kind. The message contains a #GNUNET_MESSENGER_MessageInfo body.
+   */
   GNUNET_MESSENGER_KIND_INFO = 1,
 
+  /**
+     * The join kind. The message contains a #GNUNET_MESSENGER_MessageJoin body.
+     */
   GNUNET_MESSENGER_KIND_JOIN = 2,
+
+  /**
+     * The leave kind. The message contains a #GNUNET_MESSENGER_MessageLeave body.
+     */
   GNUNET_MESSENGER_KIND_LEAVE = 3,
 
+  /**
+   * The name kind. The message contains a #GNUNET_MESSENGER_MessageName body.
+   */
   GNUNET_MESSENGER_KIND_NAME = 4,
+
+  /**
+   * The key kind. The message contains a #GNUNET_MESSENGER_MessageKey body.
+   */
   GNUNET_MESSENGER_KIND_KEY = 5,
+
+  /**
+   * The peer kind. The message contains a #GNUNET_MESSENGER_MessagePeer body.
+   */
   GNUNET_MESSENGER_KIND_PEER = 6,
+
+  /**
+   * The id kind. The message contains a #GNUNET_MESSENGER_MessageId body.
+   */
   GNUNET_MESSENGER_KIND_ID = 7,
 
+  /**
+   * The miss kind. The message contains a #GNUNET_MESSENGER_MessageMiss body.
+   */
   GNUNET_MESSENGER_KIND_MISS = 8,
+
+  /**
+   * The merge kind. The message contains a #GNUNET_MESSENGER_MessageMerge body.
+   */
   GNUNET_MESSENGER_KIND_MERGE = 9,
+
+  /**
+   * The request kind. The message contains a #GNUNET_MESSENGER_MessageRequest body.
+   */
   GNUNET_MESSENGER_KIND_REQUEST = 10,
 
+  /**
+   * The invite kind. The message contains a #GNUNET_MESSENGER_MessageInvite body.
+   */
   GNUNET_MESSENGER_KIND_INVITE = 11,
+
+  /**
+   * The text kind. The message contains a #GNUNET_MESSENGER_MessageText body.
+   */
   GNUNET_MESSENGER_KIND_TEXT = 12,
+
+  /**
+   * The file kind. The message contains a #GNUNET_MESSENGER_MessageFile body.
+   */
   GNUNET_MESSENGER_KIND_FILE = 13,
 
+  /**
+   * The private kind. The message contains a #GNUNET_MESSENGER_MessagePrivate body.
+   */
   GNUNET_MESSENGER_KIND_PRIVATE = 14,
 
+  /**
+   * The unknown kind. The message contains an unknown body.
+   */
   GNUNET_MESSENGER_KIND_UNKNOWN = 0
-}__attribute__((__packed__));
+};
 
 /**
  * Get the name of a message <i>kind</i>.
@@ -102,117 +155,242 @@ enum GNUNET_MESSENGER_MessageKind
 const char*
 GNUNET_MESSENGER_name_of_kind (enum GNUNET_MESSENGER_MessageKind kind);
 
+/**
+ * The header of a #GNUNET_MESSENGER_Message.
+ */
 struct GNUNET_MESSENGER_MessageHeader
 {
+  /**
+   * The signature of the senders private key.
+   */
   struct GNUNET_IDENTITY_Signature signature;
 
+  /**
+   * The timestamp of the message.
+   */
   struct GNUNET_TIME_AbsoluteNBO timestamp;
 
+  /**
+   * The senders id inside of the room the message was sent in.
+   */
   struct GNUNET_ShortHashCode sender_id;
+
+  /**
+   * The hash of the previous message from the senders perspective.
+   */
   struct GNUNET_HashCode previous;
 
+  /**
+   * The kind of the message.
+   */
   enum GNUNET_MESSENGER_MessageKind kind;
 };
 
+/**
+ * An info message body.
+ */
 struct GNUNET_MESSENGER_MessageInfo
 {
+  /**
+   * The senders key to verify its signatures.
+   */
   struct GNUNET_IDENTITY_PublicKey host_key;
+
+  /**
+   * The new unique id for the receiver in a room.
+   */
   struct GNUNET_ShortHashCode unique_id;
 };
 
+/**
+ * A join message body.
+ */
 struct GNUNET_MESSENGER_MessageJoin
 {
+  /**
+   * The senders public key to verify its signatures.
+   */
   struct GNUNET_IDENTITY_PublicKey key;
 };
 
+/**
+ * A leave message body.
+ */
 struct GNUNET_MESSENGER_MessageLeave
 {
 };
 
+/**
+ * A name message body.
+ */
 struct GNUNET_MESSENGER_MessageName
 {
+  /**
+   * The new name which replaces the current senders name.
+   */
   char *name;
 };
 
+/**
+ * A key message body.
+ */
 struct GNUNET_MESSENGER_MessageKey
 {
+  /**
+   * The new public key which replaces the current senders public key.
+   */
   struct GNUNET_IDENTITY_PublicKey key;
 };
 
+/**
+ * A peer message body.
+ */
 struct GNUNET_MESSENGER_MessagePeer
 {
+  /**
+   * The peer identity of the sender opening a room.
+   */
   struct GNUNET_PeerIdentity peer;
 };
 
+/**
+ * An id message body.
+ */
 struct GNUNET_MESSENGER_MessageId
 {
+  /**
+   * The new id which will replace the senders id in a room.
+   */
   struct GNUNET_ShortHashCode id;
 };
 
+/**
+ * A miss message body.
+ */
 struct GNUNET_MESSENGER_MessageMiss
 {
+  /**
+   * The peer identity of a disconnected door to a room.
+   */
   struct GNUNET_PeerIdentity peer;
 };
 
+/**
+ * A merge message body.
+ */
 struct GNUNET_MESSENGER_MessageMerge
 {
+  /**
+   * The hash of a second previous message.
+   */
   struct GNUNET_HashCode previous;
 };
 
+/**
+ * A request message body.
+ */
 struct GNUNET_MESSENGER_MessageRequest
 {
+  /**
+   * The hash of the requested message.
+   */
   struct GNUNET_HashCode hash;
 };
 
+/**
+ * An invite message body.
+ */
 struct GNUNET_MESSENGER_MessageInvite
 {
+  /**
+   * The peer identity of an open door to a room.
+   */
   struct GNUNET_PeerIdentity door;
+
+  /**
+   * The hash identifying the port of the room.
+   */
   struct GNUNET_HashCode key;
 };
 
+/**
+ * A text message body.
+ */
 struct GNUNET_MESSENGER_MessageText
 {
+  /**
+   * The containing text.
+   */
   char *text;
 };
 
+/**
+ * A file message body.
+ */
 struct GNUNET_MESSENGER_MessageFile
 {
+  /**
+   * The symmetric key to decrypt the file.
+   */
   struct GNUNET_CRYPTO_SymmetricSessionKey key;
+
+  /**
+   * The hash of the original file.
+   */
   struct GNUNET_HashCode hash;
+
+  /**
+   * The name of the original file.
+   */
   char name[NAME_MAX];
+
+  /**
+   * The uri of the encrypted file.
+   */
   char *uri;
 };
 
+/**
+ * A private message body.
+ */
 struct GNUNET_MESSENGER_MessagePrivate
 {
+  /**
+   * The ECDH key to decrypt the message.
+   */
   struct GNUNET_CRYPTO_EcdhePublicKey key;
 
+  /**
+   * The length of the encrypted message.
+   */
   uint16_t length;
+
+  /**
+   * The data of the encrypted message.
+   */
   char *data;
 };
 
+/**
+ * The unified body of a #GNUNET_MESSENGER_Message.
+ */
 struct GNUNET_MESSENGER_MessageBody
 {
   union
   {
     struct GNUNET_MESSENGER_MessageInfo info;
-
     struct GNUNET_MESSENGER_MessageJoin join;
     struct GNUNET_MESSENGER_MessageLeave leave;
-
     struct GNUNET_MESSENGER_MessageName name;
     struct GNUNET_MESSENGER_MessageKey key;
     struct GNUNET_MESSENGER_MessagePeer peer;
     struct GNUNET_MESSENGER_MessageId id;
-
     struct GNUNET_MESSENGER_MessageMiss miss;
     struct GNUNET_MESSENGER_MessageMerge merge;
     struct GNUNET_MESSENGER_MessageRequest request;
-
     struct GNUNET_MESSENGER_MessageInvite invite;
     struct GNUNET_MESSENGER_MessageText text;
     struct GNUNET_MESSENGER_MessageFile file;
-
     struct GNUNET_MESSENGER_MessagePrivate private;
   };
 };
@@ -222,7 +400,14 @@ struct GNUNET_MESSENGER_MessageBody
  */
 struct GNUNET_MESSENGER_Message
 {
+  /**
+   * Header.
+   */
   struct GNUNET_MESSENGER_MessageHeader header;
+
+  /**
+   * Body
+   */
   struct GNUNET_MESSENGER_MessageBody body;
 };
 
