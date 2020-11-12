@@ -1754,11 +1754,6 @@ extern "C" {
 #define GNUNET_MESSAGE_TYPE_SETU_P2P_ELEMENTS 566
 
 /**
- * Requests for the elements with the given hashes.
- */
-#define GNUNET_MESSAGE_TYPE_SETU_P2P_ELEMENT_REQUESTS 567
-
-/**
  * Set operation is done.
  */
 #define GNUNET_MESSAGE_TYPE_SETU_P2P_DONE 568
@@ -1968,11 +1963,6 @@ extern "C" {
  * Actual set elements.
  */
 #define GNUNET_MESSAGE_TYPE_SET_P2P_ELEMENTS 584
-
-/**
- * Requests for the elements with the given hashes.
- */
-#define GNUNET_MESSAGE_TYPE_SET_P2P_ELEMENT_REQUESTS 585
 
 /**
  * Set operation is done.
