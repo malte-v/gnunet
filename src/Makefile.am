@@ -11,7 +11,8 @@ endif
 
 if HAVE_EXPERIMENTAL
  EXP_DIR = \
-  rps
+  rps \
+  messenger
   #abd FTBFS
 if HAVE_ABE
  EXP_DIR += \

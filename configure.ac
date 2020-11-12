@@ -1975,6 +1975,8 @@ src/zonemaster/zonemaster.conf
 src/rest/Makefile
 src/abe/Makefile
 src/reclaim/Makefile
+src/messenger/Makefile
+src/messenger/messenger.conf
 pkgconfig/Makefile
 pkgconfig/gnunetarm.pc
 pkgconfig/gnunetats.pc
