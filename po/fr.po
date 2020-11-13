@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: gnunet 0.10.1\n"
 "Report-Msgid-Bugs-To: gnunet-developers@mail.gnu.org\n"
-"POT-Creation-Date: 2020-10-13 16:12+0200\n"
+"POT-Creation-Date: 2020-11-13 23:04+0900\n"
 "PO-Revision-Date: 2015-12-24 01:20+0100\n"
 "Last-Translator: Stéphane  Aulery <lkppo@free.fr>\n"
 "Language-Team: French <traduc@traduc.org>\n"
@@ -16,7 +16,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: src/abd/gnunet-abd.c:397 src/namestore/gnunet-namestore.c:1303
+#: src/abd/gnunet-abd.c:397 src/namestore/gnunet-namestore.c:1302
 #, c-format
 msgid "Ego `%s' not known to identity service\n"
 msgstr ""
@@ -27,8 +27,8 @@ msgid "Issuer public key `%s' is not well-formed\n"
 msgstr ""
 
 #: src/abd/gnunet-abd.c:560 src/abd/gnunet-service-abd.c:1747
-#: src/namestore/gnunet-namestore-fcfsd.c:1154
 #: src/namestore/gnunet-namestore.c:1001
+#: src/namestore/gnunet-namestore-fcfsd.c:1164
 #, c-format
 msgid "Failed to connect to namestore\n"
 msgstr ""
@@ -491,14 +491,81 @@ msgstr ""
 msgid "Initiating shutdown as requested by client.\n"
 msgstr ""
 
-#: src/ats-tests/ats-testing-log.c:896
-msgid "Stop logging\n"
-msgstr "Arrêter la journalisation\n"
-
-#: src/ats-tests/ats-testing-log.c:952
+#: src/ats/gnunet-ats-solver-eval.c:2992 src/ats/gnunet-ats-solver-eval.c:3044
 #, c-format
-msgid "Start logging `%s'\n"
-msgstr "Démarrer la journalisation « %s »\n"
+msgid ""
+"Could not load quota for network `%s':  `%s', assigning default bandwidth "
+"%llu\n"
+msgstr ""
+
+#: src/ats/gnunet-ats-solver-eval.c:3011
+#, c-format
+msgid ""
+"No outbound quota configured for network `%s', assigning default bandwidth "
+"%llu\n"
+msgstr ""
+
+#: src/ats/gnunet-ats-solver-eval.c:3063
+#, c-format
+msgid ""
+"No outbound quota configure for network `%s', assigning default bandwidth "
+"%llu\n"
+msgstr ""
+
+#: src/ats/gnunet-ats-solver-eval.c:3552 src/ats-tests/gnunet-solver-eval.c:997
+msgid "solver to use"
+msgstr "solveur utilisé"
+
+#: src/ats/gnunet-ats-solver-eval.c:3557
+#: src/ats-tests/gnunet-solver-eval.c:1003
+#: src/ats-tests/gnunet-solver-eval.c:1008
+msgid "experiment to use"
+msgstr ""
+
+#: src/ats/gnunet-ats-solver-eval.c:3564
+msgid "print logging"
+msgstr "afficher le journal"
+
+#: src/ats/gnunet-ats-solver-eval.c:3569
+msgid "save logging to disk"
+msgstr ""
+
+#: src/ats/gnunet-ats-solver-eval.c:3574
+msgid "disable normalization"
+msgstr ""
+
+#: src/ats/gnunet-service-ats_plugins.c:326
+#, c-format
+msgid ""
+"Could not load %s quota for network `%s':  `%s', assigning default bandwidth "
+"%llu\n"
+msgstr ""
+
+#: src/ats/gnunet-service-ats_plugins.c:336
+#, c-format
+msgid "%s quota configured for network `%s' is %llu\n"
+msgstr ""
+
+#: src/ats/gnunet-service-ats_plugins.c:382
+#, c-format
+msgid ""
+"No %s-quota configured for network `%s', assigning default bandwidth %llu\n"
+msgstr ""
+
+#: src/ats/gnunet-service-ats_plugins.c:474
+#, c-format
+msgid "Failed to initialize solver `%s'!\n"
+msgstr ""
+
+#: src/ats/plugin_ats_proportional.c:1142
+#, fuzzy, c-format
+msgid "Invalid %s configuration %f \n"
+msgstr "fornat invalide : « %s »\n"
+
+#: src/ats/plugin_ats_proportional.c:1165
+#, fuzzy, c-format
+msgid "Invalid %s configuration %f\n"
+msgstr "fornat invalide : « %s »\n"
 
 #: src/ats-tests/ats-testing.c:420
 #, c-format
@@ -510,21 +577,20 @@ msgstr ""
 msgid "Failed to connect master peer [%u] with slave [%u]\n"
 msgstr ""
 
+#: src/ats-tests/ats-testing-log.c:896
+msgid "Stop logging\n"
+msgstr "Arrêter la journalisation\n"
+
+#: src/ats-tests/ats-testing-log.c:952
+#, c-format
+msgid "Start logging `%s'\n"
+msgstr "Démarrer la journalisation « %s »\n"
+
 #: src/ats-tests/gnunet-ats-sim.c:92
 #, c-format
 msgid ""
 "Master [%u]: sent: %u KiB in %u sec. = %u KiB/s, received: %u KiB in %u sec. "
 "= %u KiB/s\n"
-msgstr ""
-
-#: src/ats-tests/gnunet-solver-eval.c:997 src/ats/gnunet-ats-solver-eval.c:3552
-msgid "solver to use"
-msgstr "solveur utilisé"
-
-#: src/ats-tests/gnunet-solver-eval.c:1003
-#: src/ats-tests/gnunet-solver-eval.c:1008
-#: src/ats/gnunet-ats-solver-eval.c:3557
-msgid "experiment to use"
 msgstr ""
 
 #: src/ats-tool/gnunet-ats.c:299
@@ -642,72 +708,6 @@ msgstr ""
 msgid "Print information about ATS state"
 msgstr ""
 
-#: src/ats/gnunet-ats-solver-eval.c:2992 src/ats/gnunet-ats-solver-eval.c:3044
-#, c-format
-msgid ""
-"Could not load quota for network `%s':  `%s', assigning default bandwidth "
-"%llu\n"
-msgstr ""
-
-#: src/ats/gnunet-ats-solver-eval.c:3011
-#, c-format
-msgid ""
-"No outbound quota configured for network `%s', assigning default bandwidth "
-"%llu\n"
-msgstr ""
-
-#: src/ats/gnunet-ats-solver-eval.c:3063
-#, c-format
-msgid ""
-"No outbound quota configure for network `%s', assigning default bandwidth "
-"%llu\n"
-msgstr ""
-
-#: src/ats/gnunet-ats-solver-eval.c:3564
-msgid "print logging"
-msgstr "afficher le journal"
-
-#: src/ats/gnunet-ats-solver-eval.c:3569
-msgid "save logging to disk"
-msgstr ""
-
-#: src/ats/gnunet-ats-solver-eval.c:3574
-msgid "disable normalization"
-msgstr ""
-
-#: src/ats/gnunet-service-ats_plugins.c:326
-#, c-format
-msgid ""
-"Could not load %s quota for network `%s':  `%s', assigning default bandwidth "
-"%llu\n"
-msgstr ""
-
-#: src/ats/gnunet-service-ats_plugins.c:336
-#, c-format
-msgid "%s quota configured for network `%s' is %llu\n"
-msgstr ""
-
-#: src/ats/gnunet-service-ats_plugins.c:382
-#, c-format
-msgid ""
-"No %s-quota configured for network `%s', assigning default bandwidth %llu\n"
-msgstr ""
-
-#: src/ats/gnunet-service-ats_plugins.c:474
-#, c-format
-msgid "Failed to initialize solver `%s'!\n"
-msgstr ""
-
-#: src/ats/plugin_ats_proportional.c:1142
-#, fuzzy, c-format
-msgid "Invalid %s configuration %f \n"
-msgstr "fornat invalide : « %s »\n"
-
-#: src/ats/plugin_ats_proportional.c:1165
-#, fuzzy, c-format
-msgid "Invalid %s configuration %f\n"
-msgstr "fornat invalide : « %s »\n"
-
 #: src/auction/gnunet-auction-create.c:163
 msgid "description of the item to be sold"
 msgstr ""
@@ -745,7 +745,7 @@ msgstr ""
 
 #: src/auction/gnunet-auction-info.c:77 src/auction/gnunet-auction-join.c:77
 #: src/conversation/gnunet-conversation-test.c:256
-#: src/revocation/gnunet-revocation.c:552 src/template/gnunet-template.c:75
+#: src/revocation/gnunet-revocation.c:569 src/template/gnunet-template.c:75
 msgid "help text"
 msgstr ""
 
@@ -836,28 +836,6 @@ msgstr ""
 #: src/conversation/conversation_api.c:523
 #: src/conversation/conversation_api_call.c:515
 msgid "Connection to conversation service lost, trying to reconnect\n"
-msgstr ""
-
-#: src/conversation/gnunet-conversation-test.c:120
-#, c-format
-msgid ""
-"\n"
-"End of transmission.  Have a GNU day.\n"
-msgstr ""
-
-#: src/conversation/gnunet-conversation-test.c:146
-#, c-format
-msgid ""
-"\n"
-"We are now playing your recording back.  If you can hear it, your audio "
-"settings are working..."
-msgstr ""
-
-#: src/conversation/gnunet-conversation-test.c:218
-#, c-format
-msgid ""
-"We will now be recording you for %s. After that time, the recording will be "
-"played back to you..."
 msgstr ""
 
 #: src/conversation/gnunet-conversation.c:264
@@ -1116,8 +1094,30 @@ msgstr ""
 msgid "Enables having a conversation with other GNUnet users."
 msgstr ""
 
-#: src/conversation/gnunet-helper-audio-playback-gst.c:363
+#: src/conversation/gnunet-conversation-test.c:120
+#, c-format
+msgid ""
+"\n"
+"End of transmission.  Have a GNU day.\n"
+msgstr ""
+
+#: src/conversation/gnunet-conversation-test.c:146
+#, c-format
+msgid ""
+"\n"
+"We are now playing your recording back.  If you can hear it, your audio "
+"settings are working..."
+msgstr ""
+
+#: src/conversation/gnunet-conversation-test.c:218
+#, c-format
+msgid ""
+"We will now be recording you for %s. After that time, the recording will be "
+"played back to you..."
+msgstr ""
+
 #: src/conversation/gnunet_gst.c:664
+#: src/conversation/gnunet-helper-audio-playback-gst.c:363
 #, c-format
 msgid "Read error from STDIN: %d %s\n"
 msgstr ""
@@ -1241,7 +1241,7 @@ msgstr "ogg_stream_init() échoué.\n"
 msgid "Failed to allocate %u bytes for second packet\n"
 msgstr ""
 
-#: src/conversation/gnunet-service-conversation.c:1287
+#: src/conversation/gnunet-service-conversation.c:1286
 #, c-format
 msgid "Could not open line, port %s already in use!\n"
 msgstr ""
@@ -1925,7 +1925,7 @@ msgid ""
 msgstr ""
 
 #: src/datastore/plugin_datastore_sqlite.c:1316
-#: src/namecache/plugin_namecache_sqlite.c:570
+#: src/namecache/plugin_namecache_sqlite.c:564
 #: src/namestore/plugin_namestore_sqlite.c:765
 msgid "Sqlite database running\n"
 msgstr ""
@@ -1998,6 +1998,53 @@ msgstr ""
 
 #: src/dht/gnunet-dht-monitor.c:336
 msgid "Prints all packets that go through the DHT."
+msgstr ""
+
+#: src/dht/gnunet_dht_profiler.c:922 src/testbed/gnunet-testbed-profiler.c:255
+#, c-format
+msgid "Exiting as the number of peers is %u\n"
+msgstr ""
+
+#: src/dht/gnunet_dht_profiler.c:955 src/rps/gnunet-rps-profiler.c:3194
+#, fuzzy
+msgid "number of peers to start"
+msgstr "nombre de valeurs"
+
+#: src/dht/gnunet_dht_profiler.c:961
+msgid "number of PUTs to perform per peer"
+msgstr ""
+
+#: src/dht/gnunet_dht_profiler.c:967 src/nse/gnunet-nse-profiler.c:872
+#: src/testbed/gnunet-testbed-profiler.c:305
+msgid "name of the file with the login information for the testbed"
+msgstr ""
+
+#: src/dht/gnunet_dht_profiler.c:973
+msgid "delay between rounds for collecting statistics (default: 30 sec)"
+msgstr ""
+
+#: src/dht/gnunet_dht_profiler.c:979
+msgid "delay to start doing PUTs (default: 1 sec)"
+msgstr ""
+
+#: src/dht/gnunet_dht_profiler.c:985
+msgid "delay to start doing GETs (default: 5 min)"
+msgstr ""
+
+#: src/dht/gnunet_dht_profiler.c:990
+msgid "replication degree for DHT PUTs"
+msgstr ""
+
+#: src/dht/gnunet_dht_profiler.c:996
+msgid "chance that a peer is selected at random for PUTs"
+msgstr ""
+
+#: src/dht/gnunet_dht_profiler.c:1002
+msgid "timeout for DHT PUT and GET requests (default: 1 min)"
+msgstr ""
+
+#: src/dht/gnunet_dht_profiler.c:1023
+msgid "Measure quality and performance of the DHT service."
 msgstr ""
 
 #: src/dht/gnunet-dht-put.c:133
@@ -2245,60 +2292,14 @@ msgstr ""
 msgid "# DHT requests combined"
 msgstr ""
 
-#: src/dht/gnunet_dht_profiler.c:922 src/testbed/gnunet-testbed-profiler.c:255
-#, c-format
-msgid "Exiting as the number of peers is %u\n"
-msgstr ""
-
-#: src/dht/gnunet_dht_profiler.c:955 src/rps/gnunet-rps-profiler.c:3194
-#, fuzzy
-msgid "number of peers to start"
-msgstr "nombre de valeurs"
-
-#: src/dht/gnunet_dht_profiler.c:961
-msgid "number of PUTs to perform per peer"
-msgstr ""
-
-#: src/dht/gnunet_dht_profiler.c:967 src/nse/gnunet-nse-profiler.c:872
-#: src/testbed/gnunet-testbed-profiler.c:305
-msgid "name of the file with the login information for the testbed"
-msgstr ""
-
-#: src/dht/gnunet_dht_profiler.c:973
-msgid "delay between rounds for collecting statistics (default: 30 sec)"
-msgstr ""
-
-#: src/dht/gnunet_dht_profiler.c:979
-msgid "delay to start doing PUTs (default: 1 sec)"
-msgstr ""
-
-#: src/dht/gnunet_dht_profiler.c:985
-msgid "delay to start doing GETs (default: 5 min)"
-msgstr ""
-
-#: src/dht/gnunet_dht_profiler.c:990
-msgid "replication degree for DHT PUTs"
-msgstr ""
-
-#: src/dht/gnunet_dht_profiler.c:996
-msgid "chance that a peer is selected at random for PUTs"
-msgstr ""
-
-#: src/dht/gnunet_dht_profiler.c:1002
-msgid "timeout for DHT PUT and GET requests (default: 1 min)"
-msgstr ""
-
-#: src/dht/gnunet_dht_profiler.c:1023
-msgid "Measure quality and performance of the DHT service."
-msgstr ""
-
 #: src/dht/plugin_block_dht.c:189
 #, c-format
 msgid "Block not of type %u\n"
 msgstr ""
 
 #: src/dht/plugin_block_dht.c:198
-msgid "Size mismatch for block\n"
+#, c-format
+msgid "Size mismatch for block with type %u\n"
 msgstr ""
 
 #: src/dht/plugin_block_dht.c:209
@@ -2722,8 +2723,8 @@ msgstr ""
 #: src/fs/fs_download.c:1053
 #, c-format
 msgid ""
-"Internal error or bogus download URI (expected %u bytes at depth %u and "
-"offset %llu/%llu, got %u bytes)"
+"Internal error or bogus download URI (expected %lu bytes at depth %u and "
+"offset %llu/%llu, got %lu bytes)"
 msgstr ""
 
 #: src/fs/fs_download.c:1075
@@ -3041,7 +3042,7 @@ msgid ""
 "You must specify one and only one directory name for automatic publication.\n"
 msgstr ""
 
-#: src/fs/gnunet-auto-share.c:711 src/fs/gnunet-publish.c:888
+#: src/fs/gnunet-auto-share.c:711 src/fs/gnunet-publish.c:896
 msgid "set the desired LEVEL of sender-anonymity"
 msgstr ""
 
@@ -3049,15 +3050,15 @@ msgstr ""
 msgid "disable adding the creation time to the metadata of the uploaded file"
 msgstr ""
 
-#: src/fs/gnunet-auto-share.c:724 src/fs/gnunet-publish.c:893
+#: src/fs/gnunet-auto-share.c:724 src/fs/gnunet-publish.c:901
 msgid "do not use libextractor to add keywords or metadata"
 msgstr ""
 
-#: src/fs/gnunet-auto-share.c:731 src/fs/gnunet-publish.c:938
+#: src/fs/gnunet-auto-share.c:731 src/fs/gnunet-publish.c:946
 msgid "specify the priority of the content"
 msgstr ""
 
-#: src/fs/gnunet-auto-share.c:738 src/fs/gnunet-publish.c:951
+#: src/fs/gnunet-auto-share.c:738 src/fs/gnunet-publish.c:959
 msgid "set the desired replication LEVEL"
 msgstr ""
 
@@ -3138,7 +3139,7 @@ msgstr ""
 msgid "You need to specify a URI argument.\n"
 msgstr ""
 
-#: src/fs/gnunet-download.c:239 src/fs/gnunet-publish.c:707
+#: src/fs/gnunet-download.c:239 src/fs/gnunet-publish.c:715
 #, c-format
 msgid "Failed to parse URI: %s\n"
 msgstr ""
@@ -3151,7 +3152,7 @@ msgstr ""
 msgid "Target filename must be specified.\n"
 msgstr ""
 
-#: src/fs/gnunet-download.c:271 src/fs/gnunet-publish.c:861
+#: src/fs/gnunet-download.c:271 src/fs/gnunet-publish.c:869
 #: src/fs/gnunet-search.c:291 src/fs/gnunet-unindex.c:154
 #, c-format
 msgid "Could not initialize `%s' subsystem.\n"
@@ -3191,6 +3192,14 @@ msgid ""
 "chk/...)"
 msgstr ""
 
+#: src/fs/gnunet-fs.c:128
+msgid "print a list of all indexed files"
+msgstr ""
+
+#: src/fs/gnunet-fs.c:141
+msgid "Special file-sharing operations"
+msgstr ""
+
 #: src/fs/gnunet-fs-profiler.c:211
 msgid "run the experiment with COUNT peers"
 msgstr ""
@@ -3205,14 +3214,6 @@ msgstr ""
 
 #: src/fs/gnunet-fs-profiler.c:237
 msgid "run a testbed to measure file-sharing performance"
-msgstr ""
-
-#: src/fs/gnunet-fs.c:128
-msgid "print a list of all indexed files"
-msgstr ""
-
-#: src/fs/gnunet-fs.c:141
-msgid "Special file-sharing operations"
 msgstr ""
 
 #: src/fs/gnunet-publish.c:219 src/fs/gnunet-publish.c:234
@@ -3262,142 +3263,142 @@ msgstr ""
 msgid "Keywords for file `%s' (%s)\n"
 msgstr ""
 
-#: src/fs/gnunet-publish.c:577
+#: src/fs/gnunet-publish.c:582
 msgid "Could not publish\n"
 msgstr ""
 
-#: src/fs/gnunet-publish.c:603
+#: src/fs/gnunet-publish.c:611
 msgid "Could not start publishing.\n"
-msgstr ""
-
-#: src/fs/gnunet-publish.c:636
-#, c-format
-msgid "Scanning directory `%s'.\n"
-msgstr ""
-
-#: src/fs/gnunet-publish.c:638
-#, c-format
-msgid "Scanning file `%s'.\n"
 msgstr ""
 
 #: src/fs/gnunet-publish.c:644
 #, c-format
+msgid "Scanning directory `%s'.\n"
+msgstr ""
+
+#: src/fs/gnunet-publish.c:646
+#, c-format
+msgid "Scanning file `%s'.\n"
+msgstr ""
+
+#: src/fs/gnunet-publish.c:652
+#, c-format
 msgid "There was trouble processing file `%s', skipping it.\n"
 msgstr ""
 
-#: src/fs/gnunet-publish.c:650
+#: src/fs/gnunet-publish.c:658
 msgid "Preprocessing complete.\n"
 msgstr ""
 
-#: src/fs/gnunet-publish.c:656
+#: src/fs/gnunet-publish.c:664
 #, c-format
 msgid "Extracting meta data from file `%s' complete.\n"
 msgstr ""
 
-#: src/fs/gnunet-publish.c:662
+#: src/fs/gnunet-publish.c:670
 msgid "Meta data extraction has finished.\n"
 msgstr ""
 
-#: src/fs/gnunet-publish.c:670
+#: src/fs/gnunet-publish.c:678
 msgid "Error scanning directory.\n"
 msgstr ""
 
-#: src/fs/gnunet-publish.c:697
+#: src/fs/gnunet-publish.c:705
 #, c-format
 msgid "Selected pseudonym `%s' unknown\n"
 msgstr ""
 
-#: src/fs/gnunet-publish.c:729
+#: src/fs/gnunet-publish.c:737
 #, c-format
 msgid "Failed to access `%s': %s\n"
 msgstr ""
 
-#: src/fs/gnunet-publish.c:746
+#: src/fs/gnunet-publish.c:754
 msgid ""
 "Failed to start meta directory scanner.  Is gnunet-helper-publish-fs "
 "installed?\n"
 msgstr ""
 
-#: src/fs/gnunet-publish.c:802
+#: src/fs/gnunet-publish.c:810
 #, c-format
 msgid "Cannot extract metadata from a URI!\n"
 msgstr ""
 
-#: src/fs/gnunet-publish.c:809
+#: src/fs/gnunet-publish.c:817
 #, c-format
 msgid "You must specify one and only one filename for insertion.\n"
 msgstr ""
 
-#: src/fs/gnunet-publish.c:815
+#: src/fs/gnunet-publish.c:823
 #, c-format
 msgid "You must NOT specify an URI and a filename.\n"
 msgstr ""
 
-#: src/fs/gnunet-publish.c:824 src/vpn/gnunet-vpn.c:209
+#: src/fs/gnunet-publish.c:832 src/vpn/gnunet-vpn.c:209
 #, c-format
 msgid "Option `%s' is required when using option `%s'.\n"
 msgstr ""
 
-#: src/fs/gnunet-publish.c:836 src/fs/gnunet-publish.c:845
+#: src/fs/gnunet-publish.c:844 src/fs/gnunet-publish.c:853
 #: src/transport/gnunet-transport.c:1230 src/transport/gnunet-transport.c:1255
 #, c-format
 msgid "Option `%s' makes no sense without option `%s'.\n"
 msgstr ""
 
-#: src/fs/gnunet-publish.c:898
+#: src/fs/gnunet-publish.c:906
 msgid "enable adding the creation time to the metadata of the uploaded file"
 msgstr ""
 
-#: src/fs/gnunet-publish.c:904
+#: src/fs/gnunet-publish.c:912
 msgid ""
 "print list of extracted keywords that would be used, but do not perform "
 "upload"
 msgstr ""
 
-#: src/fs/gnunet-publish.c:912
+#: src/fs/gnunet-publish.c:920
 msgid ""
 "add an additional keyword for the top-level file or directory (this option "
 "can be specified multiple times)"
 msgstr ""
 
-#: src/fs/gnunet-publish.c:919
+#: src/fs/gnunet-publish.c:927
 msgid "set the meta-data for the given TYPE to the given VALUE"
 msgstr ""
 
-#: src/fs/gnunet-publish.c:924
+#: src/fs/gnunet-publish.c:932
 msgid ""
 "do not index, perform full insertion (stores entire file in encrypted form "
 "in GNUnet database)"
 msgstr ""
 
-#: src/fs/gnunet-publish.c:931
+#: src/fs/gnunet-publish.c:939
 msgid ""
 "specify ID of an updated version to be published in the future (for "
 "namespace insertions only)"
 msgstr ""
 
-#: src/fs/gnunet-publish.c:944
+#: src/fs/gnunet-publish.c:952
 msgid "publish the files under the pseudonym NAME (place file into namespace)"
 msgstr ""
 
-#: src/fs/gnunet-publish.c:956
+#: src/fs/gnunet-publish.c:964
 msgid ""
 "only simulate the process but do not do any actual publishing (useful to "
 "compute URIs)"
 msgstr ""
 
-#: src/fs/gnunet-publish.c:963
+#: src/fs/gnunet-publish.c:971
 msgid ""
 "set the ID of this version of the publication (for namespace insertions only)"
 msgstr ""
 
-#: src/fs/gnunet-publish.c:971
+#: src/fs/gnunet-publish.c:979
 msgid ""
 "URI to be published (can be used instead of passing a file to add keywords "
 "to the file with the respective URI)"
 msgstr ""
 
-#: src/fs/gnunet-publish.c:989
+#: src/fs/gnunet-publish.c:997
 msgid "Publish a file or directory on GNUnet"
 msgstr ""
 
@@ -3781,7 +3782,7 @@ msgstr ""
 msgid "Unindex a file that was previously indexed with gnunet-publish."
 msgstr ""
 
-#: src/gns/gns_tld_api.c:292
+#: src/gns/gns_tld_api.c:293
 msgid "Expected a base32-encoded public zone key\n"
 msgstr ""
 
@@ -3860,7 +3861,50 @@ msgstr ""
 msgid "look for GNS2DNS records instead of ANY"
 msgstr ""
 
-#: src/gns/gnunet-gns-import.c:486
+#: src/gns/gnunet-gns.c:257
+#, c-format
+msgid "`%s' is not a valid DNS domain name\n"
+msgstr ""
+
+#: src/gns/gnunet-gns.c:267 src/util/dnsparser.c:254
+#, c-format
+msgid "Failed to convert DNS IDNA name `%s' to UTF-8: %s\n"
+msgstr ""
+
+#: src/gns/gnunet-gns.c:281
+msgid "Cannot resolve using GNS: GNUnet peer not running\n"
+msgstr ""
+
+#: src/gns/gnunet-gns.c:305
+#, c-format
+msgid "Invalid typename specified, assuming `ANY'\n"
+msgstr ""
+
+#: src/gns/gnunet-gns.c:340
+msgid "Lookup a record for the given name"
+msgstr ""
+
+#: src/gns/gnunet-gns.c:346
+msgid "Specify the type of the record to lookup"
+msgstr ""
+
+#: src/gns/gnunet-gns.c:352
+msgid "Specify a timeout for the lookup"
+msgstr ""
+
+#: src/gns/gnunet-gns.c:356
+msgid "No unneeded output"
+msgstr ""
+
+#: src/gns/gnunet-gns.c:361
+msgid "DNS Compatibility: Name is passed in IDNA instead of UTF-8"
+msgstr ""
+
+#: src/gns/gnunet-gns.c:375
+msgid "GNUnet GNS resolver tool"
+msgstr ""
+
+#: src/gns/gnunet-gns-import.c:491
 msgid "This program will import some GNS authorities into your GNS namestore."
 msgstr ""
 
@@ -3979,49 +4023,6 @@ msgstr ""
 msgid "GNUnet GNS proxy"
 msgstr ""
 
-#: src/gns/gnunet-gns.c:257
-#, c-format
-msgid "`%s' is not a valid DNS domain name\n"
-msgstr ""
-
-#: src/gns/gnunet-gns.c:267 src/util/dnsparser.c:254
-#, c-format
-msgid "Failed to convert DNS IDNA name `%s' to UTF-8: %s\n"
-msgstr ""
-
-#: src/gns/gnunet-gns.c:281
-msgid "Cannot resolve using GNS: GNUnet peer not running\n"
-msgstr ""
-
-#: src/gns/gnunet-gns.c:305
-#, c-format
-msgid "Invalid typename specified, assuming `ANY'\n"
-msgstr ""
-
-#: src/gns/gnunet-gns.c:340
-msgid "Lookup a record for the given name"
-msgstr ""
-
-#: src/gns/gnunet-gns.c:346
-msgid "Specify the type of the record to lookup"
-msgstr ""
-
-#: src/gns/gnunet-gns.c:352
-msgid "Specify a timeout for the lookup"
-msgstr ""
-
-#: src/gns/gnunet-gns.c:356
-msgid "No unneeded output"
-msgstr ""
-
-#: src/gns/gnunet-gns.c:361
-msgid "DNS Compatibility: Name is passed in IDNA instead of UTF-8"
-msgstr ""
-
-#: src/gns/gnunet-gns.c:375
-msgid "GNUnet GNS resolver tool"
-msgstr ""
-
 #: src/gns/gnunet-service-gns.c:505
 msgid "Properly base32-encoded public key required"
 msgstr ""
@@ -4031,8 +4032,8 @@ msgid "Failed to connect to the namecache!\n"
 msgstr ""
 
 #: src/gns/gnunet-service-gns.c:560
-#: src/zonemaster/gnunet-service-zonemaster-monitor.c:444
-#: src/zonemaster/gnunet-service-zonemaster.c:887
+#: src/zonemaster/gnunet-service-zonemaster.c:885
+#: src/zonemaster/gnunet-service-zonemaster-monitor.c:442
 msgid "Could not connect to DHT!\n"
 msgstr ""
 
@@ -4073,66 +4074,70 @@ msgstr ""
 msgid "VPN returned empty result for `%s'\n"
 msgstr ""
 
-#: src/gns/gnunet-service-gns_resolver.c:1909
+#: src/gns/gnunet-service-gns_resolver.c:1910
 #, c-format
 msgid "Name `%s' cannot be converted to IDNA."
 msgstr ""
 
-#: src/gns/gnunet-service-gns_resolver.c:1922
+#: src/gns/gnunet-service-gns_resolver.c:1923
 #, c-format
 msgid "GNS lookup resulted in DNS name that is too long (`%s')\n"
 msgstr ""
 
-#: src/gns/gnunet-service-gns_resolver.c:1965
+#: src/gns/gnunet-service-gns_resolver.c:1966
 #, c-format
 msgid "GNS lookup failed (zero records found for `%s')\n"
 msgstr ""
 
-#: src/gns/gnunet-service-gns_resolver.c:2385
+#: src/gns/gnunet-service-gns_resolver.c:2393
 msgid "GNS lookup recursion failed (no delegation record found)\n"
 msgstr ""
 
-#: src/gns/gnunet-service-gns_resolver.c:2408
+#: src/gns/gnunet-service-gns_resolver.c:2416
 #, c-format
 msgid "Failed to cache GNS resolution: %s\n"
 msgstr ""
 
-#: src/gns/gnunet-service-gns_resolver.c:2576
+#: src/gns/gnunet-service-gns_resolver.c:2581
 #, c-format
 msgid "GNS namecache returned empty result for `%s'\n"
 msgstr ""
 
-#: src/gns/gnunet-service-gns_resolver.c:2716
+#: src/gns/gnunet-service-gns_resolver.c:2721
 #, c-format
 msgid "Zone %s was revoked, resolution fails\n"
 msgstr ""
 
-#: src/gns/plugin_gnsrecord_gns.c:167
-#, c-format
-msgid "Unable to parse PKEY record `%s'\n"
-msgstr ""
+#: src/gns/plugin_gnsrecord_gns.c:174
+#, fuzzy, c-format
+msgid "Unable to parse zone key record `%s'\n"
+msgstr "Résolution de « %s » échouée\n"
 
-#: src/gns/plugin_gnsrecord_gns.c:197
-#, c-format
-msgid "Unable to parse GNS2DNS record `%s'\n"
+#: src/gns/plugin_gnsrecord_gns.c:187
+msgid "Record type does not match parsed record type\n"
 msgstr ""
 
 #: src/gns/plugin_gnsrecord_gns.c:213
 #, c-format
+msgid "Unable to parse GNS2DNS record `%s'\n"
+msgstr ""
+
+#: src/gns/plugin_gnsrecord_gns.c:229
+#, c-format
 msgid "Failed to serialize GNS2DNS record with value `%s': Not a DNS name.\n"
 msgstr ""
 
-#: src/gns/plugin_gnsrecord_gns.c:237
+#: src/gns/plugin_gnsrecord_gns.c:253
 #, c-format
 msgid "Unable to parse VPN record string `%s'\n"
 msgstr ""
 
-#: src/gns/plugin_gnsrecord_gns.c:269
+#: src/gns/plugin_gnsrecord_gns.c:285
 #, c-format
 msgid "Unable to parse BOX record string `%s'\n"
 msgstr ""
 
-#: src/gns/plugin_rest_gns.c:447
+#: src/gns/plugin_rest_gns.c:448
 msgid "Gns REST API initialized\n"
 msgstr ""
 
@@ -4435,7 +4440,7 @@ msgid "# hostlist URIs written to file"
 msgstr ""
 
 #: src/hostlist/gnunet-daemon-hostlist_client.c:1657
-#: src/transport/plugin_transport_http_client.c:2301
+#: src/transport/plugin_transport_http_client.c:2300
 #, c-format
 msgid "Invalid proxy type: `%s', disabling proxy! Check configuration!\n"
 msgstr ""
@@ -4560,58 +4565,62 @@ msgstr ""
 msgid "Could not start hostlist HTTP server on port %u\n"
 msgstr ""
 
-#: src/identity/gnunet-identity.c:209
+#: src/identity/gnunet-identity.c:214
 #, c-format
 msgid "Failed to create ego: %s\n"
 msgstr ""
 
-#: src/identity/gnunet-identity.c:250
+#: src/identity/gnunet-identity.c:255
 #, c-format
 msgid "Failed to set default ego: %s\n"
 msgstr ""
 
-#: src/identity/gnunet-identity.c:446
+#: src/identity/gnunet-identity.c:462
 msgid "create ego NAME"
 msgstr ""
 
-#: src/identity/gnunet-identity.c:451
+#: src/identity/gnunet-identity.c:467
 msgid "delete ego NAME "
 msgstr ""
 
-#: src/identity/gnunet-identity.c:457
+#: src/identity/gnunet-identity.c:473
 msgid ""
 "set the private key for the identity to PRIVATE_KEY (use together with -C)"
 msgstr ""
 
-#: src/identity/gnunet-identity.c:461
+#: src/identity/gnunet-identity.c:478
+msgid "generate an EdDSA identity. (use together with -C) EXPERIMENTAL"
+msgstr ""
+
+#: src/identity/gnunet-identity.c:482
 msgid "display all egos"
 msgstr ""
 
-#: src/identity/gnunet-identity.c:465
+#: src/identity/gnunet-identity.c:486
 #, fuzzy
 msgid "reduce output"
 msgstr "sortie verbeuse"
 
-#: src/identity/gnunet-identity.c:472
+#: src/identity/gnunet-identity.c:493
 msgid ""
 "set default identity to NAME for a subsystem SUBSYSTEM (use together with -"
 "s) or restrict results to NAME (use together with -d)"
 msgstr ""
 
-#: src/identity/gnunet-identity.c:476
+#: src/identity/gnunet-identity.c:497
 msgid "run in monitor mode egos"
 msgstr ""
 
-#: src/identity/gnunet-identity.c:480
+#: src/identity/gnunet-identity.c:501
 msgid "display private keys as well"
 msgstr ""
 
-#: src/identity/gnunet-identity.c:487
+#: src/identity/gnunet-identity.c:508
 msgid ""
 "set default identity to EGO for a subsystem SUBSYSTEM (use together with -e)"
 msgstr ""
 
-#: src/identity/gnunet-identity.c:502
+#: src/identity/gnunet-identity.c:523
 msgid "Maintain egos"
 msgstr ""
 
@@ -4647,26 +4656,26 @@ msgstr ""
 msgid "no matching ego found"
 msgstr ""
 
-#: src/identity/gnunet-service-identity.c:1072
+#: src/identity/gnunet-service-identity.c:1133
 #, c-format
 msgid "Failed to parse ego information in `%s'\n"
 msgstr ""
 
-#: src/identity/gnunet-service-identity.c:1130
+#: src/identity/gnunet-service-identity.c:1191
 #, c-format
 msgid "Failed to parse subsystem identity configuration file `%s'\n"
 msgstr ""
 
-#: src/identity/gnunet-service-identity.c:1139
+#: src/identity/gnunet-service-identity.c:1200
 #, c-format
 msgid "Failed to create directory `%s' for storing egos\n"
 msgstr ""
 
-#: src/identity/plugin_rest_identity.c:1384
+#: src/identity/plugin_rest_identity.c:1385
 msgid "Identity REST API initialized\n"
 msgstr ""
 
-#: src/json/json.c:133
+#: src/json/json.c:139
 #, fuzzy, c-format
 msgid "Failed to parse JSON in option `%s': %s (%s)\n"
 msgstr "Résolution de « %s » échouée : %s\n"
@@ -4711,7 +4720,7 @@ msgstr "fornat invalide : « %s »\n"
 msgid "You must specify a name\n"
 msgstr ""
 
-#: src/namecache/gnunet-namecache.c:214 src/namestore/gnunet-namestore.c:1640
+#: src/namecache/gnunet-namecache.c:214 src/namestore/gnunet-namestore.c:1639
 msgid "name of the record to add/delete/display"
 msgstr ""
 
@@ -4719,20 +4728,20 @@ msgstr ""
 msgid "specifies the public key of the zone to look in"
 msgstr ""
 
-#: src/namecache/gnunet-namecache.c:233 src/namestore/gnunet-namestore.c:1701
+#: src/namecache/gnunet-namecache.c:233 src/namestore/gnunet-namestore.c:1700
 msgid "GNUnet zone manipulation tool"
 msgstr ""
 
-#: src/namecache/namecache_api.c:293
+#: src/namecache/namecache_api.c:285
 msgid "Namecache failed to cache block"
 msgstr ""
 
-#: src/namecache/namecache_api.c:381
+#: src/namecache/namecache_api.c:373
 msgid "Error communicating with namecache service"
 msgstr ""
 
 #: src/namecache/plugin_namecache_flat.c:118
-#: src/namecache/plugin_namecache_flat.c:256
+#: src/namecache/plugin_namecache_flat.c:253
 #: src/namestore/plugin_namestore_flat.c:176
 #: src/namestore/plugin_namestore_flat.c:424
 #: src/peerstore/plugin_peerstore_flat.c:380
@@ -4754,7 +4763,7 @@ msgstr ""
 msgid "Unable to read file: %s.\n"
 msgstr "Résolution de « %s » échouée\n"
 
-#: src/namecache/plugin_namecache_flat.c:410
+#: src/namecache/plugin_namecache_flat.c:404
 msgid "flat plugin running\n"
 msgstr ""
 
@@ -4765,68 +4774,6 @@ msgstr ""
 #, fuzzy, c-format
 msgid "Failed to setup database at `%s'\n"
 msgstr "Échec du démarrage de %s\n"
-
-#: src/namestore/gnunet-namestore-fcfsd.c:552
-#, c-format
-msgid "Unsupported form value `%s'\n"
-msgstr ""
-
-#: src/namestore/gnunet-namestore-fcfsd.c:579
-#, c-format
-msgid "Failed to create record for domain `%s': %s\n"
-msgstr ""
-
-#: src/namestore/gnunet-namestore-fcfsd.c:600
-msgid "Error when mapping zone to name\n"
-msgstr ""
-
-#: src/namestore/gnunet-namestore-fcfsd.c:632
-#, c-format
-msgid "Found existing name `%s' for the given key\n"
-msgstr ""
-
-#: src/namestore/gnunet-namestore-fcfsd.c:694
-#, c-format
-msgid "Found %u existing records for domain `%s'\n"
-msgstr ""
-
-#: src/namestore/gnunet-namestore-fcfsd.c:784
-#, c-format
-msgid "Failed to create page for `%s'\n"
-msgstr ""
-
-#: src/namestore/gnunet-namestore-fcfsd.c:803
-#, c-format
-msgid "Failed to setup post processor for `%s'\n"
-msgstr ""
-
-#: src/namestore/gnunet-namestore-fcfsd.c:840
-msgid "Domain name must not contain `.'\n"
-msgstr ""
-
-#: src/namestore/gnunet-namestore-fcfsd.c:849
-msgid "Domain name must not contain `+'\n"
-msgstr ""
-
-#: src/namestore/gnunet-namestore-fcfsd.c:1084
-msgid "No ego configured for `fcfsd` subsystem\n"
-msgstr ""
-
-#: src/namestore/gnunet-namestore-fcfsd.c:1115
-msgid "Failed to start HTTP server\n"
-msgstr ""
-
-#: src/namestore/gnunet-namestore-fcfsd.c:1163
-msgid "Failed to connect to identity\n"
-msgstr ""
-
-#: src/namestore/gnunet-namestore-fcfsd.c:1190
-msgid "name of the zone that is to be managed by FCFSD"
-msgstr ""
-
-#: src/namestore/gnunet-namestore-fcfsd.c:1210
-msgid "GNU Name System First Come First Serve name registration service"
-msgstr ""
 
 #: src/namestore/gnunet-namestore.c:334
 #, c-format
@@ -4843,9 +4790,15 @@ msgstr ""
 msgid "Deleting record failed%s%s\n"
 msgstr ""
 
-#: src/namestore/gnunet-namestore.c:656 src/namestore/gnunet-namestore.c:667
+#: src/namestore/gnunet-namestore.c:656
 #, c-format
 msgid "A %s record exists already under `%s', no other records can be added.\n"
+msgstr ""
+
+#: src/namestore/gnunet-namestore.c:668
+#, c-format
+msgid ""
+"A zone key record exists already under `%s', no other records can be added.\n"
 msgstr ""
 
 #: src/namestore/gnunet-namestore.c:680
@@ -4855,9 +4808,14 @@ msgid ""
 "zone.\n"
 msgstr ""
 
-#: src/namestore/gnunet-namestore.c:696 src/namestore/gnunet-namestore.c:710
+#: src/namestore/gnunet-namestore.c:696
 #, c-format
 msgid "Records already exist under `%s', cannot add `%s' record.\n"
+msgstr ""
+
+#: src/namestore/gnunet-namestore.c:711
+#, c-format
+msgid "Records already exist under `%s', cannot add record.\n"
 msgstr ""
 
 #: src/namestore/gnunet-namestore.c:726
@@ -4890,7 +4848,7 @@ msgstr ""
 #: src/namestore/gnunet-namestore.c:1014 src/namestore/gnunet-namestore.c:1066
 #: src/namestore/gnunet-namestore.c:1076 src/namestore/gnunet-namestore.c:1105
 #: src/namestore/gnunet-namestore.c:1126 src/namestore/gnunet-namestore.c:1153
-#: src/namestore/gnunet-namestore.c:1229
+#: src/namestore/gnunet-namestore.c:1228
 #, c-format
 msgid "Missing option `%s' for operation `%s'\n"
 msgstr ""
@@ -4906,7 +4864,7 @@ msgstr ""
 
 #: src/namestore/gnunet-namestore.c:1068 src/namestore/gnunet-namestore.c:1078
 #: src/namestore/gnunet-namestore.c:1107 src/namestore/gnunet-namestore.c:1128
-#: src/namestore/gnunet-namestore.c:1231
+#: src/namestore/gnunet-namestore.c:1230
 msgid "add"
 msgstr "ajouter"
 
@@ -4925,7 +4883,7 @@ msgstr ""
 msgid "Value `%s' invalid for record type `%s'\n"
 msgstr ""
 
-#: src/namestore/gnunet-namestore.c:1135 src/namestore/gnunet-namestore.c:1238
+#: src/namestore/gnunet-namestore.c:1135 src/namestore/gnunet-namestore.c:1237
 #, c-format
 msgid "Invalid time format `%s'\n"
 msgstr ""
@@ -4934,23 +4892,23 @@ msgstr ""
 msgid "del"
 msgstr "supprimer"
 
-#: src/namestore/gnunet-namestore.c:1198
+#: src/namestore/gnunet-namestore.c:1197
 #, c-format
 msgid "Invalid public key for reverse lookup `%s'\n"
 msgstr ""
 
-#: src/namestore/gnunet-namestore.c:1221
+#: src/namestore/gnunet-namestore.c:1220
 #: src/peerinfo-tool/gnunet-peerinfo.c:736
 #, c-format
 msgid "Invalid URI `%s'\n"
 msgstr "URI invalide « %s »\n"
 
-#: src/namestore/gnunet-namestore.c:1291
+#: src/namestore/gnunet-namestore.c:1290
 #, c-format
 msgid "Label `%s' contains `.' which is not allowed\n"
 msgstr ""
 
-#: src/namestore/gnunet-namestore.c:1341
+#: src/namestore/gnunet-namestore.c:1340
 #, c-format
 msgid ""
 "No default identity configured for `namestore' subsystem\n"
@@ -4958,100 +4916,167 @@ msgid ""
 "Run gnunet-identity -d to get a list of choices for $NAME\n"
 msgstr ""
 
-#: src/namestore/gnunet-namestore.c:1406
+#: src/namestore/gnunet-namestore.c:1405
 #, c-format
 msgid "Superfluous command line arguments (starting with `%s') ignored\n"
 msgstr ""
 
-#: src/namestore/gnunet-namestore.c:1435
+#: src/namestore/gnunet-namestore.c:1434
 #, c-format
 msgid "Cannot connect to identity service\n"
 msgstr ""
 
-#: src/namestore/gnunet-namestore.c:1482
+#: src/namestore/gnunet-namestore.c:1481
 msgid "Empty record line argument is not allowed.\n"
 msgstr ""
 
-#: src/namestore/gnunet-namestore.c:1494
+#: src/namestore/gnunet-namestore.c:1493
 #, c-format
 msgid "Invalid expiration time `%s' (must be without unit)\n"
 msgstr ""
 
-#: src/namestore/gnunet-namestore.c:1506 src/namestore/gnunet-namestore.c:1522
-#: src/namestore/gnunet-namestore.c:1539
+#: src/namestore/gnunet-namestore.c:1505 src/namestore/gnunet-namestore.c:1521
+#: src/namestore/gnunet-namestore.c:1538
 #, c-format
 msgid "Missing entries in record line `%s'.\n"
 msgstr ""
 
-#: src/namestore/gnunet-namestore.c:1514
+#: src/namestore/gnunet-namestore.c:1513
 #, fuzzy, c-format
 msgid "Unknown record type `%s'\n"
 msgstr "Commande « %s » inconnue\n"
 
-#: src/namestore/gnunet-namestore.c:1552
+#: src/namestore/gnunet-namestore.c:1551
 #, fuzzy, c-format
 msgid "Invalid record data for type %s: `%s'.\n"
 msgstr "fornat invalide : « %s »\n"
 
-#: src/namestore/gnunet-namestore.c:1609
+#: src/namestore/gnunet-namestore.c:1608
 msgid "add record"
 msgstr "ajouter un enregistrement"
 
-#: src/namestore/gnunet-namestore.c:1612
+#: src/namestore/gnunet-namestore.c:1611
 msgid "delete record"
 msgstr "suprimer un enregistrement"
 
-#: src/namestore/gnunet-namestore.c:1616
+#: src/namestore/gnunet-namestore.c:1615
 msgid "display records"
 msgstr "afficher les enregistrements"
 
-#: src/namestore/gnunet-namestore.c:1623
+#: src/namestore/gnunet-namestore.c:1622
 msgid ""
 "expiration time for record to use (for adding only), \"never\" is possible"
 msgstr ""
 
-#: src/namestore/gnunet-namestore.c:1629
+#: src/namestore/gnunet-namestore.c:1628
 msgid "set the desired nick name for the zone"
 msgstr ""
 
-#: src/namestore/gnunet-namestore.c:1634
+#: src/namestore/gnunet-namestore.c:1633
 msgid "monitor changes in the namestore"
 msgstr ""
 
-#: src/namestore/gnunet-namestore.c:1646
+#: src/namestore/gnunet-namestore.c:1645
 msgid "determine our name for the given PKEY"
 msgstr ""
 
-#: src/namestore/gnunet-namestore.c:1653
+#: src/namestore/gnunet-namestore.c:1652
 msgid ""
 "set record set to values given by (possibly multiple) RECORDLINES; can be "
 "specified multiple times"
 msgstr ""
 
-#: src/namestore/gnunet-namestore.c:1659
+#: src/namestore/gnunet-namestore.c:1658
 msgid "type of the record to add/delete/display"
 msgstr ""
 
-#: src/namestore/gnunet-namestore.c:1664
+#: src/namestore/gnunet-namestore.c:1663
 msgid "URI to import into our zone"
 msgstr ""
 
-#: src/namestore/gnunet-namestore.c:1670
+#: src/namestore/gnunet-namestore.c:1669
 msgid "value of the record to add/delete"
 msgstr ""
 
-#: src/namestore/gnunet-namestore.c:1674
+#: src/namestore/gnunet-namestore.c:1673
 msgid "create or list public record"
 msgstr ""
 
-#: src/namestore/gnunet-namestore.c:1680
+#: src/namestore/gnunet-namestore.c:1679
 msgid ""
 "create shadow record (only valid if all other records of the same type have "
 "expired"
 msgstr ""
 
-#: src/namestore/gnunet-namestore.c:1686
+#: src/namestore/gnunet-namestore.c:1685
 msgid "name of the ego controlling the zone"
+msgstr ""
+
+#: src/namestore/gnunet-namestore-fcfsd.c:552
+#, c-format
+msgid "Unsupported form value `%s'\n"
+msgstr ""
+
+#: src/namestore/gnunet-namestore-fcfsd.c:579
+#, c-format
+msgid "Failed to create record for domain `%s': %s\n"
+msgstr ""
+
+#: src/namestore/gnunet-namestore-fcfsd.c:600
+msgid "Error when mapping zone to name\n"
+msgstr ""
+
+#: src/namestore/gnunet-namestore-fcfsd.c:633
+#, c-format
+msgid "Found existing name `%s' for the given key\n"
+msgstr ""
+
+#: src/namestore/gnunet-namestore-fcfsd.c:646
+#, fuzzy
+msgid "Error creating record data.\n"
+msgstr "Erreur de création du tunnel\n"
+
+#: src/namestore/gnunet-namestore-fcfsd.c:707
+#, c-format
+msgid "Found %u existing records for domain `%s'\n"
+msgstr ""
+
+#: src/namestore/gnunet-namestore-fcfsd.c:796
+#, c-format
+msgid "Failed to create page for `%s'\n"
+msgstr ""
+
+#: src/namestore/gnunet-namestore-fcfsd.c:815
+#, c-format
+msgid "Failed to setup post processor for `%s'\n"
+msgstr ""
+
+#: src/namestore/gnunet-namestore-fcfsd.c:850
+msgid "Domain name must not contain `.'\n"
+msgstr ""
+
+#: src/namestore/gnunet-namestore-fcfsd.c:859
+msgid "Domain name must not contain `+'\n"
+msgstr ""
+
+#: src/namestore/gnunet-namestore-fcfsd.c:1094
+msgid "No ego configured for `fcfsd` subsystem\n"
+msgstr ""
+
+#: src/namestore/gnunet-namestore-fcfsd.c:1125
+msgid "Failed to start HTTP server\n"
+msgstr ""
+
+#: src/namestore/gnunet-namestore-fcfsd.c:1173
+msgid "Failed to connect to identity\n"
+msgstr ""
+
+#: src/namestore/gnunet-namestore-fcfsd.c:1200
+msgid "name of the zone that is to be managed by FCFSD"
+msgstr ""
+
+#: src/namestore/gnunet-namestore-fcfsd.c:1220
+msgid "GNU Name System First Come First Serve name registration service"
 msgstr ""
 
 #: src/namestore/gnunet-service-namestore.c:866
@@ -5081,7 +5106,7 @@ msgstr ""
 msgid "Namestore database file `%s' malformed\n"
 msgstr ""
 
-#: src/namestore/plugin_namestore_flat.c:789
+#: src/namestore/plugin_namestore_flat.c:792
 msgid "Flat file database running\n"
 msgstr ""
 
@@ -5360,6 +5385,10 @@ msgstr ""
 msgid "`upnpc' command not found\n"
 msgstr ""
 
+#: src/nse/gnunet-nse.c:124
+msgid "Show network size estimates from NSE service."
+msgstr ""
+
 #: src/nse/gnunet-nse-profiler.c:857
 msgid "limit to the number of connections to NSE services, 0 for none"
 msgstr ""
@@ -5384,13 +5413,63 @@ msgstr ""
 msgid "Measure quality and performance of the NSE service."
 msgstr ""
 
-#: src/nse/gnunet-nse.c:124
-msgid "Show network size estimates from NSE service."
+#: src/nse/gnunet-service-nse.c:1443
+#: src/revocation/gnunet-service-revocation.c:875 src/util/gnunet-scrypt.c:257
+msgid "Value is too large.\n"
 msgstr ""
 
-#: src/nse/gnunet-service-nse.c:1443
-#: src/revocation/gnunet-service-revocation.c:834 src/util/gnunet-scrypt.c:257
-msgid "Value is too large.\n"
+#: src/peerinfo/gnunet-service-peerinfo.c:175
+#, c-format
+msgid "Removing expired address of transport `%s'\n"
+msgstr ""
+
+#: src/peerinfo/gnunet-service-peerinfo.c:306
+#, c-format
+msgid "Failed to parse HELLO in file `%s': %s\n"
+msgstr ""
+
+#: src/peerinfo/gnunet-service-peerinfo.c:323
+#: src/peerinfo/gnunet-service-peerinfo.c:348
+#, c-format
+msgid "Failed to parse HELLO in file `%s'\n"
+msgstr ""
+
+#: src/peerinfo/gnunet-service-peerinfo.c:426
+msgid "# peers known"
+msgstr ""
+
+#: src/peerinfo/gnunet-service-peerinfo.c:468
+#, c-format
+msgid ""
+"File `%s' in directory `%s' does not match naming convention. Removed.\n"
+msgstr ""
+
+#: src/peerinfo/gnunet-service-peerinfo.c:624
+#, c-format
+msgid "Scanning directory `%s'\n"
+msgstr ""
+
+#: src/peerinfo/gnunet-service-peerinfo.c:631
+#, c-format
+msgid "Still no peers found in `%s'!\n"
+msgstr ""
+
+#: src/peerinfo/gnunet-service-peerinfo.c:1024
+#, c-format
+msgid "Cleaning up directory `%s'\n"
+msgstr ""
+
+#: src/peerinfo/gnunet-service-peerinfo.c:1319
+#, c-format
+msgid "Importing HELLOs from `%s'\n"
+msgstr ""
+
+#: src/peerinfo/gnunet-service-peerinfo.c:1332
+msgid "Skipping import of included HELLOs\n"
+msgstr ""
+
+#: src/peerinfo/peerinfo_api.c:217
+msgid "Failed to receive response from `PEERINFO' service."
 msgstr ""
 
 #: src/peerinfo-tool/gnunet-peerinfo.c:237
@@ -5485,60 +5564,6 @@ msgstr ""
 
 #: src/peerinfo-tool/plugin_rest_peerinfo.c:809
 msgid "Peerinfo REST API initialized\n"
-msgstr ""
-
-#: src/peerinfo/gnunet-service-peerinfo.c:175
-#, c-format
-msgid "Removing expired address of transport `%s'\n"
-msgstr ""
-
-#: src/peerinfo/gnunet-service-peerinfo.c:306
-#, c-format
-msgid "Failed to parse HELLO in file `%s': %s\n"
-msgstr ""
-
-#: src/peerinfo/gnunet-service-peerinfo.c:323
-#: src/peerinfo/gnunet-service-peerinfo.c:348
-#, c-format
-msgid "Failed to parse HELLO in file `%s'\n"
-msgstr ""
-
-#: src/peerinfo/gnunet-service-peerinfo.c:426
-msgid "# peers known"
-msgstr ""
-
-#: src/peerinfo/gnunet-service-peerinfo.c:468
-#, c-format
-msgid ""
-"File `%s' in directory `%s' does not match naming convention. Removed.\n"
-msgstr ""
-
-#: src/peerinfo/gnunet-service-peerinfo.c:624
-#, c-format
-msgid "Scanning directory `%s'\n"
-msgstr ""
-
-#: src/peerinfo/gnunet-service-peerinfo.c:631
-#, c-format
-msgid "Still no peers found in `%s'!\n"
-msgstr ""
-
-#: src/peerinfo/gnunet-service-peerinfo.c:1024
-#, c-format
-msgid "Cleaning up directory `%s'\n"
-msgstr ""
-
-#: src/peerinfo/gnunet-service-peerinfo.c:1319
-#, c-format
-msgid "Importing HELLOs from `%s'\n"
-msgstr ""
-
-#: src/peerinfo/gnunet-service-peerinfo.c:1332
-msgid "Skipping import of included HELLOs\n"
-msgstr ""
-
-#: src/peerinfo/peerinfo_api.c:217
-msgid "Failed to receive response from `PEERINFO' service."
 msgstr ""
 
 #: src/peerstore/gnunet-peerstore.c:92
@@ -5724,7 +5749,7 @@ msgstr ""
 msgid "re:claimID command line tool"
 msgstr ""
 
-#: src/reclaim/plugin_rest_openid_connect.c:2618
+#: src/reclaim/plugin_rest_openid_connect.c:2613
 msgid "OpenID Connect REST API initialized\n"
 msgstr ""
 
@@ -5874,110 +5899,127 @@ msgstr ""
 msgid "Internal error, key revocation might have failed\n"
 msgstr ""
 
-#: src/revocation/gnunet-revocation.c:251
+#: src/revocation/gnunet-revocation.c:252
 msgid "Cancelling calculation.\n"
 msgstr ""
 
-#: src/revocation/gnunet-revocation.c:296
+#: src/revocation/gnunet-revocation.c:299
 #, c-format
 msgid "Revocation certificate for `%s' stored in `%s'\n"
 msgstr ""
 
-#: src/revocation/gnunet-revocation.c:335
+#: src/revocation/gnunet-revocation.c:339
 #, c-format
 msgid "Ego `%s' not found.\n"
 msgstr ""
 
-#: src/revocation/gnunet-revocation.c:349
+#: src/revocation/gnunet-revocation.c:356
 #, c-format
 msgid "Error: revocation certificate in `%s' is not for `%s'\n"
 msgstr ""
 
-#: src/revocation/gnunet-revocation.c:359
+#: src/revocation/gnunet-revocation.c:366
 msgid "Revocation certificate ready\n"
 msgstr ""
 
-#: src/revocation/gnunet-revocation.c:371
+#: src/revocation/gnunet-revocation.c:378
 msgid "Continuing calculation where left off...\n"
 msgstr ""
 
-#: src/revocation/gnunet-revocation.c:378
+#: src/revocation/gnunet-revocation.c:385
 msgid "Revocation certificate not ready, calculating proof of work\n"
 msgstr ""
 
-#: src/revocation/gnunet-revocation.c:416
+#: src/revocation/gnunet-revocation.c:423
 #, c-format
 msgid "Public key `%s' malformed\n"
 msgstr ""
 
-#: src/revocation/gnunet-revocation.c:426
+#: src/revocation/gnunet-revocation.c:433
 msgid ""
 "Testing and revoking at the same time is not allowed, only executing test.\n"
 msgstr ""
 
-#: src/revocation/gnunet-revocation.c:456
+#: src/revocation/gnunet-revocation.c:463
 msgid "No filename to store revocation certificate given.\n"
 msgstr ""
 
-#: src/revocation/gnunet-revocation.c:471
+#: src/revocation/gnunet-revocation.c:480
 #, c-format
 msgid "Failed to read revocation certificate from `%s'\n"
 msgstr ""
 
-#: src/revocation/gnunet-revocation.c:493
+#: src/revocation/gnunet-revocation.c:488
+#, c-format
+msgid "Revocation certificate corrupted in `%s'\n"
+msgstr ""
+
+#: src/revocation/gnunet-revocation.c:510
 msgid "No action specified. Nothing to do.\n"
 msgstr ""
 
-#: src/revocation/gnunet-revocation.c:512
+#: src/revocation/gnunet-revocation.c:529
 msgid "use NAME for the name of the revocation file"
 msgstr ""
 
-#: src/revocation/gnunet-revocation.c:520
+#: src/revocation/gnunet-revocation.c:537
 msgid ""
 "revoke the private key associated for the the private key associated with "
 "the ego NAME "
 msgstr ""
 
-#: src/revocation/gnunet-revocation.c:527
+#: src/revocation/gnunet-revocation.c:544
 msgid "actually perform revocation, otherwise we just do the precomputation"
 msgstr ""
 
-#: src/revocation/gnunet-revocation.c:534
+#: src/revocation/gnunet-revocation.c:551
 msgid "test if the public key KEY has been revoked"
 msgstr ""
 
-#: src/revocation/gnunet-revocation.c:540
+#: src/revocation/gnunet-revocation.c:557
 #, fuzzy
 msgid "number of epochs to calculate for"
 msgstr "nombre de valeurs"
 
-#: src/revocation/gnunet-service-revocation.c:454
+#: src/revocation/gnunet-service-revocation.c:494
 msgid "# unsupported revocations received via set union"
 msgstr ""
 
-#: src/revocation/gnunet-service-revocation.c:464
+#: src/revocation/gnunet-service-revocation.c:504
 msgid "# revocation messages received via set union"
 msgstr ""
 
-#: src/revocation/gnunet-service-revocation.c:469
+#: src/revocation/gnunet-service-revocation.c:509
 #, c-format
 msgid "Error computing revocation set union with %s\n"
 msgstr ""
 
-#: src/revocation/gnunet-service-revocation.c:473
+#: src/revocation/gnunet-service-revocation.c:513
 msgid "# revocation set unions failed"
 msgstr ""
 
-#: src/revocation/gnunet-service-revocation.c:481
+#: src/revocation/gnunet-service-revocation.c:521
 msgid "# revocation set unions completed"
 msgstr ""
 
-#: src/revocation/gnunet-service-revocation.c:519
+#: src/revocation/gnunet-service-revocation.c:559
 msgid "SET service crashed, terminating revocation service\n"
 msgstr ""
 
-#: src/revocation/gnunet-service-revocation.c:871
+#: src/revocation/gnunet-service-revocation.c:912
 msgid "Could not open revocation database file!"
+msgstr ""
+
+#: src/rps/gnunet-rps.c:270
+msgid "Seed a PeerID"
+msgstr ""
+
+#: src/rps/gnunet-rps.c:275
+msgid "Get updates of view (0 for infinite updates)"
+msgstr ""
+
+#: src/rps/gnunet-rps.c:279
+msgid "Get peers from biased stream"
 msgstr ""
 
 #: src/rps/gnunet-rps-profiler.c:3200
@@ -5995,18 +6037,6 @@ msgstr "nombre de valeurs"
 
 #: src/rps/gnunet-rps-profiler.c:3228
 msgid "Measure quality and performance of the RPS service."
-msgstr ""
-
-#: src/rps/gnunet-rps.c:270
-msgid "Seed a PeerID"
-msgstr ""
-
-#: src/rps/gnunet-rps.c:275
-msgid "Get updates of view (0 for infinite updates)"
-msgstr ""
-
-#: src/rps/gnunet-rps.c:279
-msgid "Get peers from biased stream"
 msgstr ""
 
 #: src/scalarproduct/gnunet-scalarproduct.c:229
@@ -6063,10 +6093,10 @@ msgstr ""
 msgid "Calculate the Vectorproduct with a GNUnet peer."
 msgstr ""
 
-#: src/scalarproduct/gnunet-service-scalarproduct-ecc_alice.c:1118
-#: src/scalarproduct/gnunet-service-scalarproduct-ecc_bob.c:1063
 #: src/scalarproduct/gnunet-service-scalarproduct_alice.c:1358
 #: src/scalarproduct/gnunet-service-scalarproduct_bob.c:1355
+#: src/scalarproduct/gnunet-service-scalarproduct-ecc_alice.c:1118
+#: src/scalarproduct/gnunet-service-scalarproduct-ecc_bob.c:1063
 msgid "Connect to CADET failed\n"
 msgstr ""
 
@@ -6091,7 +6121,7 @@ msgid "also profile decryption"
 msgstr ""
 
 #: src/set/gnunet-service-set.c:1916 src/seti/gnunet-service-seti.c:2467
-#: src/setu/gnunet-service-setu.c:3635
+#: src/setu/gnunet-service-setu.c:3633
 #, fuzzy
 msgid "Could not connect to CADET service\n"
 msgstr "Impossible d’ouvrir « %s ».\n"
@@ -6415,6 +6445,15 @@ msgstr ""
 msgid "%.s Unknown result code."
 msgstr "%.s Code d'erreur inconnu"
 
+#: src/testbed/gnunet_testbed_mpi_spawn.c:119
+msgid "Waiting for child to exit.\n"
+msgstr ""
+
+#: src/testbed/gnunet_testbed_mpi_spawn.c:242
+#, c-format
+msgid "Spawning process `%s'\n"
+msgstr ""
+
 #: src/testbed/gnunet-testbed-profiler.c:290
 msgid "tolerate COUNT number of continious timeout failures"
 msgstr ""
@@ -6424,15 +6463,6 @@ msgid ""
 "run profiler in non-interactive mode where upon testbed setup the profiler "
 "does not wait for a keystroke but continues to run until a termination "
 "signal is received"
-msgstr ""
-
-#: src/testbed/gnunet_testbed_mpi_spawn.c:119
-msgid "Waiting for child to exit.\n"
-msgstr ""
-
-#: src/testbed/gnunet_testbed_mpi_spawn.c:242
-#, c-format
-msgid "Spawning process `%s'\n"
 msgstr ""
 
 #: src/testbed/testbed_api.c:399
@@ -6555,7 +6585,7 @@ msgstr ""
 
 #: src/testbed/testbed_api_topology.c:1153
 #, c-format
-msgid "Ignoring to connect peer %u to peer %u\n"
+msgid "Ignoring to connect peer %lu to peer %lu\n"
 msgstr ""
 
 #: src/testing/gnunet-testing.c:185
@@ -6723,7 +6753,7 @@ msgid "GNUnet topology control"
 msgstr ""
 
 #: src/transport/gnunet-communicator-tcp.c:3221
-#: src/transport/gnunet-communicator-udp.c:2995
+#: src/transport/gnunet-communicator-udp.c:3076
 #: src/transport/gnunet-service-tng.c:10014
 #: src/transport/gnunet-service-transport.c:2626
 msgid "Transport service is lacking key configuration settings. Exiting.\n"
@@ -6733,7 +6763,7 @@ msgstr ""
 msgid "GNUnet TCP communicator"
 msgstr ""
 
-#: src/transport/gnunet-communicator-udp.c:3067
+#: src/transport/gnunet-communicator-udp.c:3148
 msgid "GNUnet UDP communicator"
 msgstr ""
 
@@ -6754,6 +6784,10 @@ msgstr ""
 
 #: src/transport/gnunet-communicator-unix.c:1139
 msgid "GNUnet UNIX domain socket communicator"
+msgstr ""
+
+#: src/transport/gnunet-service-transport_ats.c:137
+msgid "# Addresses given to ATS"
 msgstr ""
 
 #: src/transport/gnunet-service-transport.c:445
@@ -6794,10 +6828,6 @@ msgstr ""
 #: src/transport/gnunet-service-transport.c:2560
 #, c-format
 msgid "Adding blacklisting entry for peer `%s':`%s'\n"
-msgstr ""
-
-#: src/transport/gnunet-service-transport_ats.c:137
-msgid "# Addresses given to ATS"
 msgstr ""
 
 #: src/transport/gnunet-service-transport_hello.c:195
@@ -7105,42 +7135,6 @@ msgstr ""
 msgid "# HELLOs given to peerinfo"
 msgstr ""
 
-#: src/transport/gnunet-transport-profiler.c:220
-#, c-format
-msgid "%llu B in %llu ms == %.2f KB/s!\n"
-msgstr ""
-
-#: src/transport/gnunet-transport-profiler.c:577
-msgid "send data to peer"
-msgstr ""
-
-#: src/transport/gnunet-transport-profiler.c:581
-msgid "receive data from peer"
-msgstr ""
-
-#: src/transport/gnunet-transport-profiler.c:586
-msgid "iterations"
-msgstr ""
-
-#: src/transport/gnunet-transport-profiler.c:591
-#, fuzzy
-msgid "number of messages to send"
-msgstr "nombre de valeurs"
-
-#: src/transport/gnunet-transport-profiler.c:596
-msgid "message size to use"
-msgstr ""
-
-#: src/transport/gnunet-transport-profiler.c:601
-#: src/transport/gnunet-transport.c:1404
-msgid "peer identity"
-msgstr ""
-
-#: src/transport/gnunet-transport-profiler.c:614
-#: src/transport/gnunet-transport.c:1426
-msgid "Direct access to transport service."
-msgstr ""
-
 #: src/transport/gnunet-transport.c:406
 #, c-format
 msgid "Transmitted %llu bytes/s (%llu bytes in %s)\n"
@@ -7270,6 +7264,11 @@ msgstr ""
 msgid "do not resolve hostnames"
 msgstr ""
 
+#: src/transport/gnunet-transport.c:1404
+#: src/transport/gnunet-transport-profiler.c:601
+msgid "peer identity"
+msgstr ""
+
 #: src/transport/gnunet-transport.c:1408
 msgid "monitor plugin sessions"
 msgstr ""
@@ -7278,7 +7277,38 @@ msgstr ""
 msgid "send data for benchmarking to the other peer (until CTRL-C)"
 msgstr ""
 
-#: src/transport/plugin_transport_http_client.c:1489
+#: src/transport/gnunet-transport.c:1426
+#: src/transport/gnunet-transport-profiler.c:614
+msgid "Direct access to transport service."
+msgstr ""
+
+#: src/transport/gnunet-transport-profiler.c:220
+#, c-format
+msgid "%llu B in %llu ms == %.2f KB/s!\n"
+msgstr ""
+
+#: src/transport/gnunet-transport-profiler.c:577
+msgid "send data to peer"
+msgstr ""
+
+#: src/transport/gnunet-transport-profiler.c:581
+msgid "receive data from peer"
+msgstr ""
+
+#: src/transport/gnunet-transport-profiler.c:586
+msgid "iterations"
+msgstr ""
+
+#: src/transport/gnunet-transport-profiler.c:591
+#, fuzzy
+msgid "number of messages to send"
+msgstr "nombre de valeurs"
+
+#: src/transport/gnunet-transport-profiler.c:596
+msgid "message size to use"
+msgstr ""
+
+#: src/transport/plugin_transport_http_client.c:1488
 #: src/transport/plugin_transport_http_server.c:2331
 #: src/transport/plugin_transport_http_server.c:3562
 #: src/transport/plugin_transport_tcp.c:3773
@@ -7286,24 +7316,24 @@ msgstr ""
 msgid "TCP_STEALTH not supported on this platform.\n"
 msgstr ""
 
-#: src/transport/plugin_transport_http_client.c:2141
+#: src/transport/plugin_transport_http_client.c:2140
 #, c-format
 msgid "Could not initialize curl multi handle, failed to start %s plugin!\n"
 msgstr ""
 
-#: src/transport/plugin_transport_http_client.c:2190
+#: src/transport/plugin_transport_http_client.c:2189
 #: src/transport/plugin_transport_http_server.c:3276
 #, c-format
 msgid "Shutting down plugin `%s'\n"
 msgstr ""
 
-#: src/transport/plugin_transport_http_client.c:2207
+#: src/transport/plugin_transport_http_client.c:2206
 #: src/transport/plugin_transport_http_server.c:3346
 #, c-format
 msgid "Shutdown for plugin `%s' complete\n"
 msgstr ""
 
-#: src/transport/plugin_transport_http_client.c:2241
+#: src/transport/plugin_transport_http_client.c:2240
 #, c-format
 msgid "Maximum number of requests is %u\n"
 msgstr ""
@@ -7312,7 +7342,7 @@ msgstr ""
 #, c-format
 msgid ""
 "Access from connection %p (%u of %u) for `%s' `%s' url `%s' with upload data "
-"size %u\n"
+"size %lu\n"
 msgstr ""
 
 #: src/transport/plugin_transport_http_server.c:2040
@@ -7351,7 +7381,7 @@ msgid "Found %u addresses to report to NAT service\n"
 msgstr ""
 
 #: src/transport/plugin_transport_http_server.c:2935
-#: src/transport/plugin_transport_udp.c:3397
+#: src/transport/plugin_transport_udp.c:3398
 msgid "Disabling IPv6 since it is not supported on this system!\n"
 msgstr ""
 
@@ -7543,52 +7573,6 @@ msgstr ""
 msgid "TCP transport advertises itself as being on port %llu\n"
 msgstr ""
 
-#: src/transport/plugin_transport_udp.c:3169
-#, c-format
-msgid ""
-"UDP could not transmit message to `%s': Network seems down, please check "
-"your network configuration\n"
-msgstr ""
-
-#: src/transport/plugin_transport_udp.c:3182
-msgid ""
-"UDP could not transmit IPv6 message! Please check your network configuration "
-"and disable IPv6 if your connection does not have a global IPv6 address\n"
-msgstr ""
-
-#: src/transport/plugin_transport_udp.c:3465
-#: src/transport/plugin_transport_udp.c:3550
-#, fuzzy, c-format
-msgid "Failed to bind UDP socket to %s: %s\n"
-msgstr "Résolution de « %s » échouée : %s\n"
-
-#: src/transport/plugin_transport_udp.c:3479
-msgid "Disabling IPv4 since it is not supported on this system!\n"
-msgstr ""
-
-#: src/transport/plugin_transport_udp.c:3558
-msgid "Failed to open UDP sockets\n"
-msgstr ""
-
-#: src/transport/plugin_transport_udp.c:3628
-#: src/transport/plugin_transport_udp.c:3641
-msgid "must be in [0,65535]"
-msgstr ""
-
-#: src/transport/plugin_transport_udp.c:3666
-#, fuzzy
-msgid "must be valid IPv4 address"
-msgstr "adresse invalide"
-
-#: src/transport/plugin_transport_udp.c:3688
-#, fuzzy
-msgid "must be valid IPv6 address"
-msgstr "adresse invalide"
-
-#: src/transport/plugin_transport_udp.c:3749
-msgid "Failed to create UDP network sockets\n"
-msgstr ""
-
 #: src/transport/plugin_transport_udp_broadcasting.c:169
 msgid "# Multicast HELLO beacons received via UDP"
 msgstr ""
@@ -7601,6 +7585,52 @@ msgstr ""
 #: src/transport/plugin_transport_udp_broadcasting.c:571
 #, c-format
 msgid "Failed to set IPv4 broadcast option for broadcast socket on port %d\n"
+msgstr ""
+
+#: src/transport/plugin_transport_udp.c:3170
+#, c-format
+msgid ""
+"UDP could not transmit message to `%s': Network seems down, please check "
+"your network configuration\n"
+msgstr ""
+
+#: src/transport/plugin_transport_udp.c:3183
+msgid ""
+"UDP could not transmit IPv6 message! Please check your network configuration "
+"and disable IPv6 if your connection does not have a global IPv6 address\n"
+msgstr ""
+
+#: src/transport/plugin_transport_udp.c:3466
+#: src/transport/plugin_transport_udp.c:3551
+#, fuzzy, c-format
+msgid "Failed to bind UDP socket to %s: %s\n"
+msgstr "Résolution de « %s » échouée : %s\n"
+
+#: src/transport/plugin_transport_udp.c:3480
+msgid "Disabling IPv4 since it is not supported on this system!\n"
+msgstr ""
+
+#: src/transport/plugin_transport_udp.c:3559
+msgid "Failed to open UDP sockets\n"
+msgstr ""
+
+#: src/transport/plugin_transport_udp.c:3629
+#: src/transport/plugin_transport_udp.c:3642
+msgid "must be in [0,65535]"
+msgstr ""
+
+#: src/transport/plugin_transport_udp.c:3667
+#, fuzzy
+msgid "must be valid IPv4 address"
+msgstr "adresse invalide"
+
+#: src/transport/plugin_transport_udp.c:3689
+#, fuzzy
+msgid "must be valid IPv6 address"
+msgstr "adresse invalide"
+
+#: src/transport/plugin_transport_udp.c:3750
+msgid "Failed to create UDP network sockets\n"
 msgstr ""
 
 #: src/transport/plugin_transport_unix.c:1396
@@ -7775,7 +7805,7 @@ msgid "do daemonize (detach from terminal)"
 msgstr ""
 
 #: src/transport/tcp_service_legacy.c:1397
-#: src/transport/transport-testing2.c:983 src/util/service.c:2072
+#: src/transport/transport-testing2.c:985 src/util/service.c:2072
 #: src/util/service.c:2084
 #, c-format
 msgid "Malformed configuration file `%s', exit ...\n"
@@ -7833,7 +7863,7 @@ msgstr ""
 
 #: src/util/bio.c:359
 #, c-format
-msgid "String `%s' longer than allowed (%u > %u)"
+msgid "String `%s' longer than allowed (%u > %lu)"
 msgstr ""
 
 #: src/util/bio.c:398 src/util/bio.c:864 src/util/bio.c:881
@@ -8554,63 +8584,63 @@ msgstr ""
 msgid "Failed to expand `$HOME': environment variable `HOME' not set"
 msgstr ""
 
-#: src/util/strings.c:1240
+#: src/util/strings.c:1241
 msgid "IPv6 address did not start with `['\n"
 msgstr ""
 
-#: src/util/strings.c:1248
+#: src/util/strings.c:1249
 msgid "IPv6 address did contain ':' to separate port number\n"
 msgstr ""
 
-#: src/util/strings.c:1255
+#: src/util/strings.c:1256
 msgid "IPv6 address did contain ']' before ':' to separate port number\n"
 msgstr ""
 
-#: src/util/strings.c:1263
+#: src/util/strings.c:1264
 msgid "IPv6 address did contain a valid port number after the last ':'\n"
 msgstr ""
 
-#: src/util/strings.c:1272
+#: src/util/strings.c:1273
 #, c-format
 msgid "Invalid IPv6 address `%s': %s\n"
 msgstr ""
 
-#: src/util/strings.c:1499 src/util/strings.c:1510
+#: src/util/strings.c:1500 src/util/strings.c:1511
 msgid "Port not in range\n"
 msgstr ""
 
-#: src/util/strings.c:1519
+#: src/util/strings.c:1520
 #, c-format
 msgid "Malformed port policy `%s'\n"
 msgstr ""
 
-#: src/util/strings.c:1602 src/util/strings.c:1631 src/util/strings.c:1678
-#: src/util/strings.c:1698
+#: src/util/strings.c:1603 src/util/strings.c:1632 src/util/strings.c:1679
+#: src/util/strings.c:1699
 #, c-format
 msgid "Invalid format for IP: `%s'\n"
 msgstr ""
 
-#: src/util/strings.c:1656
+#: src/util/strings.c:1657
 #, c-format
 msgid "Invalid network notation ('/%d' is not legal in IPv4 CIDR)."
 msgstr ""
 
-#: src/util/strings.c:1707
+#: src/util/strings.c:1708
 #, c-format
 msgid "Invalid format: `%s'\n"
 msgstr "fornat invalide : « %s »\n"
 
-#: src/util/strings.c:1760
+#: src/util/strings.c:1761
 #, c-format
 msgid "Invalid network notation (does not end with ';': `%s')\n"
 msgstr ""
 
-#: src/util/strings.c:1810
+#: src/util/strings.c:1811
 #, c-format
 msgid "Wrong format `%s' for netmask\n"
 msgstr ""
 
-#: src/util/strings.c:1841
+#: src/util/strings.c:1842
 #, c-format
 msgid "Wrong format `%s' for network\n"
 msgstr ""
@@ -8790,8 +8820,8 @@ msgstr ""
 msgid "Setup tunnels via VPN."
 msgstr "Configurer des tunnels via VPN."
 
-#: src/zonemaster/gnunet-service-zonemaster-monitor.c:420
-#: src/zonemaster/gnunet-service-zonemaster.c:849
+#: src/zonemaster/gnunet-service-zonemaster.c:847
+#: src/zonemaster/gnunet-service-zonemaster-monitor.c:418
 msgid "Failed to connect to the namestore!\n"
 msgstr ""
 

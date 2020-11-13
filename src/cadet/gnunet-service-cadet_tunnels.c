@@ -2433,7 +2433,8 @@ connection_ready_cb (void *cls,
     LOG (GNUNET_ERROR_TYPE_DEBUG,
          "Do not begin KX for %s if WE have no channels waiting. Retrying after %llu\n",
          GCT_2s (t),
-         GNUNET_TIME_absolute_get_remaining (t->next_kx_attempt).rel_value_us);
+         (unsigned long long) GNUNET_TIME_absolute_get_remaining (
+           t->next_kx_attempt).rel_value_us);
     /* Do not begin KX if WE have no channels waiting! */
     if (0 != GNUNET_TIME_absolute_get_remaining (
           t->next_kx_attempt).rel_value_us)
@@ -3279,7 +3280,7 @@ GCT_handle_encrypted (struct CadetTConnection *ct,
 {
   struct CadetTunnel *t = ct->t;
   uint16_t size = ntohs (msg->header.size);
-  char cbuf [size] GNUNET_ALIGN;
+  char cbuf[size] GNUNET_ALIGN;
   ssize_t decrypted_size;
 
   LOG (GNUNET_ERROR_TYPE_DEBUG,

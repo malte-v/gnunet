@@ -2004,7 +2004,7 @@ main (int argc, char *argv[])
     (void) close (dev.fd_raw);
     return 1;
   }
-  strncpy (dev.iface, argv[1], IFNAMSIZ);
+  memcpy (dev.iface, argv[1], IFNAMSIZ);
   if (0 != open_device_raw (&dev))
   {
     (void) close (dev.fd_raw);

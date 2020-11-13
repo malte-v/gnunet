@@ -1362,7 +1362,7 @@ GCCH_handle_channel_plaintext_data (
            (1LLU << delta),
            mid_msg,
            mid_min,
-           ch->mid_futures);
+           (unsigned long long) ch->mid_futures);
     }
   }
   else /* ! ch->reliable */

@@ -695,12 +695,13 @@ handle_send_transmit_continuation (void *cls,
 {
   struct SendTransmitContinuationContext *stcc = cls;
   struct SendOkMessage send_ok_msg;
+#ifdef ENABLE_TTD
   struct GNUNET_TIME_Relative delay;
   const struct GNUNET_HELLO_Address *addr;
 
   delay = GNUNET_TIME_absolute_get_duration (stcc->send_time);
   addr = GST_neighbour_get_current_address (&stcc->target);
-#ifdef ENABLE_TTD
+
   if (delay.rel_value_us > GNUNET_CONSTANTS_LATENCY_WARN.rel_value_us)
     GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
                 "It took us %s to send %u/%u bytes to %s (%d, %s)\n",

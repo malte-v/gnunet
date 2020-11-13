@@ -1436,8 +1436,8 @@ wlan_plugin_send (void *cls,
   char buf[size] GNUNET_ALIGN;
 
   LOG (GNUNET_ERROR_TYPE_DEBUG,
-       "Transmitting %u bytes of payload to peer `%s' (starting with %u byte message of type %u)\n",
-       msgbuf_size,
+       "Transmitting %llu bytes of payload to peer `%s' (starting with %u byte message of type %u)\n",
+       (unsigned long long) msgbuf_size,
        GNUNET_i2s (&session->target),
        (unsigned int) ntohs (((struct GNUNET_MessageHeader*) msgbuf)->size),
        (unsigned int) ntohs (((struct GNUNET_MessageHeader*) msgbuf)->type));
@@ -1871,8 +1871,9 @@ handle_helper_message (void *cls,
     if (msize < sizeof(struct GNUNET_TRANSPORT_WLAN_RadiotapReceiveMessage))
     {
       LOG (GNUNET_ERROR_TYPE_DEBUG,
-           "Size of packet is too small (%u bytes < %u)\n",
-           msize, sizeof(struct GNUNET_TRANSPORT_WLAN_RadiotapReceiveMessage));
+           "Size of packet is too small (%llu bytes < %llu)\n",
+           (unsigned long long) msize,
+           (unsigned long long) sizeof(struct GNUNET_TRANSPORT_WLAN_RadiotapReceiveMessage));
       break;
     }
     rxinfo = (const struct GNUNET_TRANSPORT_WLAN_RadiotapReceiveMessage *) hdr;

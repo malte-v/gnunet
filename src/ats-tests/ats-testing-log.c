@@ -467,7 +467,8 @@ GNUNET_ATS_TEST_logging_write_to_file (struct LoggingHandle *l,
   for (c_m = 0; c_m < l->num_masters; c_m++)
   {
     GNUNET_asprintf (&filename_master, "%s_%llu_master%u_%s",
-                     experiment_name, timestamp.abs_value_us, c_m, l->name);
+                     experiment_name,
+                     (unsigned long long) timestamp.abs_value_us, c_m, l->name);
     fprintf (stderr, "Writing data for master %u to file `%s'\n",
              c_m, filename_master);
 
@@ -495,7 +496,9 @@ GNUNET_ATS_TEST_logging_write_to_file (struct LoggingHandle *l,
     for (c_s = 0; c_s < l->lp[c_m].peer->num_partners; c_s++)
     {
       GNUNET_asprintf (&filename_slaves[c_s], "%s_%llu_master%u_slave_%u_%s",
-                       tmp_exp_name, timestamp.abs_value_us, c_m, c_s, l->name);
+                       tmp_exp_name,
+                       (unsigned long long) timestamp.abs_value_us,
+                       c_m, c_s, l->name);
 
       fprintf (stderr, "Writing data for master %u slave %u to file `%s'\n",
                c_m, c_s, filename_slaves[c_s]);
@@ -593,7 +596,7 @@ GNUNET_ATS_TEST_logging_write_to_file (struct LoggingHandle *l,
                          (double) plt->app_rtt / 1000,
                          plt->bandwidth_in,
                          plt->bandwidth_out,
-                         plt->ats_delay.rel_value_us,
+                         (unsigned long long) plt->ats_delay.rel_value_us,
                          plt->ats_distance,
                          plt->ats_network_type,
                          plt->ats_utilization_out,
