@@ -2926,7 +2926,7 @@ new_sub (const struct GNUNET_HashCode *hash,
     char str_hash[105];
 
     GNUNET_snprintf (str_hash,
-                     sizeof(str_hash),
+                     sizeof(str_hash), "%s",
                      GNUNET_h2s_full (hash));
     tmp_filename_valid_peers = sub->filename_valid_peers;
     GNUNET_asprintf (&sub->filename_valid_peers,
@@ -3017,7 +3017,7 @@ write_histogram_to_file (const uint32_t hist_array[],
   LOG (GNUNET_ERROR_TYPE_DEBUG,
        "Writing push stats to disk\n");
   to_file_w_len (file_name_full,
-                 SIZE_DUMP_FILE,
+                 SIZE_DUMP_FILE, "%s",
                  collect_str);
   GNUNET_free (file_name_full);
 }
