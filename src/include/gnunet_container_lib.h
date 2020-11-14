@@ -323,7 +323,7 @@ GNUNET_CONTAINER_bloomfilter_copy (
 
 /**
  * @ingroup bloomfilter
- * Free the space associcated with a filter
+ * Free the space associated with a filter
  * in memory, flush to drive if needed (do not
  * free the space on the drive).
  *
@@ -782,7 +782,7 @@ typedef int (*GNUNET_CONTAINER_MulitHashMapIteratorCallback) (
  *                         to be copied as the destination of the pointer is
  *                         guaranteed to be life as long as the value is stored in
  *                         the hashmap.  This can significantly reduce memory
- *                         consumption, but of course is also a recipie for
+ *                         consumption, but of course is also a recipe for
  *                         heap corruption if the assumption is not true.  Only
  *                         use this if (1) memory use is important in this case and
  *                         (2) you have triple-checked that the invariant holds
@@ -1072,7 +1072,7 @@ struct GNUNET_CONTAINER_MultiPeerMap;
  *                         to be copied as the destination of the pointer is
  *                         guaranteed to be life as long as the value is stored in
  *                         the hashmap.  This can significantly reduce memory
- *                         consumption, but of course is also a recipie for
+ *                         consumption, but of course is also a recipe for
  *                         heap corruption if the assumption is not true.  Only
  *                         use this if (1) memory use is important in this case and
  *                         (2) you have triple-checked that the invariant holds
@@ -1351,7 +1351,7 @@ struct GNUNET_CONTAINER_MultiShortmap;
  *                         to be copied as the destination of the pointer is
  *                         guaranteed to be life as long as the value is stored in
  *                         the hashmap.  This can significantly reduce memory
- *                         consumption, but of course is also a recipie for
+ *                         consumption, but of course is also a recipe for
  *                         heap corruption if the assumption is not true.  Only
  *                         use this if (1) memory use is important in this case and
  *                         (2) you have triple-checked that the invariant holds
@@ -1634,7 +1634,7 @@ struct GNUNET_CONTAINER_MultiUuidmap;
  *                         to be copied as the destination of the pointer is
  *                         guaranteed to be life as long as the value is stored in
  *                         the hashmap.  This can significantly reduce memory
- *                         consumption, but of course is also a recipie for
+ *                         consumption, but of course is also a recipe for
  *                         heap corruption if the assumption is not true.  Only
  *                         use this if (1) memory use is important in this case and
  *                         (2) you have triple-checked that the invariant holds

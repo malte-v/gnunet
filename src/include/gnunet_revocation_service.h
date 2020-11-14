@@ -142,7 +142,7 @@ typedef void (*GNUNET_REVOCATION_Callback) (void *cls,
  *
  * @param cfg the configuration to use
  * @param key key to check for revocation
- * @param func funtion to call with the result of the check
+ * @param func function to call with the result of the check
  * @param func_cls closure to pass to @a func
  * @return handle to use in #GNUNET_REVOCATION_query_cancel to stop REVOCATION from invoking the callback
  */

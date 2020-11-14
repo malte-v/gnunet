@@ -49,7 +49,7 @@ struct GNUNET_HELPER_Handle;
 
 /**
  * Callback that will be called when the helper process dies. This is not called
- * when the helper process is stoped using GNUNET_HELPER_stop()
+ * when the helper process is stopped using GNUNET_HELPER_stop()
  *
  * @param cls the closure from GNUNET_HELPER_start()
  */
@@ -152,7 +152,7 @@ struct GNUNET_HELPER_SendHandle;
  * @param h helper to send message to
  * @param msg message to send
  * @param can_drop can the message be dropped if there is already one in the queue?
- * @param cont continuation to run once the message is out (#GNUNET_OK on succees, #GNUNET_NO
+ * @param cont continuation to run once the message is out (#GNUNET_OK on success, #GNUNET_NO
  *             if the helper process died, #GNUNET_SYSERR during #GNUNET_HELPER_destroy).
  * @param cont_cls closure for @a cont
  * @return NULL if the message was dropped,

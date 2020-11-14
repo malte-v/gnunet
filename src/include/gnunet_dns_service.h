@@ -60,7 +60,7 @@ enum GNUNET_DNS_Flags
    * Set this flag to see all requests first prior to resolution
    * (for monitoring).  Clients that set this flag must then
    * call "GNUNET_DNS_request_forward" when they process a request
-   * for the first time.  Caling "GNUNET_DNS_request_answer" is
+   * for the first time.  Calling "GNUNET_DNS_request_answer" is
    * not allowed for MONITOR peers.
    */
   GNUNET_DNS_FLAG_REQUEST_MONITOR = 1,
@@ -89,7 +89,7 @@ enum GNUNET_DNS_Flags
    * Set this flag to see all requests just before they are
    * returned to the network.  Clients that set this flag must then
    * call "GNUNET_DNS_request_forward" when they process a request
-   * for the last time.  Caling "GNUNET_DNS_request_answer" is
+   * for the last time.  Calling "GNUNET_DNS_request_answer" is
    * not allowed for MONITOR peers.
    */
   GNUNET_DNS_FLAG_RESPONSE_MONITOR = 8

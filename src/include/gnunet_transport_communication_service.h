@@ -203,7 +203,7 @@ typedef void
  *         immediately dropped due to memory limitations (communicator
  *         should try to apply back pressure),
  *         #GNUNET_SYSERR if the message could not be delivered because
- *         the tranport service is not yet up
+ *         the transport service is not yet up
  */
 int
 GNUNET_TRANSPORT_communicator_receive (

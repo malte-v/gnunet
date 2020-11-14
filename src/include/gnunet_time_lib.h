@@ -391,7 +391,7 @@ GNUNET_TIME_calculate_eta (struct GNUNET_TIME_Absolute start,
 /**
  * Compute the time difference between the given start and end times.
  * Use this function instead of actual subtraction to ensure that
- * "FOREVER" and overflows are handeled correctly.
+ * "FOREVER" and overflows are handled correctly.
  *
  * @param start some absolute time
  * @param end some absolute time (typically larger or equal to start)

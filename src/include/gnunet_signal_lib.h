@@ -73,7 +73,7 @@ GNUNET_SIGNAL_handler_install (int signal,
 
 
 /**
- * Uninstall a previously installed signal hander.
+ * Uninstall a previously installed signal handler.
  *
  * @param ctx context that was returned when the
  *            signal handler was installed

@@ -118,7 +118,7 @@ GNUNET_RPS_sub_stop (struct GNUNET_RPS_Handle *h,
 /**
  * Request n random peers.
  *
- * This does exacly the same as GNUNET_RPS_request_peers_single_call
+ * This does exactly the same as GNUNET_RPS_request_peers_single_call
  * but needs a GNUNET_RPS_Handle.
  * This exists only for other parts of GNUnet that expect having to
  * (dis)connect from/to a service.
@@ -161,7 +161,7 @@ GNUNET_RPS_seed_ids (struct GNUNET_RPS_Handle *h, uint32_t n,
                      const struct GNUNET_PeerIdentity *ids);
 
 /**
- * Cancle an issued request.
+ * Cancel an issued request.
  *
  * @param rh handle of the pending request to be canceled
  */
@@ -170,9 +170,9 @@ GNUNET_RPS_request_cancel (struct GNUNET_RPS_Request_Handle *rh);
 
 
 /**
- * Cancle an issued single info request.
+ * Cancel an issued single info request.
  *
- * @param rhs request handle of request to cancle
+ * @param rhs request handle of request to cancel
  */
 void
 GNUNET_RPS_request_single_info_cancel (

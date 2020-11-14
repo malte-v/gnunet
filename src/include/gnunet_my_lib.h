@@ -137,7 +137,7 @@ GNUNET_MY_query_param_fixed_size (const void *ptr,
  * Run a prepared SELECT statement.
  *
  * @param mc mysql context
- * @param sh handle to SELECT statment
+ * @param sh handle to SELECT statement
  * @param params parameters to the statement
  * @return TBD
  */

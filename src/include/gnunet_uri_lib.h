@@ -108,7 +108,7 @@ GNUNET_uri_split_path (char *path,
  * in the yuarel_param struct.
  *
  * *query:     the query string to parse. The string will be modified.
- * delimiter:  the character that separates the key/value pairs from eachother.
+ * delimiter:  the character that separates the key/value pairs from each other.
  * *params:    an array of (struct yuarel_param) where to store the result.
  * max_values: max number of parameters to parse.
  *

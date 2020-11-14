@@ -428,7 +428,7 @@ GNUNET_MQ_dll_remove (struct GNUNET_MQ_Envelope **env_head,
 /**
  * Copy an array of handlers.
  *
- * Useful if the array has been delared in local memory and needs to be
+ * Useful if the array has been declared in local memory and needs to be
  * persisted for future use.
  *
  * @param handlers Array of handlers to be copied.
@@ -442,7 +442,7 @@ GNUNET_MQ_copy_handlers (const struct GNUNET_MQ_MessageHandler *handlers);
 /**
  * Copy an array of handlers, appending AGPL handler.
  *
- * Useful if the array has been delared in local memory and needs to be
+ * Useful if the array has been declared in local memory and needs to be
  * persisted for future use.
  *
  * @param handlers Array of handlers to be copied. Can be NULL (nothing done).
@@ -483,7 +483,7 @@ struct GNUNET_MQ_MessageHandler
 
   /**
    * Callback, called every time a new message of
-   * the specified @e type has been receied.
+   * the specified @e type has been received.
    * The closure given to @e mv will be this struct (not @e ctx).
    */
   GNUNET_MQ_MessageCallback cb;
@@ -665,7 +665,7 @@ struct GNUNET_MQ_MessageHandler
  * Call the message message handler that was registered
  * for the type of the given message in the given @a handlers list.
  *
- * This function is indended to be used for the implementation
+ * This function is indented to be used for the implementation
  * of message queues.
  *
  * @param handlers a set of handlers
@@ -972,7 +972,7 @@ GNUNET_MQ_destroy_notify_cancel (
  * Call the message message handler that was registered
  * for the type of the given message in the given message queue.
  *
- * This function is indended to be used for the implementation
+ * This function is indented to be used for the implementation
  * of message queues.
  *
  * @param mq message queue with the handlers

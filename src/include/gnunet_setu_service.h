@@ -215,7 +215,7 @@ typedef void
  *        to accept it, otherwise the request will be refused
  *        Note that we can't just return value from the listen callback,
  *        as it is also necessary to specify the set we want to do the
- *        operation with, whith sometimes can be derived from the context
+ *        operation with, with sometimes can be derived from the context
  *        message. It's necessary to specify the timeout.
  */
 typedef void

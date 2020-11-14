@@ -19,7 +19,7 @@
  */
 /**
  * @file include/gnunet_db_lib.h
- * @brief shared defintions for transactional databases
+ * @brief shared definitions for transactional databases
  * @author Christian Grothoff
  */
 #ifndef GNUNET_DB_LIB_H

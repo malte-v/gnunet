@@ -25,7 +25,7 @@
  * Buffered IO library
  *
  * @defgroup bio  BIO library
- * Buffered binary disk IO (with endianess conversion)
+ * Buffered binary disk IO (with endianness conversion)
  * @{
  */
 
@@ -65,7 +65,7 @@ GNUNET_BIO_read_open_file (const char *fn);
  *
  * @param buffer the buffer to use as source
  * @param size the total size in bytes of the buffer
- * @return IO handle on sucess, NULL on error
+ * @return IO handle on success, NULL on error
  */
 struct GNUNET_BIO_ReadHandle *
 GNUNET_BIO_read_open_buffer (void *buffer, size_t size);
@@ -212,7 +212,7 @@ GNUNET_BIO_write_open_buffer (void);
 
 /**
  * Force a file-based buffered writer to flush its buffer.
- * If the handle does not use a file, this function returs #GNUNET_OK
+ * If the handle does not use a file, this function returns #GNUNET_OK
  * without doing anything.
  *
  * @param h the IO handle

@@ -65,7 +65,7 @@ GNUNET_CLIENT_test (const struct GNUNET_CONFIGURATION_Handle *cfg,
 
 /**
  * Create a message queue to connect to a GNUnet service.
- * If handlers are specfied, receive messages from the connection.
+ * If handlers are specified, receive messages from the connection.
  *
  * @param connection the client connection
  * @param handlers handlers for receiving messages, can be NULL

@@ -313,7 +313,7 @@ typedef int
  *        to accept it, otherwise the request will be refused
  *        Note that we can't just return value from the listen callback,
  *        as it is also necessary to specify the set we want to do the
- *        operation with, whith sometimes can be derived from the context
+ *        operation with, with sometimes can be derived from the context
  *        message. It's necessary to specify the timeout.
  */
 typedef void
@@ -336,7 +336,7 @@ typedef void
  * @param op operation supported by the set
  *        Note that the operation has to be specified
  *        beforehand, as certain set operations need to maintain
- *        data structures spefific to the operation
+ *        data structures specific to the operation
  * @return a handle to the set
  */
 struct GNUNET_SET_Handle *
@@ -520,7 +520,7 @@ GNUNET_SET_operation_cancel (struct GNUNET_SET_OperationHandle *oh);
  * @param set the set to iterate over
  * @param iter the iterator to call for each element
  * @param iter_cls closure for @a iter
- * @return #GNUNET_YES if the iteration started successfuly,
+ * @return #GNUNET_YES if the iteration started successfully,
  *         #GNUNET_NO if another iteration was still active,
  *         #GNUNET_SYSERR if the set is invalid (e.g. the server crashed, disconnected)
  */

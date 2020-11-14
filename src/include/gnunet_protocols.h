@@ -1387,7 +1387,7 @@ extern "C" {
 #define GNUNET_MESSAGE_TYPE_LOCKMANAGER_RELEASE 451
 
 /**
- * SUCESS reply from lockmanager
+ * SUCCESS reply from lockmanager
  */
 #define GNUNET_MESSAGE_TYPE_LOCKMANAGER_SUCCESS 452
 
@@ -2950,7 +2950,7 @@ extern "C" {
 #define GNUNET_MESSAGE_TYPE_CADET_CONNECTION_BROKEN 1002
 
 /**
- * Request the destuction of a connection
+ * Request the destruction of a connection
  */
 #define GNUNET_MESSAGE_TYPE_CADET_CONNECTION_DESTROY 1003
 
@@ -3238,7 +3238,7 @@ extern "C" {
 #define GNUNET_MESSAGE_TYPE_RPS_CS_DEBUG_STREAM_REPLY 1134
 
 /**
- * @brief Cancel getting biased strem
+ * @brief Cancel getting biased stream
  */
 #define GNUNET_MESSAGE_TYPE_RPS_CS_DEBUG_STREAM_CANCEL 1135
 

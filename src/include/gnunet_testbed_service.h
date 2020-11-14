@@ -417,12 +417,12 @@ struct GNUNET_TESTBED_ControllerProc;
 
 
 /**
- * Callback to signal successfull startup of the controller process
+ * Callback to signal successful startup of the controller process
  *
  * @param cls the closure from GNUNET_TESTBED_controller_start()
  * @param cfg the configuration with which the controller has been started;
  *          NULL if status is not #GNUNET_OK
- * @param status #GNUNET_OK if the startup is successfull; #GNUNET_SYSERR if not,
+ * @param status #GNUNET_OK if the startup is successful; #GNUNET_SYSERR if not,
  *          GNUNET_TESTBED_controller_stop() shouldn't be called in this case
  */
 typedef void
@@ -770,7 +770,7 @@ struct GNUNET_TESTBED_PeerInformation
  * @param op the operation this callback corresponds to
  * @param pinfo the result; will be NULL if the operation has failed
  * @param emsg error message if the operation has failed; will be NULL if the
- *          operation is successfull
+ *          operation is successful
  */
 typedef void
 (*GNUNET_TESTBED_PeerInfoCallback) (void *cb_cls,
@@ -1364,7 +1364,7 @@ GNUNET_TESTBED_get_index (const struct GNUNET_TESTBED_Peer *peer);
 
 
 /**
- * Handle for testbed run helper funtions
+ * Handle for testbed run helper functions
  */
 struct GNUNET_TESTBED_RunHandle;
 
@@ -1452,7 +1452,7 @@ GNUNET_TESTBED_run (const char *host_filename,
  * the program is stopped without 'master' ever being run.
  *
  * NOTE: this function should be called from 'main', NOT from
- * within a GNUNET_SCHEDULER-loop.  This function will initialze
+ * within a GNUNET_SCHEDULER-loop.  This function will initialize
  * the scheduler loop, the testbed and then pass control to
  * 'master'.
  *
@@ -1537,7 +1537,7 @@ enum GNUNET_TESTBED_BarrierStatus
  *          invalid to call GNUNET_TESTBED_barrier_cancel() on a crossed or
  *          errored barrier.
  * @param emsg if the status were to be #GNUNET_SYSERR, this parameter has the
- *   error messsage
+ *   error message
  */
 typedef void
 (*GNUNET_TESTBED_barrier_status_cb) (void *cls,
@@ -1585,7 +1585,7 @@ struct GNUNET_TESTBED_BarrierWaitHandle;
 
 
 /**
- * Functions of this type are to be given as acallback argumetn to
+ * Functions of this type are to be given as acallback argument to
  * GNUNET_TESTBED_barrier_wait().  The callback will be called when the barrier
  * corresponding given in GNUNET_TESTBED_barrier_wait() is crossed or cancelled.
  *

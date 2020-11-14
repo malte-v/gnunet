@@ -87,7 +87,7 @@ struct GNUNET_RECLAIM_Ticket
 /**
  * Method called when a token has been issued.
  * On success returns a ticket that can be given to a relying party
- * in order for it retrive identity attributes
+ * in order for it retrieve identity attributes
  *
  * @param cls closure
  * @param ticket the ticket
@@ -99,7 +99,7 @@ typedef void (*GNUNET_RECLAIM_TicketCallback) (
 /**
  * Method called when a token has been issued.
  * On success returns a ticket that can be given to a relying party
- * in order for it retrive identity attributes
+ * in order for it retrieve identity attributes
  *
  * @param cls closure
  * @param ticket the ticket

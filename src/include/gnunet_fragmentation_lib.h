@@ -159,7 +159,7 @@ struct GNUNET_DEFRAGMENT_Context;
 
 /**
  * Function that is called with acknowledgement messages created by
- * the fragmentation module.  Acknowledgements are cummulative,
+ * the fragmentation module.  Acknowledgements are cumulative,
  * so it is OK to only transmit the 'latest' ack message for the same
  * message ID.
  *

@@ -146,7 +146,7 @@ GNUNET_PQ_eval_result (struct GNUNET_PQ_Context *db,
 
 /**
  * Execute a named prepared @a statement that is NOT a SELECT
- * statement in @a connnection using the given @a params.  Returns the
+ * statement in @a connection using the given @a params.  Returns the
  * resulting session state.
  *
  * @param db database to execute the statement with
@@ -156,7 +156,7 @@ GNUNET_PQ_eval_result (struct GNUNET_PQ_Context *db,
  *         codes to `enum GNUNET_DB_QueryStatus`.  If the
  *         statement was a DELETE or UPDATE statement, the
  *         number of affected rows is returned.; if the
- *         statment was an INSERT statement, and no row
+ *         statement was an INSERT statement, and no row
  *         was added due to a UNIQUE violation, we return
  *         zero; if INSERT was successful, we return one.
  */

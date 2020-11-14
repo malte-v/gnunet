@@ -396,7 +396,7 @@ GNUNET_CORE_monitor_stop (struct GNUNET_CORE_MonitorHandle *mh);
 
 /**
  * Check if the given peer is currently connected. This function is for special
- * cirumstances (GNUNET_TESTBED uses it), normal users of the CORE API are
+ * circumstances (GNUNET_TESTBED uses it), normal users of the CORE API are
  * expected to track which peers are connected based on the connect/disconnect
  * callbacks from #GNUNET_CORE_connect.  This function is NOT part of the
  * 'versioned', 'official' API.  This function returns

@@ -23,7 +23,7 @@
  * @author Christian Grothoff
  *
  * @file
- * Plaform specific includes and defines.
+ * Platform specific includes and defines.
  *
  * This file should never be included by installed
  * header files (those starting with "gnunet_").

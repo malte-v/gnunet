@@ -108,7 +108,7 @@ enum GNUNET_NAT_AddressClass
   GNUNET_NAT_AC_BT = 32,
 
   /**
-   * Loopback addresses, only useful under special cirumstances.
+   * Loopback addresses, only useful under special circumstances.
    */
   GNUNET_NAT_AC_LOOPBACK = 64,
 
@@ -325,7 +325,7 @@ struct GNUNET_NAT_Handle;
  * @param num_addrs number of addresses in @a addrs
  * @param addrs list of local addresses packets should be redirected to
  * @param addrlens actual lengths of the addresses in @a addrs
- * @param address_callback function to call everytime the public IP address changes
+ * @param address_callback function to call every time the public IP address changes
  * @param reversal_callback function to call if someone wants connection reversal from us,
  *        NULL if connection reversal is not supported
  * @param callback_cls closure for callbacks

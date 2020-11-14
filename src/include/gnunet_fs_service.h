@@ -543,7 +543,7 @@ enum GNUNET_FS_Status
   /**
    * Notification that we have stopped
    * the process of uploading a file structure; no
-   * futher events will be generated for this action.
+   * further events will be generated for this action.
    */
   GNUNET_FS_STATUS_PUBLISH_STOPPED = 6,
 
@@ -760,7 +760,7 @@ struct GNUNET_FS_DownloadContext;
 
 
 /**
- * Handle for detail information about a file that is being publishd.
+ * Handle for detail information about a file that is being published.
  * Specifies metadata, keywords, how to get the contents of the file
  * (i.e. data-buffer in memory, filename on disk) and other options.
  */
@@ -789,7 +789,7 @@ struct GNUNET_FS_ProgressInfo
       struct GNUNET_FS_PublishContext *pc;
 
       /**
-       * Information about the file that is being publishd.
+       * Information about the file that is being published.
        */
       const struct GNUNET_FS_FileInformation *fi;
 
@@ -892,7 +892,7 @@ struct GNUNET_FS_ProgressInfo
 
           /**
            * At what time do we expect to finish the upload of the
-           * CONTENTS of the directory. (The direcory itself will take
+           * CONTENTS of the directory. (The directory itself will take
            * extra time, indicated with the "eta" member at the
            * "publish"-level of this struct.)
            */
@@ -1442,7 +1442,7 @@ struct GNUNET_FS_ProgressInfo
       /**
        * At what time do we expect to finish unindexing?
        * (will be a value in the past for completed
-       * unindexing opeations).
+       * unindexing operations).
        */
       struct GNUNET_TIME_Relative eta;
 
@@ -1974,7 +1974,7 @@ enum GNUNET_FS_PublishOptions
  * @param h handle to the file sharing subsystem
  * @param fi information about the file or directory structure to publish
  * @param ns namespace to publish the file in, NULL for no namespace
- * @param nid identifier to use for the publishd content in the namespace
+ * @param nid identifier to use for the published content in the namespace
  *        (can be NULL, must be NULL if namespace is NULL)
  * @param nuid update-identifier that will be used for future updates
  *        (can be NULL, must be NULL if namespace or nid is NULL)

@@ -98,7 +98,7 @@ GNUNET_REGEX_announce_cancel (struct GNUNET_REGEX_Announcement *a);
  * @param cls Closure provided in #GNUNET_REGEX_search.
  * @param id Peer providing a regex that matches the string.
  * @param get_path Path of the get request.
- * @param get_path_length Lenght of @a get_path.
+ * @param get_path_length Length of @a get_path.
  * @param put_path Path of the put request.
  * @param put_path_length Length of the @a put_path.
  */

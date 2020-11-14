@@ -139,7 +139,7 @@ typedef void
 
 
 /**
- * Get the prefered address for a peer from solver
+ * Get the preferred address for a peer from solver
  *
  * @param solver the solver to use
  * @param peer the peer
@@ -150,7 +150,7 @@ typedef void
 
 
 /**
- * Stop getting the prefered address for a peer from solver
+ * Stop getting the preferred address for a peer from solver
  *
  * @param solver the solver to use
  * @param peer the peer

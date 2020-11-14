@@ -512,7 +512,7 @@ GNUNET_CONFIGURATION_get_data (const struct GNUNET_CONFIGURATION_Handle *cfg,
 
 /**
  * Expand an expression of the form "$FOO/BAR" to "DIRECTORY/BAR"
- * where either in the "PATHS" section or the environtment "FOO" is
+ * where either in the "PATHS" section or the environment "FOO" is
  * set to "DIRECTORY".  We also support default expansion,
  * i.e. ${VARIABLE:-default} will expand to $VARIABLE if VARIABLE is
  * set in PATHS or the environment, and otherwise to "default".  Note

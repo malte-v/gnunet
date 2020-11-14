@@ -88,7 +88,7 @@ struct GNUNET_NT_InterfaceScanner;
 
 
 /**
- * Returns where the address is located: loopback, LAN or WAN.
+ * Returns where the address is located: loopback, LAN or WANT.
  *
  * @param is handle from #GNUNET_ATS_interface_scanner_init()
  * @param addr address

@@ -419,7 +419,7 @@ GNUNET_CRYPTO_crc16_step (uint32_t sum, const void *buf, size_t len);
 /**
  * Convert results from GNUNET_CRYPTO_crc16_step to final crc16.
  *
- * @param sum cummulative sum
+ * @param sum cumulative sum
  * @return crc16 value
  */
 uint16_t
@@ -693,7 +693,7 @@ GNUNET_CRYPTO_pow_hash (const struct GNUNET_CRYPTO_PowSalt *salt,
 
 
 /**
- * Context for cummulative hashing.
+ * Context for cumulative hashing.
  */
 struct GNUNET_HashContext;
 
@@ -710,7 +710,7 @@ GNUNET_CRYPTO_hash_context_start (void);
 /**
  * Add data to be hashed.
  *
- * @param hc cummulative hash context
+ * @param hc cumulative hash context
  * @param buf data to add
  * @param size number of bytes in @a buf
  */
@@ -802,7 +802,7 @@ struct GNUNET_CRYPTO_FileHashContext;
  * @param blocksize number of bytes to process in one task
  * @param callback function to call upon completion
  * @param callback_cls closure for @a callback
- * @return NULL on (immediate) errror
+ * @return NULL on (immediate) error
  */
 struct GNUNET_CRYPTO_FileHashContext *
 GNUNET_CRYPTO_hash_file (enum GNUNET_SCHEDULER_Priority priority,
@@ -1947,7 +1947,7 @@ GNUNET_CRYPTO_paillier_create (
  * @param public_key Public key to use.
  * @param m Plaintext to encrypt.
  * @param desired_ops How many homomorphic ops the caller intends to use
- * @param[out] ciphertext Encrytion of @a plaintext with @a public_key.
+ * @param[out] ciphertext Encryption of @a plaintext with @a public_key.
  * @return guaranteed number of supported homomorphic operations >= 1,
  *         or desired_ops, in case that is lower,
  *         or -1 if less than one homomorphic operation is possible
@@ -2100,7 +2100,7 @@ GNUNET_CRYPTO_rsa_private_key_dup (
  * Extract the public key of the given private key.
  *
  * @param priv the private key
- * @retur NULL on error, otherwise the public key
+ * @return NULL on error, otherwise the public key
  */
 struct GNUNET_CRYPTO_RsaPublicKey *
 GNUNET_CRYPTO_rsa_private_key_get_public (

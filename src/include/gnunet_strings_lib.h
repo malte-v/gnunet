@@ -116,7 +116,7 @@ GNUNET_STRINGS_byte_size_fancy (unsigned long long size);
  * @param input_charset character set used for @a input
  * @param output_charset desired character set for the return value
  * @return the converted string (0-terminated),
- *  if conversion fails, a copy of the orignal
+ *  if conversion fails, a copy of the original
  *  string is returned.
  */
 char *
@@ -150,7 +150,7 @@ GNUNET_STRINGS_to_utf8 (const char *input,
  * @param len the number of bytes in the @a input
  * @param charset character set to convert to
  * @return the converted string (0-terminated),
- *  if conversion fails, a copy of the orignal
+ *  if conversion fails, a copy of the original
  *  string is returned.
  */
 char *
@@ -518,7 +518,7 @@ GNUNET_STRINGS_check_filename (const char *filename,
  * @param addrlen length of zt_addr (not counting 0-terminator).
  * @param r_buf a buffer to fill. Initially gets filled with zeroes,
  *        then its sin6_port, sin6_family and sin6_addr are set appropriately.
- * @return #GNUNET_OK if conversion succeded. #GNUNET_SYSERR otherwise, in which
+ * @return #GNUNET_OK if conversion succeeded. #GNUNET_SYSERR otherwise, in which
  *         case the contents of r_buf are undefined.
  */
 int
@@ -534,7 +534,7 @@ GNUNET_STRINGS_to_address_ipv6 (const char *zt_addr,
  * @param zt_addr 0-terminated string. May be mangled by the function.
  * @param addrlen length of zt_addr (not counting 0-terminator).
  * @param r_buf a buffer to fill.
- * @return #GNUNET_OK if conversion succeded. #GNUNET_SYSERR otherwise, in which case
+ * @return #GNUNET_OK if conversion succeeded. #GNUNET_SYSERR otherwise, in which case
  *         the contents of r_buf are undefined.
  */
 int
@@ -566,7 +566,7 @@ GNUNET_STRINGS_parse_socket_addr (const char *addr,
  * @param addrlen number of bytes in @a addr (if addr is 0-terminated,
  *        0-terminator should not be counted towards addrlen).
  * @param r_buf a buffer to fill.
- * @return #GNUNET_OK if conversion succeded. #GNUNET_SYSERR otherwise, in which
+ * @return #GNUNET_OK if conversion succeeded. #GNUNET_SYSERR otherwise, in which
  *         case the contents of r_buf are undefined.
  */
 int

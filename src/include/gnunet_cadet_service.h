@@ -170,7 +170,7 @@ GNUNET_CADET_disconnect (struct GNUNET_CADET_Handle *handle);
 
 
 /**
- * Open a port to receive incomming MQ-based channels.
+ * Open a port to receive incoming MQ-based channels.
  *
  * @param h CADET handle.
  * @param port Hash identifying the port.
@@ -309,7 +309,7 @@ union GNUNET_CADET_ChannelInfo
  * Get information about a channel.
  *
  * @param channel Channel handle.
- * @param ... dependant on option, currently not used
+ * @param ... dependent on option, currently not used
  * @return Union with an answer to the query.
  */
 const union GNUNET_CADET_ChannelInfo *

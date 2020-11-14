@@ -135,7 +135,7 @@ GNUNET_TESTING_system_create (const char *testdir,
  * handle per operating system.  Use this function directly
  * if multiple system objects are created for the same host
  * (only really useful when testing --- or to make the port
- * range configureable).
+ * range configurable).
  *
  * @param testdir only the directory name without any path. This is used for
  *          all service homes; the directory will be created in a temporary

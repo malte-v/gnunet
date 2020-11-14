@@ -413,7 +413,7 @@ struct GNUNET_MESSENGER_Message
 
 /**
  * Method called whenever the EGO of a <i>handle</i> changes or if the first connection fails
- * to load a valid EGO and the anonymous keypair will be used instead.
+ * to load a valid EGO and the anonymous key pair will be used instead.
  *
  * @param cls Closure from <i>GNUNET_MESSENGER_connect</i>
  * @param handle Messenger handle

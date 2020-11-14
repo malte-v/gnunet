@@ -116,7 +116,7 @@ buffer_deinit (struct Buffer *buf)
  * @param data_size the size of @a data
  * @param max_size maximum size that the buffer can grow to
  * @return #GNUNET_OK on success,
- *         #GNUNET_NO if the buffer can't accomodate for the new data
+ *         #GNUNET_NO if the buffer can't accommodate for the new data
  */
 static int
 buffer_append (struct Buffer *buf,

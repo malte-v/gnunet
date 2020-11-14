@@ -87,7 +87,7 @@ typedef void (*GNUNET_NSE_Callback) (void *cls,
  * Connect to the network size estimation service.
  *
  * @param cfg the configuration to use
- * @param func funtion to call with network size estimate
+ * @param func function to call with network size estimate
  * @param func_cls closure to pass to @a func
  * @return handle to use in #GNUNET_NSE_disconnect to stop NSE from invoking the callbacks
  */

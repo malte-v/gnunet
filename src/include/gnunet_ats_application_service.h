@@ -71,14 +71,14 @@ struct GNUNET_ATS_ApplicationSuggestHandle;
 
 /**
  * An application would like to communicate with a peer.  ATS should
- * allocate bandwith using a suitable address for requiremetns @a pk
+ * allocate bandwidth using a suitable address for requiremetns @a pk
  * to transport.
  *
  * @param ch handle
  * @param peer identity of the peer we need an address for
  * @param pk what kind of application will the application require (can be
  *         #GNUNET_MQ_PREFERENCE_NONE, we will still try to connect)
- * @param bw desired bandwith, can be zero (we will still try to connect)
+ * @param bw desired bandwidth, can be zero (we will still try to connect)
  * @return suggestion handle, NULL if request is already pending
  */
 struct GNUNET_ATS_ApplicationSuggestHandle *

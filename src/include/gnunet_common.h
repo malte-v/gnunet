@@ -1041,7 +1041,7 @@ GNUNET_error_type_to_string (enum GNUNET_ErrorType kind);
                      strerror (errno));                                        \
   } while (0)
 
-/* ************************* endianess conversion ****************** */
+/* ************************* endianness conversion ****************** */
 
 #ifdef htonbe64
 
@@ -1265,7 +1265,7 @@ GNUNET_is_zero_ (const void *a,
  * @ingroup memory
  * Allocate and initialize a block of memory.
  *
- * @param buf data to initalize the block with
+ * @param buf data to initialize the block with
  * @param size the number of bytes in buf (and size of the allocation)
  * @return pointer to size bytes of memory, never NULL (!)
  */
