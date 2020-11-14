@@ -103,7 +103,7 @@ struct GNUNET_HELPER_Handle
   struct GNUNET_OS_Process *helper_proc;
 
   /**
-   * The Message-Tokenizer that tokenizes the messages comming from the helper
+   * The Message-Tokenizer that tokenizes the messages coming from the helper
    */
   struct GNUNET_MessageStreamTokenizer *mst;
 
@@ -646,7 +646,7 @@ helper_write (void *cls)
  * @param h helper to send message to
  * @param msg message to send
  * @param can_drop can the message be dropped if there is already one in the queue?
- * @param cont continuation to run once the message is out (#GNUNET_OK on succees, #GNUNET_NO
+ * @param cont continuation to run once the message is out (#GNUNET_OK on success, #GNUNET_NO
  *             if the helper process died, #GNUNET_SYSERR during #GNUNET_HELPER_destroy).
  * @param cont_cls closure for @a cont
  * @return NULL if the message was dropped,

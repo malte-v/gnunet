@@ -80,7 +80,7 @@ static const struct GNUNET_OS_ProjectData default_pd = {
 static const struct GNUNET_OS_ProjectData *current_pd = &default_pd;
 
 /**
- * Wether or not gettext has been initialized for the library.
+ * Whether or not gettext has been initialized for the library.
  * Note that the gettext initialization done within
  * GNUNET_PROGRAM_run2 is for the specific application.
  */
@@ -374,7 +374,7 @@ get_path_from_GNUNET_PREFIX ()
 
 
 /**
- * @brief get the path to GNUnet bin/ or lib/, prefering the lib/ path
+ * @brief get the path to GNUnet bin/ or lib/, preferring the lib/ path
  * @author Milan
  *
  * @return a pointer to the executable path, or NULL on error

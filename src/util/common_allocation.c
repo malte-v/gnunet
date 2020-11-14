@@ -147,7 +147,7 @@ GNUNET_xnew_array_3d_ (size_t n,
 
   for (size_t i = 0; i < n; i++)
   {
-    /* need to cast to (char *) temporarily for byte level acuracy */
+    /* need to cast to (char *) temporarily for byte level accuracy */
     ret[i] = (char **) ((char *) ret   /* base address */
                         + n * sizeof(void **)  /* skip 1. dim header */
                         + i * m * sizeof(void *)); /* skip to 2. dim header */

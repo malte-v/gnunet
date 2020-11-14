@@ -59,14 +59,14 @@ struct GNUNET_LOAD_Value
   uint64_t cummulative_squared_delay;
 
   /**
-   * Total number of requests included in the cummulative datastore delay values.
+   * Total number of requests included in the cumulative datastore delay values.
    */
   uint64_t cummulative_request_count;
 
   /**
    * Current running average datastore delay.  Its relation to the
-   * average datastore delay and it std. dev. (as calcualted from the
-   * cummulative values) tells us our current load.
+   * average datastore delay and it std. dev. (as calculated from the
+   * cumulative values) tells us our current load.
    */
   double runavg_delay;
 
@@ -163,7 +163,7 @@ calculate_load (struct GNUNET_LOAD_Value *load)
 
   if (load->cummulative_request_count <= 1)
     return;
-  /* calcuate std dev of latency; we have for n values of "i" that:
+  /* calculate std dev of latency; we have for n values of "i" that:
    *
    * avg = (sum val_i) / n
    * stddev = (sum (val_i - avg)^2) / (n-1)

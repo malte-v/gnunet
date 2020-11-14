@@ -563,7 +563,7 @@ start_process (enum GNUNET_OS_InheritStdioFlags std_inheritance,
       if (lscp[i] != tgt)
       {
         /* Bury any existing FD, no matter what; they should all be closed
-         * on exec anyway and the important onces have been dup'ed away */
+         * on exec anyway and the important ones have been dup'ed away */
         (void) close (tgt);
         GNUNET_assert (-1 != dup2 (lscp[i], tgt));
       }

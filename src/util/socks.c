@@ -45,7 +45,7 @@
 #define SOCKS5_AUTH_MAF 0x08 /* Multi-Authentication Framework */
 
 
-/* SOCKS5 connection responces */
+/* SOCKS5 connection responses */
 #define SOCKS5_REP_SUCCEEDED 0x00 /* succeeded */
 #define SOCKS5_REP_FAIL 0x01 /* general SOCKS serer failure */
 #define SOCKS5_REP_NALLOWED 0x02 /* connection not allowed by ruleset */
@@ -55,7 +55,7 @@
 #define SOCKS5_REP_EXPIRED 0x06 /* TTL expired */
 #define SOCKS5_REP_CNOTSUP 0x07 /* Command not supported */
 #define SOCKS5_REP_ANOTSUP 0x08 /* Address not supported */
-#define SOCKS5_REP_INVADDR 0x09 /* Inalid address */
+#define SOCKS5_REP_INVADDR 0x09 /* Invalid address */
 
 const char *
 SOCKS5_REP_names (int rep)
@@ -155,12 +155,12 @@ struct GNUNET_SOCKS_Handshake
   int step;
 
   /**
-   * Precomputed SOCKS5 handshake ouput buffer
+   * Precomputed SOCKS5 handshake output buffer
    */
   unsigned char outbuf[1024];
 
   /**
-   * Pointers delineating protoocol steps in the outbut buffer
+   * Pointers delineating protoocol steps in the output buffer
    */
   unsigned char *(outstep[4]);
 
@@ -177,7 +177,7 @@ struct GNUNET_SOCKS_Handshake
 };
 
 
-/* Regitering prototypes */
+/* Registering prototypes */
 
 void
 register_reciever (struct GNUNET_SOCKS_Handshake *ih, int want);
@@ -255,7 +255,7 @@ SOCKS5_handshake_step (struct GNUNET_SOCKS_Handshake *ih)
     b += 2;
     break;
 
-  case SOCKS5_step_auth:   /* SOCKS5 server's responce to authentication */
+  case SOCKS5_step_auth:   /* SOCKS5 server's response to authentication */
     if (b[1] != 0)
     {
       LOG (GNUNET_ERROR_TYPE_ERROR, "SOCKS5 authentication failed\n");
@@ -265,7 +265,7 @@ SOCKS5_handshake_step (struct GNUNET_SOCKS_Handshake *ih)
     b += 2;
     break;
 
-  case SOCKS5_step_cmd:   /* SOCKS5 server's responce to command */
+  case SOCKS5_step_cmd:   /* SOCKS5 server's response to command */
     if (b[0] != 5)
     {
       LOG (GNUNET_ERROR_TYPE_ERROR, "SOCKS5 protocol error\n");
@@ -326,7 +326,7 @@ SOCKS5_handshake_step (struct GNUNET_SOCKS_Handshake *ih)
  * @param handler_cls closure for @a handler
  */
 void
-reciever (void *cls,
+receiver (void *cls,
           const void *buf,
           size_t available,
           const struct sockaddr *addr,
@@ -355,7 +355,7 @@ register_reciever (struct GNUNET_SOCKS_Handshake *ih, int want)
   GNUNET_CONNECTION_receive (ih->socks5_connection,
                              want,
                              GNUNET_TIME_relative_get_minute_ (),
-                             &reciever,
+                             &receiver,
                              ih);
 }
 
@@ -475,7 +475,7 @@ GNUNET_SOCKS_init_handshake (const char *user, const char *pass)
     *(b++) = SOCKS5_AUTH_USERPASS;
     (*n)++;
   }
-  /* There is no apperent reason to support authentication methods beyond
+  /* There is no apparent reason to support authentication methods beyond
    * username and password since afaik Tor does not support them. */
 
   /* We authenticate with an empty username and password if the server demands

@@ -97,7 +97,7 @@ main (int argc, char *argv[])
 {
   (void) argc;
   (void) argv;
-  /* We set up logging with NULL level - will be overrided by
+  /* We set up logging with NULL level - will be overridden by
    * GNUNET_LOG or GNUNET_FORCE_LOG at runtime.
    */
   GNUNET_log_setup ("test-common-logging-dummy", NULL, "/dev/null");
@@ -107,7 +107,7 @@ main (int argc, char *argv[])
   pr (GNUNET_ERROR_TYPE_INFO, "INFO");
   pr (GNUNET_ERROR_TYPE_DEBUG, "DEBUG");
 
-  /* We set up logging with WARNING level - will onle be overrided by
+  /* We set up logging with WARNING level - will onle be overridden by
    * GNUNET_FORCE_LOG at runtime.
    */
   GNUNET_log_setup ("test-common-logging-dummy", "WARNING", "/dev/null");

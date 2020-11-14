@@ -83,7 +83,7 @@ struct AddressProbe
   struct ClientState *cstate;
 
   /**
-   * Lenth of addr.
+   * Length of addr.
    */
   socklen_t addrlen;
 
@@ -1050,7 +1050,7 @@ GNUNET_CLIENT_test (const struct GNUNET_CONFIGURATION_Handle *cfg,
 
 /**
  * Create a message queue to connect to a GNUnet service.
- * If handlers are specfied, receive messages from the connection.
+ * If handlers are specified, receive messages from the connection.
  *
  * @param cfg our configuration
  * @param service_name name of the service to connect to

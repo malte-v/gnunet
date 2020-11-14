@@ -1223,7 +1223,7 @@ load_etc_hosts (void)
   if (GNUNET_OK != GNUNET_DISK_file_handle_size (fh, &bytes_read))
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                "Could not determin size of /etc/hosts. "
+                "Could not determine size of /etc/hosts. "
                 "DNS resolution will not be possible.\n");
     GNUNET_DISK_file_close (fh);
     return;

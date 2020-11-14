@@ -61,7 +61,7 @@ GNUNET_CRYPTO_hash (const void *block,
 /**
  * Convert GNUNET_CRYPTO_hash to ASCII encoding.  The ASCII encoding is rather
  * GNUnet specific.  It was chosen such that it only uses characters
- * in [0-9A-V], can be produced without complex arithmetics and uses a
+ * in [0-9A-V], can be produced without complex arithmetic and uses a
  * small number of characters.  The GNUnet encoding uses 103
  * characters plus a null terminator.
  *
@@ -463,7 +463,7 @@ GNUNET_CRYPTO_hmac (const struct GNUNET_CRYPTO_AuthKey *key,
 
 
 /**
- * Context for cummulative hashing.
+ * Context for cumulative hashing.
  */
 struct GNUNET_HashContext
 {
@@ -501,7 +501,7 @@ GNUNET_CRYPTO_hash_context_start ()
 /**
  * Add data to be hashed.
  *
- * @param hc cummulative hash context
+ * @param hc cumulative hash context
  * @param buf data to add
  * @param size number of bytes in @a buf
  */

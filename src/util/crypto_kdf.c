@@ -159,7 +159,7 @@ GNUNET_CRYPTO_kdf_mod_mpi (gcry_mpi_t *r,
                         (const unsigned char *) buf,
                         sizeof(buf),
                         &rsize);
-    GNUNET_assert (0 == rc);  /* Allocation erro? */
+    GNUNET_assert (0 == rc);  /* Allocation error? */
 
     gcry_mpi_clear_highbit (*r, nbits);
     GNUNET_assert (0 == gcry_mpi_test_bit (*r, nbits));

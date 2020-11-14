@@ -552,7 +552,7 @@ GNUNET_TIME_calculate_eta (struct GNUNET_TIME_Absolute start,
                            uint64_t finished,
                            uint64_t total)
 {
-  struct GNUNET_TIME_Relative dur;
+  struct GNUNET_TIME_Relative due;
   double exp;
   struct GNUNET_TIME_Relative ret;
 
@@ -561,9 +561,9 @@ GNUNET_TIME_calculate_eta (struct GNUNET_TIME_Absolute start,
     return GNUNET_TIME_UNIT_ZERO;
   if (0 == finished)
     return GNUNET_TIME_UNIT_FOREVER_REL;
-  dur = GNUNET_TIME_absolute_get_duration (start);
-  exp = ((double) dur.rel_value_us) * ((double) total) / ((double) finished);
-  ret.rel_value_us = ((uint64_t) exp) - dur.rel_value_us;
+  due = GNUNET_TIME_absolute_get_duration (start);
+  exp = ((double) due.rel_value_us) * ((double) total) / ((double) finished);
+  ret.rel_value_us = ((uint64_t) exp) - due.rel_value_us;
   return ret;
 }
 

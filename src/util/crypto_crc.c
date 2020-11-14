@@ -137,7 +137,7 @@ GNUNET_CRYPTO_crc16_step (uint32_t sum, const void *buf, size_t len)
 /**
  * Convert results from #GNUNET_CRYPTO_crc16_step() to final crc16.
  *
- * @param sum cummulative sum
+ * @param sum cumulative sum
  * @return crc16 value
  */
 uint16_t

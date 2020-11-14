@@ -259,7 +259,7 @@ GNUNET_CRYPTO_rsa_private_key_decode (const void *buf,
  * Extract the public key of the given private key.
  *
  * @param priv the private key
- * @retur NULL on error, otherwise the public key
+ * @return NULL on error, otherwise the public key
  */
 struct GNUNET_CRYPTO_RsaPublicKey *
 GNUNET_CRYPTO_rsa_private_key_get_public (const struct
@@ -541,7 +541,7 @@ static struct RsaBlindingKey *
 rsa_blinding_key_derive (const struct GNUNET_CRYPTO_RsaPublicKey *pkey,
                          const struct GNUNET_CRYPTO_RsaBlindingKeySecret *bks)
 {
-  char *xts = "Blinding KDF extrator HMAC key";  /* Trusts bks' randomness more */
+  char *xts = "Blinding KDF extractor HMAC key";  /* Trusts bks' randomness more */
   struct RsaBlindingKey *blind;
   gcry_mpi_t n;
 
@@ -570,7 +570,7 @@ rsa_blinding_key_derive (const struct GNUNET_CRYPTO_RsaPublicKey *pkey,
 
 
 /*
-   We originally added GNUNET_CRYPTO_kdf_mod_mpi for the benifit of the
+   We originally added GNUNET_CRYPTO_kdf_mod_mpi for the benefit of the
    previous routine.
 
    There was previously a call to GNUNET_CRYPTO_kdf in
@@ -1055,7 +1055,7 @@ GNUNET_CRYPTO_rsa_sign_fdh (const struct GNUNET_CRYPTO_RsaPrivateKey *key,
 /**
  * Free memory occupied by signature.
  *
- * @param sig memory to freee
+ * @param sig memory to free
  */
 void
 GNUNET_CRYPTO_rsa_signature_free (struct GNUNET_CRYPTO_RsaSignature *sig)

@@ -122,7 +122,7 @@ struct GNUNET_SCHEDULER_Handle
   struct GNUNET_SIGNAL_Context *shc_hup;
 
   /**
-   * context of hte SIGPIPE handler
+   * context of the SIGPIPE handler
    */
   struct GNUNET_SIGNAL_Context *shc_pipe;
 };

@@ -31,7 +31,7 @@
 
 /**
  * Maximum recursion depth for callbacks of
- * #GNUNET_CONTAINER_multihashmap_get_multiple() themselve s
+ * #GNUNET_CONTAINER_multihashmap_get_multiple() themselves s
  * again calling #GNUNET_CONTAINER_multihashmap_get_multiple().
  * Should be totally excessive, but if violated we die.
  */
@@ -184,7 +184,7 @@ struct GNUNET_CONTAINER_MultiHashMapIterator
  *                         to be copied as the destination of the pointer is
  *                         guaranteed to be life as long as the value is stored in
  *                         the hashmap.  This can significantly reduce memory
- *                         consumption, but of course is also a recipie for
+ *                         consumption, but of course is also a recipe for
  *                         heap corruption if the assumption is not true.  Only
  *                         use this if (1) memory use is important in this case and
  *                         (2) you have triple-checked that the invariant holds

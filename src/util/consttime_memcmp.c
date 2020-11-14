@@ -105,7 +105,7 @@ SOFTWARE.
  * implementation-defined overflow behaviour is not invoked.
  *
  * We rely on the C standard's guarantees regarding the wraparound
- * behaviour of unsigned integer arithmetic, and on the analagous
+ * behaviour of unsigned integer arithmetic, and on the analogous
  * guarantees regarding conversions from signed types to narrower
  * unsigned types.
  *
@@ -252,7 +252,7 @@ consttime_memcmp (const void *b1, const void *b2, size_t len)
    *    instead of int because we need a type that's strictly
    *    larger than 16 bits, and the C standard allows
    *    implementations where int is only 16 bits.  The result
-   *    from this step will be of type int32_t, and its value wll
+   *    from this step will be of type int32_t, and its value will
    *    be one of 0x00008000 (32768), or in the range 0x00008001
    *    to 0x000080ff (32769 to 33023), or in the range 0x00007f01
    *    to 0x00007fff (32513 to 32767).

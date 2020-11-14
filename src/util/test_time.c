@@ -133,7 +133,7 @@ main (int argc, char *argv[])
   GNUNET_assert (GNUNET_TIME_UNIT_FOREVER_REL.rel_value_us ==
                  GNUNET_TIME_absolute_get_remaining (forever).rel_value_us);
 
-  /* check endianess */
+  /* check endianness */
   reln = GNUNET_TIME_relative_hton (rel);
   GNUNET_assert (rel.rel_value_us == GNUNET_TIME_relative_ntoh (
                    reln).rel_value_us);

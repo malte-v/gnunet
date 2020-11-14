@@ -50,7 +50,7 @@ struct ConfigEntry
   char *key;
 
   /**
-   * current, commited value
+   * current, committed value
    */
   char *val;
 };
@@ -515,7 +515,7 @@ GNUNET_CONFIGURATION_serialize (const struct GNUNET_CONFIGURATION_Handle *cfg,
   m_size = 0;
   for (sec = cfg->sections; NULL != sec; sec = sec->next)
   {
-    /* For each section we need to add 3 charaters: {'[',']','\n'} */
+    /* For each section we need to add 3 characters: {'[',']','\n'} */
     m_size += strlen (sec->name) + 3;
     for (ent = sec->entries; NULL != ent; ent = ent->next)
     {
@@ -1230,7 +1230,7 @@ GNUNET_CONFIGURATION_have_value (const struct GNUNET_CONFIGURATION_Handle *cfg,
 
 /**
  * Expand an expression of the form "$FOO/BAR" to "DIRECTORY/BAR"
- * where either in the "PATHS" section or the environtment "FOO" is
+ * where either in the "PATHS" section or the environment "FOO" is
  * set to "DIRECTORY".  We also support default expansion,
  * i.e. ${VARIABLE:-default} will expand to $VARIABLE if VARIABLE is
  * set in PATHS or the environment, and otherwise to "default".  Note
@@ -1392,7 +1392,7 @@ expand_dollar (const struct GNUNET_CONFIGURATION_Handle *cfg,
 
 /**
  * Expand an expression of the form "$FOO/BAR" to "DIRECTORY/BAR"
- * where either in the "PATHS" section or the environtment "FOO" is
+ * where either in the "PATHS" section or the environment "FOO" is
  * set to "DIRECTORY".  We also support default expansion,
  * i.e. ${VARIABLE:-default} will expand to $VARIABLE if VARIABLE is
  * set in PATHS or the environment, and otherwise to "default".  Note

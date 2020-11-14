@@ -111,7 +111,7 @@ GNUNET_CRYPTO_paillier_create (struct
  * @param public_key Public key to use.
  * @param m Plaintext to encrypt.
  * @param desired_ops How many homomorphic ops the caller intends to use
- * @param[out] ciphertext Encrytion of @a plaintext with @a public_key.
+ * @param[out] ciphertext Encryption of @a plaintext with @a public_key.
  * @return guaranteed number of supported homomorphic operations >= 1,
  *         or desired_ops, in case that is lower,
  *         or -1 if less than one homomorphic operation is possible
@@ -211,7 +211,7 @@ GNUNET_CRYPTO_paillier_encrypt1 (const struct
  * @param public_key Public key to use.
  * @param m Plaintext to encrypt.
  * @param desired_ops How many homomorphic ops the caller intends to use
- * @param[out] ciphertext Encrytion of @a plaintext with @a public_key.
+ * @param[out] ciphertext Encryption of @a plaintext with @a public_key.
  * @return guaranteed number of supported homomorphic operations >= 1,
  *         or desired_ops, in case that is lower,
  *         or -1 if less than one homomorphic operation is possible

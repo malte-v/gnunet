@@ -138,7 +138,7 @@ GNUNET_BIO_read_open_file (const char *fn)
  *
  * @param buffer the buffer to use as source
  * @param size the total size in bytes of the buffer
- * @return IO handle on sucess, NULL on error
+ * @return IO handle on success, NULL on error
  */
 struct GNUNET_BIO_ReadHandle *
 GNUNET_BIO_read_open_buffer (void *buffer, size_t size)
@@ -644,7 +644,7 @@ GNUNET_BIO_write_close (struct GNUNET_BIO_WriteHandle *h, char **emsg)
 
 /**
  * Force a file-based buffered writer to flush its buffer.
- * If the handle does not use a file, this function returs #GNUNET_OK
+ * If the handle does not use a file, this function returns #GNUNET_OK
  * without doing anything.
  *
  * @param h the IO handle
@@ -1011,7 +1011,7 @@ GNUNET_BIO_read_spec_object (const char *what,
 
 
 /**
- * Function used interally to read a string from within a read spec.
+ * Function used internally to read a string from within a read spec.
  *
  * @param cls ignored, always NULL
  * @param h the IO handle to read from
@@ -1110,7 +1110,7 @@ GNUNET_BIO_read_spec_meta_data (const char *what,
  * @param what what is being read (for error message creation)
  * @param target where to store the data
  * @param target_size ignored
- * @retun #GNUNET_OK on success, #GNUNET_SYSERR otherwise
+ * @return #GNUNET_OK on success, #GNUNET_SYSERR otherwise
  */
 static int
 read_spec_handler_int32 (void *cls,
@@ -1154,7 +1154,7 @@ GNUNET_BIO_read_spec_int32 (const char *what,
  * @param what what is being read (for error message creation)
  * @param target where to store the data
  * @param target_size ignored
- * @retun #GNUNET_OK on success, #GNUNET_SYSERR otherwise
+ * @return #GNUNET_OK on success, #GNUNET_SYSERR otherwise
  */
 static int
 read_spec_handler_int64 (void *cls,
@@ -1549,7 +1549,7 @@ GNUNET_BIO_write_spec_commit (struct GNUNET_BIO_WriteHandle *h,
   }
 
   /* If it's a file-based handle, the flush makes sure that the data in the
-     buffer is actualy written to the disk. */
+     buffer is actually written to the disk. */
   if (IO_FILE == h->type)
     ret = GNUNET_BIO_flush (h);
 
