@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: gnunet-0.10.1\n"
 "Report-Msgid-Bugs-To: gnunet-developers@mail.gnu.org\n"
-"POT-Creation-Date: 2020-11-13 23:04+0900\n"
+"POT-Creation-Date: 2020-11-13 23:46+0900\n"
 "PO-Revision-Date: 2020-10-23 18:39+0200\n"
 "Last-Translator: Мирослав Николић <miroslavnikolic@rocketmail.com>\n"
 "Language-Team: Serbian <(nothing)>\n"
@@ -602,11 +602,11 @@ msgstr "Повезан је надређени [%u] са потчињеним [%
 msgid "Failed to connect master peer [%u] with slave [%u]\n"
 msgstr "Нисам успео да повежем надређеног парњака [%u] са потчињеним [%u]\n"
 
-#: src/ats-tests/ats-testing-log.c:896
+#: src/ats-tests/ats-testing-log.c:899
 msgid "Stop logging\n"
 msgstr "Заустављам дневничење\n"
 
-#: src/ats-tests/ats-testing-log.c:952
+#: src/ats-tests/ats-testing-log.c:955
 #, c-format
 msgid "Start logging `%s'\n"
 msgstr "Започињем дневничење „%s“\n"
@@ -4727,7 +4727,7 @@ msgid "# hostlist advertisements send"
 msgstr "# рекламе списка домаћина су послате"
 
 #: src/hostlist/gnunet-daemon-hostlist_server.c:674
-#: src/transport/gnunet-service-transport.c:2661
+#: src/transport/gnunet-service-transport.c:2662
 msgid "Could not access PEERINFO service.  Exiting.\n"
 msgstr "Не могу да приступим услузи ИНФО_ПАРЊАКА.  Излазим.\n"
 
@@ -7071,7 +7071,7 @@ msgstr ""
 #: src/transport/gnunet-communicator-tcp.c:3221
 #: src/transport/gnunet-communicator-udp.c:3076
 #: src/transport/gnunet-service-tng.c:10014
-#: src/transport/gnunet-service-transport.c:2626
+#: src/transport/gnunet-service-transport.c:2627
 msgid "Transport service is lacking key configuration settings. Exiting.\n"
 msgstr "Услузи преноса недостају поставке подешавања кључа. Излазим.\n"
 
@@ -7112,38 +7112,38 @@ msgstr ""
 msgid "# messages dropped due to slow client"
 msgstr "# поруке су одбачене услед спорог клијента"
 
-#: src/transport/gnunet-service-transport.c:796
+#: src/transport/gnunet-service-transport.c:797
 msgid "# bytes payload dropped (other peer was not connected)"
 msgstr "# утовар бајтова је одбачен (други парњак није повезан)"
 
-#: src/transport/gnunet-service-transport.c:1479
+#: src/transport/gnunet-service-transport.c:1480
 msgid "# bytes payload discarded due to not connected peer"
 msgstr "# бајтови утовара су одбачени због не повезаног парњака"
 
-#: src/transport/gnunet-service-transport.c:1624
+#: src/transport/gnunet-service-transport.c:1625
 msgid "# bytes total received"
 msgstr "# укупно бајтова је примљено"
 
-#: src/transport/gnunet-service-transport.c:1714
+#: src/transport/gnunet-service-transport.c:1715
 msgid "# bytes payload received"
 msgstr "# бајтови утовара су примљени"
 
-#: src/transport/gnunet-service-transport.c:2018
-#: src/transport/gnunet-service-transport.c:2452
+#: src/transport/gnunet-service-transport.c:2019
+#: src/transport/gnunet-service-transport.c:2453
 msgid "# disconnects due to blacklist"
 msgstr "# прекиди везе због списка забрана"
 
-#: src/transport/gnunet-service-transport.c:2456
+#: src/transport/gnunet-service-transport.c:2457
 #, fuzzy, c-format
 msgid "Disallowing connection to peer `%s' on transport %s\n"
 msgstr "Недостаје функција „%s“ у прикључку преноса за „%s“\n"
 
-#: src/transport/gnunet-service-transport.c:2551
+#: src/transport/gnunet-service-transport.c:2552
 #, c-format
 msgid "Adding blacklisting entry for peer `%s'\n"
 msgstr "Додајем унос списка забрана за парњака „%s“\n"
 
-#: src/transport/gnunet-service-transport.c:2560
+#: src/transport/gnunet-service-transport.c:2561
 #, c-format
 msgid "Adding blacklisting entry for peer `%s':`%s'\n"
 msgstr "Додајем унос списка забрана за парњака „%s“:„%s“\n"
@@ -8052,7 +8052,7 @@ msgstr "# Поруке „WLAN“-а су на чекању (са расцепк
 
 #: src/transport/plugin_transport_wlan.c:1195
 #: src/transport/plugin_transport_wlan.c:1287
-#: src/transport/plugin_transport_wlan.c:2324
+#: src/transport/plugin_transport_wlan.c:2325
 #, fuzzy
 msgid "# MAC endpoints allocated"
 msgstr "# Крајње тачке „WLAN“ МАЦ-а су додељене"
@@ -8077,17 +8077,17 @@ msgstr "# „HELLO“ ознаке су послате путем „WLAN“—�
 msgid "# DATA messages received"
 msgstr "# поруке ЈАЗ СТАВИ су примљене"
 
-#: src/transport/plugin_transport_wlan.c:1903
+#: src/transport/plugin_transport_wlan.c:1904
 #, fuzzy
 msgid "# DATA messages processed"
 msgstr "# Поруке „WLAN“ ПОДАТАКА су обрађене"
 
-#: src/transport/plugin_transport_wlan.c:2299
+#: src/transport/plugin_transport_wlan.c:2300
 #, c-format
 msgid "Helper binary `%s' not SUID, cannot run WLAN transport\n"
 msgstr "Извршна помоћника „%s“ није СУИБ, не могу да покренем „WLAN“ пренос\n"
 
-#: src/transport/plugin_transport_wlan.c:2321
+#: src/transport/plugin_transport_wlan.c:2322
 #, fuzzy
 msgid "# sessions allocated"
 msgstr "# „WLAN“ сесије су додељене"

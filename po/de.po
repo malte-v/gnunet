@@ -10,7 +10,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: gnunet 0.10.1\n"
 "Report-Msgid-Bugs-To: gnunet-developers@mail.gnu.org\n"
-"POT-Creation-Date: 2020-11-13 23:04+0900\n"
+"POT-Creation-Date: 2020-11-13 23:46+0900\n"
 "PO-Revision-Date: 2015-03-08 16:16+0100\n"
 "Last-Translator: Mario Blättermann <mario.blaettermann@gmail.com>\n"
 "Language-Team: German <translation-team-de@lists.sourceforge.net>\n"
@@ -585,11 +585,11 @@ msgstr ""
 msgid "Failed to connect master peer [%u] with slave [%u]\n"
 msgstr "Es konnte keine Verbindung mit gnunetd hergestellt werden.\n"
 
-#: src/ats-tests/ats-testing-log.c:896
+#: src/ats-tests/ats-testing-log.c:899
 msgid "Stop logging\n"
 msgstr "Protokollierung stoppen\n"
 
-#: src/ats-tests/ats-testing-log.c:952
+#: src/ats-tests/ats-testing-log.c:955
 #, fuzzy, c-format
 msgid "Start logging `%s'\n"
 msgstr "Collection `%s' begonnen.\n"
@@ -4727,7 +4727,7 @@ msgid "# hostlist advertisements send"
 msgstr "# Bekanntmachungen von anderen übertragen"
 
 #: src/hostlist/gnunet-daemon-hostlist_server.c:674
-#: src/transport/gnunet-service-transport.c:2661
+#: src/transport/gnunet-service-transport.c:2662
 #, fuzzy
 msgid "Could not access PEERINFO service.  Exiting.\n"
 msgstr "Auf die Namespace Informationen konnte nicht zugegriffen werden.\n"
@@ -7021,7 +7021,7 @@ msgstr ""
 #: src/transport/gnunet-communicator-tcp.c:3221
 #: src/transport/gnunet-communicator-udp.c:3076
 #: src/transport/gnunet-service-tng.c:10014
-#: src/transport/gnunet-service-transport.c:2626
+#: src/transport/gnunet-service-transport.c:2627
 msgid "Transport service is lacking key configuration settings. Exiting.\n"
 msgstr ""
 
@@ -7062,38 +7062,38 @@ msgstr ""
 msgid "# messages dropped due to slow client"
 msgstr ""
 
-#: src/transport/gnunet-service-transport.c:796
+#: src/transport/gnunet-service-transport.c:797
 msgid "# bytes payload dropped (other peer was not connected)"
 msgstr ""
 
-#: src/transport/gnunet-service-transport.c:1479
+#: src/transport/gnunet-service-transport.c:1480
 msgid "# bytes payload discarded due to not connected peer"
 msgstr ""
 
-#: src/transport/gnunet-service-transport.c:1624
+#: src/transport/gnunet-service-transport.c:1625
 msgid "# bytes total received"
 msgstr "# Bytes insgesamt empfangen"
 
-#: src/transport/gnunet-service-transport.c:1714
+#: src/transport/gnunet-service-transport.c:1715
 msgid "# bytes payload received"
 msgstr "# Bytes Nutzdaten empfangen"
 
-#: src/transport/gnunet-service-transport.c:2018
-#: src/transport/gnunet-service-transport.c:2452
+#: src/transport/gnunet-service-transport.c:2019
+#: src/transport/gnunet-service-transport.c:2453
 msgid "# disconnects due to blacklist"
 msgstr ""
 
-#: src/transport/gnunet-service-transport.c:2456
+#: src/transport/gnunet-service-transport.c:2457
 #, fuzzy, c-format
 msgid "Disallowing connection to peer `%s' on transport %s\n"
 msgstr "Anwendung `%s' konnte nicht initialisiert werden.\n"
 
-#: src/transport/gnunet-service-transport.c:2551
+#: src/transport/gnunet-service-transport.c:2552
 #, c-format
 msgid "Adding blacklisting entry for peer `%s'\n"
 msgstr ""
 
-#: src/transport/gnunet-service-transport.c:2560
+#: src/transport/gnunet-service-transport.c:2561
 #, c-format
 msgid "Adding blacklisting entry for peer `%s':`%s'\n"
 msgstr ""
@@ -7971,7 +7971,7 @@ msgstr "# defragmentierter Nachrichten"
 
 #: src/transport/plugin_transport_wlan.c:1195
 #: src/transport/plugin_transport_wlan.c:1287
-#: src/transport/plugin_transport_wlan.c:2324
+#: src/transport/plugin_transport_wlan.c:2325
 #, fuzzy
 msgid "# MAC endpoints allocated"
 msgstr "# Sitzungsschlüssel akzeptiert"
@@ -7995,17 +7995,17 @@ msgstr "# Bytes gesendet über TCP"
 msgid "# DATA messages received"
 msgstr "# verschlüsselter PONG Nachrichten empfangen"
 
-#: src/transport/plugin_transport_wlan.c:1903
+#: src/transport/plugin_transport_wlan.c:1904
 #, fuzzy
 msgid "# DATA messages processed"
 msgstr "# PING Nachrichten erstellt"
 
-#: src/transport/plugin_transport_wlan.c:2299
+#: src/transport/plugin_transport_wlan.c:2300
 #, c-format
 msgid "Helper binary `%s' not SUID, cannot run WLAN transport\n"
 msgstr ""
 
-#: src/transport/plugin_transport_wlan.c:2321
+#: src/transport/plugin_transport_wlan.c:2322
 #, fuzzy
 msgid "# sessions allocated"
 msgstr "# Sitzungsschlüssel akzeptiert"
