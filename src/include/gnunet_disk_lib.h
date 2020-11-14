@@ -268,9 +268,8 @@ GNUNET_DISK_file_test (const char *fil);
 
 
 /**
- * Move a file out of the way (create a backup) by
- * renaming it to "orig.NUM~" where NUM is the smallest
- * number that is not used yet.
+ * Move a file out of the way (create a backup) by renaming it to "orig.NUM~"
+ * where NUM is the smallest number that is not used yet.
  *
  * @param fil name of the file to back up
  */
@@ -283,10 +282,11 @@ GNUNET_DISK_file_backup (const char *fil);
  * @param h handle of an open file
  * @param offset position to move to
  * @param whence specification to which position the offset parameter relates to
- * @return the new position on success, GNUNET_SYSERR otherwise
+ * @return the new position on success, #GNUNET_SYSERR otherwise
  */
 off_t
-GNUNET_DISK_file_seek (const struct GNUNET_DISK_FileHandle *h, off_t offset,
+GNUNET_DISK_file_seek (const struct GNUNET_DISK_FileHandle *h,
+                       off_t offset,
                        enum GNUNET_DISK_Seek whence);
 
 
@@ -680,8 +680,7 @@ GNUNET_DISK_directory_test (const char *fil, int is_readable);
 
 
 /**
- * Remove all files in a directory (rm -rf). Call with
- * caution.
+ * Remove all files in a directory (rm -rf). Call with caution.
  *
  * @param filename the file to remove
  * @return #GNUNET_OK on success, #GNUNET_SYSERR on error
@@ -738,7 +737,8 @@ struct GNUNET_DISK_MapHandle;
 
 
 /**
- * Map a file into memory
+ * Map a file into memory.
+ *
  * @param h open file handle
  * @param m handle to the new mapping (will be set)
  * @param access access specification, GNUNET_DISK_MAP_TYPE_xxx
