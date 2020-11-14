@@ -136,7 +136,7 @@ struct ClientQueryRecord
 
 
 /**
- * Struct containing paremeters of monitoring requests.
+ * Struct containing parameters of monitoring requests.
  */
 struct ClientMonitorRecord
 {

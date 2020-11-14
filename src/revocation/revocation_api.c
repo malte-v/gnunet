@@ -154,7 +154,7 @@ handle_revocation_query_response (void *cls,
  *
  * @param cfg the configuration to use
  * @param key key to check for revocation
- * @param func funtion to call with the result of the check
+ * @param func function to call with the result of the check
  * @param func_cls closure to pass to @a func
  * @return handle to use in #GNUNET_REVOCATION_query_cancel to stop REVOCATION from invoking the callback
  */
@@ -291,7 +291,7 @@ handle_revocation_response (void *cls,
  * @param ts  revocation timestamp
  * @param pow proof of work to use (should have been created by
  *            iteratively calling #GNUNET_REVOCATION_check_pow)
- * @param func funtion to call with the result of the check
+ * @param func function to call with the result of the check
  *             (called with `is_valid` being #GNUNET_NO if
  *              the revocation worked).
  * @param func_cls closure to pass to @a func

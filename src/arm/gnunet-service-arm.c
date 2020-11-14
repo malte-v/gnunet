@@ -1564,7 +1564,7 @@ shutdown_task (void *cls)
     do_shutdown ();
   else
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                "Delaying shutdown, have %u childs still running\n",
+                "Delaying shutdown, have %u children still running\n",
                 list_count (running_head));
 }
 

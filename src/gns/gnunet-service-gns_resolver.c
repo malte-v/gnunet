@@ -127,7 +127,7 @@ struct Gns2DnsPending
 
 
 /**
- * Handle to a currenty pending resolution.  On result (positive or
+ * Handle to a currently pending resolution.  On result (positive or
  * negative) the #GNS_ResultProcessor is called.
  */
 struct GNS_ResolverHandle;
@@ -287,7 +287,7 @@ struct VpnContext
 
 
 /**
- * Handle to a currenty pending resolution.  On result (positive or
+ * Handle to a currently pending resolution.  On result (positive or
  * negative) the #GNS_ResultProcessor is called.
  */
 struct GNS_ResolverHandle
@@ -741,7 +741,7 @@ resolver_lookup_get_next_label (struct GNS_ResolverHandle *rh)
 
 
 /**
- * Gives the cummulative result obtained to the callback and clean up the request.
+ * Gives the cumulative result obtained to the callback and clean up the request.
  *
  * @param rh resolution process that has culminated in a result
  */

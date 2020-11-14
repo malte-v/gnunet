@@ -545,7 +545,7 @@ GNUNET_CURL_job_add_raw (struct GNUNET_CURL_Context *ctx,
  * @param ctx context to execute the job in
  * @param eh curl easy handle for the request, will be executed AND
  *           cleaned up.  NOTE: the handle should _never_ have gotten
- *           any headers list, as that would then be ovverridden by
+ *           any headers list, as that would then be overridden by
  *           @a jcc.  Therefore, always pass custom headers as the
  *           @a job_headers parameter.
  * @param job_headers extra headers to add for this request

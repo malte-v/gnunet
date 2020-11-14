@@ -21,7 +21,7 @@
  * @author Martin Schanzenbach
  * @author Christian Grothoff
  * @file src/gns/gnunet-gns-proxy.c
- * @brief HTTP(S) proxy that rewrites URIs and fakes certificats to make GNS work
+ * @brief HTTP(S) proxy that rewrites URIs and fakes certificates to make GNS work
  *        with legacy browsers
  *
  * TODO:

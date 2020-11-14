@@ -295,7 +295,7 @@ send_get (struct GNUNET_DHT_GetHandle *gh)
 /**
  * Send GET message(s) for indicating which results are already known
  * for a @a get_handle to DHT.  Complex as we need to send the list of
- * known results, which means we may need mulitple messages to block
+ * known results, which means we may need multiple messages to block
  * known results from the result set.
  *
  * @param gh GET to generate messages for

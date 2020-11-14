@@ -166,7 +166,7 @@ process (void *cls,
 
   if ((rr->type != GNUNET_BLOCK_TYPE_ANY) &&
       (rr->type != pc->type))
-    return GNUNET_OK;           /* type missmatch */
+    return GNUNET_OK;           /* type mismatch */
 
   if (0 != (rr->options & GNUNET_DHT_RO_RECORD_ROUTE))
   {
