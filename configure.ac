@@ -21,7 +21,7 @@
 #
 AC_PREREQ(2.61)
 # Checks for programs.
-AC_INIT([gnunet], [0.13.3], [bug-gnunet@gnu.org])
+AC_INIT([gnunet], [0.14.0], [bug-gnunet@gnu.org])
 AC_CONFIG_AUX_DIR([build-aux])
 
 # check for legacy option that is no longer supported (#5627) and fail hard
@@ -1912,8 +1912,6 @@ src/gnsrecord/Makefile
 src/hello/Makefile
 src/identity/Makefile
 src/identity/identity.conf
-src/abd/Makefile
-src/abd/abd.conf
 src/include/Makefile
 src/integration-tests/Makefile
 src/json/Makefile
@@ -1975,6 +1973,8 @@ src/zonemaster/zonemaster.conf
 src/rest/Makefile
 src/abe/Makefile
 src/reclaim/Makefile
+src/messenger/Makefile
+src/messenger/messenger.conf
 pkgconfig/Makefile
 pkgconfig/gnunetarm.pc
 pkgconfig/gnunetats.pc

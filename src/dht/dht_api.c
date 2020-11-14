@@ -740,8 +740,8 @@ process_client_result (void *cls,
     LOG (GNUNET_ERROR_TYPE_DEBUG,
          "Ignoring reply for %s: UID mismatch: %llu/%llu\n",
          GNUNET_h2s (key),
-         crm->unique_id,
-         get_handle->unique_id);
+         (unsigned long long) crm->unique_id,
+         (unsigned long long) get_handle->unique_id);
     return GNUNET_YES;
   }
   /* FIXME: might want to check that type matches */

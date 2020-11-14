@@ -56,12 +56,12 @@ handle_create (void *cls, const struct GNUNET_AUCTION_ClientCreateMessage *msg)
 //	struct GNUNET_MQ_Handle *mq;
 //	struct GNUNET_MQ_Envelope *env;
 //	struct GNUNET_AUCTION_blabla em;
-  uint16_t size;
+  //uint16_t size;
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Received CREATE message from client\n");
 
-  size = ntohs (msg->header.size);
+  //size = ntohs (msg->header.size);
 
   /**TODO: create auction and return auction object */
 //	mq = GNUNET_SERVICE_client_get_mq (client);

@@ -1969,7 +1969,7 @@ uri_chk_to_string (const struct GNUNET_FS_Uri *uri)
                    GNUNET_FS_URI_CHK_INFIX,
                    (const char *) &keyhash,
                    (const char *) &queryhash,
-                   GNUNET_ntohll (fi->file_length));
+                   (unsigned long long) GNUNET_ntohll (fi->file_length));
   return ret;
 }
 

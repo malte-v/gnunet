@@ -216,7 +216,7 @@ display_record (const struct GNUNET_DNSPARSER_Record *record)
     GNUNET_asprintf (&tmp,
                      "%.*s",
                      (unsigned int) record->data.raw.data_len,
-                     record->data.raw.data);
+                     (char*) record->data.raw.data);
     format = tmp;
     break;
 

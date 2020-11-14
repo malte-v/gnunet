@@ -1,3 +1,48 @@
+Sat, 14 Nov 2020 10:57:31 +0900 (de83cfe23)
+Updating ChangeLog for 0.14.0 - Martin Schanzenbach
+
+Thu, 5 Nov 2020 21:20:38 +0100 (c07ae5c8d)
+additional abstraction for identity keys - TheJackiMonster
+
+Thu, 1 Oct 2020 21:13:43 +0200 (8bf864c25)
+adding the messenger service and its client-side library - TheJackiMonster
+
+Sat, 31 Oct 2020 00:12:01 +0100 (778425469)
+only call PGntuples once - Christian Grothoff
+
+Sun, 25 Oct 2020 22:32:14 +0100 (f7c320990)
+implement #6524 - Christian Grothoff
+
+Sun, 25 Oct 2020 21:32:57 +0100 (d8cf5cbfc)
+fix #6525: handle explicit null in JSON nicely - Christian Grothoff
+
+Sat, 24 Oct 2020 00:19:44 +0200 (f7b17098b)
+new translation - Christian Grothoff
+
+Tue, 20 Oct 2020 13:10:43 +0200 (acc69a8e5)
+fix missing MHD flags - Christian Grothoff
+
+Fri, 16 Oct 2020 13:09:21 +0200 (2e494a18a)
+GNS: New symmetric crypto - Martin Schanzenbach
+
+Tue, 13 Oct 2020 12:25:31 +0200 (e0ff55875)
+enable more format string warnings - Christian Grothoff
+
+Sat, 10 Oct 2020 17:19:53 +0200 (77339944c)
+Allow applications to change ProjectData with only some fields - Christian Grothoff
+
+Sun, 27 Sep 2020 19:55:09 +0100 (daa0f22b6)
+postgres: drop use of 'WITH OIDS' - Daniel Golle
+
+Fri, 2 Oct 2020 12:04:42 +0200 (400f527fb)
+UTIL: Never localize fancy strings in to_string to prevent breaking from_string parser - Martin Schanzenbach
+
+Thu, 24 Sep 2020 22:04:17 +0200 (02fb94bd4)
+Disable some diagnostic until TNG is available - Christian Grothoff
+
+Mon, 21 Sep 2020 10:21:51 +0200 (87467c4aa)
+added test_communicator_basic-udp test case for buildbot - t3sserakt
+
 Sun, 6 Sep 2020 13:33:31 +0200 (fa067384b)
 GNUnet 0.13.3 - Martin Schanzenbach
 

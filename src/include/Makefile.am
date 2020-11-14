@@ -51,6 +51,7 @@ gnunetinclude_HEADERS = \
   gnunet_getopt_lib.h \
   gnunet_gns_service.h \
   gnunet_gnsrecord_lib.h \
+  gnunet_gnsrecord_json_lib.h \
   gnunet_gnsrecord_plugin.h \
   gnunet_hello_lib.h \
   gnunet_helper_lib.h \
@@ -62,6 +63,7 @@ gnunetinclude_HEADERS = \
   gnunet_json_lib.h \
   gnunet_load_lib.h \
   gnunet_cadet_service.h \
+  gnunet_messenger_service.h \
   gnunet_mhd_compat.h \
   gnunet_microphone_lib.h \
   gnunet_mst_lib.h \

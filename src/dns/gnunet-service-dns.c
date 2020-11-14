@@ -557,7 +557,7 @@ next_phase (struct RequestRecord *rr)
   /* done with current phase, advance! */
   LOG (GNUNET_ERROR_TYPE_DEBUG,
        "Request %llu now in phase %d\n",
-       rr->request_id,
+       (unsigned long long) rr->request_id,
        rr->phase);
   switch (rr->phase)
   {

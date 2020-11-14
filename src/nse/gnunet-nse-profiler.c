@@ -391,8 +391,8 @@ stat_iterator (void *cls,
     flag = 1;
   size = GNUNET_asprintf (&output_buffer,
                           "%llu %llu %u\n",
-                          now.abs_value_us / 1000LL / 1000LL,
-                          value,
+                          (unsigned long long) now.abs_value_us / 1000LL / 1000LL,
+                          (unsigned long long) value,
                           flag);
   if (0 > size)
   {

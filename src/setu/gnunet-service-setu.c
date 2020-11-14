@@ -1431,7 +1431,7 @@ handle_union_p2p_strata_estimator (void *cls,
     LOG (GNUNET_ERROR_TYPE_DEBUG,
          "Deciding to go for full set transmission (diff=%d, own set=%llu)\n",
          diff,
-         op->initial_size);
+         (unsigned long long) op->initial_size);
     GNUNET_STATISTICS_update (_GSS_statistics,
                               "# of full sends",
                               1,
