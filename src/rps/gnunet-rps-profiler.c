@@ -2652,9 +2652,10 @@ pre_profiler (struct RPSPeer *rps_peer, struct GNUNET_RPS_Handle *h)
     store_prefix_file_name (rps_peer->index, "probs");
   rps_peer->file_name_probs_hist =
     store_prefix_file_name (rps_peer->index, "probs_hist");
+  rps_peer->eval_probs_cache = GNUNET_new_array (num_peers, double);
+  memset (rps_peer->eval_probs_cache, 0, num_peers * sizeof (double));
   GNUNET_RPS_view_request (h, 0, view_update_cb, rps_peer);
 }
-
 
 void
 write_final_stats (void)
