@@ -485,7 +485,7 @@ struct RPSPeer
   /**
    * Index of the peer.
    */
-  unsigned int index;
+  uint32_t index;
 
   /**
    * Handle for RPS connect operation.
@@ -1683,14 +1683,14 @@ mal_pre (struct RPSPeer *rps_peer, struct GNUNET_RPS_Handle *h)
 static void
 mal_cb (struct RPSPeer *rps_peer)
 {
-  uint32_t num_mal_peers;
-
   if ((GNUNET_YES == in_shutdown) || (GNUNET_YES == post_test))
   {
     return;
   }
 
   #if ENABLE_MALICIOUS
+  uint32_t num_mal_peers;
+
   GNUNET_assert ((1 >= portion) &&
                  (0 < portion));
   num_mal_peers = round (portion * num_peers);
@@ -2080,7 +2080,6 @@ profiler_reply_handle_info (void *cls,
   char *file_name_dh = file_name_dh_buf;
   char *file_name_dhr = file_name_dhr_buf;
   char *file_name_dhru = file_name_dhru_buf;
-  unsigned int i;
   struct PendingReply *pending_rep = (struct PendingReply *) cls;
 
   pending_rep->req_handle = NULL;
@@ -2106,7 +2105,7 @@ profiler_reply_handle_info (void *cls,
               "  %s\n",
               GNUNET_i2s (recv_peer));
   tofile (file_name,
-          "%s %d %" PRIu32 " \n",
+          "%s %f %" PRIu32 " \n",
           GNUNET_i2s_full (recv_peer),
           probability,
           num_observed);
@@ -2602,7 +2601,7 @@ view_update_cb (void *cls,
               "View was updated (%" PRIu64 ")\n", view_size);
   struct RPSPeer *rps_peer = (struct RPSPeer *) cls;
   to_file ("/tmp/rps/view_sizes.txt",
-           "%" PRIu64 " %" PRIu32 "",
+           "%" PRIu32 " %" PRIu64 "",
            rps_peer->index,
            view_size);
   for (uint64_t i = 0; i < view_size; i++)
@@ -2618,14 +2617,14 @@ view_update_cb (void *cls,
                  peers,
                  view_size * sizeof(struct GNUNET_PeerIdentity));
   to_file ("/tmp/rps/count_in_views.txt",
-           "%" PRIu64 " %" PRIu32 "",
+           "%" PRIu32 " %" PRIu32 "",
            rps_peer->index,
            count_peer_in_views_2 (rps_peer->index));
   cumulated_view_sizes ();
   if (0 != view_size)
   {
     to_file ("/tmp/rps/repr.txt",
-             "%" PRIu64  /* index */
+             "%" PRIu32  /* index */
              " %" PRIu32  /* occurrence in views */
              " %" PRIu32  /* view sizes */
              " %f"  /* fraction of repr in views */
@@ -2901,7 +2900,7 @@ post_profiler (struct RPSPeer *rps_peer)
       stat_cls->rps_peer = rps_peer;
       stat_cls->stat_type = stat_type;
       rps_peer->file_name_stats =
-        store_prefix_file_name (rps_peer->peer_id, "stats");
+        store_prefix_file_name (rps_peer->index, "stats");
       rps_peer->h_stat_get[stat_type] =
         GNUNET_STATISTICS_get (rps_peer->stats_h,
                                "rps",
@@ -3150,7 +3149,7 @@ run (void *cls,
               timeout.rel_value_us / 1000000);
 
   /* Compute number of bits for representing largest peer id */
-  for (bits_needed = 1; (1 << bits_needed) < num_peers; bits_needed++)
+  for (bits_needed = 1; (uint32_t) (1 << bits_needed) < num_peers; bits_needed++)
     ;
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Need %u bits to represent %" PRIu32 " peers\n",
