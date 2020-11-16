@@ -596,8 +596,10 @@ static const uint32_t num_valid_peers_max = UINT32_MAX;
 static void
 do_round (void *cls);
 
+#if ENABLE_MALICIOUS
 static void
 do_mal_round (void *cls);
+#endif /* ENABLE_MALICIOUS */
 
 
 /**

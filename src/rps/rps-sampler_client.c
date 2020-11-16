@@ -379,7 +379,8 @@ sampler_mod_get_rand_peer (void *cls)
     return;
   }
   /* compute probability */
-  /* Currently disabled due to numerical limitations */
+  /* FIXME: Currently disabled due to numerical limitations */
+  prob_observed_n = 0; // Inititialise to some value
   // prob_observed_n = prob_observed_n_peers (sampler->num_peers_estim,
   //                                         s_elem->num_peers,
   //                                         sampler->deficiency_factor);
