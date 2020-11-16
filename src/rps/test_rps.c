@@ -180,7 +180,7 @@ struct RPSPeer
   /**
    * Index of the peer.
    */
-  unsigned int index;
+  uint32_t index;
 
   /**
    * Handle for RPS connect operation.
@@ -2380,10 +2380,10 @@ view_update_cb (void *cls,
               "View was updated (%" PRIu64 ")\n", view_size);
   struct RPSPeer *rps_peer = (struct RPSPeer *) cls;
   to_file ("/tmp/rps/view_sizes.txt",
-           "%" PRIu64 " %" PRIu32 "",
+           "%" PRIu32 " %" PRIu64 "",
            rps_peer->index,
            view_size);
-  for (int i = 0; i < view_size; i++)
+  for (uint64_t i = 0; i < view_size; i++)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                 "\t%s\n", GNUNET_i2s (&peers[i]));
@@ -2396,14 +2396,14 @@ view_update_cb (void *cls,
                  peers,
                  view_size * sizeof(struct GNUNET_PeerIdentity));
   to_file ("/tmp/rps/count_in_views.txt",
-           "%" PRIu64 " %" PRIu32 "",
+           "%" PRIu32 " %" PRIu32 "",
            rps_peer->index,
            count_peer_in_views_2 (rps_peer->index));
   cumulated_view_sizes ();
   if (0 != view_size)
   {
     to_file ("/tmp/rps/repr.txt",
-             "%" PRIu64  /* index */
+             "%" PRIu32  /* index */
              " %" PRIu32  /* occurrence in views */
              " %" PRIu32  /* view sizes */
              " %f"  /* fraction of repr in views */
@@ -2428,7 +2428,7 @@ static void
 pre_profiler (struct RPSPeer *rps_peer, struct GNUNET_RPS_Handle *h)
 {
   rps_peer->file_name_probs =
-    store_prefix_file_name (rps_peer->peer_id, "probs");
+    store_prefix_file_name (rps_peer->index, "probs");
   GNUNET_RPS_view_request (h, 0, view_update_cb, rps_peer);
 }
 
