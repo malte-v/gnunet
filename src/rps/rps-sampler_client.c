@@ -258,39 +258,39 @@ RPS_sampler_mod_init (size_t init_size,
 }
 
 
-/**
- * @brief Compute the probability that we already observed all peers from a
- * biased stream of peer ids.
- *
- * Deficiency factor:
- * As introduced by Brahms: Factor between the number of unique ids in a
- * truly random stream and number of unique ids in the gossip stream.
- *
- * @param num_peers_estim The estimated number of peers in the network
- * @param num_peers_observed The number of peers the given element has observed
- * @param deficiency_factor A factor that catches the 'bias' of a random stream
- * of peer ids
- *
- * @return The estimated probability
- */
-static double
-prob_observed_n_peers (uint32_t num_peers_estim,
-                       uint32_t num_peers_observed,
-                       double deficiency_factor)
-{
-  uint32_t num_peers = num_peers_estim * (1 / deficiency_factor);
-  uint64_t sum = 0;
-
-  for (uint32_t i = 0; i < num_peers; i++)
-  {
-    uint64_t a = pow (-1, num_peers - i);
-    uint64_t b = binom (num_peers, i);
-    uint64_t c = pow (i, num_peers_observed);
-    sum += a * b * c;
-  }
-
-  return sum / (double) pow (num_peers, num_peers_observed);
-}
+// /**
+//  * @brief Compute the probability that we already observed all peers from a
+//  * biased stream of peer ids.
+//  *
+//  * Deficiency factor:
+//  * As introduced by Brahms: Factor between the number of unique ids in a
+//  * truly random stream and number of unique ids in the gossip stream.
+//  *
+//  * @param num_peers_estim The estimated number of peers in the network
+//  * @param num_peers_observed The number of peers the given element has observed
+//  * @param deficiency_factor A factor that catches the 'bias' of a random stream
+//  * of peer ids
+//  *
+//  * @return The estimated probability
+//  */
+// static double
+// prob_observed_n_peers (uint32_t num_peers_estim,
+//                        uint32_t num_peers_observed,
+//                        double deficiency_factor)
+// {
+//   uint32_t num_peers = num_peers_estim * (1 / deficiency_factor);
+//   uint64_t sum = 0;
+// 
+//   for (uint32_t i = 0; i < num_peers; i++)
+//   {
+//     uint64_t a = pow (-1, num_peers - i);
+//     uint64_t b = binom (num_peers, i);
+//     uint64_t c = pow (i, num_peers_observed);
+//     sum += a * b * c;
+//   }
+// 
+//   return sum / (double) pow (num_peers, num_peers_observed);
+// }
 
 
 /**

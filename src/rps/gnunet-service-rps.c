@@ -2466,6 +2466,7 @@ resize_wrapper (struct RPS_Sampler *sampler, uint32_t new_size)
 }
 
 
+#if ENABLE_MALICIOUS
 /**
  * Add all peers in @a peer_array to @a peer_map used as set.
  *
@@ -2502,6 +2503,7 @@ add_peer_array_to_set (const struct GNUNET_PeerIdentity *peer_array,
     }
   }
 }
+#endif /* ENABLE_MALICIOUS */
 
 
 /**
