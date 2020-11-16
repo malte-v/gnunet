@@ -73,7 +73,7 @@ close_all_files ();
                   "Failed to create tmp_buf\n"); \
       break; \
     } \
-    (void) strncat (tmp_buf, "\n", 512); \
+    (void) strncat (tmp_buf, "\n", 511); \
     GNUNET_DISK_file_write (get_file_handle (file_name), \
                             tmp_buf, \
                             strnlen (tmp_buf, 512)); \
@@ -94,8 +94,7 @@ close_all_files ();
                                                     "Failed to create tmp_buf\n"); \
                                                   break; \
                                                 } \
-                                                (void) strncat (tmp_buf, "\n", \
-                                                                len); \
+                                                (void) strncat (tmp_buf, "\n", 2); \
                                                 GNUNET_DISK_file_write ( \
                                                   get_file_handle (file_name), \
                                                   tmp_buf, \
