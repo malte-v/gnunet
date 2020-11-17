@@ -602,17 +602,8 @@ cleanup_client (struct IdpClient *idp)
 static void
 cleanup ()
 {
-  struct IdpClient *cl;
-
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Cleaning up\n");
 
-  while (NULL != (cl = client_list_head))
-  {
-    GNUNET_CONTAINER_DLL_remove (client_list_head,
-                                 client_list_tail,
-                                 cl);
-    cleanup_client (cl);
-  }
   RECLAIM_TICKETS_deinit ();
   if (NULL != timeout_task)
     GNUNET_SCHEDULER_cancel (timeout_task);
