@@ -59,10 +59,10 @@ static struct GNUNET_TIME_Relative duration;
 static struct GNUNET_TIME_Relative timeout;
 
 
-/**
- * Portion of malicious peers
- */
-static double portion = .1;
+// /**
+//  * Portion of malicious peers
+//  */
+// static double portion = .1;
 
 /**
  * Type of malicious peer to test
@@ -1229,29 +1229,6 @@ post_test_op (void *cls)
 
 
 /**
- * Seed peers.
- */
-static void
-seed_peers (void *cls)
-{
-  struct RPSPeer *peer = cls;
-  unsigned int amount;
-  unsigned int i;
-
-  // TODO if malicious don't seed mal peers
-  amount = round (.5 * num_peers);
-
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Seeding peers:\n");
-  for (i = 0; i < amount; i++)
-    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Seeding %u. peer: %s\n",
-                i,
-                GNUNET_i2s (&rps_peer_ids[i]));
-
-  GNUNET_RPS_seed_ids (peer->rps_handle, amount, rps_peer_ids);
-}
-
-
-/**
  * Get the id of peer i.
  */
 void
@@ -1635,76 +1612,76 @@ cancel_pending_req_rep (struct RPSPeer *rps_peer)
 * MALICIOUS
 ***********************************/
 
-/**
- * Initialise only non-mal RPSPeers
- */
-static void
-mal_init_peer (struct RPSPeer *rps_peer)
-{
-  if (rps_peer->index >= round (portion * num_peers))
-    rps_peer->num_ids_to_request = 1;
-}
+///**
+// * Initialise only non-mal RPSPeers
+// */
+//static void
+//mal_init_peer (struct RPSPeer *rps_peer)
+//{
+//  if (rps_peer->index >= round (portion * num_peers))
+//    rps_peer->num_ids_to_request = 1;
+//}
 
 
-/**
- * @brief Set peers to (non-)malicious before execution
- *
- * Of signature #PreTest
- *
- * @param rps_peer the peer to set (non-) malicious
- * @param h the handle to the service
- */
-static void
-mal_pre (struct RPSPeer *rps_peer, struct GNUNET_RPS_Handle *h)
-{
-  #if ENABLE_MALICIOUS
-  uint32_t num_mal_peers;
+///**
+// * @brief Set peers to (non-)malicious before execution
+// *
+// * Of signature #PreTest
+// *
+// * @param rps_peer the peer to set (non-) malicious
+// * @param h the handle to the service
+// */
+//static void
+//mal_pre (struct RPSPeer *rps_peer, struct GNUNET_RPS_Handle *h)
+//{
+//  #if ENABLE_MALICIOUS
+//  uint32_t num_mal_peers;
+//
+//  GNUNET_assert ((1 >= portion) &&
+//                 (0 < portion));
+//  num_mal_peers = round (portion * num_peers);
+//
+//  if (rps_peer->index < num_mal_peers)
+//  {
+//    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+//                "%u. peer [%s] of %" PRIu32
+//                " malicious peers turning malicious\n",
+//                rps_peer->index,
+//                GNUNET_i2s (rps_peer->peer_id),
+//                num_mal_peers);
+//
+//    GNUNET_RPS_act_malicious (h, mal_type, num_mal_peers,
+//                              rps_peer_ids, target_peer);
+//  }
+//  #endif /* ENABLE_MALICIOUS */
+//}
 
-  GNUNET_assert ((1 >= portion) &&
-                 (0 < portion));
-  num_mal_peers = round (portion * num_peers);
 
-  if (rps_peer->index < num_mal_peers)
-  {
-    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                "%u. peer [%s] of %" PRIu32
-                " malicious peers turning malicious\n",
-                rps_peer->index,
-                GNUNET_i2s (rps_peer->peer_id),
-                num_mal_peers);
-
-    GNUNET_RPS_act_malicious (h, mal_type, num_mal_peers,
-                              rps_peer_ids, target_peer);
-  }
-  #endif /* ENABLE_MALICIOUS */
-}
-
-
-static void
-mal_cb (struct RPSPeer *rps_peer)
-{
-  if ((GNUNET_YES == in_shutdown) || (GNUNET_YES == post_test))
-  {
-    return;
-  }
-
-  #if ENABLE_MALICIOUS
-  uint32_t num_mal_peers;
-
-  GNUNET_assert ((1 >= portion) &&
-                 (0 < portion));
-  num_mal_peers = round (portion * num_peers);
-
-  if (rps_peer->index >= num_mal_peers)
-  {   /* It's useless to ask a malicious peer about a random sample -
-         it's not sampling */
-    GNUNET_SCHEDULER_add_delayed (GNUNET_TIME_relative_multiply (
-                                    GNUNET_TIME_UNIT_SECONDS, 2),
-                                  seed_peers, rps_peer);
-    schedule_missing_requests (rps_peer);
-  }
-  #endif /* ENABLE_MALICIOUS */
-}
+// static void
+// mal_cb (struct RPSPeer *rps_peer)
+// {
+//   if ((GNUNET_YES == in_shutdown) || (GNUNET_YES == post_test))
+//   {
+//     return;
+//   }
+// 
+//   #if ENABLE_MALICIOUS
+//   uint32_t num_mal_peers;
+// 
+//   GNUNET_assert ((1 >= portion) &&
+//                  (0 < portion));
+//   num_mal_peers = round (portion * num_peers);
+// 
+//   if (rps_peer->index >= num_mal_peers)
+//   {   /* It's useless to ask a malicious peer about a random sample -
+//          it's not sampling */
+//     GNUNET_SCHEDULER_add_delayed (GNUNET_TIME_relative_multiply (
+//                                     GNUNET_TIME_UNIT_SECONDS, 2),
+//                                   seed_peers, rps_peer);
+//     schedule_missing_requests (rps_peer);
+//   }
+//   #endif /* ENABLE_MALICIOUS */
+// }
 
 
 /***********************************
@@ -1713,44 +1690,6 @@ mal_cb (struct RPSPeer *rps_peer)
 
 static void
 churn (void *cls);
-
-/**
- * @brief Starts churn
- *
- * Has signature of #MainTest
- *
- * This is not implemented too nicely as this is called for each peer, but we
- * only need to call it once. (Yes we check that we only schedule the task
- * once.)
- *
- * @param rps_peer The peer it's called for
- */
-static void
-churn_test_cb (struct RPSPeer *rps_peer)
-{
-  if ((GNUNET_YES == in_shutdown) || (GNUNET_YES == post_test))
-  {
-    return;
-  }
-
-  /* Start churn */
-  if ((HAVE_CHURN == cur_test_run.have_churn) && (NULL == churn_task))
-  {
-    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                "Starting churn task\n");
-    churn_task = GNUNET_SCHEDULER_add_delayed (
-      GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_SECONDS, 5),
-      churn,
-      NULL);
-  }
-  else
-  {
-    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                "Not starting churn task\n");
-  }
-
-  schedule_missing_requests (rps_peer);
-}
 
 
 /***********************************
@@ -2652,9 +2591,10 @@ pre_profiler (struct RPSPeer *rps_peer, struct GNUNET_RPS_Handle *h)
     store_prefix_file_name (rps_peer->index, "probs");
   rps_peer->file_name_probs_hist =
     store_prefix_file_name (rps_peer->index, "probs_hist");
+  rps_peer->eval_probs_cache = GNUNET_new_array (num_peers, double);
+  memset (rps_peer->eval_probs_cache, 0, num_peers * sizeof (double));
   GNUNET_RPS_view_request (h, 0, view_update_cb, rps_peer);
 }
-
 
 void
 write_final_stats (void)

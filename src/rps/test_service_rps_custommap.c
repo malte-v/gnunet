@@ -35,7 +35,7 @@ check ()
   struct CustomPeerMap *c_m;
   struct GNUNET_PeerIdentity k1;
   struct GNUNET_PeerIdentity k2;
-  int j;
+  unsigned int j;
 
   CHECK (NULL != (c_m = CustomPeerMap_create (4)));
   memset (&k1, 0, sizeof(k1));

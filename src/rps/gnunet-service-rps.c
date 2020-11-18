@@ -596,8 +596,10 @@ static const uint32_t num_valid_peers_max = UINT32_MAX;
 static void
 do_round (void *cls);
 
+#if ENABLE_MALICIOUS
 static void
 do_mal_round (void *cls);
+#endif /* ENABLE_MALICIOUS */
 
 
 /**
@@ -2464,6 +2466,7 @@ resize_wrapper (struct RPS_Sampler *sampler, uint32_t new_size)
 }
 
 
+#if ENABLE_MALICIOUS
 /**
  * Add all peers in @a peer_array to @a peer_map used as set.
  *
@@ -2500,6 +2503,7 @@ add_peer_array_to_set (const struct GNUNET_PeerIdentity *peer_array,
     }
   }
 }
+#endif /* ENABLE_MALICIOUS */
 
 
 /**
@@ -2948,12 +2952,16 @@ new_sub (const struct GNUNET_HashCode *hash,
 
   /* Logging of internals */
 #ifdef TO_FILE_FULL
-  sub->file_name_view_log = store_prefix_file_name (&own_identity, "view");
+  // FIXME: The service cannot know the index, which is required by this
+  // function:
+  // sub->file_name_view_log = store_prefix_file_name (&own_identity, "view");
 #endif /* TO_FILE_FULL */
 #ifdef TO_FILE
 #ifdef TO_FILE_FULL
-  sub->file_name_observed_log = store_prefix_file_name (&own_identity,
-                                                        "observed");
+  // FIXME: The service cannot know the index, which is required by this
+  // function:
+  // sub->file_name_observed_log = store_prefix_file_name (&own_identity,
+  //                                                       "observed");
 #endif /* TO_FILE_FULL */
   sub->num_observed_peers = 0;
   sub->observed_unique_peers = GNUNET_CONTAINER_multipeermap_create (1,
@@ -2981,46 +2989,50 @@ new_sub (const struct GNUNET_HashCode *hash,
 
 
 #ifdef TO_FILE
-/**
- * @brief Write all numbers in the given array into the given file
- *
- * Single numbers devided by a newline
- *
- * @param hist_array[] the array to dump
- * @param file_name file to dump into
- */
-static void
-write_histogram_to_file (const uint32_t hist_array[],
-                         const char *file_name)
-{
-  char collect_str[SIZE_DUMP_FILE + 1] = "";
-  char *recv_str_iter;
-  char *file_name_full;
-
-  recv_str_iter = collect_str;
-  file_name_full = store_prefix_file_name (&own_identity,
-                                           file_name);
-  for (uint32_t i = 0; i < HISTOGRAM_FILE_SLOTS; i++)
-  {
-    char collect_str_tmp[8];
-
-    GNUNET_snprintf (collect_str_tmp,
-                     sizeof(collect_str_tmp),
-                     "%" PRIu32 "\n",
-                     hist_array[i]);
-    recv_str_iter = stpncpy (recv_str_iter,
-                             collect_str_tmp,
-                             6);
-  }
-  (void) stpcpy (recv_str_iter,
-                 "\n");
-  LOG (GNUNET_ERROR_TYPE_DEBUG,
-       "Writing push stats to disk\n");
-  to_file_w_len (file_name_full,
-                 SIZE_DUMP_FILE, "%s",
-                 collect_str);
-  GNUNET_free (file_name_full);
-}
+// /**
+//  * @brief Write all numbers in the given array into the given file
+//  *
+//  * Single numbers devided by a newline
+//  *
+//  * FIXME: The call to store_prefix_file_name expects the index of the peer,
+//  * which cannot be known to the service.
+//  * Write a dedicated function that uses the peer id.
+//  *
+//  * @param hist_array[] the array to dump
+//  * @param file_name file to dump into
+//  */
+// static void
+// write_histogram_to_file (const uint32_t hist_array[],
+//                          const char *file_name)
+// {
+//   char collect_str[SIZE_DUMP_FILE + 1] = "";
+//   char *recv_str_iter;
+//   char *file_name_full;
+// 
+//   recv_str_iter = collect_str;
+//   file_name_full = store_prefix_file_name (&own_identity,
+//                                            file_name);
+//   for (uint32_t i = 0; i < HISTOGRAM_FILE_SLOTS; i++)
+//   {
+//     char collect_str_tmp[8];
+// 
+//     GNUNET_snprintf (collect_str_tmp,
+//                      sizeof(collect_str_tmp),
+//                      "%" PRIu32 "\n",
+//                      hist_array[i]);
+//     recv_str_iter = stpncpy (recv_str_iter,
+//                              collect_str_tmp,
+//                              6);
+//   }
+//   (void) stpcpy (recv_str_iter,
+//                  "\n");
+//   LOG (GNUNET_ERROR_TYPE_DEBUG,
+//        "Writing push stats to disk\n");
+//   to_file_w_len (file_name_full,
+//                  SIZE_DUMP_FILE, "%s",
+//                  collect_str);
+//   GNUNET_free (file_name_full);
+// }
 
 
 #endif /* TO_FILE */
@@ -3065,17 +3077,18 @@ destroy_sub (struct Sub *sub)
   sub->file_name_observed_log = NULL;
 #endif /* TO_FILE_FULL */
 
-  /* Write push frequencies to disk */
-  write_histogram_to_file (sub->push_recv,
-                           "push_recv");
+  // FIXME: Currently this calls malfunctionning code
+  // /* Write push frequencies to disk */
+  // write_histogram_to_file (sub->push_recv,
+  //                          "push_recv");
 
-  /* Write push deltas to disk */
-  write_histogram_to_file (sub->push_delta,
-                           "push_delta");
+  // /* Write push deltas to disk */
+  // write_histogram_to_file (sub->push_delta,
+  //                          "push_delta");
 
-  /* Write pull delays to disk */
-  write_histogram_to_file (sub->pull_delays,
-                           "pull_delays");
+  // /* Write pull delays to disk */
+  // write_histogram_to_file (sub->pull_delays,
+  //                          "pull_delays");
 
   GNUNET_CONTAINER_multipeermap_destroy (sub->observed_unique_peers);
   sub->observed_unique_peers = NULL;
