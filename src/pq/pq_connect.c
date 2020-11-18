@@ -223,6 +223,9 @@ GNUNET_PQ_run_sql (struct GNUNET_PQ_Context *db,
     return GNUNET_SYSERR;
   }
   load_path_suffix++; /* skip '/' */
+  GNUNET_log (GNUNET_ERROR_TYPE_INFO,
+              "Loading SQL resources from `%s'\n",
+              load_path);
   for (unsigned int i = 1; i<10000; i++)
   {
     enum GNUNET_DB_QueryStatus qs;
