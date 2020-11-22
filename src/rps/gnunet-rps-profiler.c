@@ -2375,6 +2375,7 @@ compute_probabilities (uint32_t peer_idx)
 
   to_file_w_len (rps_peers[peer_idx].file_name_probs,
                  probs_as_str_size,
+                 "%s",
                  probs_as_str);
 
   probs_as_str[0] = '\0';
@@ -2390,6 +2391,7 @@ compute_probabilities (uint32_t peer_idx)
 
   to_file_w_len (rps_peers[peer_idx].file_name_probs_hist,
                  probs_as_str_size,
+                 "%s",
                  probs_as_str);
   GNUNET_free (probs_as_str);
 }
