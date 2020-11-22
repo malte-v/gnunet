@@ -44,7 +44,7 @@ eval (unsigned int len)
   struct GNUNET_CRYPTO_RsaBlindingKeySecret bsec[10];
   unsigned int i;
   char sbuf[128];
-  char *bbuf;
+  void *bbuf;
   size_t bbuf_len;
   struct GNUNET_HashCode hc;
 
@@ -88,14 +88,16 @@ eval (unsigned int len)
           64 * 1024 / (1 +
                        GNUNET_TIME_absolute_get_duration
                        (start).rel_value_us / 1000LL), "keys/ms");
-   */start = GNUNET_TIME_absolute_get ();
+   */
+  start = GNUNET_TIME_absolute_get ();
   GNUNET_CRYPTO_hash ("test", 4, &hc);
   for (i = 0; i < 10; i++)
   {
     GNUNET_CRYPTO_rsa_blind (&hc,
                              &bsec[i],
                              public_key,
-                             &bbuf, &bbuf_len);
+                             &bbuf,
+                             &bbuf_len);
     GNUNET_free (bbuf);
   }
   printf ("10x %u-blinding took %s\n",
@@ -115,12 +117,14 @@ eval (unsigned int len)
   GNUNET_CRYPTO_rsa_blind (&hc,
                            &bsec[0],
                            public_key,
-                           &bbuf, &bbuf_len);
+                           &bbuf,
+                           &bbuf_len);
   start = GNUNET_TIME_absolute_get ();
   for (i = 0; i < 10; i++)
   {
     sig = GNUNET_CRYPTO_rsa_sign_blinded (private_key,
-                                          bbuf, bbuf_len);
+                                          bbuf,
+                                          bbuf_len);
     GNUNET_CRYPTO_rsa_signature_free (sig);
   }
   printf ("10x %u-signing took %s\n",
