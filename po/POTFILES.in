@@ -205,8 +205,8 @@ src/json/json_generator.c
 src/json/json_helper.c
 src/json/json_mhd.c
 src/messenger/gnunet-messenger.c
-src/messenger/gnunet-service-messenger.c
 src/messenger/gnunet-service-messenger_basement.c
+src/messenger/gnunet-service-messenger.c
 src/messenger/gnunet-service-messenger_contact.c
 src/messenger/gnunet-service-messenger_handle.c
 src/messenger/gnunet-service-messenger_list_handles.c
@@ -545,7 +545,5 @@ src/vpn/vpn_api.c
 src/zonemaster/gnunet-service-zonemaster.c
 src/zonemaster/gnunet-service-zonemaster-monitor.c
 src/fs/fs_api.h
-src/include/gnunet_identity_service.h
-src/include/gnunet_messenger_service.h
 src/testbed/testbed_api.h
 src/testbed/testbed_api_operations.h
