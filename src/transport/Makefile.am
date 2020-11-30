@@ -175,6 +175,7 @@ libgnunettransporttesting2_la_LIBADD = \
   libgnunettransportapplication.la \
   libgnunettransportcore.la \
   $(top_builddir)/src/testing/libgnunettesting.la \
+  $(top_builddir)/src/ats/libgnunetats.la \
   $(top_builddir)/src/hello/libgnunethello.la \
   $(top_builddir)/src/peerstore/libgnunetpeerstore.la \
   $(top_builddir)/src/util/libgnunetutil.la
