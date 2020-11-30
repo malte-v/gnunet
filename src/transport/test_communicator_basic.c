@@ -26,7 +26,7 @@
 */
 #include "platform.h"
 #include "gnunet_util_lib.h"
-#include "transport-testing2.h"
+#include "transport-testing-communicator.h"
 #include "gnunet_ats_transport_service.h"
 #include "gnunet_signatures.h"
 #include "gnunet_testing_lib.h"

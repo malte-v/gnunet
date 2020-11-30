@@ -19,7 +19,7 @@
  */
 
 /**
- * @file transport/transport-testing2.h
+ * @file transport/transport-testing-communicator.h
  * @brief functions and structures related to testing-tng
  * @author Christian Grothoff
  * @author Julius Bünger

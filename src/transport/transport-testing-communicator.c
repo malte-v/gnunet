@@ -19,7 +19,7 @@
  */
 
 /**
- * @file transport/transport-testing2.c
+ * @file transport/transport-testing-communicator.c
  * @brief functions related to testing-tng
  * @author Christian Grothoff
  * @author Julius Bünger
@@ -28,7 +28,7 @@
 #include "gnunet_util_lib.h"
 #include "gnunet_protocols.h"
 #include "gnunet_constants.h"
-#include "transport-testing2.h"
+#include "transport-testing-communicator.h"
 #include "gnunet_ats_transport_service.h"
 #include "gnunet_hello_lib.h"
 #include "gnunet_signatures.h"
