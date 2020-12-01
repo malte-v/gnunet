@@ -168,10 +168,16 @@ libgnunettransporttesting_la_LDFLAGS = \
  $(GN_LIB_LDFLAGS)
 
 libgnunettransporttesting2_la_SOURCES = \
-  transport-testing2.c transport-testing2.h
+  transport-testing2.c transport-testing2.h \
+  transport-testing-communicator.c transport-testing-communicator.h
 libgnunettransporttesting2_la_LIBADD = \
   libgnunettransport.la \
+  libgnunettransportapplication.la \
+  libgnunettransportcore.la \
+  $(top_builddir)/src/testing/libgnunettesting.la \
+  $(top_builddir)/src/ats/libgnunetats.la \
   $(top_builddir)/src/hello/libgnunethello.la \
+  $(top_builddir)/src/peerstore/libgnunetpeerstore.la \
   $(top_builddir)/src/util/libgnunetutil.la
 libgnunettransporttesting2_la_LDFLAGS = \
   $(GN_LIBINTL) \

@@ -26,11 +26,12 @@
 */
 #include "platform.h"
 #include "gnunet_util_lib.h"
-#include "transport-testing2.h"
+#include "transport-testing-communicator.h"
 #include "gnunet_ats_transport_service.h"
 #include "gnunet_signatures.h"
 #include "gnunet_testing_lib.h"
 #include "transport.h"
+#include "gnunet_statistics_service.h"
 
 #include <inttypes.h>
 
@@ -54,6 +55,8 @@ GNUNET_TRANSPORT_TESTING_TransportCommunicatorHandle *tc_hs[NUM_PEERS];
 
 static struct GNUNET_CONFIGURATION_Handle *cfg_peers[NUM_PEERS];
 
+static struct GNUNET_STATISTICS_Handle *stats[NUM_PEERS];
+
 static char *cfg_peers_name[NUM_PEERS];
 
 static int ret;
@@ -67,6 +70,8 @@ static struct GNUNET_TIME_Absolute start_long;
 static struct GNUNET_TIME_Absolute timeout;
 
 static struct GNUNET_TRANSPORT_TESTING_TransportCommunicatorHandle *my_tc;
+
+static char *test_name;
 
 #define SHORT_MESSAGE_SIZE 128
 
@@ -509,6 +514,16 @@ update_avg_latency (const char*payload)
 
 }
 
+static int
+process_statistics (void *cls,
+                    const char *subsystem,
+                    const char *name,
+                    uint64_t value,
+                    int is_persistent)
+{
+  return GNUNET_OK;
+}
+
 /**
  * @brief Handle an incoming message
  *
@@ -645,6 +660,15 @@ incoming_message_cb (void *cls,
           short_test (NULL);
           break;
         }
+        /* if (("rekey" == test_name) || ("backchannel" == test_name)) */
+        /* { */
+        /*   GNUNET_STATISTICS_get (stats[1], */
+        /*                          "C-UDP", */
+        /*                          "# bytes decrypted with Rekey", */
+        /*                          NULL, */
+        /*                          &process_statistics, */
+        /*                          NULL); */
+        /* } */
         LOG (GNUNET_ERROR_TYPE_DEBUG,
              "Finished\n");
         GNUNET_SCHEDULER_shutdown ();
@@ -695,6 +719,12 @@ run (void *cls)
       &incoming_message_cb,
       &handle_backchannel_cb,
       cfg_peers_name[i]);   /* cls */
+
+    /* if (("rekey" == test_name) || ("backchannel" == test_name)) */
+    /* { */
+    /*   stats[i] = GNUNET_STATISTICS_create ("C-UDP", */
+    /*                                        cfg_peers[i]); */
+    /* } */
   }
   GNUNET_SCHEDULER_add_shutdown (&do_shutdown,
                                  NULL);
@@ -708,7 +738,6 @@ main (int argc,
   struct GNUNET_CRYPTO_EddsaPrivateKey *private_key;
   char *communicator_name;
   char *test_mode;
-  char *test_name;
   char *cfg_peer;
 
   phase = TP_INIT;
