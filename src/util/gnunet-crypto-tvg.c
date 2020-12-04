@@ -22,11 +22,33 @@
  * @file util/gnunet-crypto-tgv.c
  * @brief Generate test vectors for cryptographic operations.
  * @author Florian Dold
+ *
+ * Test vectors have the following format (TypeScript pseudo code):
+ *
+ * interface TestVectorFile {
+ *   encoding: "base32crockford";
+ *   producer?: string;
+ *   vectors: TestVector[];
+ * }
+ *
+ * enum Operation {
+ *  Hash("hash"),
+ *  ...
+ * }
+ *
+ * interface TestVector {
+ *   operation: Operation;
+ *   // Inputs for the operation
+ *   [ k: string]: string | number;
+ * };
+ *
+ *
  */
 #include "platform.h"
 #include "gnunet_util_lib.h"
 #include "gnunet_signatures.h"
 #include "gnunet_testing_lib.h"
+#include <jansson.h>
 #include <gcrypt.h>
 
 GNUNET_NETWORK_STRUCT_BEGIN
@@ -46,20 +68,68 @@ GNUNET_NETWORK_STRUCT_END
 
 
 /**
- * Print data base32-crockford with a preceding label.
+ * Create a fresh test vector for a given operation label.
  *
- * @param label label to print
- * @param data data to print
+ * @param vecs array of vectors to append the new vector to
+ * @param vecname label for the operation of the vector
+ * @returns the fresh test vector
+ */
+static json_t *
+vec_for (json_t *vecs, const char *vecname)
+{
+  json_t *t = json_object ();
+
+  json_object_set_new (t,
+                       "operation",
+                       json_string (vecname));
+  json_array_append_new (vecs, t);
+  return t;
+}
+
+
+/**
+ * Add a base32crockford encoded value
+ * to a test vector.
+ *
+ * @param vec test vector to add to
+ * @param label label for the value
+ * @param data data to add
  * @param size size of data
  */
 static void
-display_data (char *label, void *data, size_t size)
+d2j (json_t *vec,
+     const char *label,
+     const void *data,
+     size_t size)
 {
-  char *enc = GNUNET_STRINGS_data_to_string_alloc (data, size);
-  printf ("%s %s\n", label, enc);
-  GNUNET_free (enc);
+  char *buf;
+  json_t *json;
+
+  buf = GNUNET_STRINGS_data_to_string_alloc (data, size);
+  json = json_string (buf);
+  GNUNET_free (buf);
+  GNUNET_break (NULL != json);
+
+  json_object_set_new (vec, label, json);
 }
 
+/**
+ * Add a number to a test vector.
+ *
+ * @param vec test vector to add to
+ * @param label label for the value
+ * @param data data to add
+ * @param size size of data
+ */
+static void
+uint2j (json_t *vec,
+     const char *label,
+     unsigned int num)
+{
+  json_t *json = json_integer (num);
+
+  json_object_set_new (vec, label, json);
+}
 
 /**
  * Main function that will be run.
@@ -75,17 +145,31 @@ run (void *cls,
      const char *cfgfile,
      const struct GNUNET_CONFIGURATION_Handle *cfg)
 {
+  json_t *vecfile = json_object ();
+  json_t *vecs = json_array ();
+
+  json_object_set_new (vecfile,
+                       "encoding",
+                       json_string ("base32crockford"));
+  json_object_set_new (vecfile,
+                       "producer",
+                       json_string ("GNUnet " PACKAGE_VERSION " " VCS_VERSION));
+  json_object_set_new (vecfile,
+                       "vectors",
+                       vecs);
+
   {
+    json_t *vec = vec_for (vecs, "hash");
     struct GNUNET_HashCode hc;
     char *str = "Hello, GNUnet";
 
     GNUNET_CRYPTO_hash (str, strlen (str), &hc);
 
-    printf ("hash code:\n");
-    display_data ("  input", str, strlen (str));
-    display_data ("  output", &hc, sizeof (struct GNUNET_HashCode));
+    d2j (vec, "input", str, strlen (str));
+    d2j (vec, "output", &hc, sizeof (struct GNUNET_HashCode));
   }
   {
+    json_t *vec = vec_for (vecs, "ecdhe_key_derivation");
     struct GNUNET_CRYPTO_EcdhePrivateKey priv1;
     struct GNUNET_CRYPTO_EcdhePublicKey pub1;
     struct GNUNET_CRYPTO_EcdhePrivateKey priv2;
@@ -100,22 +184,26 @@ run (void *cls,
                                            &pub1,
                                            &skm));
 
-    printf ("ecdhe key:\n");
-    display_data ("  priv1",
-                  &priv1,
-                  sizeof (struct GNUNET_CRYPTO_EcdhePrivateKey));
-    display_data ("  pub1",
-                  &pub1,
-                  sizeof (struct GNUNET_CRYPTO_EcdhePublicKey));
-    display_data ("  priv2",
-                  &priv2,
-                  sizeof (struct GNUNET_CRYPTO_EcdhePrivateKey));
-    display_data ("  skm",
-                  &skm,
-                  sizeof (struct GNUNET_HashCode));
+    d2j (vec,
+         "priv1",
+         &priv1,
+         sizeof (struct GNUNET_CRYPTO_EcdhePrivateKey));
+    d2j (vec,
+         "pub1",
+         &pub1,
+         sizeof (struct GNUNET_CRYPTO_EcdhePublicKey));
+    d2j (vec,
+         "priv2",
+         &priv2,
+         sizeof (struct GNUNET_CRYPTO_EcdhePrivateKey));
+    d2j (vec,
+         "skm",
+         &skm,
+         sizeof (struct GNUNET_HashCode));
   }
 
   {
+    json_t *vec = vec_for (vecs, "eddsa_key_derivation");
     struct GNUNET_CRYPTO_EddsaPrivateKey priv;
     struct GNUNET_CRYPTO_EddsaPublicKey pub;
 
@@ -123,15 +211,17 @@ run (void *cls,
     GNUNET_CRYPTO_eddsa_key_get_public (&priv,
                                         &pub);
 
-    printf ("eddsa key:\n");
-    display_data ("  priv",
-                  &priv,
-                  sizeof (struct GNUNET_CRYPTO_EddsaPrivateKey));
-    display_data ("  pub",
-                  &pub,
-                  sizeof (struct GNUNET_CRYPTO_EddsaPublicKey));
+    d2j (vec,
+         "priv",
+         &priv,
+         sizeof (struct GNUNET_CRYPTO_EddsaPrivateKey));
+    d2j (vec,
+         "pub",
+         &pub,
+         sizeof (struct GNUNET_CRYPTO_EddsaPublicKey));
   }
   {
+    json_t *vec = vec_for (vecs, "eddsa_signing");
     struct GNUNET_CRYPTO_EddsaPrivateKey priv;
     struct GNUNET_CRYPTO_EddsaPublicKey pub;
     struct GNUNET_CRYPTO_EddsaSignature sig;
@@ -151,22 +241,26 @@ run (void *cls,
                                                &sig,
                                                &pub));
 
-    printf ("eddsa sig:\n");
-    display_data ("  priv",
-                  &priv,
-                  sizeof (struct GNUNET_CRYPTO_EddsaPrivateKey));
-    display_data ("  pub",
-                  &pub,
-                  sizeof (struct GNUNET_CRYPTO_EddsaPublicKey));
-    display_data ("  data",
-                  &data,
-                  sizeof (struct TestSignatureDataPS));
-    display_data ("  sig",
-                  &sig,
-                  sizeof (struct GNUNET_CRYPTO_EddsaSignature));
+    d2j (vec,
+         "priv",
+         &priv,
+         sizeof (struct GNUNET_CRYPTO_EddsaPrivateKey));
+    d2j (vec,
+         "pub",
+         &pub,
+         sizeof (struct GNUNET_CRYPTO_EddsaPublicKey));
+    d2j (vec,
+         "data",
+         &data,
+         sizeof (struct TestSignatureDataPS));
+    d2j (vec,
+         "sig",
+         &sig,
+         sizeof (struct GNUNET_CRYPTO_EddsaSignature));
   }
 
   {
+    json_t *vec = vec_for (vecs, "kdf");
     size_t out_len = 64;
     char out[out_len];
     char *ikm = "I'm the secret input key material";
@@ -184,14 +278,28 @@ run (void *cls,
                                       strlen (ctx),
                                       NULL));
 
-    printf ("kdf:\n");
-    display_data ("  salt", salt, strlen (salt));
-    display_data ("  ikm", ikm, strlen (ikm));
-    display_data ("  ctx", ctx, strlen (ctx));
-    printf ("  out_len %u\n", (unsigned int) out_len);
-    display_data ("  out", out, out_len);
+    d2j (vec,
+         "salt",
+         salt,
+         strlen (salt));
+    d2j (vec,
+         "ikm",
+         ikm,
+         strlen (ikm));
+    d2j (vec,
+         "ctx",
+         ctx,
+         strlen (ctx));
+    uint2j (vec,
+            "out_len %u\n",
+            (unsigned int) out_len);
+    d2j (vec,
+         "out",
+         out,
+         out_len);
   }
   {
+    json_t *vec = vec_for (vecs, "eddsa_ecdh");
     struct GNUNET_CRYPTO_EcdhePrivateKey priv_ecdhe;
     struct GNUNET_CRYPTO_EcdhePublicKey pub_ecdhe;
     struct GNUNET_CRYPTO_EddsaPrivateKey priv_eddsa;
@@ -204,25 +312,26 @@ run (void *cls,
     GNUNET_CRYPTO_eddsa_key_get_public (&priv_eddsa, &pub_eddsa);
     GNUNET_CRYPTO_ecdh_eddsa (&priv_ecdhe, &pub_eddsa, &key_material);
 
-    printf ("eddsa_ecdh:\n");
-    display_data ("  priv_ecdhe",
+    d2j (vec, "priv_ecdhe",
                   &priv_ecdhe,
                   sizeof (struct GNUNET_CRYPTO_EcdhePrivateKey));
-    display_data ("  pub_ecdhe",
+    d2j (vec, "pub_ecdhe",
                   &pub_ecdhe,
                   sizeof (struct GNUNET_CRYPTO_EcdhePublicKey));
-    display_data ("  priv_eddsa",
+    d2j (vec, "priv_eddsa",
                   &priv_eddsa,
                   sizeof (struct GNUNET_CRYPTO_EddsaPrivateKey));
-    display_data ("  pub_eddsa",
+    d2j (vec, "pub_eddsa",
                   &pub_eddsa,
                   sizeof (struct GNUNET_CRYPTO_EddsaPublicKey));
-    display_data ("  key_material",
+    d2j (vec, "key_material",
                   &key_material,
                   sizeof (struct GNUNET_HashCode));
   }
 
   {
+    json_t *vec = vec_for (vecs, "rsa_blind_signing");
+
     struct GNUNET_CRYPTO_RsaPrivateKey *skey;
     struct GNUNET_CRYPTO_RsaPublicKey *pkey;
     struct GNUNET_HashCode message_hash;
@@ -237,6 +346,7 @@ run (void *cls,
     size_t blinded_sig_enc_length;
     void *sig_enc_data;
     size_t sig_enc_length;
+
     skey = GNUNET_CRYPTO_rsa_private_key_create (2048);
     pkey = GNUNET_CRYPTO_rsa_private_key_get_public (skey);
     GNUNET_CRYPTO_random_block (GNUNET_CRYPTO_QUALITY_WEAK,
@@ -263,21 +373,43 @@ run (void *cls,
                                                                  &
                                                                  blinded_sig_enc_data);
     sig_enc_length = GNUNET_CRYPTO_rsa_signature_encode (sig, &sig_enc_data);
-    printf ("blind signing:\n");
-    display_data ("  message_hash", &message_hash, sizeof (struct
-                                                           GNUNET_HashCode));
-    display_data ("  rsa_public_key", public_enc_data, public_enc_len);
-    display_data ("  blinding_key_secret", &bks, sizeof (struct
-                                                         GNUNET_CRYPTO_RsaBlindingKeySecret));
-    display_data ("  blinded_message", blinded_data, blinded_len);
-    display_data ("  blinded_sig", blinded_sig_enc_data,
-                  blinded_sig_enc_length);
-    display_data ("  sig", sig_enc_data, sig_enc_length);
+    d2j (vec,
+         "message_hash",
+         &message_hash,
+         sizeof (struct GNUNET_HashCode));
+    d2j (vec,
+         "rsa_public_key",
+         public_enc_data,
+         public_enc_len);
+    d2j (vec,
+         "blinding_key_secret",
+         &bks,
+         sizeof (struct GNUNET_CRYPTO_RsaBlindingKeySecret));
+    d2j (vec,
+         "blinded_message",
+         blinded_data,
+         blinded_len);
+    d2j (vec,
+         "blinded_sig",
+         blinded_sig_enc_data,
+         blinded_sig_enc_length);
+    d2j (vec,
+         "sig",
+         sig_enc_data,
+         sig_enc_length);
     GNUNET_CRYPTO_rsa_private_key_free (skey);
     GNUNET_CRYPTO_rsa_public_key_free (pkey);
     GNUNET_CRYPTO_rsa_signature_free (sig);
     GNUNET_CRYPTO_rsa_signature_free (blinded_sig);
+    GNUNET_free (public_enc_data);
+    GNUNET_free (blinded_data);
+    GNUNET_free (sig_enc_data);
+    GNUNET_free (blinded_sig_enc_data);
   }
+
+  json_dumpf (vecfile, stdout, JSON_INDENT (2));
+  json_decref (vecfile);
+  printf ("\n");
 }
 
 

@@ -138,7 +138,7 @@ libgnunetutil_la_LIBADD = \
 
 libgnunetutil_la_LDFLAGS = \
   $(GN_LIB_LDFLAGS) \
-  -version-info 13:2:0
+  -version-info 13:2:1
 
 if HAVE_TESTING
   GNUNET_ECC = gnunet-ecc
@@ -195,7 +195,7 @@ gnunet_crypto_tvg_SOURCES = \
  gnunet-crypto-tvg.c
 gnunet_crypto_tvg_LDADD = \
   libgnunetutil.la \
-  $(GN_LIBINTL) -lgcrypt
+  $(GN_LIBINTL) -lgcrypt -ljansson
 
 gnunet_ecc_SOURCES = \
  gnunet-ecc.c
