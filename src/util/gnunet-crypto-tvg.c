@@ -188,8 +188,15 @@ expect_data_dynamic (json_t *vec,
   return GNUNET_OK;
 }
 
-#define RETONERR(x) do { int v = x; if (GNUNET_OK != v) return v; } while (0)
 
+/**
+ * Check a single vector.
+ *
+ * @param operation operator of the vector
+ * @param vec the vector, a JSON object.
+ *
+ * @returns GNUNET_OK if the vector is okay
+ */
 static int 
 checkvec (const char *operation,
           json_t *vec)
