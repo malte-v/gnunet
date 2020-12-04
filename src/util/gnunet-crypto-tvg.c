@@ -23,6 +23,9 @@
  * @brief Generate test vectors for cryptographic operations.
  * @author Florian Dold
  *
+ * Note that this program shouldn't depend on code in src/json/,
+ * so we're using raw jansson and no GNUnet JSON helpers.
+ *
  * Test vectors have the following format (TypeScript pseudo code):
  *
  * interface TestVectorFile {
@@ -65,6 +68,18 @@ struct TestSignatureDataPS
 };
 
 GNUNET_NETWORK_STRUCT_END
+
+
+/**
+ * Should we verify or output test vectors?
+ */
+static int verify_flag = GNUNET_NO;
+
+
+/**
+ * Global exit code.
+ */
+static int global_ret = 0;
 
 
 /**
@@ -131,19 +146,552 @@ uint2j (json_t *vec,
   json_object_set_new (vec, label, json);
 }
 
+
+static int
+expect_data_fixed (json_t *vec,
+                   const char *name,
+                   void *data,
+                   size_t expect_len)
+{
+  const char *s = json_string_value (json_object_get (vec, name));
+  
+  if (NULL == s)
+    return GNUNET_NO;
+
+  if (GNUNET_OK != GNUNET_STRINGS_string_to_data (s,
+                                                  strlen (s),
+                                                  data,
+                                                  expect_len))
+    return GNUNET_NO;
+  return GNUNET_OK;
+}
+
+static int
+expect_data_dynamic (json_t *vec,
+                     const char *name,
+                     void **data,
+                     size_t *ret_len)
+{
+  const char *s = json_string_value (json_object_get (vec, name));
+  size_t len;
+
+  if (NULL == s)
+    return GNUNET_NO;
+
+  len = (strlen (s) * 5) / 8;
+  if (NULL != ret_len)
+    *ret_len = len;
+  *data = GNUNET_malloc (len);
+
+  if (GNUNET_OK != GNUNET_STRINGS_string_to_data (s, strlen (s), *data, len))
+    return GNUNET_NO;
+  return GNUNET_OK;
+}
+
+#define RETONERR(x) do { int v = x; if (GNUNET_OK != v) return v; } while (0)
+
+static int 
+checkvec (const char *operation,
+          json_t *vec)
+{
+  GNUNET_log (GNUNET_ERROR_TYPE_INFO,
+              "checking %s\n", operation);
+
+  if (0 == strcmp (operation, "hash"))
+  {
+    void *data;
+    size_t data_len;
+    struct GNUNET_HashCode hash_out;
+    struct GNUNET_HashCode hc;
+
+    if (GNUNET_OK != expect_data_dynamic (vec,
+                                          "input",
+                                          &data,
+                                          &data_len))
+    {
+      GNUNET_break (0);
+      return GNUNET_SYSERR;
+    }
+    if (GNUNET_OK != expect_data_fixed (vec,
+                                 "output",
+                                 &hash_out,
+                                 sizeof (hash_out)))
+    {
+      GNUNET_break (0);
+      return GNUNET_NO;
+    }
+
+    GNUNET_CRYPTO_hash (data, data_len, &hc);
+
+    if (0 != GNUNET_memcmp (&hc, &hash_out))
+    {
+      GNUNET_break (0);
+      return GNUNET_NO;
+    }
+  }
+  else if (0 == strcmp (operation, "ecc_ecdh"))
+  {
+    struct GNUNET_CRYPTO_EcdhePrivateKey priv1;
+    struct GNUNET_CRYPTO_EcdhePublicKey pub1;
+    struct GNUNET_CRYPTO_EcdhePrivateKey priv2;
+    struct GNUNET_HashCode skm;
+    struct GNUNET_HashCode skm_comp;
+
+    if (GNUNET_OK != expect_data_fixed (vec,
+                                 "priv1",
+                                 &priv1,
+                                 sizeof (priv1)))
+    {
+      GNUNET_break (0);
+      return GNUNET_NO;
+    }
+    if (GNUNET_OK != expect_data_fixed (vec,
+                                 "priv2",
+                                 &priv2,
+                                 sizeof (priv2)))
+    {
+      GNUNET_break (0);
+      return GNUNET_NO;
+    }
+    if (GNUNET_OK != expect_data_fixed (vec,
+                                 "pub1",
+                                 &pub1,
+                                 sizeof (pub1)))
+    {
+      GNUNET_break (0);
+      return GNUNET_NO;
+    }
+    if (GNUNET_OK != expect_data_fixed (vec,
+                                 "skm",
+                                 &skm,
+                                 sizeof (skm)))
+    {
+      GNUNET_break (0);
+      return GNUNET_NO;
+    }
+    GNUNET_assert (GNUNET_OK ==
+                   GNUNET_CRYPTO_ecc_ecdh (&priv2,
+                                           &pub1,
+                                           &skm_comp));
+    if (0 != GNUNET_memcmp (&skm, &skm_comp))
+    {
+      GNUNET_break (0);
+      return GNUNET_NO;
+    }
+  }
+  else if (0 == strcmp (operation, "eddsa_key_derivation"))
+  {
+    struct GNUNET_CRYPTO_EddsaPrivateKey priv;
+    struct GNUNET_CRYPTO_EddsaPublicKey pub;
+    struct GNUNET_CRYPTO_EddsaPublicKey pub_comp;
+
+    if (GNUNET_OK != expect_data_fixed (vec,
+                                        "priv",
+                                        &priv,
+                                        sizeof (priv)))
+    {
+      GNUNET_break (0);
+      return GNUNET_NO;
+    }
+
+    if (GNUNET_OK != expect_data_fixed (vec,
+                                        "pub",
+                                        &pub,
+                                        sizeof (pub)))
+    {
+      GNUNET_break (0);
+      return GNUNET_NO;
+    }
+
+    GNUNET_CRYPTO_eddsa_key_get_public (&priv,
+                                        &pub_comp);
+    if (0 != GNUNET_memcmp (&pub, &pub_comp))
+    {
+      GNUNET_break (0);
+      return GNUNET_NO;
+    }
+
+  }
+  else if (0 == strcmp (operation, "eddsa_signing"))
+  {
+    struct GNUNET_CRYPTO_EddsaPrivateKey priv;
+    struct GNUNET_CRYPTO_EddsaPublicKey pub;
+    struct TestSignatureDataPS data = { 0 };
+    struct GNUNET_CRYPTO_EddsaSignature sig;
+    struct GNUNET_CRYPTO_EddsaSignature sig_comp;
+
+    if (GNUNET_OK != expect_data_fixed (vec,
+                                        "priv",
+                                        &priv,
+                                        sizeof (priv)))
+    {
+      GNUNET_break (0);
+      return GNUNET_NO;
+    }
+
+    if (GNUNET_OK != expect_data_fixed (vec,
+                                        "pub",
+                                        &pub,
+                                        sizeof (pub)))
+    {
+      GNUNET_break (0);
+      return GNUNET_NO;
+    }
+
+    if (GNUNET_OK != expect_data_fixed (vec,
+                                        "data",
+                                        &data,
+                                        sizeof (data)))
+    {
+      GNUNET_break (0);
+      return GNUNET_NO;
+    }
+
+    if (GNUNET_OK != expect_data_fixed (vec,
+                                        "sig",
+                                        &sig,
+                                        sizeof (sig)))
+    {
+      GNUNET_break (0);
+      return GNUNET_NO;
+    }
+
+    GNUNET_CRYPTO_eddsa_sign (&priv,
+                              &data,
+                              &sig_comp);
+    GNUNET_assert (GNUNET_OK ==
+                   GNUNET_CRYPTO_eddsa_verify (GNUNET_SIGNATURE_PURPOSE_TEST,
+                                               &data,
+                                               &sig,
+                                               &pub));
+    if (0 != GNUNET_memcmp (&sig, &sig_comp))
+    {
+      GNUNET_break (0);
+      return GNUNET_NO;
+    }
+  }
+  else if (0 == strcmp (operation, "kdf"))
+  {
+    size_t out_len;
+    void *out;
+    size_t out_len_comp;
+    void *out_comp;
+    void *ikm;
+    size_t ikm_len;
+    void *salt;
+    size_t salt_len;
+    void *ctx;
+    size_t ctx_len;
+
+    if (GNUNET_OK != expect_data_dynamic (vec,
+                                          "out",
+                                          &out,
+                                          &out_len))
+    {
+      GNUNET_break (0);
+      return GNUNET_SYSERR;
+    }
+
+    out_len_comp = out_len;
+    out_comp = GNUNET_malloc (out_len_comp);
+
+    if (GNUNET_OK != expect_data_dynamic (vec,
+                                          "ikm",
+                                          &ikm,
+                                          &ikm_len))
+    {
+      GNUNET_break (0);
+      return GNUNET_SYSERR;
+    }
+
+    if (GNUNET_OK != expect_data_dynamic (vec,
+                                          "salt",
+                                          &salt,
+                                          &salt_len))
+    {
+      GNUNET_break (0);
+      return GNUNET_SYSERR;
+    }
+
+    if (GNUNET_OK != expect_data_dynamic (vec,
+                                          "ctx",
+                                          &ctx,
+                                          &ctx_len))
+    {
+      GNUNET_break (0);
+      return GNUNET_SYSERR;
+    }
+
+    GNUNET_assert (GNUNET_OK ==
+                   GNUNET_CRYPTO_kdf (out_comp,
+                                      out_len_comp,
+                                      salt,
+                                      salt_len,
+                                      ikm,
+                                      ikm_len,
+                                      ctx,
+                                      ctx_len,
+                                      NULL));
+
+    if (0 != memcmp (out, out_comp, out_len))
+    {
+      GNUNET_break (0);
+      return GNUNET_NO;
+    }
+
+  }
+  else if (0 == strcmp (operation, "eddsa_ecdh"))
+  {
+    struct GNUNET_CRYPTO_EcdhePrivateKey priv_ecdhe;
+    struct GNUNET_CRYPTO_EcdhePublicKey pub_ecdhe;
+    struct GNUNET_CRYPTO_EddsaPrivateKey priv_eddsa;
+    struct GNUNET_CRYPTO_EddsaPublicKey pub_eddsa;
+    struct GNUNET_HashCode key_material;
+    struct GNUNET_HashCode key_material_comp;
+
+    if (GNUNET_OK != expect_data_fixed (vec,
+                                        "priv_ecdhe",
+                                        &priv_ecdhe,
+                                        sizeof (priv_ecdhe)))
+    {
+      GNUNET_break (0);
+      return GNUNET_NO;
+    }
+
+    if (GNUNET_OK != expect_data_fixed (vec,
+                                        "pub_ecdhe",
+                                        &pub_ecdhe,
+                                        sizeof (pub_ecdhe)))
+    {
+      GNUNET_break (0);
+      return GNUNET_NO;
+    }
+
+    if (GNUNET_OK != expect_data_fixed (vec,
+                                        "priv_eddsa",
+                                        &priv_eddsa,
+                                        sizeof (priv_eddsa)))
+    {
+      GNUNET_break (0);
+      return GNUNET_NO;
+    }
+
+    if (GNUNET_OK != expect_data_fixed (vec,
+                                        "pub_eddsa",
+                                        &pub_eddsa,
+                                        sizeof (pub_eddsa)))
+    {
+      GNUNET_break (0);
+      return GNUNET_NO;
+    }
+
+    if (GNUNET_OK != expect_data_fixed (vec,
+                                        "key_material",
+                                        &key_material,
+                                        sizeof (key_material)))
+    {
+      GNUNET_break (0);
+      return GNUNET_NO;
+    }
+
+    GNUNET_CRYPTO_ecdh_eddsa (&priv_ecdhe, &pub_eddsa, &key_material_comp);
+
+    if (0 != GNUNET_memcmp (&key_material, &key_material_comp))
+    {
+      GNUNET_break (0);
+      return GNUNET_NO;
+    }
+  }
+  else if (0 == strcmp (operation, "rsa_blind_signing"))
+  {
+    struct GNUNET_CRYPTO_RsaPrivateKey *skey;
+    struct GNUNET_CRYPTO_RsaPublicKey *pkey;
+    struct GNUNET_HashCode message_hash;
+    struct GNUNET_CRYPTO_RsaBlindingKeySecret bks;
+    struct GNUNET_CRYPTO_RsaSignature *blinded_sig;
+    struct GNUNET_CRYPTO_RsaSignature *sig;
+    void *blinded_data;
+    size_t blinded_len;
+    void *blinded_data_comp;
+    size_t blinded_len_comp;
+    void *public_enc_data;
+    size_t public_enc_len;
+    void *secret_enc_data;
+    size_t secret_enc_len;
+    void *sig_enc_data;
+    size_t sig_enc_length;
+    void *sig_enc_data_comp;
+    size_t sig_enc_length_comp;
+
+    if (GNUNET_OK != expect_data_fixed (vec,
+                                        "message_hash",
+                                        &message_hash,
+                                        sizeof (message_hash)))
+    {
+      GNUNET_break (0);
+      return GNUNET_SYSERR;
+    }
+
+    if (GNUNET_OK != expect_data_fixed (vec,
+                                        "blinding_key_secret",
+                                        &bks,
+                                        sizeof (bks)))
+    {
+      GNUNET_break (0);
+      return GNUNET_SYSERR;
+    }
+
+    if (GNUNET_OK != expect_data_dynamic (vec,
+                                          "blinded_message",
+                                          &blinded_data,
+                                          &blinded_len))
+    {
+      GNUNET_break (0);
+      return GNUNET_SYSERR;
+    }
+
+    if (GNUNET_OK != expect_data_dynamic (vec,
+                                          "rsa_public_key",
+                                          &public_enc_data,
+                                          &public_enc_len))
+    {
+      GNUNET_break (0);
+      return GNUNET_SYSERR;
+    }
+
+    if (GNUNET_OK != expect_data_dynamic (vec,
+                                          "rsa_private_key",
+                                          &secret_enc_data,
+                                          &secret_enc_len))
+    {
+      GNUNET_break (0);
+      return GNUNET_SYSERR;
+    }
+
+    if (GNUNET_OK != expect_data_dynamic (vec,
+                                          "sig",
+                                          &sig_enc_data,
+                                          &sig_enc_length))
+    {
+      GNUNET_break (0);
+      return GNUNET_SYSERR;
+    }
+
+    pkey = GNUNET_CRYPTO_rsa_public_key_decode (public_enc_data,
+                                                public_enc_len);
+    GNUNET_assert (NULL != pkey);
+    skey = GNUNET_CRYPTO_rsa_private_key_decode (secret_enc_data,
+                                                 secret_enc_len);
+    GNUNET_assert (NULL != skey);
+
+    GNUNET_assert (GNUNET_YES ==
+                   GNUNET_CRYPTO_rsa_blind (&message_hash,
+                                            &bks,
+                                            pkey,
+                                            &blinded_data_comp,
+                                            &blinded_len_comp));
+    if ( (blinded_len != blinded_len_comp) || (0 != memcmp (blinded_data,
+                                                            blinded_data_comp,
+                                                            blinded_len)) )
+    {
+      GNUNET_break (0);
+      return GNUNET_NO;
+    }
+    blinded_sig = GNUNET_CRYPTO_rsa_sign_blinded (skey, blinded_data,
+                                                  blinded_len);
+    sig = GNUNET_CRYPTO_rsa_unblind (blinded_sig, &bks, pkey);
+    GNUNET_assert (GNUNET_YES == GNUNET_CRYPTO_rsa_verify (&message_hash, sig,
+                                                           pkey));
+    public_enc_len = GNUNET_CRYPTO_rsa_public_key_encode (pkey,
+                                                          &public_enc_data);
+    sig_enc_length_comp = GNUNET_CRYPTO_rsa_signature_encode (sig, &sig_enc_data_comp);
+
+    if ( (sig_enc_length != sig_enc_length_comp) ||
+         (0 != memcmp (sig_enc_data, sig_enc_data_comp, sig_enc_length) ))
+    {
+      GNUNET_break (0);
+      return GNUNET_NO;
+    }
+  }
+  else
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                "unsupported operation '%s'\n", operation);
+  }
+
+  return GNUNET_OK;
+}
+
 /**
- * Main function that will be run.
+ * Check test vectors from stdin.
  *
- * @param cls closure
- * @param args remaining command-line arguments
- * @param cfgfile name of the configuration file used (for saving, can be NULL!)
- * @param cfg configuration
+ * @returns global exit code
  */
-static void
-run (void *cls,
-     char *const *args,
-     const char *cfgfile,
-     const struct GNUNET_CONFIGURATION_Handle *cfg)
+static int
+check_vectors ()
+{
+  json_error_t err;
+  json_t *vecfile = json_loadf (stdin, 0, &err);
+  const char *encoding;
+  json_t *vectors;
+
+  if (NULL == vecfile)
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR, "unable to parse JSON\n");
+    return 1;
+  }
+  encoding = json_string_value (json_object_get (vecfile,
+                                                 "encoding"));
+  if ( (NULL == encoding) || (0 != strcmp (encoding, "base32crockford")) )
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR, "unsupported or missing encoding\n");
+    json_decref (vecfile);
+    return 1;
+  }
+  vectors = json_object_get (vecfile, "vectors");
+  if (!json_is_array (vectors))
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR, "bad vectors\n");
+    json_decref (vecfile);
+    return 1;
+  }
+  {
+    /* array is a JSON array */
+    size_t index;
+    json_t *value;
+    int ret;
+
+    json_array_foreach (vectors, index, value) {
+      const char *op = json_string_value (json_object_get (value,
+                                                           "operation"));
+
+      if (NULL == op)
+      {
+        GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                    "missing operation\n");
+        ret = GNUNET_SYSERR;
+        break;
+      }
+      ret = checkvec (op, value);
+      if (GNUNET_OK != ret)
+      {
+        GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                    "bad vector %u\n",
+                    (unsigned int) index);
+        break;
+      }
+    }
+    return (ret == GNUNET_OK) ? 0 : 1;
+  }
+}
+
+/**
+ * Output test vectors.
+ *
+ * @returns global exit code
+ */
+static int
+output_vectors ()
 {
   json_t *vecfile = json_object ();
   json_t *vecs = json_array ();
@@ -169,7 +717,7 @@ run (void *cls,
     d2j (vec, "output", &hc, sizeof (struct GNUNET_HashCode));
   }
   {
-    json_t *vec = vec_for (vecs, "ecdhe_key_derivation");
+    json_t *vec = vec_for (vecs, "ecc_ecdh");
     struct GNUNET_CRYPTO_EcdhePrivateKey priv1;
     struct GNUNET_CRYPTO_EcdhePublicKey pub1;
     struct GNUNET_CRYPTO_EcdhePrivateKey priv2;
@@ -342,6 +890,8 @@ run (void *cls,
     size_t blinded_len;
     void *public_enc_data;
     size_t public_enc_len;
+    void *secret_enc_data;
+    size_t secret_enc_len;
     void *blinded_sig_enc_data;
     size_t blinded_sig_enc_length;
     void *sig_enc_data;
@@ -369,6 +919,8 @@ run (void *cls,
                                                            pkey));
     public_enc_len = GNUNET_CRYPTO_rsa_public_key_encode (pkey,
                                                           &public_enc_data);
+    secret_enc_len = GNUNET_CRYPTO_rsa_private_key_encode (skey,
+                                                           &secret_enc_data);
     blinded_sig_enc_length = GNUNET_CRYPTO_rsa_signature_encode (blinded_sig,
                                                                  &
                                                                  blinded_sig_enc_data);
@@ -381,6 +933,10 @@ run (void *cls,
          "rsa_public_key",
          public_enc_data,
          public_enc_len);
+    d2j (vec,
+         "rsa_private_key",
+         secret_enc_data,
+         secret_enc_len);
     d2j (vec,
          "blinding_key_secret",
          &bks,
@@ -410,6 +966,28 @@ run (void *cls,
   json_dumpf (vecfile, stdout, JSON_INDENT (2));
   json_decref (vecfile);
   printf ("\n");
+
+  return 0;
+}
+
+/**
+ * Main function that will be run.
+ *
+ * @param cls closure
+ * @param args remaining command-line arguments
+ * @param cfgfile name of the configuration file used (for saving, can be NULL!)
+ * @param cfg configuration
+ */
+static void
+run (void *cls,
+     char *const *args,
+     const char *cfgfile,
+     const struct GNUNET_CONFIGURATION_Handle *cfg)
+{
+  if (GNUNET_YES == verify_flag)
+    global_ret = check_vectors ();
+  else
+    global_ret = output_vectors ();
 }
 
 
@@ -425,6 +1003,11 @@ main (int argc,
       char *const *argv)
 {
   const struct GNUNET_GETOPT_CommandLineOption options[] = {
+    GNUNET_GETOPT_option_flag ('V',
+                               "verify",
+                               gettext_noop (
+                                 "verify a test vector from stdin"),
+                               &verify_flag),
     GNUNET_GETOPT_OPTION_END
   };
 
@@ -439,7 +1022,7 @@ main (int argc,
                           options,
                           &run, NULL))
     return 1;
-  return 0;
+  return global_ret;
 }
 
 
