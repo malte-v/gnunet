@@ -839,7 +839,7 @@ output_vectors ()
          ctx,
          strlen (ctx));
     uint2j (vec,
-            "out_len %u\n",
+            "out_len",
             (unsigned int) out_len);
     d2j (vec,
          "out",
