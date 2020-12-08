@@ -38,6 +38,19 @@
 
 #define SERVER_ADDRESS "https://api.reclaim"
 
+enum OIDC_VerificationOptions
+{
+  /**
+   * Strict verification
+   */
+  OIDC_VERIFICATION_DEFAULT = 0,
+
+  /**
+   * Do not check code verifier even if expected
+   */
+  OIDC_VERIFICATION_NO_CODE_VERIFIER = 1
+};
+
 /**
  * Create a JWT from attributes
  *
@@ -51,12 +64,13 @@
  */
 char*
 OIDC_generate_id_token (const struct GNUNET_IDENTITY_PublicKey *aud_key,
-                   const struct GNUNET_IDENTITY_PublicKey *sub_key,
-                   const struct GNUNET_RECLAIM_AttributeList *attrs,
-                   const struct GNUNET_RECLAIM_PresentationList *presentations,
-                   const struct GNUNET_TIME_Relative *expiration_time,
-                   const char *nonce,
-                   const char *secret_key);
+                        const struct GNUNET_IDENTITY_PublicKey *sub_key,
+                        const struct GNUNET_RECLAIM_AttributeList *attrs,
+                        const struct
+                        GNUNET_RECLAIM_PresentationList *presentations,
+                        const struct GNUNET_TIME_Relative *expiration_time,
+                        const char *nonce,
+                        const char *secret_key);
 
 /**
  * Builds an OIDC authorization code including
@@ -68,13 +82,15 @@ OIDC_generate_id_token (const struct GNUNET_IDENTITY_PublicKey *aud_key,
  * @param presentations credential presentation list
  * @param nonce the nonce to include in the code
  * @param code_challenge PKCE code challenge
+ * @param opts verification options
  * @return a new authorization code (caller must free)
  */
 char*
 OIDC_build_authz_code (const struct GNUNET_IDENTITY_PrivateKey *issuer,
                        const struct GNUNET_RECLAIM_Ticket *ticket,
                        const struct GNUNET_RECLAIM_AttributeList *attrs,
-                       const struct GNUNET_RECLAIM_PresentationList *presentations,
+                       const struct
+                       GNUNET_RECLAIM_PresentationList *presentations,
                        const char *nonce,
                        const char *code_challenge);
 
@@ -99,7 +115,8 @@ OIDC_parse_authz_code (const struct GNUNET_IDENTITY_PublicKey *ecdsa_pub,
                        struct GNUNET_RECLAIM_Ticket *ticket,
                        struct GNUNET_RECLAIM_AttributeList **attrs,
                        struct GNUNET_RECLAIM_PresentationList **presentations,
-                       char **nonce);
+                       char **nonce,
+                       enum OIDC_VerificationOptions opts);
 
 /**
  * Build a token response for a token request
@@ -126,7 +143,7 @@ OIDC_access_token_new (const struct GNUNET_RECLAIM_Ticket *ticket);
  * Parse an access token
  */
 int
-OIDC_access_token_parse (const char* token,
+OIDC_access_token_parse (const char*token,
                          struct GNUNET_RECLAIM_Ticket **ticket);
 
 
@@ -154,6 +171,7 @@ OIDC_check_scopes_for_claim_request (const char *scopes,
 char *
 OIDC_generate_userinfo (const struct GNUNET_IDENTITY_PublicKey *sub_key,
                         const struct GNUNET_RECLAIM_AttributeList *attrs,
-                        const struct GNUNET_RECLAIM_PresentationList *presentations);
+                        const struct
+                        GNUNET_RECLAIM_PresentationList *presentations);
 
 #endif
