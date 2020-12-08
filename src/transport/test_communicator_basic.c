@@ -73,6 +73,10 @@ static struct GNUNET_TRANSPORT_TESTING_TransportCommunicatorHandle *my_tc;
 
 static char *test_name;
 
+static struct GNUNET_STATISTICS_GetHandle *box_stats;
+
+static struct GNUNET_STATISTICS_GetHandle *rekey_stats;
+
 #define SHORT_MESSAGE_SIZE 128
 
 #define LONG_MESSAGE_SIZE 32000 /* FIXME */
@@ -90,7 +94,7 @@ static unsigned int iterations_left = TOTAL_ITERATIONS;
 #define TIMEOUT_MULTIPLIER 1
 
 #define DELAY \
-  GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_MICROSECONDS,50)
+  GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_MICROSECONDS,200)
 
 #define SHORT_BURST_WINDOW \
   GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_SECONDS,2)
@@ -514,6 +518,30 @@ update_avg_latency (const char*payload)
 
 }
 
+process_statistics_box_done (void *cls, int success)
+{
+  if (NULL != box_stats)
+    box_stats = NULL;
+  if (NULL == rekey_stats)
+  {
+    LOG (GNUNET_ERROR_TYPE_DEBUG,
+         "Finished\n");
+    GNUNET_SCHEDULER_shutdown ();
+  }
+}
+
+process_statistics_rekey_done (void *cls, int success)
+{
+  if (NULL != rekey_stats)
+    rekey_stats = NULL;
+  if (NULL == box_stats)
+  {
+    LOG (GNUNET_ERROR_TYPE_DEBUG,
+         "Finished\n");
+    GNUNET_SCHEDULER_shutdown ();
+  }
+}
+
 static int
 process_statistics (void *cls,
                     const char *subsystem,
@@ -521,6 +549,41 @@ process_statistics (void *cls,
                     uint64_t value,
                     int is_persistent)
 {
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "Statistic: Name %s and value %lu\n",
+              name,
+              value);
+  if ((0 == strcmp ("rekey", test_name)) && (0 == strcmp (
+                                               "# rekeying successful",
+                                               name)) && (0 == value))
+  {
+    ret = 2;
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                "No successful rekeying!\n");
+    GNUNET_SCHEDULER_shutdown ();
+  }
+  if ((0 == strcmp ("backchannel", test_name))  &&
+      (0 == strcmp (
+         "# messages decrypted with BOX",
+         name))
+      && (9000 > value))
+  {
+    ret = 2;
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                "Not enough BOX messages!\n");
+    GNUNET_SCHEDULER_shutdown ();
+  }
+  if ((0 == strcmp ("rekey", test_name))  &&
+      (0 == strcmp (
+         "# messages decrypted with BOX",
+         name))
+      && (6000 > value))
+  {
+    ret = 2;
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                "Not enough BOX messages!\n");
+    GNUNET_SCHEDULER_shutdown ();
+  }
   return GNUNET_OK;
 }
 
@@ -660,18 +723,29 @@ incoming_message_cb (void *cls,
           short_test (NULL);
           break;
         }
-        /* if (("rekey" == test_name) || ("backchannel" == test_name)) */
-        /* { */
-        /*   GNUNET_STATISTICS_get (stats[1], */
-        /*                          "C-UDP", */
-        /*                          "# bytes decrypted with Rekey", */
-        /*                          NULL, */
-        /*                          &process_statistics, */
-        /*                          NULL); */
-        /* } */
-        LOG (GNUNET_ERROR_TYPE_DEBUG,
-             "Finished\n");
-        GNUNET_SCHEDULER_shutdown ();
+        if ((0 == strcmp ("rekey", test_name))||(0 == strcmp ("backchannel",
+                                                              test_name)) )
+        {
+          if (NULL != box_stats)
+            GNUNET_STATISTICS_get_cancel (box_stats);
+          box_stats = GNUNET_STATISTICS_get (stats[1],
+                                             "C-UDP",
+                                             "# messages decrypted with BOX",
+                                             process_statistics_box_done,
+                                             &process_statistics,
+                                             NULL);
+          if (NULL != rekey_stats)
+            GNUNET_STATISTICS_get_cancel (rekey_stats);
+          rekey_stats = GNUNET_STATISTICS_get (stats[0],
+                                               "C-UDP",
+                                               "# rekeying successful",
+                                               process_statistics_rekey_done,
+                                               &process_statistics,
+                                               NULL);
+        }
+        /* LOG (GNUNET_ERROR_TYPE_DEBUG, */
+        /*      "Finished\n"); */
+        /* GNUNET_SCHEDULER_shutdown (); */
       }
       break;
     }
@@ -682,6 +756,19 @@ incoming_message_cb (void *cls,
 static void
 do_shutdown (void *cls)
 {
+  LOG (GNUNET_ERROR_TYPE_DEBUG,
+       "shuting down test.\”");
+
+  if (NULL != box_stats)
+  {
+    GNUNET_STATISTICS_get_cancel (box_stats);
+    box_stats = NULL;
+  }
+  if (NULL != rekey_stats)
+  {
+    GNUNET_STATISTICS_get_cancel (rekey_stats);
+    rekey_stats = NULL;
+  }
   if (NULL != to_task)
   {
     GNUNET_SCHEDULER_cancel (to_task);
@@ -690,6 +777,7 @@ do_shutdown (void *cls)
   for (unsigned int i = 0; i < NUM_PEERS; i++)
   {
     GNUNET_TRANSPORT_TESTING_transport_communicator_service_stop (tc_hs[i]);
+    GNUNET_STATISTICS_destroy (stats[i], GNUNET_NO);
   }
 }
 
@@ -697,7 +785,7 @@ do_shutdown (void *cls)
 /**
  * @brief Main function called by the scheduler
  *
- * @param cls Closure - Handle to configuration
+ * @param cls Closure - Handle to confiation
  */
 static void
 run (void *cls)
@@ -707,6 +795,13 @@ run (void *cls)
   // num_sent = 0;
   for (unsigned int i = 0; i < NUM_PEERS; i++)
   {
+    if ((0 == strcmp ("rekey", test_name))||(0 == strcmp ("backchannel",
+                                                          test_name)) )
+    {
+      stats[i] = GNUNET_STATISTICS_create ("C-UDP",
+                                           cfg_peers[i]);
+    }
+
     tc_hs[i] = GNUNET_TRANSPORT_TESTING_transport_communicator_service_start (
       "transport",
       communicator_binary,
@@ -719,12 +814,6 @@ run (void *cls)
       &incoming_message_cb,
       &handle_backchannel_cb,
       cfg_peers_name[i]);   /* cls */
-
-    /* if (("rekey" == test_name) || ("backchannel" == test_name)) */
-    /* { */
-    /*   stats[i] = GNUNET_STATISTICS_create ("C-UDP", */
-    /*                                        cfg_peers[i]); */
-    /* } */
   }
   GNUNET_SCHEDULER_add_shutdown (&do_shutdown,
                                  NULL);

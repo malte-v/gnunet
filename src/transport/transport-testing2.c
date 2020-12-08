@@ -827,9 +827,9 @@ communicator_start (
 
 
 /**
- * @brief Task run at shutdown to kill communicator and clean up
+ * @brief Task run at shutdown to kill NAT and clean up
  *
- * @param cls Closure - Process of communicator
+ * @param cls Closure - Process of NAT
  */
 static void
 shutdown_nat (void *cls)
@@ -838,6 +838,17 @@ shutdown_nat (void *cls)
   shutdown_process (proc);
 }
 
+/**
+ * @brief Task run at shutdown to kill statistics service and clean up
+ *
+ * @param cls Closure - Process of statistics service
+ */
+static void
+shutdown_statistics (void *cls)
+{
+  struct GNUNET_OS_Process *proc = cls;
+  shutdown_process (proc);
+}
 
 /**
  * @brief Task run at shutdown to kill the resolver process
@@ -942,6 +953,38 @@ nat_start (
   GNUNET_free (binary);
 }
 
+/**
+ * @brief Start statistics
+ *
+ */
+static void
+statistics_start (
+  struct GNUNET_TRANSPORT_TESTING_TransportCommunicatorHandle *tc_h)
+{
+  char *binary;
+
+  LOG (GNUNET_ERROR_TYPE_DEBUG, "statistics_start\n");
+  binary = GNUNET_OS_get_libexec_binary_path ("gnunet-service-statistics");
+  tc_h->statistics_proc = GNUNET_OS_start_process (
+    GNUNET_OS_INHERIT_STD_OUT_AND_ERR
+    | GNUNET_OS_USE_PIPE_CONTROL,
+    NULL,
+    NULL,
+    NULL,
+    binary,
+    "gnunet-service-statistics",
+    "-c",
+    tc_h->cfg_filename,
+    NULL);
+  if (NULL == tc_h->statistics_proc)
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR, "Failed to start statistics service!");
+    return;
+  }
+  LOG (GNUNET_ERROR_TYPE_INFO, "started statistics service\n");
+  GNUNET_free (binary);
+}
+
 
 /**
  * @brief Start communicator part of transport service and communicator
@@ -1009,6 +1052,8 @@ GNUNET_TRANSPORT_TESTING_transport_communicator_service_start (
   resolver_start (tc_h);
   /* Start peerstore service */
   peerstore_start (tc_h);
+  /* Start statistics service */
+  statistics_start (tc_h);
   /* Schedule start communicator */
   communicator_start (tc_h,
                       binary_name);
@@ -1025,6 +1070,7 @@ GNUNET_TRANSPORT_TESTING_transport_communicator_service_stop (
   shutdown_nat (tc_h->nat_proc);
   shutdown_resolver (tc_h->resolver_proc);
   shutdown_peerstore (tc_h->ps_proc);
+  shutdown_statistics (tc_h->statistics_proc);
   GNUNET_CONFIGURATION_destroy (tc_h->cfg);
   GNUNET_free (tc_h);
 }

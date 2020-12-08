@@ -195,6 +195,11 @@ struct GNUNET_TRANSPORT_TESTING_TransportCommunicatorHandle
   struct GNUNET_OS_Process *nat_proc;
 
   /**
+   * statistics service process
+   */
+  struct GNUNET_OS_Process *statistics_proc;
+
+  /**
    * resolver service process
    */
   struct GNUNET_OS_Process *resolver_proc;

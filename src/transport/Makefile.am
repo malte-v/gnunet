@@ -807,42 +807,48 @@ test_communicator_basic_unix_SOURCES = \
 test_communicator_basic_unix_LDADD = \
  libgnunettransporttesting2.la \
  $(top_builddir)/src/testing/libgnunettesting.la \
- $(top_builddir)/src/util/libgnunetutil.la
+ $(top_builddir)/src/util/libgnunetutil.la \
+ $(top_builddir)/src/statistics/libgnunetstatistics.la
 
 test_communicator_basic_tcp_SOURCES = \
  test_communicator_basic.c
 test_communicator_basic_tcp_LDADD = \
  libgnunettransporttesting2.la \
  $(top_builddir)/src/testing/libgnunettesting.la \
- $(top_builddir)/src/util/libgnunetutil.la
+ $(top_builddir)/src/util/libgnunetutil.la \
+ $(top_builddir)/src/statistics/libgnunetstatistics.la
 
 test_communicator_basic_udp_SOURCES = \
  test_communicator_basic.c
 test_communicator_basic_udp_LDADD = \
  libgnunettransporttesting2.la \
  $(top_builddir)/src/testing/libgnunettesting.la \
- $(top_builddir)/src/util/libgnunetutil.la
+ $(top_builddir)/src/util/libgnunetutil.la \
+ $(top_builddir)/src/statistics/libgnunetstatistics.la
 
 test_communicator_rekey_tcp_SOURCES = \
  test_communicator_basic.c
 test_communicator_rekey_tcp_LDADD = \
  libgnunettransporttesting2.la \
  $(top_builddir)/src/testing/libgnunettesting.la \
- $(top_builddir)/src/util/libgnunetutil.la
+ $(top_builddir)/src/util/libgnunetutil.la \
+ $(top_builddir)/src/statistics/libgnunetstatistics.la
 
 test_communicator_rekey_udp_SOURCES = \
  test_communicator_basic.c
 test_communicator_rekey_udp_LDADD = \
  libgnunettransporttesting2.la \
  $(top_builddir)/src/testing/libgnunettesting.la \
- $(top_builddir)/src/util/libgnunetutil.la
+ $(top_builddir)/src/util/libgnunetutil.la \
+ $(top_builddir)/src/statistics/libgnunetstatistics.la
 
 test_communicator_backchannel_udp_SOURCES = \
  test_communicator_basic.c
 test_communicator_backchannel_udp_LDADD = \
  libgnunettransporttesting2.la \
  $(top_builddir)/src/testing/libgnunettesting.la \
- $(top_builddir)/src/util/libgnunetutil.la
+ $(top_builddir)/src/util/libgnunetutil.la \
+ $(top_builddir)/src/statistics/libgnunetstatistics.la
 endif
 
 test_plugin_unix_SOURCES = \
