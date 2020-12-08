@@ -186,9 +186,9 @@ to_file_raw (const char *file_name, const char *buf, size_t size_buf)
   if (size_buf != size_written)
   {
     LOG (GNUNET_ERROR_TYPE_WARNING,
-         "Unable to write to file! (Size: %zu, size_written: %zu)\n",
-         size_buf,
-         size_written);
+         "Unable to write to file! (Size: %llu, size_written: %llu)\n",
+         (unsigned long long) size_buf,
+         (unsigned long long) size_written);
 
     if (GNUNET_YES != GNUNET_DISK_file_close (f))
       LOG (GNUNET_ERROR_TYPE_WARNING,
@@ -197,8 +197,8 @@ to_file_raw (const char *file_name, const char *buf, size_t size_buf)
     return;
   }
   LOG (GNUNET_ERROR_TYPE_WARNING,
-       "Wrote %zu bytes raw.\n",
-       size_written);
+       "Wrote %llu bytes raw.\n",
+       (unsigned long long) size_written);
   if (GNUNET_YES != GNUNET_DISK_file_close (f))
     LOG (GNUNET_ERROR_TYPE_WARNING,
          "Unable to close file\n");
@@ -238,8 +238,8 @@ to_file_raw_unaligned (const char *file_name,
        "num_bits_buf_unaligned: %u\n",
        num_bits_buf_unaligned);
   LOG (GNUNET_ERROR_TYPE_DEBUG,
-       "ua args: size_buf: %zu, bits_needed: %u -> iter: %u\n",
-       size_buf,
+       "ua args: size_buf: %llu, bits_needed: %u -> iter: %u\n",
+       (unsigned long long) size_buf,
        bits_needed,
        bytes_iter);
   buf_write[0] = buf_unaligned;

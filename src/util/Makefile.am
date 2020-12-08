@@ -138,7 +138,7 @@ libgnunetutil_la_LIBADD = \
 
 libgnunetutil_la_LDFLAGS = \
   $(GN_LIB_LDFLAGS) \
-  -version-info 13:2:0
+  -version-info 13:2:1
 
 if HAVE_TESTING
   GNUNET_ECC = gnunet-ecc
@@ -169,7 +169,7 @@ noinst_PROGRAMS = \
 
 if ENABLE_TEST_RUN
 AM_TESTS_ENVIRONMENT=export GNUNET_PREFIX=$${GNUNET_PREFIX:-@libdir@};export PATH=$${GNUNET_PREFIX:-@prefix@}/bin:$$PATH;unset XDG_DATA_HOME;unset XDG_CONFIG_HOME;
-TESTS = $(check_PROGRAMS)
+TESTS = $(check_PROGRAMS) $(check_SCRIPTS)
 endif
 
 gnunet_timeout_SOURCES = \
@@ -195,7 +195,7 @@ gnunet_crypto_tvg_SOURCES = \
  gnunet-crypto-tvg.c
 gnunet_crypto_tvg_LDADD = \
   libgnunetutil.la \
-  $(GN_LIBINTL) -lgcrypt
+  $(GN_LIBINTL) -lgcrypt -ljansson
 
 gnunet_ecc_SOURCES = \
  gnunet-ecc.c
@@ -254,6 +254,9 @@ endif
 if HAVE_SSH_KEY
 # SSH_USING_TESTS = test_socks.nc
 endif
+
+check_SCRIPTS = \
+ test_crypto_vectors.sh
 
 check_PROGRAMS = \
  test_bio \

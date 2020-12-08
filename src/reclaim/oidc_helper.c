@@ -567,6 +567,48 @@ OIDC_build_authz_code (const struct GNUNET_IDENTITY_PrivateKey *issuer,
 }
 
 
+enum GNUNET_GenericReturnValue
+check_code_challenge (const char *code_challenge,
+                      uint32_t code_challenge_len,
+                      const char *code_verifier)
+{
+  char *code_verifier_hash;
+  char *expected_code_challenge;
+
+  if (0 == code_challenge_len) /* Only check if this code requires a CV */
+    return GNUNET_OK;
+  if (NULL == code_verifier)
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                "Expected code verifier!\n");
+    return GNUNET_SYSERR;
+  }
+  code_verifier_hash = GNUNET_malloc (256 / 8);
+  // hash code verifier
+  gcry_md_hash_buffer (GCRY_MD_SHA256,
+                       code_verifier_hash,
+                       code_verifier,
+                       strlen (code_verifier));
+  // encode code verifier
+  GNUNET_STRINGS_base64url_encode (code_verifier_hash, 256 / 8,
+                                   &expected_code_challenge);
+  GNUNET_free (code_verifier_hash);
+  if (0 !=
+      strncmp (expected_code_challenge, code_challenge, code_challenge_len))
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                "Invalid code verifier! Expected: %s, Got: %.*s\n",
+                expected_code_challenge,
+                code_challenge_len,
+                code_challenge);
+    GNUNET_free (expected_code_challenge);
+    return GNUNET_SYSERR;
+  }
+  GNUNET_free (expected_code_challenge);
+  return GNUNET_OK;
+}
+
+
 /**
  * Parse reclaim ticket and nonce from
  * authorization code.
@@ -589,16 +631,15 @@ OIDC_parse_authz_code (const struct GNUNET_IDENTITY_PublicKey *audience,
                        struct GNUNET_RECLAIM_Ticket *ticket,
                        struct GNUNET_RECLAIM_AttributeList **attrs,
                        struct GNUNET_RECLAIM_PresentationList **presentations,
-                       char **nonce_str)
+                       char **nonce_str,
+                       enum OIDC_VerificationOptions opts)
 {
   char *code_payload;
   char *ptr;
   char *plaintext;
   char *attrs_ser;
   char *presentations_ser;
-  char *expected_code_challenge;
   char *code_challenge;
-  char *code_verifier_hash;
   struct GNUNET_CRYPTO_EccSignaturePurpose *purpose;
   struct GNUNET_IDENTITY_Signature *signature;
   uint32_t code_challenge_len;
@@ -636,38 +677,15 @@ OIDC_parse_authz_code (const struct GNUNET_IDENTITY_PublicKey *audience,
   // cmp code_challenge code_verifier
   code_challenge_len = ntohl (params->code_challenge_len);
   code_challenge = ((char *) &params[1]);
-  if (0 != code_challenge_len) /* Only check if this code requires a CV */
+  if (!(opts & OIDC_VERIFICATION_NO_CODE_VERIFIER))
   {
-    if (NULL == code_verifier)
+    if (GNUNET_OK != check_code_challenge (code_challenge,
+                                           code_challenge_len,
+                                           code_verifier))
     {
-      GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                  "Expected code verifier!\n");
       GNUNET_free (code_payload);
       return GNUNET_SYSERR;
     }
-    code_verifier_hash = GNUNET_malloc (256 / 8);
-    // hash code verifier
-    gcry_md_hash_buffer (GCRY_MD_SHA256,
-                         code_verifier_hash,
-                         code_verifier,
-                         strlen (code_verifier));
-    // encode code verifier
-    GNUNET_STRINGS_base64url_encode (code_verifier_hash, 256 / 8,
-                                     &expected_code_challenge);
-    GNUNET_free (code_verifier_hash);
-    if (0 !=
-        strncmp (expected_code_challenge, code_challenge, code_challenge_len))
-    {
-      GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                  "Invalid code verifier! Expected: %s, Got: %.*s\n",
-                  expected_code_challenge,
-                  code_challenge_len,
-                  code_challenge);
-      GNUNET_free (code_payload);
-      GNUNET_free (expected_code_challenge);
-      return GNUNET_SYSERR;
-    }
-    GNUNET_free (expected_code_challenge);
   }
   nonce_len = ntohl (params->nonce_len);
   if (0 != nonce_len)

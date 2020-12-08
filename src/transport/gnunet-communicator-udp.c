@@ -1741,8 +1741,7 @@ static void
 kce_generate_cb (void *cls)
 {
   struct SharedSecret *ss = cls;
-
-
+  kce_task = NULL;
 
   if (((GNUNET_NO == ss->sender->rekeying) && (ss->sender->acks_available <
                                                KCN_TARGET) ) ||
@@ -1776,6 +1775,7 @@ static void
 kce_generate_rekey_cb (void *cls)
 {
   struct SharedSecret *ss = cls;
+  kce_task_rekey = NULL;
 
   if (NULL == kce_task)
   {
@@ -3260,6 +3260,21 @@ do_shutdown (void *cls)
   {
     GNUNET_SCHEDULER_cancel (broadcast_task);
     broadcast_task = NULL;
+  }
+  if (NULL != kce_task_rekey)
+  {
+    GNUNET_SCHEDULER_cancel (kce_task_rekey);
+    kce_task_rekey = NULL;
+  }
+  if (NULL != kce_task)
+  {
+    GNUNET_SCHEDULER_cancel (kce_task);
+    kce_task = NULL;
+  }
+  if (NULL != timeout_task)
+  {
+    GNUNET_SCHEDULER_cancel (timeout_task);
+    timeout_task = NULL;
   }
   if (NULL != read_task)
   {

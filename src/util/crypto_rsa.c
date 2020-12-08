@@ -262,8 +262,8 @@ GNUNET_CRYPTO_rsa_private_key_decode (const void *buf,
  * @return NULL on error, otherwise the public key
  */
 struct GNUNET_CRYPTO_RsaPublicKey *
-GNUNET_CRYPTO_rsa_private_key_get_public (const struct
-                                          GNUNET_CRYPTO_RsaPrivateKey *priv)
+GNUNET_CRYPTO_rsa_private_key_get_public (
+  const struct GNUNET_CRYPTO_RsaPrivateKey *priv)
 {
   struct GNUNET_CRYPTO_RsaPublicKey *pub;
   gcry_mpi_t ne[2];
