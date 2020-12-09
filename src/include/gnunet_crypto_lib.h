@@ -708,6 +708,16 @@ GNUNET_CRYPTO_hash_context_start (void);
 
 
 /**
+ * Make a copy of the hash computation.
+ *
+ * @param hc hash context to use (to continue hashing independently)
+ * @return copy of @a hc
+ */
+struct GNUNET_HashContext *
+GNUNET_CRYPTO_hash_context_copy (const struct GNUNET_HashContext *hc);
+
+
+/**
  * Add data to be hashed.
  *
  * @param hc cumulative hash context
