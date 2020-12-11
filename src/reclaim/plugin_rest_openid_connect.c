@@ -2020,7 +2020,7 @@ token_endpoint (struct GNUNET_REST_RequestHandle *con_handle,
   char *id_token;
   char *access_token;
   char *jwt_secret;
-  char *nonce;
+  char *nonce = NULL;
   char *code_verifier;
 
   /*
