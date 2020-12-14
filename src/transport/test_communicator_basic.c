@@ -743,9 +743,11 @@ incoming_message_cb (void *cls,
                                                &process_statistics,
                                                NULL);
         }
-        /* LOG (GNUNET_ERROR_TYPE_DEBUG, */
-        /*      "Finished\n"); */
-        /* GNUNET_SCHEDULER_shutdown (); */
+        else{
+          LOG (GNUNET_ERROR_TYPE_DEBUG,
+               "Finished\n");
+          GNUNET_SCHEDULER_shutdown ();
+        }
       }
       break;
     }
@@ -795,13 +797,6 @@ run (void *cls)
   // num_sent = 0;
   for (unsigned int i = 0; i < NUM_PEERS; i++)
   {
-    if ((0 == strcmp ("rekey", test_name))||(0 == strcmp ("backchannel",
-                                                          test_name)) )
-    {
-      stats[i] = GNUNET_STATISTICS_create ("C-UDP",
-                                           cfg_peers[i]);
-    }
-
     tc_hs[i] = GNUNET_TRANSPORT_TESTING_transport_communicator_service_start (
       "transport",
       communicator_binary,
@@ -814,6 +809,13 @@ run (void *cls)
       &incoming_message_cb,
       &handle_backchannel_cb,
       cfg_peers_name[i]);   /* cls */
+
+    if ((0 == strcmp ("rekey", test_name))||(0 == strcmp ("backchannel",
+                                                          test_name)) )
+    {
+      stats[i] = GNUNET_STATISTICS_create ("C-UDP",
+                                           cfg_peers[i]);
+    }
   }
   GNUNET_SCHEDULER_add_shutdown (&do_shutdown,
                                  NULL);

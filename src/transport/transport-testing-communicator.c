@@ -766,6 +766,23 @@ shutdown_process (struct GNUNET_OS_Process *proc)
   GNUNET_OS_process_destroy (proc);
 }
 
+/**
+ * @brief Task run at shutdown to kill the statistics process
+ *
+ * @param cls Closure - Process of communicator
+ */
+static void
+shutdown_statistics (void *cls)
+{
+  struct GNUNET_OS_Process *proc = cls;
+  shutdown_process (proc);
+}
+
+/**
+ * @brief Task run at shutdown to kill the peerstore process
+ *
+ * @param cls Closure - Process of communicator
+ */
 static void
 shutdown_peerstore (void *cls)
 {
@@ -773,6 +790,11 @@ shutdown_peerstore (void *cls)
   shutdown_process (proc);
 }
 
+/**
+ * @brief Task run at shutdown to kill a communicator process
+ *
+ * @param cls Closure - Process of communicator
+ */
 static void
 shutdown_communicator (void *cls)
 {
@@ -852,6 +874,10 @@ shutdown_resolver (void *cls)
 }
 
 
+/**
+ * @brief Start Resolver
+ *
+ */
 static void
 resolver_start (struct
                 GNUNET_TRANSPORT_TESTING_TransportCommunicatorHandle *tc_h)
@@ -881,6 +907,34 @@ resolver_start (struct
 
 }
 
+/**
+ * @brief Start Statistics
+ *
+ */
+static void
+statistics_start (
+  struct GNUNET_TRANSPORT_TESTING_TransportCommunicatorHandle *tc_h)
+{
+  char *binary;
+
+  binary = GNUNET_OS_get_libexec_binary_path ("gnunet-service-statistics");
+  tc_h->stat_proc = GNUNET_OS_start_process (GNUNET_OS_INHERIT_STD_OUT_AND_ERR,
+                                             NULL,
+                                             NULL,
+                                             NULL,
+                                             binary,
+                                             "gnunet-service-statistics",
+                                             "-c",
+                                             tc_h->cfg_filename,
+                                             NULL);
+  if (NULL == tc_h->stat_proc)
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR, "Failed to start Statistics!");
+    return;
+  }
+  LOG (GNUNET_ERROR_TYPE_INFO, "started Statistics\n");
+  GNUNET_free (binary);
+}
 
 /**
  * @brief Start Peerstore
@@ -1009,6 +1063,8 @@ GNUNET_TRANSPORT_TESTING_transport_communicator_service_start (
   resolver_start (tc_h);
   /* Start peerstore service */
   peerstore_start (tc_h);
+  /* Start statistic service */
+  statistics_start (tc_h);
   /* Schedule start communicator */
   communicator_start (tc_h,
                       binary_name);
@@ -1025,6 +1081,7 @@ GNUNET_TRANSPORT_TESTING_transport_communicator_service_stop (
   shutdown_nat (tc_h->nat_proc);
   shutdown_resolver (tc_h->resolver_proc);
   shutdown_peerstore (tc_h->ps_proc);
+  shutdown_statistics (tc_h->stat_proc);
   GNUNET_CONFIGURATION_destroy (tc_h->cfg);
   GNUNET_free (tc_h);
 }

@@ -200,6 +200,11 @@ struct GNUNET_TRANSPORT_TESTING_TransportCommunicatorHandle
   struct GNUNET_OS_Process *resolver_proc;
 
   /**
+   * statistics service process
+   */
+  struct GNUNET_OS_Process *stat_proc;
+
+  /**
    * peerstore service process
    */
   struct GNUNET_OS_Process *ps_proc;
