@@ -2020,7 +2020,7 @@ token_endpoint (struct GNUNET_REST_RequestHandle *con_handle,
   char *id_token;
   char *access_token;
   char *jwt_secret;
-  char *nonce;
+  char *nonce = NULL;
   char *code_verifier;
 
   /*
@@ -2465,12 +2465,11 @@ list_ego (void *cls,
   struct EgoEntry *ego_entry;
   struct GNUNET_IDENTITY_PublicKey pk;
 
-  if ((NULL == ego) && (ID_REST_STATE_INIT == state))
+  if (NULL == ego)
   {
     state = ID_REST_STATE_POST_INIT;
     return;
   }
-  GNUNET_assert (NULL != ego);
   if (ID_REST_STATE_INIT == state)
 
   {

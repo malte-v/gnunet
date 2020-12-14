@@ -2050,7 +2050,7 @@ The third party may retrieve the key in string format for use in the above
 call using "gnunet-identity":
 
 @example
-$ RP_KEY=$(gnunet-identity -d grep "relyingparty" | awk '@{print $3@}')
+$ RP_KEY=$(gnunet-identity -d | grep "relyingparty" | awk '@{print $3@}')
 @end example
 
 The third party can then retrieve your shared identity attributes using:
