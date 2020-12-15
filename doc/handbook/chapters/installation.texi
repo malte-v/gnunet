@@ -327,7 +327,7 @@ Now GNS should work in browsers that are configured to use a SOCKS proxy on
 
 @node Minimal configuration
 @section Minimal configuration
-GNUnet needs a configuration file to start (@pxref{Config file format}).
+GNUnet needs a configuration file to start (@pxref{Config file format,,,configuration}).
 For the @emph{single-user setup} an empty file is sufficient:
 
 @example
