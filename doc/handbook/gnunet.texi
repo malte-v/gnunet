@@ -78,7 +78,7 @@ This document is the Reference Manual for GNUnet version @value{VERSION}.
 @c * Vocabulary::                      Vocabulary
 * Installing GNUnet::               Installing GNUnet
 * Using GNUnet::                    Using GNUnet
-@c * Configuration Handbook::          Configuring GNUnet
+* Configuration Handbook::          Configuring GNUnet
 * GNUnet Contributors Handbook::    Contributing to GNUnet
 * GNUnet Developer Handbook::       Developing GNUnet
 * GNU Free Documentation License::  The license of this manual
@@ -136,6 +136,10 @@ Using GNUnet
 * The GNU Name System::
 * reclaimID Identity Provider::
 * Using the Virtual Public Network::
+
+Configuration Handbook
+
+* Config file format::
 
 GNUnet Contributors Handbook
 
