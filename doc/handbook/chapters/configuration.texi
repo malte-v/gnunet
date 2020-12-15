@@ -40,19 +40,19 @@ the filesystem.  It is also possible to provide defaults values for those
 variables that are unset, by using the following syntax:
 
 @example
-${VAR:-default}
+$@{VAR:-default@}
 @end example
 
 @noindent
-However, there are two ways a user can set @cide{$}-prefixable variables:
+However, there are two ways a user can set @code{$}-prefixable variables:
 (a) by defining them under a @code{[paths]} section
 
 @example
 [paths]
-GNUNET_DEPLOYMENT_SHARED = ${HOME}/shared-data
+GNUNET_DEPLOYMENT_SHARED = $@{HOME@}/shared-data
 ..
 [section-x]
-path-x = ${GNUNET_DEPLOYMENT_SHARED}/x
+path-x = $@{GNUNET_DEPLOYMENT_SHARED@}/x
 @end example
 
 @noindent
