@@ -49,6 +49,7 @@ main (int argc, char *argv[])
   (void) GNUNET_asprintf (&filename, "%d-%d.mpiout", (int) pid, rank);
   msg_size = GNUNET_asprintf (&msg, "My rank is: %d\n", rank);
   printf ("%s", msg);
+  (void) GNUNET_DISK_directory_remove (filename);
   if (GNUNET_OK ==
       GNUNET_DISK_fn_write (filename, msg, msg_size,
                             GNUNET_DISK_PERM_USER_READ

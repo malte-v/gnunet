@@ -614,8 +614,8 @@ GNUNET_DISK_file_write_blocking (const struct GNUNET_DISK_FileHandle *h,
  * with @a buf_size bytes could be written to @a filename.
  *
  * @param fn file name
- * @param buffer the data to write
- * @param n number of bytes to write
+ * @param buf the data to write
+ * @param buf_size number of bytes to write from @a buf
  * @param mode file permissions
  * @return #GNUNET_OK on success,
  *         #GNUNET_NO if a file existed under @a filename
@@ -623,8 +623,8 @@ GNUNET_DISK_file_write_blocking (const struct GNUNET_DISK_FileHandle *h,
  */
 enum GNUNET_GenericReturnValue
 GNUNET_DISK_fn_write (const char *fn,
-                      const void *buffer,
-                      size_t n,
+                      const void *buf,
+                      size_t buf_size,
                       enum GNUNET_DISK_AccessPermissions mode);
 
 
