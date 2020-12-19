@@ -1023,7 +1023,7 @@ GNUNET_CRYPTO_hmac_derive_key (
  * @param ... pair of void * & size_t for context chunks, terminated by NULL
  * @return #GNUNET_YES on success
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_CRYPTO_hkdf (void *result,
                     size_t out_len,
                     int xtr_algo,
@@ -1049,7 +1049,7 @@ GNUNET_CRYPTO_hkdf (void *result,
  * @param argp va_list of void * & size_t pairs for context chunks
  * @return #GNUNET_YES on success
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_CRYPTO_hkdf_v (void *result,
                       size_t out_len,
                       int xtr_algo,
@@ -1072,7 +1072,7 @@ GNUNET_CRYPTO_hkdf_v (void *result,
  * @param argp va_list of void * & size_t pairs for context chunks
  * @return #GNUNET_YES on success
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_CRYPTO_kdf_v (void *result,
                      size_t out_len,
                      const void *xts,
@@ -1116,7 +1116,7 @@ GNUNET_CRYPTO_kdf_mod_mpi (gcry_mpi_t *r,
  * @param ... void * & size_t pairs for context chunks
  * @return #GNUNET_YES on success
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_CRYPTO_kdf (void *result,
                    size_t out_len,
                    const void *xts,
@@ -1215,7 +1215,7 @@ GNUNET_CRYPTO_eddsa_public_key_to_string (
  * @param pub where to store the public key
  * @return #GNUNET_OK on success
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_CRYPTO_ecdsa_public_key_from_string (
   const char *enc,
   size_t enclen,
@@ -1245,7 +1245,7 @@ GNUNET_CRYPTO_eddsa_private_key_from_string (
  * @param pub where to store the public key
  * @return #GNUNET_OK on success
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_CRYPTO_eddsa_public_key_from_string (
   const char *enc,
   size_t enclen,
@@ -1267,7 +1267,7 @@ GNUNET_CRYPTO_eddsa_public_key_from_string (
  * @return #GNUNET_OK on success, #GNUNET_NO if @a do_create was set but
  *         we found an existing file, #GNUNET_SYSERR on failure
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_CRYPTO_ecdsa_key_from_file (const char *filename,
                                    int do_create,
                                    struct GNUNET_CRYPTO_EcdsaPrivateKey *pkey);
@@ -1606,7 +1606,7 @@ GNUNET_CRYPTO_ecc_dlog_release (struct GNUNET_CRYPTO_EccDlogContext *dlc);
  * @param key_material where to write the key material (xyG)
  * @return #GNUNET_SYSERR on error, #GNUNET_OK on success
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_CRYPTO_ecc_ecdh (const struct GNUNET_CRYPTO_EcdhePrivateKey *priv,
                         const struct GNUNET_CRYPTO_EcdhePublicKey *pub,
                         struct GNUNET_HashCode *key_material);
@@ -1622,7 +1622,7 @@ GNUNET_CRYPTO_ecc_ecdh (const struct GNUNET_CRYPTO_EcdhePrivateKey *priv,
  * @param key_material where to write the key material H(h(x)yG)
  * @return #GNUNET_SYSERR on error, #GNUNET_OK on success
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_CRYPTO_eddsa_ecdh (const struct GNUNET_CRYPTO_EddsaPrivateKey *priv,
                           const struct GNUNET_CRYPTO_EcdhePublicKey *pub,
                           struct GNUNET_HashCode *key_material);
@@ -1637,7 +1637,7 @@ GNUNET_CRYPTO_eddsa_ecdh (const struct GNUNET_CRYPTO_EddsaPrivateKey *priv,
  * @param key_material where to write the key material H(h(x)yG)
  * @return #GNUNET_SYSERR on error, #GNUNET_OK on success
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_CRYPTO_ecdsa_ecdh (const struct GNUNET_CRYPTO_EcdsaPrivateKey *priv,
                           const struct GNUNET_CRYPTO_EcdhePublicKey *pub,
                           struct GNUNET_HashCode *key_material);
@@ -1653,7 +1653,7 @@ GNUNET_CRYPTO_ecdsa_ecdh (const struct GNUNET_CRYPTO_EcdsaPrivateKey *priv,
  * @param key_material where to write the key material H(yX)=H(h(x)yG)
  * @return #GNUNET_SYSERR on error, #GNUNET_OK on success
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_CRYPTO_ecdh_eddsa (const struct GNUNET_CRYPTO_EcdhePrivateKey *priv,
                           const struct GNUNET_CRYPTO_EddsaPublicKey *pub,
                           struct GNUNET_HashCode *key_material);
@@ -1668,7 +1668,7 @@ GNUNET_CRYPTO_ecdh_eddsa (const struct GNUNET_CRYPTO_EcdhePrivateKey *priv,
  * @param key_material where to write the key material H(yX)=H(h(x)yG)
  * @return #GNUNET_SYSERR on error, #GNUNET_OK on success
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_CRYPTO_ecdh_ecdsa (const struct GNUNET_CRYPTO_EcdhePrivateKey *priv,
                           const struct GNUNET_CRYPTO_EcdsaPublicKey *pub,
                           struct GNUNET_HashCode *key_material);
@@ -1689,7 +1689,7 @@ GNUNET_CRYPTO_ecdh_ecdsa (const struct GNUNET_CRYPTO_EcdhePrivateKey *priv,
  * @param[out] sig where to write the signature
  * @return #GNUNET_SYSERR on error, #GNUNET_OK on success
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_CRYPTO_eddsa_sign_ (
   const struct GNUNET_CRYPTO_EddsaPrivateKey *priv,
   const struct GNUNET_CRYPTO_EccSignaturePurpose *purpose,
@@ -1736,7 +1736,7 @@ GNUNET_CRYPTO_eddsa_sign_ (
  * @param[out] sig where to write the signature
  * @return #GNUNET_SYSERR on error, #GNUNET_OK on success
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_CRYPTO_ecdsa_sign_ (
   const struct GNUNET_CRYPTO_EcdsaPrivateKey *priv,
   const struct GNUNET_CRYPTO_EccSignaturePurpose *purpose,
@@ -2333,7 +2333,7 @@ GNUNET_CRYPTO_rsa_unblind (const struct GNUNET_CRYPTO_RsaSignature *sig,
  * @param public_key public key of the signer
  * @returns #GNUNET_YES if ok, #GNUNET_NO if RSA key is malicious, #GNUNET_SYSERR if signature
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_CRYPTO_rsa_verify (const struct GNUNET_HashCode *hash,
                           const struct GNUNET_CRYPTO_RsaSignature *sig,
                           const struct GNUNET_CRYPTO_RsaPublicKey *public_key);

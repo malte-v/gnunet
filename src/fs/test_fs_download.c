@@ -299,8 +299,11 @@ run (void *cls,
                                             "USE_INDEX"))
   {
     fn1 = GNUNET_DISK_mktemp ("gnunet-download-indexed-test");
-    GNUNET_assert (FILESIZE ==
-                   GNUNET_DISK_fn_write (fn1, buf, FILESIZE,
+    (void) GNUNET_DISK_directory_remove (fn1);
+    GNUNET_assert (GNUNET_OK ==
+                   GNUNET_DISK_fn_write (fn1,
+                                         buf,
+                                         FILESIZE,
                                          GNUNET_DISK_PERM_USER_READ
                                          | GNUNET_DISK_PERM_USER_WRITE));
     GNUNET_free (buf);

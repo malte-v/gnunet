@@ -59,15 +59,6 @@ GNUNET_FRIENDS_parse (const struct GNUNET_CONFIGURATION_Handle *cfg,
                                "FRIENDS");
     return GNUNET_SYSERR;
   }
-  if (GNUNET_SYSERR ==
-      GNUNET_DISK_directory_create_for_file (fn))
-  {
-    GNUNET_log_strerror_file (GNUNET_ERROR_TYPE_WARNING,
-                              "mkdir",
-                              fn);
-    GNUNET_free (fn);
-    return GNUNET_SYSERR;
-  }
   if ((GNUNET_OK !=
        GNUNET_DISK_file_test (fn)) &&
       (GNUNET_OK !=

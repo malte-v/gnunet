@@ -345,7 +345,7 @@ struct GNUNET_AsyncScopeSave
  *  #GNUNET_NO to stop iteration with no error,
  *  #GNUNET_SYSERR to abort iteration with error!
  */
-typedef int
+typedef enum GNUNET_GenericReturnValue
 (*GNUNET_FileNameCallback) (void *cls,
                             const char *filename);
 

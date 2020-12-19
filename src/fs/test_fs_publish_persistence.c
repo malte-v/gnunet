@@ -258,7 +258,8 @@ run (void *cls,
   buf = GNUNET_malloc (FILESIZE);
   for (i = 0; i < FILESIZE; i++)
     buf[i] = GNUNET_CRYPTO_random_u32 (GNUNET_CRYPTO_QUALITY_WEAK, 256);
-  GNUNET_assert (FILESIZE ==
+  (void) GNUNET_DISK_directory_remove (fn1);
+  GNUNET_assert (GNUNET_OK ==
                  GNUNET_DISK_fn_write (fn1, buf, FILESIZE,
                                        GNUNET_DISK_PERM_USER_READ
                                        | GNUNET_DISK_PERM_USER_WRITE));
@@ -268,7 +269,8 @@ run (void *cls,
   buf = GNUNET_malloc (FILESIZE);
   for (i = 0; i < FILESIZE; i++)
     buf[i] = GNUNET_CRYPTO_random_u32 (GNUNET_CRYPTO_QUALITY_WEAK, 256);
-  GNUNET_assert (FILESIZE ==
+  (void) GNUNET_DISK_directory_remove (fn2);
+  GNUNET_assert (GNUNET_OK ==
                  GNUNET_DISK_fn_write (fn2, buf, FILESIZE,
                                        GNUNET_DISK_PERM_USER_READ
                                        | GNUNET_DISK_PERM_USER_WRITE));

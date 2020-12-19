@@ -230,7 +230,7 @@ sync_pow ()
 {
   size_t psize = GNUNET_REVOCATION_proof_get_size (proof_of_work);
   if ((NULL != filename) &&
-      (psize !=
+      (GNUNET_OK !=
        GNUNET_DISK_fn_write (filename,
                              proof_of_work,
                              psize,
@@ -280,14 +280,17 @@ calculate_pow (void *cls)
   if (GNUNET_OK == GNUNET_REVOCATION_pow_round (ph))
   {
     psize = GNUNET_REVOCATION_proof_get_size (proof_of_work);
-    if ((NULL != filename) &&
-        (psize !=
-         GNUNET_DISK_fn_write (filename,
-                               proof_of_work,
-                               psize,
-                               GNUNET_DISK_PERM_USER_READ
-                               | GNUNET_DISK_PERM_USER_WRITE)))
-      GNUNET_log_strerror_file (GNUNET_ERROR_TYPE_ERROR, "write", filename);
+    if (NULL != filename)
+    {
+      (void) GNUNET_DISK_directory_remove (filename);
+      if (GNUNET_OK !=
+          GNUNET_DISK_fn_write (filename,
+                                proof_of_work,
+                                psize,
+                                GNUNET_DISK_PERM_USER_READ
+                                | GNUNET_DISK_PERM_USER_WRITE))
+        GNUNET_log_strerror_file (GNUNET_ERROR_TYPE_ERROR, "write", filename);
+    }
     if (perform)
     {
       perform_revocation ();
