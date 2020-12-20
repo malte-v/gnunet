@@ -271,7 +271,6 @@ latency_timeout (void *cls)
                                        NULL);
     return;
   }
-
   switch (phase)
   {
   case TP_INIT:
@@ -332,14 +331,6 @@ size_test (void *cls)
 }
 
 
-/*static void
-size_test (void *cls)
-{
-  GNUNET_SCHEDULER_add_delayed (DELAY,
-                                &size_test_cb,
-                                NULL);
-                                }*/
-
 static void
 long_test (void *cls);
 
@@ -354,21 +345,20 @@ long_test_cb (void *cls)
        (unsigned int) num_received_long);
   payload = make_payload (long_message_size);
   num_sent_long++;
-  GNUNET_TRANSPORT_TESTING_transport_communicator_send (my_tc,
-                                                        ((BURST_PACKETS
-                                                          * 0.91 ==
-                                                          num_received_long) ||
-                                                         (BURST_PACKETS ==
-                                                          num_sent_long))
-                                                        ? NULL
-                                                        : &long_test,
-                                                        NULL,
-                                                        payload,
-                                                        long_message_size);
+  GNUNET_TRANSPORT_TESTING_transport_communicator_send (
+    my_tc,
+    ((BURST_PACKETS * 0.91 == num_received_long) ||
+     (BURST_PACKETS == num_sent_long))
+    ? NULL
+    : &long_test,
+    NULL,
+    payload,
+    long_message_size);
   GNUNET_free (payload);
-  timeout = GNUNET_TIME_relative_to_absolute (GNUNET_TIME_relative_multiply (
-                                                GNUNET_TIME_UNIT_SECONDS,
-                                                TIMEOUT_MULTIPLIER));
+  timeout = GNUNET_TIME_relative_to_absolute (
+    GNUNET_TIME_relative_multiply (
+      GNUNET_TIME_UNIT_SECONDS,
+      TIMEOUT_MULTIPLIER));
 }
 
 
@@ -386,6 +376,7 @@ long_test (void *cls)
 
 static void
 short_test (void *cls);
+
 
 static void
 short_test_cb (void *cls)
@@ -620,14 +611,14 @@ process_statistics (void *cls,
  * @param msg Received message
  */
 static void
-incoming_message_cb (void *cls,
-                     struct
-                     GNUNET_TRANSPORT_TESTING_TransportCommunicatorHandle
-                     *tc_h,
-                     const char*payload,
-                     size_t payload_len)
+incoming_message_cb (
+  void *cls,
+  struct GNUNET_TRANSPORT_TESTING_TransportCommunicatorHandle *tc_h,
+  const char *payload,
+  size_t payload_len)
 {
-  if (0 != strcmp ((char*) cls, cfg_peers_name[NUM_PEERS - 1]))
+  if (0 != strcmp ((char*) cls,
+                   cfg_peers_name[NUM_PEERS - 1]))
   {
     LOG (GNUNET_ERROR_TYPE_WARNING,
          "unexpected receiver...\n");
@@ -652,11 +643,9 @@ incoming_message_cb (void *cls,
       {
         LOG (GNUNET_ERROR_TYPE_MESSAGE,
              "Short size packet test done.\n");
-        char *goodput = GNUNET_STRINGS_byte_size_fancy ((SHORT_MESSAGE_SIZE
-                                                         * num_received_short
-                                                         * 1000
-                                                         * 1000)
-                                                        / duration.rel_value_us);
+        char *goodput = GNUNET_STRINGS_byte_size_fancy (
+          (SHORT_MESSAGE_SIZE * num_received_short * 1000 * 1000)
+          / duration.rel_value_us);
         LOG (GNUNET_ERROR_TYPE_MESSAGE,
              "%lu/%lu packets in %llu us (%s/s) -- avg latency: %llu us\n",
              (unsigned long) num_received_short,
@@ -689,12 +678,10 @@ incoming_message_cb (void *cls,
       {
         LOG (GNUNET_ERROR_TYPE_MESSAGE,
              "Long size packet test done.\n");
-        char *goodput = GNUNET_STRINGS_byte_size_fancy ((long_message_size
-                                                         * num_received_long
-                                                         * 1000
-                                                         * 1000)
-                                                        / duration.
-                                                        rel_value_us);
+        char *goodput = GNUNET_STRINGS_byte_size_fancy (
+          (long_message_size * num_received_long * 1000 * 1000)
+          / duration.
+          rel_value_us);
 
         LOG (GNUNET_ERROR_TYPE_MESSAGE,
              "%lu/%lu packets in %llu us (%s/s) -- avg latency: %llu us\n",
@@ -746,8 +733,8 @@ incoming_message_cb (void *cls,
           short_test (NULL);
           break;
         }
-        if ((0 == strcmp ("rekey", test_name)) || (0 == strcmp ("backchannel",
-                                                                test_name)) )
+        if ( (0 == strcmp ("rekey", test_name)) ||
+             (0 == strcmp ("backchannel", test_name)) )
         {
           if (NULL != box_stats)
             GNUNET_STATISTICS_get_cancel (box_stats);
@@ -931,15 +918,12 @@ main (int argc,
   LOG (GNUNET_ERROR_TYPE_DEBUG,
        "test_name: %s\n",
        test_name);
-
   LOG (GNUNET_ERROR_TYPE_DEBUG,
        "communicator_name: %s\n",
        communicator_name);
-
   LOG (GNUNET_ERROR_TYPE_DEBUG,
        "communicator_binary: %s\n",
        communicator_binary);
-
   GNUNET_SCHEDULER_run (&run,
                         NULL);
   return ret;
