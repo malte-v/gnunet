@@ -3461,10 +3461,6 @@ ifc_broadcast (void *cls)
                                             sizeof(int)))
         GNUNET_log_strerror (GNUNET_ERROR_TYPE_WARNING,
                              "setsockopt");
-      fprintf (stderr,
-               "BC to %s\n",
-               GNUNET_a2s (bi->ba,
-                           bi->salen));
       sent = GNUNET_NETWORK_socket_sendto (udp_sock,
                                            &bi->bcm,
                                            sizeof(bi->bcm),
@@ -3561,10 +3557,18 @@ iface_proc (void *cls,
     return GNUNET_OK; /* not using IPv6 */
 
   bi = GNUNET_new (struct BroadcastInterface);
-  bi->sa = GNUNET_memdup (addr, addrlen);
-  if (NULL != broadcast_addr)
-    bi->ba = GNUNET_memdup (broadcast_addr,
-                            addrlen);
+  bi->sa = GNUNET_memdup (addr,
+                          addrlen);
+  if ( (NULL != broadcast_addr) &&
+       (addrlen == sizeof (struct sockaddr_in)) )
+  {
+    struct sockaddr_in *ba;
+
+    ba = GNUNET_memdup (broadcast_addr,
+                        addrlen);
+    ba->sin_port = htons (2086); /* always GNUnet port, ignore configuration! */
+    bi->ba = (struct sockaddr *) ba;
+  }
   bi->salen = addrlen;
   bi->found = GNUNET_YES;
   bi->bcm.sender = my_identity;
@@ -3575,7 +3579,7 @@ iface_proc (void *cls,
   GNUNET_CRYPTO_eddsa_sign (my_private_key,
                             &ubs,
                             &bi->bcm.sender_sig);
-  if (NULL != broadcast_addr)
+  if (NULL != bi->ba)
   {
     bi->broadcast_task = GNUNET_SCHEDULER_add_now (&ifc_broadcast, bi);
     GNUNET_CONTAINER_DLL_insert (bi_head, bi_tail, bi);
