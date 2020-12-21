@@ -807,13 +807,14 @@ update_hello (const struct GNUNET_PeerIdentity *peer,
       }
       GNUNET_assert (pos == size);
 
-      if (GNUNET_SYSERR == GNUNET_DISK_fn_write (fn,
-                                                 buffer,
-                                                 size,
-                                                 GNUNET_DISK_PERM_USER_READ
-                                                 | GNUNET_DISK_PERM_USER_WRITE
-                                                 | GNUNET_DISK_PERM_GROUP_READ
-                                                 | GNUNET_DISK_PERM_OTHER_READ))
+      if (GNUNET_SYSERR ==
+          GNUNET_DISK_fn_write (fn,
+                                buffer,
+                                size,
+                                GNUNET_DISK_PERM_USER_READ
+                                | GNUNET_DISK_PERM_USER_WRITE
+                                | GNUNET_DISK_PERM_GROUP_READ
+                                | GNUNET_DISK_PERM_OTHER_READ))
         GNUNET_log_strerror_file (GNUNET_ERROR_TYPE_WARNING, "write", fn);
       else
         GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
@@ -987,13 +988,15 @@ discard_hosts_helper (void *cls, const char *fn)
 
   if (0 < write_pos)
   {
-    GNUNET_DISK_fn_write (fn,
-                          writebuffer,
-                          write_pos,
-                          GNUNET_DISK_PERM_USER_READ
-                          | GNUNET_DISK_PERM_USER_WRITE
-                          | GNUNET_DISK_PERM_GROUP_READ
-                          | GNUNET_DISK_PERM_OTHER_READ);
+    (void) GNUNET_DISK_directory_remove (fn);
+    GNUNET_assert (GNUNET_OK ==
+                   GNUNET_DISK_fn_write (fn,
+                                         writebuffer,
+                                         write_pos,
+                                         GNUNET_DISK_PERM_USER_READ
+                                         | GNUNET_DISK_PERM_USER_WRITE
+                                         | GNUNET_DISK_PERM_GROUP_READ
+                                         | GNUNET_DISK_PERM_OTHER_READ));
   }
   else if (0 != unlink (fn))
     GNUNET_log_strerror_file (GNUNET_ERROR_TYPE_WARNING

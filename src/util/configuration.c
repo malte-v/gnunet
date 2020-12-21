@@ -93,7 +93,7 @@ struct GNUNET_CONFIGURATION_Handle
    * #GNUNET_NO if clean, #GNUNET_YES if dirty,
    * #GNUNET_SYSERR on error (i.e. last save failed)
    */
-  int dirty;
+  enum GNUNET_GenericReturnValue dirty;
 };
 
 
@@ -109,11 +109,6 @@ struct DiffHandle
 };
 
 
-/**
- * Create a GNUNET_CONFIGURATION_Handle.
- *
- * @return fresh configuration object
- */
 struct GNUNET_CONFIGURATION_Handle *
 GNUNET_CONFIGURATION_create ()
 {
@@ -199,11 +194,6 @@ GNUNET_CONFIGURATION_create ()
 }
 
 
-/**
- * Destroy configuration object.
- *
- * @param cfg configuration to destroy
- */
 void
 GNUNET_CONFIGURATION_destroy (struct GNUNET_CONFIGURATION_Handle *cfg)
 {
@@ -215,24 +205,13 @@ GNUNET_CONFIGURATION_destroy (struct GNUNET_CONFIGURATION_Handle *cfg)
 }
 
 
-/**
- * Parse a configuration file @a filename and run the function
- * @a cb with the resulting configuration object. Then free the
- * configuration object and return the status value from @a cb.
- *
- * @param filename configuration to parse, NULL for "default"
- * @param cb function to run
- * @param cb_cls closure for @a cb
- * @return #GNUNET_SYSERR if parsing the configuration failed,
- *   otherwise return value from @a cb.
- */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_CONFIGURATION_parse_and_run (const char *filename,
                                     GNUNET_CONFIGURATION_Callback cb,
                                     void *cb_cls)
 {
   struct GNUNET_CONFIGURATION_Handle *cfg;
-  int ret;
+  enum GNUNET_GenericReturnValue ret;
 
   cfg = GNUNET_CONFIGURATION_create ();
   if (GNUNET_OK != GNUNET_CONFIGURATION_load (cfg, filename))
@@ -247,18 +226,7 @@ GNUNET_CONFIGURATION_parse_and_run (const char *filename,
 }
 
 
-/**
- * De-serializes configuration
- *
- * @param cfg configuration to update
- * @param mem the memory block of serialized configuration
- * @param size the size of the memory block
- * @param basedir set to path from which we recursively load configuration
- *          from inlined configurations; NULL if not and raise warnings
- *          when we come across them
- * @return #GNUNET_OK on success, #GNUNET_SYSERR on error
- */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_CONFIGURATION_deserialize (struct GNUNET_CONFIGURATION_Handle *cfg,
                                   const char *mem,
                                   size_t size,
@@ -273,7 +241,7 @@ GNUNET_CONFIGURATION_deserialize (struct GNUNET_CONFIGURATION_Handle *cfg,
   size_t to_read;
   size_t i;
   int emptyline;
-  int ret;
+  enum GNUNET_GenericReturnValue ret;
   char *section;
   char *eq;
   char *tag;
@@ -411,15 +379,7 @@ GNUNET_CONFIGURATION_deserialize (struct GNUNET_CONFIGURATION_Handle *cfg,
 }
 
 
-/**
- * Parse a configuration file, add all of the options in the
- * file to the configuration environment.
- *
- * @param cfg configuration to update
- * @param filename name of the configuration file
- * @return #GNUNET_OK on success, #GNUNET_SYSERR on error
- */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_CONFIGURATION_parse (struct GNUNET_CONFIGURATION_Handle *cfg,
                             const char *filename)
 {
@@ -429,7 +389,7 @@ GNUNET_CONFIGURATION_parse (struct GNUNET_CONFIGURATION_Handle *cfg,
   char *mem;
   char *endsep;
   int dirty;
-  int ret;
+  enum GNUNET_GenericReturnValue ret;
   ssize_t sret;
 
   fn = GNUNET_STRINGS_filename_expand (filename);
@@ -476,28 +436,13 @@ GNUNET_CONFIGURATION_parse (struct GNUNET_CONFIGURATION_Handle *cfg,
 }
 
 
-/**
- * Test if there are configuration options that were
- * changed since the last save.
- *
- * @param cfg configuration to inspect
- * @return #GNUNET_NO if clean, #GNUNET_YES if dirty, #GNUNET_SYSERR on error (i.e. last save failed)
- */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_CONFIGURATION_is_dirty (const struct GNUNET_CONFIGURATION_Handle *cfg)
 {
   return cfg->dirty;
 }
 
 
-/**
- * Serializes the given configuration.
- *
- * @param cfg configuration to serialize
- * @param size will be set to the size of the serialized memory block
- * @return the memory block where the serialized configuration is
- *           present. This memory should be freed by the caller
- */
 char *
 GNUNET_CONFIGURATION_serialize (const struct GNUNET_CONFIGURATION_Handle *cfg,
                                 size_t *size)
@@ -580,21 +525,13 @@ GNUNET_CONFIGURATION_serialize (const struct GNUNET_CONFIGURATION_Handle *cfg,
 }
 
 
-/**
- * Write configuration file.
- *
- * @param cfg configuration to write
- * @param filename where to write the configuration
- * @return #GNUNET_OK on success, #GNUNET_SYSERR on error
- */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_CONFIGURATION_write (struct GNUNET_CONFIGURATION_Handle *cfg,
                             const char *filename)
 {
   char *fn;
   char *cfg_buf;
   size_t size;
-  ssize_t sret;
 
   fn = GNUNET_STRINGS_filename_expand (filename);
   if (fn == NULL)
@@ -604,15 +541,17 @@ GNUNET_CONFIGURATION_write (struct GNUNET_CONFIGURATION_Handle *cfg,
     GNUNET_free (fn);
     return GNUNET_SYSERR;
   }
-  cfg_buf = GNUNET_CONFIGURATION_serialize (cfg, &size);
-  sret = GNUNET_DISK_fn_write (fn,
-                               cfg_buf,
-                               size,
-                               GNUNET_DISK_PERM_USER_READ
-                               | GNUNET_DISK_PERM_USER_WRITE
-                               | GNUNET_DISK_PERM_GROUP_READ
-                               | GNUNET_DISK_PERM_GROUP_WRITE);
-  if ((sret < 0) || (size != (size_t) sret))
+  cfg_buf = GNUNET_CONFIGURATION_serialize (cfg,
+                                            &size);
+  (void) GNUNET_DISK_directory_remove (fn);
+  if (GNUNET_OK !=
+      GNUNET_DISK_fn_write (fn,
+                            cfg_buf,
+                            size,
+                            GNUNET_DISK_PERM_USER_READ
+                            | GNUNET_DISK_PERM_USER_WRITE
+                            | GNUNET_DISK_PERM_GROUP_READ
+                            | GNUNET_DISK_PERM_GROUP_WRITE))
   {
     GNUNET_free (fn);
     GNUNET_free (cfg_buf);
@@ -629,36 +568,25 @@ GNUNET_CONFIGURATION_write (struct GNUNET_CONFIGURATION_Handle *cfg,
 }
 
 
-/**
- * Iterate over all options in the configuration.
- *
- * @param cfg configuration to inspect
- * @param iter function to call on each option
- * @param iter_cls closure for @a iter
- */
 void
 GNUNET_CONFIGURATION_iterate (const struct GNUNET_CONFIGURATION_Handle *cfg,
                               GNUNET_CONFIGURATION_Iterator iter,
                               void *iter_cls)
 {
-  struct ConfigSection *spos;
-  struct ConfigEntry *epos;
-
-  for (spos = cfg->sections; NULL != spos; spos = spos->next)
-    for (epos = spos->entries; NULL != epos; epos = epos->next)
+  for (struct ConfigSection *spos = cfg->sections;
+       NULL != spos;
+       spos = spos->next)
+    for (struct ConfigEntry *epos = spos->entries;
+         NULL != epos;
+         epos = epos->next)
       if (NULL != epos->val)
-        iter (iter_cls, spos->name, epos->key, epos->val);
+        iter (iter_cls,
+              spos->name,
+              epos->key,
+              epos->val);
 }
 
 
-/**
- * Iterate over values of a section in the configuration.
- *
- * @param cfg configuration to inspect
- * @param section the section
- * @param iter function to call on each option
- * @param iter_cls closure for @a iter
- */
 void
 GNUNET_CONFIGURATION_iterate_section_values (
   const struct GNUNET_CONFIGURATION_Handle *cfg,
@@ -680,13 +608,6 @@ GNUNET_CONFIGURATION_iterate_section_values (
 }
 
 
-/**
- * Iterate over all sections in the configuration.
- *
- * @param cfg configuration to inspect
- * @param iter function to call on each section
- * @param iter_cls closure for @a iter
- */
 void
 GNUNET_CONFIGURATION_iterate_sections (
   const struct GNUNET_CONFIGURATION_Handle *cfg,
@@ -706,12 +627,6 @@ GNUNET_CONFIGURATION_iterate_sections (
 }
 
 
-/**
- * Remove the given section and all options in it.
- *
- * @param cfg configuration to inspect
- * @param section name of the section to remove
- */
 void
 GNUNET_CONFIGURATION_remove_section (struct GNUNET_CONFIGURATION_Handle *cfg,
                                      const char *section)
@@ -769,12 +684,6 @@ copy_entry (void *cls,
 }
 
 
-/**
- * Duplicate an existing configuration object.
- *
- * @param cfg configuration to duplicate
- * @return duplicate configuration
- */
 struct GNUNET_CONFIGURATION_Handle *
 GNUNET_CONFIGURATION_dup (const struct GNUNET_CONFIGURATION_Handle *cfg)
 {
@@ -858,13 +767,6 @@ compare_entries (void *cls,
 }
 
 
-/**
- * Compute configuration with only entries that have been changed
- *
- * @param cfg_default original configuration
- * @param cfg_new new configuration
- * @return configuration with only the differences, never NULL
- */
 struct GNUNET_CONFIGURATION_Handle *
 GNUNET_CONFIGURATION_get_diff (
   const struct GNUNET_CONFIGURATION_Handle *cfg_default,
@@ -879,15 +781,7 @@ GNUNET_CONFIGURATION_get_diff (
 }
 
 
-/**
- * Write only configuration entries that have been changed to configuration file
- *
- * @param cfg_default default configuration
- * @param cfg_new new configuration
- * @param filename where to write the configuration diff between default and new
- * @return #GNUNET_OK on success, #GNUNET_SYSERR on error
- */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_CONFIGURATION_write_diffs (
   const struct GNUNET_CONFIGURATION_Handle *cfg_default,
   const struct GNUNET_CONFIGURATION_Handle *cfg_new,
@@ -903,14 +797,6 @@ GNUNET_CONFIGURATION_write_diffs (
 }
 
 
-/**
- * Set a configuration value that should be a string.
- *
- * @param cfg configuration to update
- * @param section section of interest
- * @param option option of interest
- * @param value value to set
- */
 void
 GNUNET_CONFIGURATION_set_value_string (struct GNUNET_CONFIGURATION_Handle *cfg,
                                        const char *section,
@@ -953,14 +839,6 @@ GNUNET_CONFIGURATION_set_value_string (struct GNUNET_CONFIGURATION_Handle *cfg,
 }
 
 
-/**
- * Set a configuration value that should be a number.
- *
- * @param cfg configuration to update
- * @param section section of interest
- * @param option option of interest
- * @param number value to set
- */
 void
 GNUNET_CONFIGURATION_set_value_number (struct GNUNET_CONFIGURATION_Handle *cfg,
                                        const char *section,
@@ -974,16 +852,7 @@ GNUNET_CONFIGURATION_set_value_number (struct GNUNET_CONFIGURATION_Handle *cfg,
 }
 
 
-/**
- * Get a configuration value that should be a number.
- *
- * @param cfg configuration to inspect
- * @param section section of interest
- * @param option option of interest
- * @param number where to store the numeric value of the option
- * @return #GNUNET_OK on success, #GNUNET_SYSERR on error
- */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_CONFIGURATION_get_value_number (
   const struct GNUNET_CONFIGURATION_Handle *cfg,
   const char *section,
@@ -1003,16 +872,7 @@ GNUNET_CONFIGURATION_get_value_number (
 }
 
 
-/**
- * Get a configuration value that should be a floating point number.
- *
- * @param cfg configuration to inspect
- * @param section section of interest
- * @param option option of interest
- * @param number where to store the floating value of the option
- * @return #GNUNET_OK on success, #GNUNET_SYSERR on error
- */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_CONFIGURATION_get_value_float (
   const struct GNUNET_CONFIGURATION_Handle *cfg,
   const char *section,
@@ -1032,16 +892,7 @@ GNUNET_CONFIGURATION_get_value_float (
 }
 
 
-/**
- * Get a configuration value that should be a relative time.
- *
- * @param cfg configuration to inspect
- * @param section section of interest
- * @param option option of interest
- * @param time set to the time value stored in the configuration
- * @return #GNUNET_OK on success, #GNUNET_SYSERR on error
- */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_CONFIGURATION_get_value_time (
   const struct GNUNET_CONFIGURATION_Handle *cfg,
   const char *section,
@@ -1065,16 +916,7 @@ GNUNET_CONFIGURATION_get_value_time (
 }
 
 
-/**
- * Get a configuration value that should be a size in bytes.
- *
- * @param cfg configuration to inspect
- * @param section section of interest
- * @param option option of interest
- * @param size set to the size in bytes as stored in the configuration
- * @return #GNUNET_OK on success, #GNUNET_SYSERR on error
- */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_CONFIGURATION_get_value_size (
   const struct GNUNET_CONFIGURATION_Handle *cfg,
   const char *section,
@@ -1101,7 +943,7 @@ GNUNET_CONFIGURATION_get_value_size (
  *        value, or NULL if option is not specified
  * @return #GNUNET_OK on success, #GNUNET_SYSERR on error
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_CONFIGURATION_get_value_string (
   const struct GNUNET_CONFIGURATION_Handle *cfg,
   const char *section,
@@ -1120,19 +962,7 @@ GNUNET_CONFIGURATION_get_value_string (
 }
 
 
-/**
- * Get a configuration value that should be in a set of
- * predefined strings
- *
- * @param cfg configuration to inspect
- * @param section section of interest
- * @param option option of interest
- * @param choices NULL-terminated list of legal values
- * @param value will be set to an entry in the legal list,
- *        or NULL if option is not specified and no default given
- * @return #GNUNET_OK on success, #GNUNET_SYSERR on error
- */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_CONFIGURATION_get_value_choice (
   const struct GNUNET_CONFIGURATION_Handle *cfg,
   const char *section,
@@ -1163,19 +993,7 @@ GNUNET_CONFIGURATION_get_value_choice (
 }
 
 
-/**
- * Get crockford32-encoded fixed-size binary data from a configuration.
- *
- * @param cfg configuration to access
- * @param section section to access
- * @param option option to access
- * @param buf where to store the decoded binary result
- * @param buf_size exact number of bytes to store in @a buf
- * @return #GNUNET_OK on success
- *         #GNUNET_NO is the value does not exist
- *         #GNUNET_SYSERR on decoding error
- */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_CONFIGURATION_get_data (const struct GNUNET_CONFIGURATION_Handle *cfg,
                                const char *section,
                                const char *option,
@@ -1207,15 +1025,7 @@ GNUNET_CONFIGURATION_get_data (const struct GNUNET_CONFIGURATION_Handle *cfg,
 }
 
 
-/**
- * Test if we have a value for a particular option
- *
- * @param cfg configuration to inspect
- * @param section section of interest
- * @param option option of interest
- * @return #GNUNET_YES if so, #GNUNET_NO if not.
- */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_CONFIGURATION_have_value (const struct GNUNET_CONFIGURATION_Handle *cfg,
                                  const char *section,
                                  const char *option)
@@ -1390,22 +1200,6 @@ expand_dollar (const struct GNUNET_CONFIGURATION_Handle *cfg,
 }
 
 
-/**
- * Expand an expression of the form "$FOO/BAR" to "DIRECTORY/BAR"
- * where either in the "PATHS" section or the environment "FOO" is
- * set to "DIRECTORY".  We also support default expansion,
- * i.e. ${VARIABLE:-default} will expand to $VARIABLE if VARIABLE is
- * set in PATHS or the environment, and otherwise to "default".  Note
- * that "default" itself can also be a $-expression, thus
- * "${VAR1:-{$VAR2}}" will expand to VAR1 and if that is not defined
- * to VAR2.
- *
- * @param cfg configuration to use for path expansion
- * @param orig string to $-expand (will be freed!).  Note that multiple
- *          $-expressions can be present in this string.  They will all be
- *          $-expanded.
- * @return $-expanded string
- */
 char *
 GNUNET_CONFIGURATION_expand_dollar (
   const struct GNUNET_CONFIGURATION_Handle *cfg,
@@ -1431,17 +1225,7 @@ GNUNET_CONFIGURATION_expand_dollar (
 }
 
 
-/**
- * Get a configuration value that should be a string.
- *
- * @param cfg configuration to inspect
- * @param section section of interest
- * @param option option of interest
- * @param value will be set to a freshly allocated configuration
- *        value, or NULL if option is not specified
- * @return #GNUNET_OK on success, #GNUNET_SYSERR on error
- */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_CONFIGURATION_get_value_filename (
   const struct GNUNET_CONFIGURATION_Handle *cfg,
   const char *section,
@@ -1466,16 +1250,7 @@ GNUNET_CONFIGURATION_get_value_filename (
 }
 
 
-/**
- * Get a configuration value that should be in a set of
- * "YES" or "NO".
- *
- * @param cfg configuration to inspect
- * @param section section of interest
- * @param option option of interest
- * @return #GNUNET_YES, #GNUNET_NO or #GNUNET_SYSERR
- */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_CONFIGURATION_get_value_yesno (
   const struct GNUNET_CONFIGURATION_Handle *cfg,
   const char *section,
@@ -1495,16 +1270,6 @@ GNUNET_CONFIGURATION_get_value_yesno (
 }
 
 
-/**
- * Iterate over the set of filenames stored in a configuration value.
- *
- * @param cfg configuration to inspect
- * @param section section of interest
- * @param option option of interest
- * @param cb function to call on each filename
- * @param cb_cls closure for @a cb
- * @return number of filenames iterated over, -1 on error
- */
 int
 GNUNET_CONFIGURATION_iterate_value_filenames (
   const struct GNUNET_CONFIGURATION_Handle *cfg,
@@ -1618,7 +1383,7 @@ escape_name (const char *value)
  * @param fn filename we are currently looking at
  * @return #GNUNET_OK if the names do not match, #GNUNET_SYSERR if they do
  */
-static int
+static enum GNUNET_GenericReturnValue
 test_match (void *cls, const char *fn)
 {
   const char *of = cls;
@@ -1627,19 +1392,7 @@ test_match (void *cls, const char *fn)
 }
 
 
-/**
- * Append a filename to a configuration value that
- * represents a list of filenames
- *
- * @param cfg configuration to update
- * @param section section of interest
- * @param option option of interest
- * @param value filename to append
- * @return #GNUNET_OK on success,
- *         #GNUNET_NO if the filename already in the list
- *         #GNUNET_SYSERR on error
- */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_CONFIGURATION_append_value_filename (
   struct GNUNET_CONFIGURATION_Handle *cfg,
   const char *section,
@@ -1674,19 +1427,7 @@ GNUNET_CONFIGURATION_append_value_filename (
 }
 
 
-/**
- * Remove a filename from a configuration value that
- * represents a list of filenames
- *
- * @param cfg configuration to update
- * @param section section of interest
- * @param option option of interest
- * @param value filename to remove
- * @return #GNUNET_OK on success,
- *         #GNUNET_NO if the filename is not in the list,
- *         #GNUNET_SYSERR on error
- */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_CONFIGURATION_remove_value_filename (
   struct GNUNET_CONFIGURATION_Handle *cfg,
   const char *section,
@@ -1771,12 +1512,11 @@ GNUNET_CONFIGURATION_remove_value_filename (
  * @param filename file to parse
  * @return #GNUNET_OK on success
  */
-static int
+static enum GNUNET_GenericReturnValue
 parse_configuration_file (void *cls, const char *filename)
 {
   struct GNUNET_CONFIGURATION_Handle *cfg = cls;
   char *ext;
-  int ret;
 
   /* Examine file extension */
   ext = strrchr (filename, '.');
@@ -1786,20 +1526,11 @@ parse_configuration_file (void *cls, const char *filename)
     return GNUNET_OK;
   }
 
-  ret = GNUNET_CONFIGURATION_parse (cfg, filename);
-  return ret;
+  return GNUNET_CONFIGURATION_parse (cfg, filename);
 }
 
 
-/**
- * Load default configuration.  This function will parse the
- * defaults from the given defaults_d directory.
- *
- * @param cfg configuration to update
- * @param defaults_d directory with the defaults
- * @return #GNUNET_OK on success, #GNUNET_SYSERR on error
- */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_CONFIGURATION_load_from (struct GNUNET_CONFIGURATION_Handle *cfg,
                                 const char *defaults_d)
 {
@@ -1810,43 +1541,31 @@ GNUNET_CONFIGURATION_load_from (struct GNUNET_CONFIGURATION_Handle *cfg,
 }
 
 
-/**
- * Return GNUnet's default configuration.  A new configuration is allocated
- * each time and it's up to the caller to destroy it when done.  This function
- * returns GNUnet's configuration even when #GNUNET_OS_init has been called
- * with a value different from #GNUNET_OS_project_data_default.
- *
- * @return a freshly allocated configuration
- */
 struct GNUNET_CONFIGURATION_Handle *
 GNUNET_CONFIGURATION_default (void)
 {
   const struct GNUNET_OS_ProjectData *pd = GNUNET_OS_project_data_get ();
   const struct GNUNET_OS_ProjectData *dpd = GNUNET_OS_project_data_default ();
-
-  GNUNET_OS_init (dpd);
-
-  struct GNUNET_CONFIGURATION_Handle *cfg = GNUNET_CONFIGURATION_create ();
   const char *xdg = getenv ("XDG_CONFIG_HOME");
   char *cfgname = NULL;
+  struct GNUNET_CONFIGURATION_Handle *cfg;
 
+  GNUNET_OS_init (dpd);
+  cfg = GNUNET_CONFIGURATION_create ();
   if (NULL != xdg)
     GNUNET_asprintf (&cfgname, "%s/%s", xdg, pd->config_file);
   else
     cfgname = GNUNET_strdup (pd->user_config_file);
-
-  if (GNUNET_OK != GNUNET_CONFIGURATION_load (cfg, cfgname))
+  if (GNUNET_OK !=
+      GNUNET_CONFIGURATION_load (cfg, cfgname))
   {
     GNUNET_OS_init (pd);
     GNUNET_CONFIGURATION_destroy (cfg);
     GNUNET_free (cfgname);
     return NULL;
   }
-
   GNUNET_free (cfgname);
-
   GNUNET_OS_init (pd);
-
   return cfg;
 }
 

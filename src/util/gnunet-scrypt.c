@@ -65,12 +65,15 @@ static void
 shutdown_task (void *cls)
 {
   (void) cls;
-  if (sizeof(proof) != GNUNET_DISK_fn_write (pwfn,
-                                             &proof,
-                                             sizeof(proof),
-                                             GNUNET_DISK_PERM_USER_READ
-                                             | GNUNET_DISK_PERM_USER_WRITE))
-    GNUNET_log_strerror_file (GNUNET_ERROR_TYPE_WARNING, "write", pwfn);
+  if (GNUNET_OK !=
+      GNUNET_DISK_fn_write (pwfn,
+                            &proof,
+                            sizeof(proof),
+                            GNUNET_DISK_PERM_USER_READ
+                            | GNUNET_DISK_PERM_USER_WRITE))
+    GNUNET_log_strerror_file (GNUNET_ERROR_TYPE_WARNING,
+                              "write",
+                              pwfn);
 }
 
 

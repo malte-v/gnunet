@@ -451,13 +451,14 @@ dump_my_hello ()
     fprintf (stderr, _ ("Failure: Received invalid %s\n"), "HELLO");
     return;
   }
-  if (GNUNET_SYSERR == GNUNET_DISK_fn_write (dump_hello,
-                                             my_hello,
-                                             size,
-                                             GNUNET_DISK_PERM_USER_READ
-                                             | GNUNET_DISK_PERM_USER_WRITE
-                                             | GNUNET_DISK_PERM_GROUP_READ
-                                             | GNUNET_DISK_PERM_OTHER_READ))
+  if (GNUNET_SYSERR ==
+      GNUNET_DISK_fn_write (dump_hello,
+                            my_hello,
+                            size,
+                            GNUNET_DISK_PERM_USER_READ
+                            | GNUNET_DISK_PERM_USER_WRITE
+                            | GNUNET_DISK_PERM_GROUP_READ
+                            | GNUNET_DISK_PERM_OTHER_READ))
   {
     fprintf (stderr,
              _ ("Failed to write HELLO with %u bytes to file `%s'\n"),

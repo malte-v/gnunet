@@ -61,7 +61,7 @@
  * @param buf_size number of bytes in @a buf
  * @return #GNUNET_OK on success
  */
-static int
+static enum GNUNET_GenericReturnValue
 read_from_file (const char *filename,
                 void *buf,
                 size_t buf_size)
@@ -123,104 +123,6 @@ read_from_file (const char *filename,
 
 
 /**
- * Write contents of @a buf atomically to @a filename.
- * Fail if @a filename already exists or if not exactly
- * @a buf with @a buf_size bytes could be written to
- * @a filename.
- *
- * @param filename where to write
- * @param buf buffer to write
- * @param buf_size number of bytes in @a buf to write
- * @return #GNUNET_OK on success,
- *         #GNUNET_NO if a file existed under @a filename
- *         #GNUNET_SYSERR on failure
- */
-static int
-atomic_write_to_file (const char *filename,
-                      const void *buf,
-                      size_t buf_size)
-{
-  char *tmpl;
-  int fd;
-
-  if (GNUNET_OK !=
-      GNUNET_DISK_directory_create_for_file (filename))
-  {
-    GNUNET_log_strerror_file (GNUNET_ERROR_TYPE_WARNING,
-                              "mkstemp",
-                              filename);
-    return GNUNET_SYSERR;
-  }
-  {
-    char *dname;
-
-    dname = GNUNET_strdup (filename);
-    GNUNET_asprintf (&tmpl,
-                     "%s/XXXXXX",
-                     dirname (dname));
-    GNUNET_free (dname);
-  }
-  fd = mkstemp (tmpl);
-  if (-1 == fd)
-  {
-    GNUNET_log_strerror_file (GNUNET_ERROR_TYPE_WARNING,
-                              "mkstemp",
-                              tmpl);
-    GNUNET_free (tmpl);
-    return GNUNET_SYSERR;
-  }
-  if (0 != fchmod (fd,
-                   S_IRUSR))
-  {
-    GNUNET_log_strerror_file (GNUNET_ERROR_TYPE_WARNING,
-                              "chmod",
-                              tmpl);
-    GNUNET_assert (0 == close (fd));
-    if (0 != unlink (tmpl))
-      GNUNET_log_strerror_file (GNUNET_ERROR_TYPE_ERROR,
-                                "unlink",
-                                tmpl);
-    GNUNET_free (tmpl);
-    return GNUNET_SYSERR;
-  }
-  if (buf_size !=
-      write (fd,
-             buf,
-             buf_size))
-  {
-    GNUNET_log_strerror_file (GNUNET_ERROR_TYPE_WARNING,
-                              "write",
-                              tmpl);
-    GNUNET_assert (0 == close (fd));
-    if (0 != unlink (tmpl))
-      GNUNET_log_strerror_file (GNUNET_ERROR_TYPE_ERROR,
-                                "unlink",
-                                tmpl);
-    GNUNET_free (tmpl);
-    return GNUNET_SYSERR;
-  }
-  GNUNET_assert (0 == close (fd));
-
-  if (0 != link (tmpl,
-                 filename))
-  {
-    if (0 != unlink (tmpl))
-      GNUNET_log_strerror_file (GNUNET_ERROR_TYPE_ERROR,
-                                "unlink",
-                                tmpl);
-    GNUNET_free (tmpl);
-    return GNUNET_NO;
-  }
-  if (0 != unlink (tmpl))
-    GNUNET_log_strerror_file (GNUNET_ERROR_TYPE_ERROR,
-                              "unlink",
-                              tmpl);
-  GNUNET_free (tmpl);
-  return GNUNET_OK;
-}
-
-
-/**
  * @ingroup crypto
  * @brief Create a new private key by reading it from a file.
  *
@@ -235,12 +137,12 @@ atomic_write_to_file (const char *filename,
  * @return #GNUNET_OK on success, #GNUNET_NO if @a do_create was set but
  *         we found an existing file, #GNUNET_SYSERR on failure
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_CRYPTO_eddsa_key_from_file (const char *filename,
                                    int do_create,
                                    struct GNUNET_CRYPTO_EddsaPrivateKey *pkey)
 {
-  int ret;
+  enum GNUNET_GenericReturnValue ret;
 
   if (GNUNET_OK ==
       read_from_file (filename,
@@ -251,9 +153,10 @@ GNUNET_CRYPTO_eddsa_key_from_file (const char *filename,
     return (do_create) ? GNUNET_NO : GNUNET_OK;
   }
   GNUNET_CRYPTO_eddsa_key_create (pkey);
-  ret = atomic_write_to_file (filename,
+  ret = GNUNET_DISK_fn_write (filename,
                               pkey,
-                              sizeof (*pkey));
+                              sizeof (*pkey),
+                              GNUNET_DISK_PERM_USER_READ);
   if ( (GNUNET_OK == ret) ||
        (GNUNET_SYSERR == ret) )
     return ret;
@@ -286,7 +189,7 @@ GNUNET_CRYPTO_eddsa_key_from_file (const char *filename,
  * @return #GNUNET_OK on success, #GNUNET_NO if @a do_create was set but
  *         we found an existing file, #GNUNET_SYSERR on failure
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_CRYPTO_ecdsa_key_from_file (const char *filename,
                                    int do_create,
                                    struct GNUNET_CRYPTO_EcdsaPrivateKey *pkey)
@@ -301,9 +204,10 @@ GNUNET_CRYPTO_ecdsa_key_from_file (const char *filename,
   }
   GNUNET_CRYPTO_ecdsa_key_create (pkey);
   if (GNUNET_OK ==
-      atomic_write_to_file (filename,
+      GNUNET_DISK_fn_write (filename,
                             pkey,
-                            sizeof (*pkey)))
+                            sizeof (*pkey),
+                            GNUNET_DISK_PERM_USER_READ))
     return GNUNET_OK;
   /* maybe another process succeeded in the meantime, try reading one more time */
   if (GNUNET_OK ==
@@ -357,7 +261,7 @@ GNUNET_CRYPTO_eddsa_key_create_from_configuration (
  * @return #GNUNET_OK on success, #GNUNET_SYSERR if the identity
  *         could not be retrieved
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_CRYPTO_get_peer_identity (const struct GNUNET_CONFIGURATION_Handle *cfg,
                                  struct GNUNET_PeerIdentity *dst)
 {

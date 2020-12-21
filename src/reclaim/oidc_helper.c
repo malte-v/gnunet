@@ -694,7 +694,7 @@ OIDC_parse_authz_code (const struct GNUNET_IDENTITY_PublicKey *audience,
   // cmp code_challenge code_verifier
   code_challenge_len = ntohl (params->code_challenge_len);
   code_challenge = ((char *) &params[1]);
-  if (!(opts & OIDC_VERIFICATION_NO_CODE_VERIFIER))
+  if (! (opts & OIDC_VERIFICATION_NO_CODE_VERIFIER))
   {
     if (GNUNET_OK != check_code_challenge (code_challenge,
                                            code_challenge_len,

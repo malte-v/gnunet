@@ -30,12 +30,12 @@
 
 
 static int
-testReadWrite ()
+testReadWrite (void)
 {
   char tmp[100 + 1];
   int ret;
 
-  if (strlen (TESTSTRING) !=
+  if (GNUNET_OK !=
       GNUNET_DISK_fn_write (".testfile", TESTSTRING, strlen (TESTSTRING),
                             GNUNET_DISK_PERM_USER_READ
                             | GNUNET_DISK_PERM_USER_WRITE))

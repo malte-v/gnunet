@@ -137,10 +137,10 @@
 #define MAX_SECRETS 128000
 
 /**
- * How often do we rekey based on number of bytes transmitted?
+ * Default value for how often we do rekey based on number of bytes transmitted?
  * (additionally randomized).
  */
-#define REKEY_MAX_BYTES (1024LLU * 1024 * 1024 * 4LLU)
+#define DEFAULT_REKEY_MAX_BYTES (1024LLU * 1024 * 1024 * 4LLU)
 
 /**
  * Address prefix used by the communicator.
@@ -510,6 +510,11 @@ struct SharedSecret
 struct SenderAddress
 {
   /**
+   * Shared secret we use with @e target for rekeying.
+   */
+  struct SharedSecret *ss_rekey;
+
+  /**
    * Flag indicating sender is initiated rekeying for this receiver.
    */
   int rekeying;
@@ -759,6 +764,10 @@ struct BroadcastInterface
  */
 static struct GNUNET_TIME_Relative rekey_interval;
 
+/**
+ * How often we do rekey based on number of bytes transmitted
+ */
+static unsigned long long rekey_max_bytes;
 /**
  * Shared secret we finished the last kce working queue for.
  */
@@ -1056,14 +1065,14 @@ secret_destroy (struct SharedSecret *ss, int withoutKce)
   struct ReceiverAddress *receiver;
   struct KeyCacheEntry *kce;
 
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "secret destroy %u %u\n",
-              withoutKce,
-              ss->sequence_allowed);
-
   if (withoutKce && (ss->sequence_allowed > 0))
     return GNUNET_NO;
 
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "secret %s destroy %u %u\n",
+              GNUNET_h2s (&ss->master),
+              withoutKce,
+              ss->sequence_allowed);
   if (NULL != (sender = ss->sender))
   {
     GNUNET_CONTAINER_DLL_remove (sender->ss_head, sender->ss_tail, ss);
@@ -1075,6 +1084,9 @@ secret_destroy (struct SharedSecret *ss, int withoutKce)
     receiver->num_secrets--;
     // Uncomment this for alternativ 1 of backchannel functionality
     receiver->acks_available -= (ss->sequence_allowed - ss->sequence_used);
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "%u receiver->acks_available 3\n",
+                receiver->acks_available);
     // Until here for alternativ 1
   }
   while (NULL != (kce = ss->kce_head))
@@ -1194,15 +1206,15 @@ check_timeouts (void *cls)
   rt = GNUNET_TIME_UNIT_FOREVER_REL;
   while (NULL != (receiver = GNUNET_CONTAINER_heap_peek (receivers_heap)))
   {
-    if (GNUNET_YES != receiver->receiver_destroy_called)
-    {
-      rt = GNUNET_TIME_absolute_get_remaining (receiver->timeout);
-      if (0 != rt.rel_value_us)
-        break;
-      GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                  "Receiver timed out\n");
-      receiver_destroy (receiver);
-    }
+    /* if (GNUNET_YES != receiver->receiver_destroy_called) */
+    /* { */
+    rt = GNUNET_TIME_absolute_get_remaining (receiver->timeout);
+    if (0 != rt.rel_value_us)
+      break;
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "Receiver timed out\n");
+    receiver_destroy (receiver);
+    // }
   }
   st = GNUNET_TIME_UNIT_FOREVER_REL;
   while (NULL != (sender = GNUNET_CONTAINER_heap_peek (senders_heap)))
@@ -1433,7 +1445,8 @@ destroy_all_secrets (struct SharedSecret *ss, int withoutKce)
   int at_least_one_destroyed = GNUNET_NO;
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "Starting destroy all.\n");
+              "Starting destroy all withoutKce: %u.\n",
+              withoutKce);
 
   if (NULL != (sender = ss->sender))
   {
@@ -1451,7 +1464,7 @@ destroy_all_secrets (struct SharedSecret *ss, int withoutKce)
   }
 
   pos = ss_start;
-  while ( NULL != pos)
+  while (NULL != pos)
   {
     ss_to_destroy = pos;
     pos = pos->next;
@@ -1462,6 +1475,8 @@ destroy_all_secrets (struct SharedSecret *ss, int withoutKce)
 
   if ((ss != ss_start) && ! at_least_one_destroyed)
   {
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "Really destroying all.\n");
     destroy_all_secrets (ss_start, GNUNET_NO);
   }
 
@@ -1469,8 +1484,9 @@ destroy_all_secrets (struct SharedSecret *ss, int withoutKce)
               "Finished destroy all.\n");
 }
 
+
 static void
-add_acks (struct SharedSecret *ss, int acks_to_add, int remove_from_receiver)
+add_acks (struct SharedSecret *ss, int acks_to_add)
 {
 
   struct ReceiverAddress *receiver = ss->receiver;
@@ -1489,6 +1505,9 @@ add_acks (struct SharedSecret *ss, int acks_to_add, int remove_from_receiver)
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Tell transport we have %u more acks!\n",
               acks_to_add);
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "%u kce for rekeying.\n",
+              receiver->number_rekeying_kce);
   GNUNET_TRANSPORT_communicator_mq_update (ch,
                                            receiver->d_qh,
                                            acks_to_add,
@@ -1496,34 +1515,69 @@ add_acks (struct SharedSecret *ss, int acks_to_add, int remove_from_receiver)
   // Until here for alternativ 1
 
   /* move ss to head to avoid discarding it anytime soon! */
-  if (remove_from_receiver)
-    GNUNET_CONTAINER_DLL_remove (receiver->ss_head, receiver->ss_tail, ss);
+
+  GNUNET_CONTAINER_DLL_remove (receiver->ss_head, receiver->ss_tail, ss);
   GNUNET_CONTAINER_DLL_insert (receiver->ss_head, receiver->ss_tail, ss);
   destroy_all_secrets (ss, GNUNET_YES);
-
-
-  // Uncomment this for alternativ 2 of backchannel functionality
-  /*if (receiver->acks_available != ack->acks_available)
-  {
-    receiver->acks_available = ack->acks_available;
-    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                "Tell transport we have different number of acks!\n");
-    GNUNET_TRANSPORT_communicator_mq_update (ch,
-                                             receiver->d_qh,
-                                             receiver->acks_available,
-                                             1);
-                                             }*/
-  // Until here for alternativ 2
 }
+
+
+static uint32_t
+reset_rekey_kces (struct ReceiverAddress *receiver,
+                  uint32_t acks_to_add)
+{
+  int needed_for_rekeying;
+
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "%u kce for rekeying and %u acks_to_add\n",
+              receiver->number_rekeying_kce,
+              acks_to_add);
+
+  needed_for_rekeying = (3 - receiver->number_rekeying_kce);
+  if (acks_to_add <= needed_for_rekeying)
+  {
+    receiver->number_rekeying_kce += acks_to_add;
+    acks_to_add = 0;
+  }
+  else
+  {
+    acks_to_add -= (3 - receiver->number_rekeying_kce);
+    receiver->number_rekeying_kce = 3;
+  }
+
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "%u kce for rekeying and %u acks_to_add\n",
+              receiver->number_rekeying_kce,
+              acks_to_add);
+  return acks_to_add;
+}
+
 
 static void
 add_acks_rekey (struct ReceiverAddress *receiver)
 {
-  add_acks (receiver->ss_rekey, receiver->ss_rekey->sequence_allowed - 3,
-            GNUNET_NO);
+  uint32_t acks_to_add = receiver->ss_rekey->sequence_allowed;
+
+  if (receiver->number_rekeying_kce < 3)
+    acks_to_add = reset_rekey_kces (receiver, acks_to_add);
   receiver->acks_available = receiver->ss_rekey->sequence_allowed;
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "%u receiver->acks_available 4\n",
+              receiver->acks_available);
+  /* add_acks (receiver->ss_rekey, acks_to_add - 3); */
+  if (0 != acks_to_add)
+  {
+    add_acks (receiver->ss_rekey, acks_to_add);
+  }
   receiver->ss_rekey = NULL;
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "# rekeying successful\n");
+  GNUNET_STATISTICS_update (stats,
+                            "# rekeying successful",
+                            1,
+                            GNUNET_NO);
 }
+
 
 /**
  * We received an ACK for @a pid. Check if it is for
@@ -1540,15 +1594,17 @@ handle_ack (void *cls, const struct GNUNET_PeerIdentity *pid, void *value)
 {
   const struct UDPAck *ack = cls;
   struct ReceiverAddress *receiver = value;
-  int acks_to_add;
+  uint32_t acks_to_add;
   uint32_t allowed;
+  // int needed_for_rekeying;
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "in handle ack\n");
+              "in handle ack with cmac %s\n",
+              GNUNET_h2s (&ack->cmac));
 
   if (NULL != receiver->ss_rekey)
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                "Received secret with cmac %s \n",
+                "We have rekey secret with cmac %s \n",
                 GNUNET_h2s (&receiver->ss_rekey->cmac));
 
   if ((NULL != receiver->ss_rekey) && (0 == memcmp (&ack->cmac,
@@ -1598,16 +1654,37 @@ handle_ack (void *cls, const struct GNUNET_PeerIdentity *pid, void *value)
         // Uncomment this for alternativ 1 of backchannel functionality
         acks_to_add = (allowed - ss->sequence_allowed);
         if ((GNUNET_NO == receiver->rekeying) &&
-            (receiver->number_rekeying_kce <
-             3) )
-        {
-          acks_to_add -= (3 - receiver->number_rekeying_kce);
-          receiver->number_rekeying_kce = 3;
-        }
-        receiver->acks_available += (allowed - ss->sequence_allowed);
-        ss->sequence_allowed = allowed;
+            (receiver->number_rekeying_kce < 3) )
+          acks_to_add = reset_rekey_kces (receiver, acks_to_add);
+        /* if ((GNUNET_NO == receiver->rekeying) && */
+        /*     (receiver->number_rekeying_kce < */
+        /*      3) ) */
+        /* { */
+        /*   needed_for_rekeying = (3 - receiver->number_rekeying_kce); */
+        /*   if (acks_to_add <= needed_for_rekeying) */
+        /*   { */
+        /*     receiver->number_rekeying_kce += acks_to_add; */
+        /*     acks_to_add = 0; */
+        /*   } */
+        /*   else */
+        /*   { */
+        /*     acks_to_add -= (3 - receiver->number_rekeying_kce); */
+        /*     receiver->number_rekeying_kce = 3; */
+        /*   } */
+        /* } */
+        /* GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, */
+        /*             "%u kce for rekeying\n", */
+        /*             receiver->number_rekeying_kce); */
 
-        add_acks (ss, acks_to_add, GNUNET_YES);
+        if ((0 != acks_to_add) && (GNUNET_NO == receiver->rekeying))
+        {
+          receiver->acks_available += (allowed - ss->sequence_allowed);
+          ss->sequence_allowed = allowed;
+          GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                      "%u receiver->acks_available 5\n",
+                      receiver->acks_available);
+          add_acks (ss, acks_to_add);
+        }
       }
       return GNUNET_NO;
     }
@@ -1663,18 +1740,21 @@ try_handle_plaintext (struct SenderAddress *sender,
 }
 
 
-
 static void
 kce_generate_cb (void *cls)
 {
   struct SharedSecret *ss = cls;
   kce_task = NULL;
 
-  if (ss->sender->acks_available < KCN_TARGET)
+  if (((GNUNET_NO == ss->sender->rekeying) && (ss->sender->acks_available <
+                                               KCN_TARGET) ) ||
+      ((ss->sender->ss_rekey == ss) && (GNUNET_YES == ss->sender->rekeying) &&
+       (ss->sender->acks_available < 128)))
   {
 
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                "Precomputing keys\n");
+                "Precomputing keys for master %s\n",
+                GNUNET_h2s (&(ss->master)));
 
     for (int i = 0; i < GENERATE_AT_ONCE; i++)
       kce_generate (ss, ++ss->sequence_allowed);
@@ -1694,6 +1774,7 @@ kce_generate_cb (void *cls)
 
 }
 
+
 static void
 kce_generate_rekey_cb (void *cls)
 {
@@ -1702,6 +1783,11 @@ kce_generate_rekey_cb (void *cls)
 
   if (NULL == kce_task)
   {
+
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "Precomputing keys for rekey master %s\n",
+                GNUNET_h2s (&(ss->master)));
+
     for (int i = 0; i < GENERATE_AT_ONCE; i++)
       kce_generate (ss, ++ss->sequence_allowed);
 
@@ -1760,25 +1846,36 @@ consider_ss_ack (struct SharedSecret *ss, int initial)
   if (((NULL != kce_task) && kce_task_finished) || (GNUNET_NO == initial))
   {
     struct UDPAck ack;
+    struct SharedSecret *ss_tell;
+
+    if (GNUNET_NO != initial)
+      ss_tell = ss_finished;
+    else
+      ss_tell = ss;
 
     ack.header.type = htons (GNUNET_MESSAGE_TYPE_COMMUNICATOR_UDP_ACK);
     ack.header.size = htons (sizeof(ack));
-    ack.sequence_max = htonl (ss_finished->sequence_allowed);
+    ack.sequence_max = htonl (ss_tell->sequence_allowed);
     ack.acks_available = ss->sender->acks_available;
-    ack.cmac = ss_finished->cmac;
+    ack.cmac = ss_tell->cmac;
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                "Notifying transport of UDPAck %s with intial %u\n",
-                GNUNET_i2s_full (&ss_finished->sender->target),
-                initial);
+                "Notifying transport of UDPAck %s with intial %u and master %s\n",
+                GNUNET_i2s_full (&ss_tell->sender->target),
+                initial,
+                GNUNET_h2s (&(ss_tell->master)));
     GNUNET_TRANSPORT_communicator_notify (ch,
-                                          &ss_finished->sender->target,
+                                          &ss_tell->sender->target,
                                           COMMUNICATOR_ADDRESS_PREFIX,
                                           &ack.header);
-    destroy_all_secrets (ss, GNUNET_YES);
-    kce_task = NULL;
-    kce_task_finished = GNUNET_NO;
+    if (GNUNET_NO != initial)
+    {
+      destroy_all_secrets (ss, GNUNET_YES);
+      kce_task = NULL;
+      kce_task_finished = GNUNET_NO;
+    }
   }
-  else if ((NULL == kce_task) && ((KCN_THRESHOLD > ss->sender->acks_available)||
+  else if ((NULL == kce_task) && ((KCN_THRESHOLD >
+                                   ss->sender->acks_available) ||
                                   (GNUNET_YES == ss->sender->rekeying) ||
                                   (ss->sender->num_secrets > MAX_SECRETS) ))
   {
@@ -1835,6 +1932,10 @@ decrypt_box (const struct UDPBox *box,
                             "# bytes decrypted with BOX",
                             sizeof(out_buf),
                             GNUNET_NO);
+  GNUNET_STATISTICS_update (stats,
+                            "# messages decrypted with BOX",
+                            1,
+                            GNUNET_NO);
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "decrypted UDPBox with kid %s\n",
               GNUNET_sh2s (&box->kid));
@@ -1842,18 +1943,21 @@ decrypt_box (const struct UDPBox *box,
   if ((GNUNET_NO == box->rekeying) && (GNUNET_YES == ss->sender->rekeying))
   {
     ss->sender->rekeying = GNUNET_NO;
+    ss->sender->ss_rekey = NULL;
     // destroy_all_secrets (ss, GNUNET_NO);
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                 "Receiver stopped rekeying.\n");
   }
   else if (GNUNET_NO == box->rekeying)
-    consider_ss_ack (ss, GNUNET_YES);
-  else{
+    consider_ss_ack (ss, GNUNET_NO);
+  else
+  {
     ss->sender->rekeying = GNUNET_YES;
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                "Receiver started rekeying.\n");
+                "Got Box: Receiver doing rekeying.\n");
   }
 }
+
 
 /**
  * We received a @a rekey with matching @a kce.  Decrypt and process it.
@@ -1921,6 +2025,7 @@ decrypt_rekey (const struct UDPRekey *rekey,
   /* GNUNET_assert (ss_rekey->prev == NULL && sender->ss_head != ss_rekey); */
   /* GNUNET_assert (ss_rekey->next == NULL && sender->ss_tail != ss_rekey); */
   GNUNET_CONTAINER_DLL_insert (sender->ss_head, sender->ss_tail, ss_rekey);
+  sender->ss_rekey = ss_rekey;
   sender->num_secrets++;
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Received secret with cmac %s\n",
@@ -1940,6 +2045,7 @@ decrypt_rekey (const struct UDPRekey *rekey,
   consider_ss_ack (ss_rekey, GNUNET_YES);
 
 }
+
 
 /**
  * Closure for #find_sender_by_address()
@@ -2151,20 +2257,26 @@ sock_read (void *cls)
     box = (const struct UDPBox *) buf;
     kce = GNUNET_CONTAINER_multishortmap_get (key_cache, &rekey->kid);
 
-    if ((GNUNET_YES == box->rekeying)||(GNUNET_NO == box->rekeying))
+    if ((GNUNET_YES == box->rekeying) || (GNUNET_NO == box->rekeying))
       GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                   "UDPRekey has rekeying %u\n",
                   box->rekeying);
     else
       do_decrypt = GNUNET_YES;
-    if ((GNUNET_YES == do_decrypt)&& (NULL != kce) && (GNUNET_YES ==
-                                                       kce->ss->sender->rekeying))
+
+    if ((GNUNET_YES == do_decrypt) && (NULL != kce) && (GNUNET_YES ==
+                                                        kce->ss->sender->
+                                                        rekeying))
     {
       GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                   "UDPRekey with kid %s\n",
                   GNUNET_sh2s (&rekey->kid));
       sender = setup_sender (&rekey->sender, (const struct sockaddr *) &sa,
                              salen);
+
+      if (NULL != sender->ss_rekey)
+        return;
+
       decrypt_rekey (rekey, (size_t) rcvd, kce, sender);
       return;
     }
@@ -2290,16 +2402,18 @@ sock_read (void *cls)
     if ((GNUNET_NO == kx->rekeying) && (GNUNET_YES == ss->sender->rekeying))
     {
       ss->sender->rekeying = GNUNET_NO;
+      sender->ss_rekey = NULL;
       // destroy_all_secrets (ss, GNUNET_NO);
       GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                   "Receiver stopped rekeying.\n");
     }
     else if (GNUNET_NO == kx->rekeying)
       consider_ss_ack (ss, GNUNET_YES);
-    else{
+    else
+    {
       ss->sender->rekeying = GNUNET_YES;
       GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                  "Receiver started rekeying.\n");
+                  "Got KX: Receiver doing rekeying.\n");
     }
     /*if (sender->num_secrets > MAX_SECRETS)
       secret_destroy (sender->ss_tail);*/
@@ -2560,6 +2674,7 @@ mq_send_kx (struct GNUNET_MQ_Handle *mq,
   GNUNET_MQ_impl_send_continue (mq);
 }
 
+
 static void
 check_for_rekeying (struct ReceiverAddress *receiver, struct UDPBox *box)
 {
@@ -2583,13 +2698,13 @@ check_for_rekeying (struct ReceiverAddress *receiver, struct UDPBox *box)
                 rt.rel_value_us,
                 receiver->rekey_timeout.abs_value_us);
 
-    if ((0 == rt.rel_value_us)||(receiver->rekey_send_bytes >
-                                 REKEY_MAX_BYTES) )
+    if ((0 == rt.rel_value_us) || (receiver->rekey_send_bytes >
+                                   rekey_max_bytes) )
     {
       GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                   "Bytes send %lu greater than %llu max bytes\n.",
                   receiver->rekey_send_bytes,
-                  REKEY_MAX_BYTES);
+                  rekey_max_bytes);
       GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                   "Relative time is %lu and timeout is %lu\n.",
                   rt.rel_value_us,
@@ -2612,6 +2727,7 @@ check_for_rekeying (struct ReceiverAddress *receiver, struct UDPBox *box)
   }
 }
 
+
 static void
 send_UDPRekey (struct ReceiverAddress *receiver, struct SharedSecret *ss)
 {
@@ -2631,9 +2747,14 @@ send_UDPRekey (struct ReceiverAddress *receiver, struct SharedSecret *ss)
                  - (receiver->rekey_acks_available % 3)) / 3;
     is_ss_rekey_sequence_allowed_zero = (0 ==
                                          receiver->ss_rekey->sequence_allowed);
-    is_acks_available_below = (receiver->acks_available > not_below);
+    is_acks_available_below = (receiver->acks_available >= not_below);
     send_rekey = (0 == (receiver->acks_available - not_below) % not_below) &&
                  is_acks_available_below && is_ss_rekey_sequence_allowed_zero;
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "send_rekey: %u, %u, %u\n",
+                send_rekey,
+                receiver->rekey_acks_available,
+                receiver->acks_available);
   }
   else if (NULL == receiver->ss_rekey)
   {
@@ -2641,6 +2762,7 @@ send_UDPRekey (struct ReceiverAddress *receiver, struct SharedSecret *ss)
     GNUNET_CRYPTO_ecdhe_key_create (&epriv);
     receiver->ss_rekey = setup_shared_secret_enc (&epriv, receiver,
                                                   GNUNET_NO);
+    receiver->ss_rekey->sequence_allowed = 0;
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                 "Setup secret with cmac %s\n",
                 GNUNET_h2s (&(receiver->ss_rekey->cmac)));
@@ -2700,6 +2822,9 @@ send_UDPRekey (struct ReceiverAddress *receiver, struct SharedSecret *ss)
       GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                   "Sending rekey with cmac %s\n",
                   GNUNET_h2s (&(receiver->ss_rekey->cmac)));
+      GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                  "%u rekey kces left.\n",
+                  receiver->number_rekeying_kce);
 
       if (-1 == GNUNET_NETWORK_socket_sendto (udp_sock,
                                               rekey_dgram,
@@ -2708,6 +2833,10 @@ send_UDPRekey (struct ReceiverAddress *receiver, struct SharedSecret *ss)
                                               receiver->address_len))
         GNUNET_log_strerror (GNUNET_ERROR_TYPE_WARNING, "send");
 
+      receiver->acks_available--;
+      GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                  "%u receiver->acks_available 1\n",
+                  receiver->acks_available);
       GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                   "Sending UDPRekey to %s\n", GNUNET_a2s (receiver->address,
                                                           receiver->
@@ -2737,6 +2866,12 @@ mq_send_d (struct GNUNET_MQ_Handle *mq,
   if ((msize > receiver->d_mtu) ||
       (0 == receiver->acks_available))
   {
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "msize: %u, mtu: %lu, acks: %u\n",
+                msize,
+                receiver->d_mtu,
+                receiver->acks_available);
+
     GNUNET_break (0);
     if (GNUNET_YES != receiver->receiver_destroy_called)
       receiver_destroy (receiver);
@@ -2789,8 +2924,6 @@ mq_send_d (struct GNUNET_MQ_Handle *mq,
     else
       box->rekeying = GNUNET_YES;
 
-    check_for_rekeying (receiver, box);
-
     if (-1 == GNUNET_NETWORK_socket_sendto (udp_sock,
                                             dgram,
                                             sizeof(dgram),
@@ -2798,11 +2931,15 @@ mq_send_d (struct GNUNET_MQ_Handle *mq,
                                             receiver->address_len))
       GNUNET_log_strerror (GNUNET_ERROR_TYPE_WARNING, "send");
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                "Sending UDPBox to %s\n", GNUNET_a2s (receiver->address,
-                                                      receiver->address_len));
+                "Sending UDPBox %u acks left\n",
+                receiver->acks_available);
     GNUNET_MQ_impl_send_continue (mq);
     receiver->acks_available--;
-    if (0 == receiver->acks_available)
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "%u receiver->acks_available 2\n",
+                receiver->acks_available);
+    check_for_rekeying (receiver, box);
+    if (0 == receiver->acks_available - receiver->number_rekeying_kce)
     {
       /* We have no more ACKs */
       GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
@@ -2810,6 +2947,8 @@ mq_send_d (struct GNUNET_MQ_Handle *mq,
       if (GNUNET_YES == receiver->rekeying)
       {
         receiver->rekeying = GNUNET_NO;
+        GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                    "Sender stopped rekeying\n");
 
         if ((NULL != receiver->ss_rekey) && (0 <
                                              receiver->ss_rekey->
@@ -3120,6 +3259,8 @@ get_sender_delete_it (void *cls,
 static void
 do_shutdown (void *cls)
 {
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "do_shutdown\n");
   if (NULL != nat)
   {
     GNUNET_NAT_unregister (nat);
@@ -3154,18 +3295,26 @@ do_shutdown (void *cls)
   }
   if (NULL != udp_sock)
   {
-    GNUNET_break (GNUNET_OK == GNUNET_NETWORK_socket_close (udp_sock));
+    GNUNET_break (GNUNET_OK ==
+                  GNUNET_NETWORK_socket_close (udp_sock));
     udp_sock = NULL;
   }
   GNUNET_CONTAINER_multipeermap_iterate (receivers,
                                          &get_receiver_delete_it,
                                          NULL);
   GNUNET_CONTAINER_multipeermap_destroy (receivers);
-  GNUNET_CONTAINER_multipeermap_iterate (senders, &get_sender_delete_it, NULL);
+  GNUNET_CONTAINER_multipeermap_iterate (senders,
+                                         &get_sender_delete_it,
+                                         NULL);
   GNUNET_CONTAINER_multipeermap_destroy (senders);
   GNUNET_CONTAINER_multishortmap_destroy (key_cache);
   GNUNET_CONTAINER_heap_destroy (senders_heap);
   GNUNET_CONTAINER_heap_destroy (receivers_heap);
+  if (NULL != timeout_task)
+  {
+    GNUNET_SCHEDULER_cancel (timeout_task);
+    timeout_task = NULL;
+  }
   if (NULL != ch)
   {
     GNUNET_TRANSPORT_communicator_disconnect (ch);
@@ -3191,6 +3340,8 @@ do_shutdown (void *cls)
     GNUNET_NT_scanner_done (is);
     is = NULL;
   }
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "do_shutdown finished\n");
 }
 
 
@@ -3302,25 +3453,29 @@ ifc_broadcast (void *cls)
       static int no = 0;
       ssize_t sent;
 
-      if (GNUNET_OK != GNUNET_NETWORK_socket_setsockopt (udp_sock,
-                                                         SOL_SOCKET,
-                                                         SO_BROADCAST,
-                                                         &yes,
-                                                         sizeof(int)))
-        GNUNET_log_strerror (GNUNET_ERROR_TYPE_WARNING, "setsockopt");
+      if (GNUNET_OK !=
+          GNUNET_NETWORK_socket_setsockopt (udp_sock,
+                                            SOL_SOCKET,
+                                            SO_BROADCAST,
+                                            &yes,
+                                            sizeof(int)))
+        GNUNET_log_strerror (GNUNET_ERROR_TYPE_WARNING,
+                             "setsockopt");
       sent = GNUNET_NETWORK_socket_sendto (udp_sock,
                                            &bi->bcm,
                                            sizeof(bi->bcm),
                                            bi->ba,
                                            bi->salen);
       if (-1 == sent)
-        GNUNET_log_strerror (GNUNET_ERROR_TYPE_WARNING, "sendto");
+        GNUNET_log_strerror (GNUNET_ERROR_TYPE_WARNING,
+                             "sendto");
       if (GNUNET_OK != GNUNET_NETWORK_socket_setsockopt (udp_sock,
                                                          SOL_SOCKET,
                                                          SO_BROADCAST,
                                                          &no,
                                                          sizeof(int)))
-        GNUNET_log_strerror (GNUNET_ERROR_TYPE_WARNING, "setsockopt");
+        GNUNET_log_strerror (GNUNET_ERROR_TYPE_WARNING,
+                             "setsockopt");
       break;
     }
 
@@ -3402,9 +3557,18 @@ iface_proc (void *cls,
     return GNUNET_OK; /* not using IPv6 */
 
   bi = GNUNET_new (struct BroadcastInterface);
-  bi->sa = GNUNET_memdup (addr, addrlen);
-  if (NULL != broadcast_addr)
-    bi->ba = GNUNET_memdup (broadcast_addr, addrlen);
+  bi->sa = GNUNET_memdup (addr,
+                          addrlen);
+  if ( (NULL != broadcast_addr) &&
+       (addrlen == sizeof (struct sockaddr_in)) )
+  {
+    struct sockaddr_in *ba;
+
+    ba = GNUNET_memdup (broadcast_addr,
+                        addrlen);
+    ba->sin_port = htons (2086); /* always GNUnet port, ignore configuration! */
+    bi->ba = (struct sockaddr *) ba;
+  }
   bi->salen = addrlen;
   bi->found = GNUNET_YES;
   bi->bcm.sender = my_identity;
@@ -3415,7 +3579,7 @@ iface_proc (void *cls,
   GNUNET_CRYPTO_eddsa_sign (my_private_key,
                             &ubs,
                             &bi->bcm.sender_sig);
-  if (NULL != broadcast_addr)
+  if (NULL != bi->ba)
   {
     bi->broadcast_task = GNUNET_SCHEDULER_add_now (&ifc_broadcast, bi);
     GNUNET_CONTAINER_DLL_insert (bi_head, bi_tail, bi);
@@ -3522,6 +3686,13 @@ run (void *cls,
                                            &rekey_interval))
     rekey_interval = DEFAULT_REKEY_TIME_INTERVAL;
 
+  if (GNUNET_OK !=
+      GNUNET_CONFIGURATION_get_value_size (cfg,
+                                           COMMUNICATOR_CONFIG_SECTION,
+                                           "REKEY_MAX_BYTES",
+                                           &rekey_max_bytes))
+    rekey_max_bytes = DEFAULT_REKEY_MAX_BYTES;
+
   in = udp_address_to_sockaddr (bindto, &in_len);
   if (NULL == in)
   {
@@ -3532,7 +3703,9 @@ run (void *cls,
     return;
   }
   udp_sock =
-    GNUNET_NETWORK_socket_create (in->sa_family, SOCK_DGRAM, IPPROTO_UDP);
+    GNUNET_NETWORK_socket_create (in->sa_family,
+                                  SOCK_DGRAM,
+                                  IPPROTO_UDP);
   if (NULL == udp_sock)
   {
     GNUNET_log_strerror (GNUNET_ERROR_TYPE_ERROR, "socket");
@@ -3542,9 +3715,14 @@ run (void *cls,
   }
   if (AF_INET6 == in->sa_family)
     have_v6_socket = GNUNET_YES;
-  if (GNUNET_OK != GNUNET_NETWORK_socket_bind (udp_sock, in, in_len))
+  if (GNUNET_OK !=
+      GNUNET_NETWORK_socket_bind (udp_sock,
+                                  in,
+                                  in_len))
   {
-    GNUNET_log_strerror_file (GNUNET_ERROR_TYPE_ERROR, "bind", bindto);
+    GNUNET_log_strerror_file (GNUNET_ERROR_TYPE_ERROR,
+                              "bind",
+                              bindto);
     GNUNET_NETWORK_socket_close (udp_sock);
     udp_sock = NULL;
     GNUNET_free (in);
