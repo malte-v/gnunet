@@ -202,11 +202,15 @@ generate_userinfo_json (const struct GNUNET_IDENTITY_PublicKey *sub_key,
     GNUNET_asprintf (&source_name,
                      "src%d",
                      i);
+    GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
+                "Adding new presentation source #%d\n", i);
     aggr_sources_jwt = json_object ();
     pres_val_str =
       GNUNET_RECLAIM_presentation_value_to_string (ple->presentation->type,
                                                    ple->presentation->data,
                                                    ple->presentation->data_size);
+    GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
+                "Presentation is: %s\n", pres_val_str);
     json_object_set_new (aggr_sources_jwt,
                          GNUNET_RECLAIM_presentation_number_to_typename (
                            ple->presentation->type),

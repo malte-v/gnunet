@@ -721,7 +721,6 @@ GNUNET_RECLAIM_presentation_list_serialize_get_size (
   {
     GNUNET_assert (NULL != le->presentation);
     len += GNUNET_RECLAIM_presentation_serialize_get_size (le->presentation);
-    len += sizeof(struct GNUNET_RECLAIM_PresentationListEntry);
   }
   return len;
 }
@@ -774,8 +773,7 @@ GNUNET_RECLAIM_presentation_list_deserialize (const char *data, size_t
 
   al = GNUNET_new (struct GNUNET_RECLAIM_PresentationList);
 
-  if ((data_size < sizeof(struct Presentation)
-       + sizeof(struct GNUNET_RECLAIM_PresentationListEntry)))
+  if (data_size < sizeof(struct Presentation))
     return al;
 
   read_ptr = data;
