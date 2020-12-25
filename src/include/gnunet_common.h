@@ -71,7 +71,7 @@ extern "C" {
 /**
  * Version of the API (for entire gnunetutil.so library).
  */
-#define GNUNET_UTIL_VERSION 0x000A0103
+#define GNUNET_UTIL_VERSION 0x000A0104
 
 
 /**
