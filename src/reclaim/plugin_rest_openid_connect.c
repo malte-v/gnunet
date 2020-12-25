@@ -2243,6 +2243,7 @@ consume_ticket (void *cls,
     atle->presentation = GNUNET_RECLAIM_presentation_new (pres->type,
                                                           pres->data,
                                                           pres->data_size);
+    atle->presentation->credential_id = pres->credential_id;
     GNUNET_CONTAINER_DLL_insert (handle->presentations->list_head,
                                  handle->presentations->list_tail,
                                  atle);

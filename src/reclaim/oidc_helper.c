@@ -256,6 +256,18 @@ generate_userinfo_json (const struct GNUNET_IDENTITY_PublicKey *sub_key,
       int j = 0;
       for (ple = presentations->list_head; NULL != ple; ple = ple->next)
       {
+        char *tmp;
+        tmp = GNUNET_STRINGS_data_to_string_alloc (&le->attribute->credential,
+                                                   sizeof (le->attribute->credential));
+        GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                    "Checking : %s\n", tmp);
+        GNUNET_free (tmp);
+
+        tmp = GNUNET_STRINGS_data_to_string_alloc (&ple->presentation->credential_id,
+                                                   sizeof (ple->presentation->credential_id));
+        GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                    " against: %s\n", tmp);
+        GNUNET_free (tmp);
         if (GNUNET_YES ==
             GNUNET_RECLAIM_id_is_equal (&ple->presentation->credential_id,
                                         &le->attribute->credential))
@@ -498,6 +510,9 @@ OIDC_build_authz_code (const struct GNUNET_IDENTITY_PrivateKey *issuer,
   if (NULL != presentations)
   {
     // Get length
+    // FIXME only add presentations relevant for attribute list!!!
+    // This is important because of the distinction between id_token and
+    // userinfo in OIDC
     pres_list_len =
       GNUNET_RECLAIM_presentation_list_serialize_get_size (presentations);
     params.pres_list_len = htonl (pres_list_len);
@@ -524,8 +539,10 @@ OIDC_build_authz_code (const struct GNUNET_IDENTITY_PrivateKey *issuer,
   }
   if (0 < attr_list_len)
     GNUNET_RECLAIM_attribute_list_serialize (attrs, tmp);
+  tmp += attr_list_len;
   if (0 < pres_list_len)
     GNUNET_RECLAIM_presentation_list_serialize (presentations, tmp);
+  tmp += pres_list_len;
 
   /** END **/
 
