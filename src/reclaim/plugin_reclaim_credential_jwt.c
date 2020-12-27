@@ -173,6 +173,7 @@ jwt_parse_attributes (void *cls,
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Decoded JWT: %s\n", decoded_jwt);
   GNUNET_assert (NULL != decoded_jwt);
   json_val = json_loads (decoded_jwt, JSON_DECODE_ANY, json_err);
+  GNUNET_free (decoded_jwt);
   const char *key;
   json_t *value;
   json_object_foreach (json_val, key, value) {
@@ -197,6 +198,7 @@ jwt_parse_attributes (void *cls,
                                        strlen (val_str));
     GNUNET_free (val_str);
   }
+  json_decref (json_val);
   GNUNET_free (jwt_string);
   return attrs;
 }
@@ -260,11 +262,17 @@ jwt_get_issuer (void *cls,
   GNUNET_STRINGS_base64url_decode (jwt_body, strlen (jwt_body),
                                    (void **) &decoded_jwt);
   json_val = json_loads (decoded_jwt, JSON_DECODE_ANY, json_err);
-  issuer_json = json_object_get (json_val, "iss");
-  if ((NULL == issuer_json) || (! json_is_string (issuer_json)))
-    return NULL;
-  issuer = GNUNET_strdup (json_string_value (issuer_json));
+  GNUNET_free (decoded_jwt);
   GNUNET_free (jwt_string);
+  if (NULL == json_val)
+    return NULL;
+  issuer_json = json_object_get (json_val, "iss");
+  if ((NULL == issuer_json) || (! json_is_string (issuer_json))) {
+    json_decref (json_val);
+    return NULL;
+  }
+  issuer = GNUNET_strdup (json_string_value (issuer_json));
+  json_decref (json_val);
   return issuer;
 }
 
@@ -331,11 +339,17 @@ jwt_get_expiration (void *cls,
   GNUNET_STRINGS_base64url_decode (jwt_body, strlen (jwt_body),
                                    (void **) &decoded_jwt);
   json_val = json_loads (decoded_jwt, JSON_DECODE_ANY, json_err);
-  exp_json = json_object_get (json_val, "exp");
-  if ((NULL == exp_json) || (! json_is_integer (exp_json)))
-    return GNUNET_SYSERR;
-  exp->abs_value_us = json_integer_value (exp_json) * 1000 * 1000;
+  GNUNET_free (decoded_jwt);
   GNUNET_free (jwt_string);
+  if (NULL == json_val)
+    return GNUNET_SYSERR;
+  exp_json = json_object_get (json_val, "exp");
+  if ((NULL == exp_json) || (! json_is_integer (exp_json))) {
+    json_decref (json_val);
+    return GNUNET_SYSERR;
+  }
+  exp->abs_value_us = json_integer_value (exp_json) * 1000 * 1000;
+  json_decref (json_val);
   return GNUNET_OK;
 }
 
