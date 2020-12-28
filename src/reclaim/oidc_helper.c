@@ -193,6 +193,7 @@ generate_userinfo_json (const struct GNUNET_IDENTITY_PublicKey *sub_key,
   json_object_set_new (body, "iss", json_string (SERVER_ADDRESS));
   // sub REQUIRED public key identity, not exceed 255 ASCII  length
   json_object_set_new (body, "sub", json_string (subject));
+  GNUNET_free (subject);
   pres_val_str = NULL;
   source_name = NULL;
   int i = 0;
@@ -202,11 +203,15 @@ generate_userinfo_json (const struct GNUNET_IDENTITY_PublicKey *sub_key,
     GNUNET_asprintf (&source_name,
                      "src%d",
                      i);
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "Adding new presentation source #%d\n", i);
     aggr_sources_jwt = json_object ();
     pres_val_str =
       GNUNET_RECLAIM_presentation_value_to_string (ple->presentation->type,
                                                    ple->presentation->data,
                                                    ple->presentation->data_size);
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "Presentation is: %s\n", pres_val_str);
     json_object_set_new (aggr_sources_jwt,
                          GNUNET_RECLAIM_presentation_number_to_typename (
                            ple->presentation->type),
@@ -220,7 +225,9 @@ generate_userinfo_json (const struct GNUNET_IDENTITY_PublicKey *sub_key,
 
   for (le = attrs->list_head; NULL != le; le = le->next)
   {
-
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "Processing %s for userinfo body\n",
+                le->attribute->name);
     if (GNUNET_YES == GNUNET_RECLAIM_id_is_zero (&le->attribute->credential))
     {
 
@@ -256,18 +263,6 @@ generate_userinfo_json (const struct GNUNET_IDENTITY_PublicKey *sub_key,
       int j = 0;
       for (ple = presentations->list_head; NULL != ple; ple = ple->next)
       {
-        char *tmp;
-        tmp = GNUNET_STRINGS_data_to_string_alloc (&le->attribute->credential,
-                                                   sizeof (le->attribute->credential));
-        GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                    "Checking : %s\n", tmp);
-        GNUNET_free (tmp);
-
-        tmp = GNUNET_STRINGS_data_to_string_alloc (&ple->presentation->credential_id,
-                                                   sizeof (ple->presentation->credential_id));
-        GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                    " against: %s\n", tmp);
-        GNUNET_free (tmp);
         if (GNUNET_YES ==
             GNUNET_RECLAIM_id_is_equal (&ple->presentation->credential_id,
                                         &le->attribute->credential))
@@ -285,7 +280,7 @@ generate_userinfo_json (const struct GNUNET_IDENTITY_PublicKey *sub_key,
       GNUNET_asprintf (&source_name,
                        "src%d",
                        j);
-      json_object_set_new (aggr_names, le->attribute->data,
+      json_object_set_new (aggr_names, le->attribute->name,
                            json_string (source_name));
       GNUNET_free (source_name);
     }

@@ -81,7 +81,7 @@ jwt_string_to_value (void *cls,
   {
   case GNUNET_RECLAIM_CREDENTIAL_TYPE_JWT:
     *data = GNUNET_strdup (s);
-    *data_size = strlen (s);
+    *data_size = strlen (s) + 1;
     return GNUNET_OK;
 
   default:
@@ -151,7 +151,8 @@ jwt_number_to_typename (void *cls, uint32_t type)
  */
 struct GNUNET_RECLAIM_AttributeList *
 jwt_parse_attributes (void *cls,
-                      const char *data)
+                      const char *data,
+                      size_t data_size)
 {
   char *jwt_string;
   struct GNUNET_RECLAIM_AttributeList *attrs;
@@ -164,7 +165,7 @@ jwt_parse_attributes (void *cls,
 
   attrs = GNUNET_new (struct GNUNET_RECLAIM_AttributeList);
 
-  jwt_string = GNUNET_strdup (data);
+  jwt_string = GNUNET_strndup (data, data_size);
   const char *jwt_body = strtok (jwt_string, delim);
   jwt_body = strtok (NULL, delim);
   GNUNET_STRINGS_base64url_decode (jwt_body, strlen (jwt_body),
@@ -172,6 +173,7 @@ jwt_parse_attributes (void *cls,
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Decoded JWT: %s\n", decoded_jwt);
   GNUNET_assert (NULL != decoded_jwt);
   json_val = json_loads (decoded_jwt, JSON_DECODE_ANY, json_err);
+  GNUNET_free (decoded_jwt);
   const char *key;
   json_t *value;
   json_object_foreach (json_val, key, value) {
@@ -196,6 +198,7 @@ jwt_parse_attributes (void *cls,
                                        strlen (val_str));
     GNUNET_free (val_str);
   }
+  json_decref (json_val);
   GNUNET_free (jwt_string);
   return attrs;
 }
@@ -212,7 +215,7 @@ struct GNUNET_RECLAIM_AttributeList *
 jwt_parse_attributes_c (void *cls,
                         const struct GNUNET_RECLAIM_Credential *cred)
 {
-  return jwt_parse_attributes (cls, cred->data);
+  return jwt_parse_attributes (cls, cred->data, cred->data_size);
 }
 
 
@@ -227,7 +230,7 @@ struct GNUNET_RECLAIM_AttributeList *
 jwt_parse_attributes_p (void *cls,
                         const struct GNUNET_RECLAIM_Presentation *cred)
 {
-  return jwt_parse_attributes (cls, cred->data);
+  return jwt_parse_attributes (cls, cred->data, cred->data_size);
 }
 
 
@@ -240,7 +243,8 @@ jwt_parse_attributes_p (void *cls,
  */
 char *
 jwt_get_issuer (void *cls,
-                const char *data)
+                const char *data,
+                size_t data_size)
 {
   const char *jwt_body;
   char *jwt_string;
@@ -252,17 +256,23 @@ jwt_get_issuer (void *cls,
   json_t *json_val;
   json_error_t *json_err = NULL;
 
-  jwt_string = GNUNET_strdup (data);
+  jwt_string = GNUNET_strndup (data, data_size);
   jwt_body = strtok (jwt_string, delim);
   jwt_body = strtok (NULL, delim);
   GNUNET_STRINGS_base64url_decode (jwt_body, strlen (jwt_body),
                                    (void **) &decoded_jwt);
   json_val = json_loads (decoded_jwt, JSON_DECODE_ANY, json_err);
-  issuer_json = json_object_get (json_val, "iss");
-  if ((NULL == issuer_json) || (! json_is_string (issuer_json)))
-    return NULL;
-  issuer = GNUNET_strdup (json_string_value (issuer_json));
+  GNUNET_free (decoded_jwt);
   GNUNET_free (jwt_string);
+  if (NULL == json_val)
+    return NULL;
+  issuer_json = json_object_get (json_val, "iss");
+  if ((NULL == issuer_json) || (! json_is_string (issuer_json))) {
+    json_decref (json_val);
+    return NULL;
+  }
+  issuer = GNUNET_strdup (json_string_value (issuer_json));
+  json_decref (json_val);
   return issuer;
 }
 
@@ -280,7 +290,7 @@ jwt_get_issuer_c (void *cls,
 {
   if (GNUNET_RECLAIM_CREDENTIAL_TYPE_JWT != cred->type)
     return NULL;
-  return jwt_get_issuer (cls, cred->data);
+  return jwt_get_issuer (cls, cred->data, cred->data_size);
 }
 
 
@@ -297,7 +307,7 @@ jwt_get_issuer_p (void *cls,
 {
   if (GNUNET_RECLAIM_CREDENTIAL_TYPE_JWT != cred->type)
     return NULL;
-  return jwt_get_issuer (cls, cred->data);
+  return jwt_get_issuer (cls, cred->data, cred->data_size);
 }
 
 
@@ -311,6 +321,7 @@ jwt_get_issuer_p (void *cls,
 int
 jwt_get_expiration (void *cls,
                     const char *data,
+                    size_t data_size,
                     struct GNUNET_TIME_Absolute *exp)
 {
   const char *jwt_body;
@@ -322,17 +333,23 @@ jwt_get_expiration (void *cls,
   json_t *json_val;
   json_error_t *json_err = NULL;
 
-  jwt_string = GNUNET_strdup (data);
+  jwt_string = GNUNET_strndup (data, data_size);
   jwt_body = strtok (jwt_string, delim);
   jwt_body = strtok (NULL, delim);
   GNUNET_STRINGS_base64url_decode (jwt_body, strlen (jwt_body),
                                    (void **) &decoded_jwt);
   json_val = json_loads (decoded_jwt, JSON_DECODE_ANY, json_err);
-  exp_json = json_object_get (json_val, "exp");
-  if ((NULL == exp_json) || (! json_is_integer (exp_json)))
-    return GNUNET_SYSERR;
-  exp->abs_value_us = json_integer_value (exp_json) * 1000 * 1000;
+  GNUNET_free (decoded_jwt);
   GNUNET_free (jwt_string);
+  if (NULL == json_val)
+    return GNUNET_SYSERR;
+  exp_json = json_object_get (json_val, "exp");
+  if ((NULL == exp_json) || (! json_is_integer (exp_json))) {
+    json_decref (json_val);
+    return GNUNET_SYSERR;
+  }
+  exp->abs_value_us = json_integer_value (exp_json) * 1000 * 1000;
+  json_decref (json_val);
   return GNUNET_OK;
 }
 
@@ -349,7 +366,7 @@ jwt_get_expiration_c (void *cls,
                       const struct GNUNET_RECLAIM_Credential *cred,
                       struct GNUNET_TIME_Absolute *exp)
 {
-  return jwt_get_expiration (cls, cred->data, exp);
+  return jwt_get_expiration (cls, cred->data, cred->data_size, exp);
 }
 
 
@@ -365,7 +382,7 @@ jwt_get_expiration_p (void *cls,
                       const struct GNUNET_RECLAIM_Presentation *cred,
                       struct GNUNET_TIME_Absolute *exp)
 {
-  return jwt_get_expiration (cls, cred->data, exp);
+  return jwt_get_expiration (cls, cred->data, cred->data_size, exp);
 }
 
 

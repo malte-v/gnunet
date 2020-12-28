@@ -104,6 +104,38 @@ init ()
 
 
 /**
+ * Dual function to #init().
+ */
+void __attribute__ ((destructor))
+RECLAIM_CREDENTIAL_fini ()
+{
+  struct Plugin *plugin;
+  const struct GNUNET_OS_ProjectData *pd = GNUNET_OS_project_data_get ();
+  const struct GNUNET_OS_ProjectData *dpd = GNUNET_OS_project_data_default ();
+
+  if (pd != dpd)
+    GNUNET_OS_init (dpd);
+
+  for (unsigned int i = 0; i < num_plugins; i++)
+  {
+    plugin = credential_plugins[i];
+    GNUNET_break (NULL ==
+                  GNUNET_PLUGIN_unload (plugin->library_name,
+                                        plugin->api));
+    GNUNET_free (plugin->library_name);
+    GNUNET_free (plugin);
+  }
+  GNUNET_free (credential_plugins);
+
+  if (pd != dpd)
+    GNUNET_OS_init (pd);
+
+  credential_plugins = NULL;
+}
+
+
+
+/**
  * Convert an credential type name to the corresponding number
  *
  * @param typename name to convert
@@ -721,7 +753,6 @@ GNUNET_RECLAIM_presentation_list_serialize_get_size (
   {
     GNUNET_assert (NULL != le->presentation);
     len += GNUNET_RECLAIM_presentation_serialize_get_size (le->presentation);
-    len += sizeof(struct GNUNET_RECLAIM_PresentationListEntry);
   }
   return len;
 }
@@ -774,8 +805,7 @@ GNUNET_RECLAIM_presentation_list_deserialize (const char *data, size_t
 
   al = GNUNET_new (struct GNUNET_RECLAIM_PresentationList);
 
-  if ((data_size < sizeof(struct Presentation)
-       + sizeof(struct GNUNET_RECLAIM_PresentationListEntry)))
+  if (data_size < sizeof(struct Presentation))
     return al;
 
   read_ptr = data;
