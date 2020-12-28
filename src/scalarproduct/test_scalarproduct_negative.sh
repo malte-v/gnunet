@@ -11,7 +11,7 @@ PREFIX=/tmp/test-scalarproduct`date +%H%M%S`
 CFGALICE="-c $PREFIX/0/config"
 CFGBOB="-c $PREFIX/1/config"
 
-which timeout &> /dev/null && DO_TIMEOUT="timeout 15"
+which timeout >/dev/null 2>&1 && DO_TIMEOUT="timeout 15"
 
 # launch two peers in line topology non-interactively
 #
@@ -36,7 +36,7 @@ RESULT=`${DO_TIMEOUT} gnunet-scalarproduct $CFGALICE $INPUTALICE -p $PEERIDBOB`
 kill $PID
 
 EXPECTED="-0CCC"
-if [ "$RESULT" == "$EXPECTED" ]
+if [ "$RESULT" = "$EXPECTED" ]
 then
     	echo "OK"
         exit 0

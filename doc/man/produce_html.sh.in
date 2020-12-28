@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 if test -e @PKGDATADIRECTORY@/existence.sh
 then
