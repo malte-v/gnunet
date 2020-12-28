@@ -1,0 +1,10 @@
+[Unit]
+Description=GNUnet user based GNS proxy
+
+[Service]
+Type=oneshot
+ExecStart=/usr/lib/x86_64-linux-gnu/gnunet/libexec/gnunet-gns-proxy -p 9000+%U
+
+[Install]
+WantedBy=default.target
+

@@ -1,0 +1,9 @@
+[Unit]
+Description=GNUnet User peer
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/gnunet-arm -s
+
+[Install]
+WantedBy=default.target

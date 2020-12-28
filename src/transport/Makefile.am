@@ -131,8 +131,9 @@ noinst_PROGRAMS = \
  $(WLAN_BIN_RECEIVER)
 
 if HAVE_TESTING
-TESTING_LIBS = libgnunettransporttesting.la \
-							 libgnunettransporttesting2.la
+TESTING_LIBS = \
+  libgnunettransporttesting.la \
+  libgnunettransporttesting2.la
 endif
 
 lib_LTLIBRARIES = \
@@ -174,6 +175,7 @@ libgnunettransporttesting2_la_LIBADD = \
   libgnunettransport.la \
   libgnunettransportapplication.la \
   libgnunettransportcore.la \
+  $(top_builddir)/src/arm/libgnunetarm.la \
   $(top_builddir)/src/testing/libgnunettesting.la \
   $(top_builddir)/src/ats/libgnunetats.la \
   $(top_builddir)/src/hello/libgnunethello.la \
