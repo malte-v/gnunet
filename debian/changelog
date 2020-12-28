@@ -2,7 +2,7 @@ gnunet (0.14.0) unstable; urgency=medium
 
   * Import into downstream repo.
   
-  -- Christian Grothoff <grothoff@gnu.org>  Tue 29 Dec 2020 12:02:10 AM CET
+ -- Christian Grothoff <grothoff@gnu.org>  Tue 29 Dec 2020 12:02:10 AM CET
 
 gnunet (0.13.3-1) unstable; urgency=medium
 
