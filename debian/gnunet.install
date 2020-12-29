@@ -1,7 +1,10 @@
 etc/gnunet.conf
 usr/bin/
 usr/lib/*/gnunet/
-usr/share/
+usr/share/man/
+usr/share/info/
+usr/share/doc/gnunet/
+usr/share/gnunet/
 usr/lib/x86_64-linux-gnu/gnunet/nss/libnss_gns.so.2 /usr/lib/x86_64-linux-gnu/
 usr/lib/x86_64-linux-gnu/gnunet/nss/libnss_gns4.so.2 /usr/lib/x86_64-linux-gnu/
 usr/lib/x86_64-linux-gnu/gnunet/nss/libnss_gns6.so.2 /usr/lib/x86_64-linux-gnu/

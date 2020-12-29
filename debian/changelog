@@ -1,7 +1,9 @@
 gnunet (0.14.0) unstable; urgency=medium
 
+  * Split libgnunet from main gnunet package.
+  * Set option to log to /var/log/gnunet.log for logrotate to work as configured.
   * Import into downstream repo.
-  
+
  -- Christian Grothoff <grothoff@gnu.org>  Tue 29 Dec 2020 12:02:10 AM CET
 
 gnunet (0.13.3-1) unstable; urgency=medium
@@ -9,7 +11,7 @@ gnunet (0.13.3-1) unstable; urgency=medium
   * New upstream version 0.13.3.
   * Maintainer changed to Thomas Liang (Closes: #964314).
 
- -- Thomas Liang <rt1omas@protonmail.com>  Sat, 19 Sep 2020 21:27:20 +0800 
+ -- Thomas Liang <rt1omas@protonmail.com>  Sat, 19 Sep 2020 21:27:20 +0800
 
 gnunet (0.13.1-1) unstable; urgency=medium
 

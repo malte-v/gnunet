@@ -15,16 +15,16 @@ override_dh_auto_configure-indep:
 override_dh_auto_build-indep:
 
 override_dh_auto_test:
-	# Disabling test suite, incomplete
+# Disabling test suite, incomplete
 
 override_dh_auto_install-arch:
 	dh_auto_install
-	
-	# Create config file
+
+# Create config file
 	mkdir -p debian/tmp/etc
 	cp debian/etc/gnunet.conf debian/tmp/etc/
-	
-	# Removing useless files
+
+# Removing useless files
 	rm -f debian/tmp/usr/lib/$(DEB_HOST_MULTIARCH)/*.la \
 		debian/tmp/usr/lib/$(DEB_HOST_MULTIARCH)/gnunet/*.la \
 		debian/tmp/usr/lib/$(DEB_HOST_MULTIARCH)/gnunet/nss/*.la \
@@ -45,3 +45,8 @@ override_dh_auto_clean:
 	dh_auto_clean
 	rm -rf contrib/gnunet_janitor.py contrib/gnunet_pyexpect.py libltdl/ \
 		src/integration-tests/*.py
+
+# Remove files already present in libgnunet from main gnunet package
+override_dh_install:
+	dh_install
+	cd debian/libgnunet; find . -type f -exec rm -f ../gnunet/{} \;
