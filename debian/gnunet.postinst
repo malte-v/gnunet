@@ -106,7 +106,7 @@ case "${1}" in
 				fi
 			fi
 			echo " done."
-		fi	
+		fi
 
                 # Install GNUnet configuration for all users provided non exists
 		userlist=$(awk -F ':' '$3>=1000 && $3<2000 {print $1}' /etc/passwd)
@@ -117,9 +117,9 @@ case "${1}" in
 		for (( i=0; i<${#users[@]}; i++ )); do
 		    usermod -aG gnunet ${users[$i]}
                     if [ -n "$i" ]  && [ -d "${homedirs[$i]}" ]; then
-			mkdir -p ${homedirs[$i]}/.config/systemd/user/
+			            mkdir -p ${homedirs[$i]}/.config/systemd/user/
 
-			cat > "${homedirs[$i]}/.config/systemd/user/gnunet-user.service" << EOF
+			            cat > "${homedirs[$i]}/.config/systemd/user/gnunet-user.service" << EOF
 # Copyright (C) 2019 GNUnet e.V.
 #
 # Copying and distribution of this file, with or without modification,
@@ -140,12 +140,11 @@ ExecStop=/usr/bin/gnunet-arm -e -c ${homedirs[$i]}/.config/gnunet.conf
 WantedBy=multi-user.target
 EOF
 
-			chown "${users[$i]}":"${users[$i]}" "${homedirs[$i]}/.config/systemd/user/gnunet-user.service"
+			            chown "${users[$i]}":"${users[$i]}" "${homedirs[$i]}/.config/systemd/user/gnunet-user.service"
                         if [ ! -f "${homedirs[$i]}/.config/gnunet.conf" ]; then
-				mkdir -p ${homedirs[$i]}/.config/
-				cp /etc/skel/.config/gnunet.conf "${homedirs[$i]}/.config/gnunet.conf"
-				chmod 644 "${homedirs[$i]}/.config/gnunet.conf"
-				chown "${users[$i]}":"${users[$i]}" "${homedirs[$i]}/.config/gnunet.conf"
+				            mkdir -p ${homedirs[$i]}/.config/
+				            cp /etc/skel/.config/gnunet.conf "${homedirs[$i]}/.config/gnunet.conf"
+				            chmod 644 "${homedirs[$i]}/.config/gnunet.conf"
                         fi
                     fi
                     port=$((8000+$(id -u "${users[$i]}")))
@@ -158,12 +157,13 @@ EOF
                          --rewrite \
                          --section=gns-proxy \
                          --option=OPTIONS \
-			 --value="-p $port"
+ 			             --value="-p $port"
+				chown "${users[$i]}":"${users[$i]}" "${homedirs[$i]}/.config/gnunet.conf"
 		done
 
                 # Change the proxy settings for Firefox and Chromium if desired
 		if ${_PROXY}
-                then
+        then
 		    mkdir -p /etc/X11/xinit/xinitrc.d/
 cat > "/etc/X11/xinit/xinitrc.d/80-gnunet-user-services" << "EOF"
 #!/bin/bash
@@ -219,7 +219,7 @@ fi
 gnunet-gns-proxy-setup-ca
 EOF
                 fi
-		
+
 		# Update files and directories permissions.
 		# Assuming default values, this *should* not be changed.
 		echo -n "Updating files and directories permissions:"
