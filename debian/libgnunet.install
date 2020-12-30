@@ -1,0 +1,6 @@
+usr/lib/*/*.so.*
+usr/share/locale/
+usr/share/gnunet/config.d/
+usr/bin/gnunet-bugreport
+usr/bin/gnunet-ecc
+usr/bin/gnunet-config

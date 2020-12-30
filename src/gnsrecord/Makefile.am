@@ -106,6 +106,7 @@ test_gnsrecord_crypto_SOURCES = \
  test_gnsrecord_crypto.c
 test_gnsrecord_crypto_LDADD = \
   $(top_builddir)/src/testing/libgnunettesting.la \
+  $(top_builddir)/src/identity/libgnunetidentity.la \
   libgnunetgnsrecord.la \
   $(top_builddir)/src/util/libgnunetutil.la
 
@@ -114,5 +115,6 @@ perf_gnsrecord_crypto_SOURCES = \
  perf_gnsrecord_crypto.c
 perf_gnsrecord_crypto_LDADD = \
   $(top_builddir)/src/testing/libgnunettesting.la \
+  $(top_builddir)/src/identity/libgnunetidentity.la \
   libgnunetgnsrecord.la \
   $(top_builddir)/src/util/libgnunetutil.la

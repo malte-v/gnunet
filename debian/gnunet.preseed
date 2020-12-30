@@ -1,0 +1,7 @@
+################################################################################
+## gnunet-systempeer
+
+#gnunet-systempeer gnunet-systempeer/username string _gnunet
+#gnunet-systempeer gnunet-systempeer/groupname string gnunet
+#gnunet-systempeer gnunet-systempeer/autostart boolean true
+################################################################################

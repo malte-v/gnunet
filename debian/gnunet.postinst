@@ -1,0 +1,309 @@
+#!/bin/bash
+
+set -e
+
+. /usr/share/debconf/confmodule
+
+# This is taken from the package libnss-mdns and edited to do the same thing
+# but for GNS insteand of mdns. try to insert gns entries to the "hosts" line
+# in /etc/nsswitch.conf to automatically enable nss-gns support; do not change
+# the configuration if the "hosts" line already references some gns lookups
+insert_gns() {
+	echo -n "Checking NSS setup..."
+	# abort if /etc/nsswitch.conf does not exist
+	if ! [ -e /etc/nsswitch.conf ]; then
+		echo "Could not find /etc/nsswitch.conf."
+		return 1
+	fi
+	perl -i -pe '
+		sub insert {
+			# this also splits on tab
+			my @bits=split(" ", shift);
+			# do not break configuration if the "hosts" line already references gns
+			if (grep { $_ eq "gns"} @bits) {
+				return join " ", @bits;
+			}
+			# change "dns" or "resolve", whichever comes first, into
+			# "gns [NOTFOUND=return] dns"
+			foreach my $bit (@bits) {
+				if ($bit eq "dns") {
+					$bit = "gns [NOTFOUND=return] $bit";
+					last;
+				}
+			}
+			return join " ", @bits;
+		}
+		s/^(hosts:\s+)(.*)/$1.insert($2)/e;
+	' /etc/nsswitch.conf
+	echo " done."
+}
+
+case "${1}" in
+	configure)
+		db_version 2.0
+
+		db_get gnunet-systempeer/username
+		_USERNAME="${RET:-gnunet}"
+
+		db_get gnunet-systempeer/groupname
+		_GROUPNAME="${RET:-gnunet}"
+
+		db_get gnunet-systempeer/autostart
+		_AUTOSTART="${RET}" # boolean
+
+		db_get gnunet-dns/libnsswitch
+		_LIBNSSWITCH="${RET}" # boolean
+
+		db_get gnunet-user/proxy
+		_PROXY="${RET}" # boolean
+
+		db_stop
+
+		CONFIG_FILE="/etc/default/gnunet"
+
+		# Read default values
+		GNUNET_HOME="/var/lib/gnunet"
+		eval $(grep GNUNET_HOME /etc/gnunet.conf | tr -d '[:blank:]')
+
+		# Creating gnunet group if needed
+		if ! getent group ${_GROUPNAME} > /dev/null
+		then
+			echo -n "Creating new GNUnet group ${_GROUPNAME}:"
+			addgroup --quiet --system ${_GROUPNAME}
+			echo " done."
+		fi
+
+		# Creating gnunet user if needed
+		if ! getent passwd ${_USERNAME} > /dev/null
+		then
+			echo -n "Creating new GNUnet user ${_USERNAME}:"
+			adduser --quiet --system --ingroup ${_GROUPNAME} --home ${GNUNET_HOME} ${_USERNAME}
+			echo " done."
+		fi
+
+		# Add a special secured group
+		GNUNETDNS_GROUP="gnunetdns"
+
+		# Creating gnunetdns group if needed
+		if ! getent group ${GNUNETDNS_GROUP} > /dev/null
+		then
+			echo -n "Creating new secured GNUnet group ${GNUNETDNS_GROUP}:"
+			addgroup --quiet --system ${GNUNETDNS_GROUP}
+			echo " done."
+		fi
+
+		# Copy the libnss_gns files to the libnss directory
+		if ${_LIBNSSWITCH}
+		then
+			echo "Editing /etc/nsswitch.conf to use GNS before DNS"
+			# $2 equals the currently installed version if it exists
+			if [ -z "$2" ]; then
+				# first install: setup the recommended configuration (unless
+				# nsswitch.conf already contains mdns entries)
+				insert_gns
+				if [ "$?" -gt 0 ]; then
+					echo "nsswitch does not exist on this system"
+				fi
+			fi
+			echo " done."
+		fi
+
+                # Install GNUnet configuration for all users provided non exists
+		userlist=$(awk -F ':' '$3>=1000 && $3<2000 {print $1}' /etc/passwd)
+		users=($userlist)
+		homedirlist=$(awk -F ':' '$3>=1000 && $3<2000 {print $6}' /etc/passwd)
+                homedirs=($homedirlist)
+
+		for (( i=0; i<${#users[@]}; i++ )); do
+		    usermod -aG gnunet ${users[$i]}
+                    if [ -n "$i" ]  && [ -d "${homedirs[$i]}" ]; then
+			            mkdir -p ${homedirs[$i]}/.config/systemd/user/
+
+			            cat > "${homedirs[$i]}/.config/systemd/user/gnunet-user.service" << EOF
+# Copyright (C) 2019 GNUnet e.V.
+#
+# Copying and distribution of this file, with or without modification,
+# are permitted in any medium without royalty provided the copyright
+# notice and this notice are preserved.  This file is offered as-is,
+# without any warranty.
+
+[Unit]
+Description=Service that runs a GNUnet for the user gnunet
+After=network.target
+
+[Service]
+Type=forking
+ExecStart=/usr/bin/gnunet-arm -s -c ${homedirs[$i]}/.config/gnunet.conf
+ExecStop=/usr/bin/gnunet-arm -e -c ${homedirs[$i]}/.config/gnunet.conf
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+			            chown "${users[$i]}":"${users[$i]}" "${homedirs[$i]}/.config/systemd/user/gnunet-user.service"
+                        if [ ! -f "${homedirs[$i]}/.config/gnunet.conf" ]; then
+				            mkdir -p ${homedirs[$i]}/.config/
+				            cp /etc/skel/.config/gnunet.conf "${homedirs[$i]}/.config/gnunet.conf"
+				            chmod 644 "${homedirs[$i]}/.config/gnunet.conf"
+                        fi
+                    fi
+                    port=$((8000+$(id -u "${users[$i]}")))
+                    gnunet-config -c "${homedirs[$i]}/.config/gnunet.conf" \
+                         --rewrite \
+                         --section=gns-proxy \
+                         --option=IMMEDIATE_START \
+                         --value=YES
+                    gnunet-config -c "${homedirs[$i]}/.config/gnunet.conf" \
+                         --rewrite \
+                         --section=gns-proxy \
+                         --option=OPTIONS \
+ 			             --value="-p $port"
+				chown "${users[$i]}":"${users[$i]}" "${homedirs[$i]}/.config/gnunet.conf"
+		done
+
+                # Change the proxy settings for Firefox and Chromium if desired
+		if ${_PROXY}
+        then
+		    mkdir -p /etc/X11/xinit/xinitrc.d/
+cat > "/etc/X11/xinit/xinitrc.d/80-gnunet-user-services" << "EOF"
+#!/bin/bash
+systemctl --user daemon-reload
+systemctl --user start gnunet-user
+systemctl --user enable gnunet-user
+user=$(whoami)
+gnunet_proxy=$(gnunet-config -c /etc/skel/.config/gnunet.conf -s gns-proxy | grep 'IMMEDIATE_START = YES')
+
+# Enable GNS proxy for new users informed by /etc/skel.
+if [ "$gnunet_proxy" ]; then
+
+        # Calculate user specific port
+        port=$((8000+$(id -u $user)))
+
+        gnunet-config -c $HOME/.config/gnunet.conf \
+                --rewrite \
+                --section=gns-proxy \
+                --option=OPTIONS \
+                --value="-p $port"
+
+        # Firefox
+        defaultprofile=$(ls $HOME/.mozilla/firefox/*.default)
+        if [ ! "$defaultprofile" ];then
+                timeout 3s firefox --headless # dirty: create profile if not existent
+        fi
+        for ffprofile in $HOME/.mozilla/firefox/*.*/; do
+                js=$ffprofile/user.js
+                if [ -f "$js" ]; then
+                        sed -i '/Preferences for using the GNU Name System/d' "$js"
+                        sed -i '/network.proxy.socks/d' "$js"
+                        sed -i '/network.proxy.socks_port/d' "$js"
+                        sed -i '/network.proxy.socks_remote_dns/d' "$js"
+                        sed -i '/network.proxy.type/d' "$js"
+                fi
+                echo "// Preferences for using the GNU Name System" >> "$js"
+                echo "user_pref(\"network.proxy.socks\", \"localhost\");" >> "$js"
+                echo "user_pref(\"network.proxy.socks_port\", $port);" >> "$js"
+                echo "user_pref(\"network.proxy.socks_remote_dns\", true);" >> "$js"
+                echo "user_pref(\"network.proxy.type\", 1);" >> "$js"
+        done
+
+        # Chromium
+        profile="$HOME/.profile"
+        if [ -f "$profile" ]; then
+                sed -i '/CHROMIUM_USER_FLAGS/d' "$profile"
+        fi
+        echo "export CHROMIUM_USER_FLAGS=--proxy-server=socks5://localhost:$port" \
+                >> "$profile"
+fi
+
+# Create/Renew GNS certificate authority (CA) per user.
+gnunet-gns-proxy-setup-ca
+EOF
+                fi
+
+		# Update files and directories permissions.
+		# Assuming default values, this *should* not be changed.
+		echo -n "Updating files and directories permissions:"
+		chown -R ${_USERNAME}:${_GROUPNAME} /var/log/gnunetd
+		chown -R ${_USERNAME}:${_GROUPNAME} ${GNUNET_HOME}
+		# Secure access to the data directory
+		chmod 0700 "${GNUNET_HOME}" || true
+		# Restrict access on setuid binaries
+		for file in /usr/bin/gnunet-helper-exit \
+			/usr/bin/gnunet-helper-nat-client \
+			/usr/bin/gnunet-helper-nat-server \
+			/usr/bin/gnunet-helper-transport-bluetooth \
+			/usr/bin/gnunet-helper-transport-wlan \
+			/usr/bin/gnunet-helper-vpn
+		do
+			# only do something when no setting exists
+			if ! dpkg-statoverride --list $file >/dev/null 2>&1 && [ -e $file ]
+			then
+				chown root:${_GROUPNAME} $file
+				chmod 4750 $file
+			fi
+		done
+		if ! dpkg-statoverride --list /usr/bin/gnunet-helper-dns >/dev/null 2>&1 \
+			&& [ -e /usr/bin/gnunet-helper-dns ]
+		then
+			chown root:${GNUNETDNS_GROUP} /usr/bin/gnunet-helper-dns
+			chmod 4750 /usr/bin/gnunet-helper-dns
+		fi
+		if ! dpkg-statoverride --list /usr/bin/gnunet-service-dns >/dev/null 2>&1 \
+			&& [ -e /usr/bin/gnunet-service-dns ]
+		then
+			chown ${_USERNAME}:${GNUNETDNS_GROUP} /usr/bin/gnunet-service-dns
+			chmod 2750 /usr/bin/gnunet-service-dns
+		fi
+		echo  " done."
+
+		# Writing new values to configuration file
+		echo -n "Writing new configuration file:"
+		CONFIG_NEW=$(tempfile)
+
+cat > "${CONFIG_NEW}" <<EOF
+# This file controls the behaviour of the GNUnet init script.
+# It will be parsed as a shell script.
+# please do not edit by hand, use 'dpkg-reconfigure gnunet-systempeer'.
+
+GNUNET_USER=${_USERNAME}
+GNUNET_GROUP=${_GROUPNAME}
+GNUNET_AUTOSTART="${_AUTOSTART}"
+EOF
+
+cat > "/etc/systemd/system/gnunet.service" <<EOF
+[Unit]
+Description=A framework for secure peer-to-peer networking
+
+[Service]
+EnvironmentFile=/etc/default/gnunet
+User=${_USERNAME}
+Type=forking
+ExecStart=/usr/bin/gnunet-arm -s -c /etc/gnunet.conf
+ExecStop=/usr/bin/gnunet-arm -e -c /etc/gnunet.conf
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+		cp -f "${CONFIG_NEW}" "${CONFIG_FILE}"
+		echo " done."
+
+		# Cleaning
+		rm -f "${CONFIG_NEW}"
+		echo "All done."
+
+		;;
+
+	abort-upgrade|abort-remove|abort-deconfigure)
+
+		;;
+
+	*)
+		echo "postinst called with unknown argument \`${1}'" >&2
+		exit 1
+		;;
+esac
+
+#DEBHELPER#
+
+exit 0

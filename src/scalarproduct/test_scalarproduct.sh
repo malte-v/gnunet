@@ -25,7 +25,7 @@ echo "Waiting for peers to start..."
 sleep 5
 echo "Running test..."
 
-which timeout &> /dev/null && DO_TIMEOUT="timeout 15"
+which timeout >/dev/null 2>&1 && DO_TIMEOUT="timeout 15"
 
 # get bob's peer ID, necessary for alice
 PEERIDBOB=`${DO_TIMEOUT} gnunet-peerinfo -qs $CFGBOB`
@@ -38,7 +38,7 @@ RESULT=`${DO_TIMEOUT} gnunet-scalarproduct $CFGALICE $INPUTALICE -p $PEERIDBOB`
 # terminate the testbed
 kill $PID
 
-if [ "$RESULT" == "$EXPECTED" ]
+if [ "$RESULT" = "$EXPECTED" ]
 then
 	echo "OK"
 	exit 0

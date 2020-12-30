@@ -6,7 +6,7 @@ if [ -z $LOCATION ]
 then
   LOCATION="gnunet-config"
 fi
-$LOCATION --version 1> /dev/null
+$LOCATION --version 1>/dev/null
 if test $? != 0
 then
 	echo "GNUnet command line tools cannot be found, check environmental variables PATH and GNUNET_PREFIX"
@@ -20,7 +20,7 @@ rm -rf `gnunet-config -c test_reclaim.conf -s PATHS -o GNUNET_HOME -f`
 #  (3) PKEY3.user -> PKEY4
 
 
-which timeout &> /dev/null && DO_TIMEOUT="timeout 30"
+which timeout >/dev/null 2>&1 && DO_TIMEOUT="timeout 30"
 
 TEST_ATTR="test"
 gnunet-arm -s -c test_reclaim.conf
@@ -32,7 +32,7 @@ TEST_KEY=$(gnunet-identity -d -e testego -q -c test_reclaim.conf)
 gnunet-reclaim -e testego -a email -V john@doe.gnu -c test_reclaim.conf
 gnunet-reclaim -e testego -a name -V John -c test_reclaim.conf
 TICKET=$(gnunet-reclaim -e testego -i "email,name" -r $SUBJECT_KEY -c test_reclaim.conf | awk '{print $1}')
-gnunet-reclaim -e rpego -C $TICKET -c test_reclaim.conf > /dev/null 2>&1
+gnunet-reclaim -e rpego -C $TICKET -c test_reclaim.conf >/dev/null 2>&1
 
 if test $? != 0
 then

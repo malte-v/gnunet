@@ -148,6 +148,7 @@ test_namecache_api_cache_block_SOURCES = \
  test_namecache_api_cache_block.c
 test_namecache_api_cache_block_LDADD = \
   $(top_builddir)/src/gnsrecord/libgnunetgnsrecord.la \
+  $(top_builddir)/src/identity/libgnunetidentity.la \
   libgnunetnamecache.la \
   $(top_builddir)/src/testing/libgnunettesting.la \
   $(top_builddir)/src/util/libgnunetutil.la

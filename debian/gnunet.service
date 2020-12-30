@@ -1,0 +1,12 @@
+[Unit]
+Description=A framework for secure peer-to-peer networking
+
+[Service]
+EnvironmentFile=/etc/default/gnunet
+User=${GNUNET_USER}
+Type=forking
+ExecStart=/usr/bin/gnunet-arm -s -c /etc/gnunet.conf
+ExecStop=/usr/bin/gnunet-arm -e -c /etc/gnunet.conf
+
+[Install]
+WantedBy=multi-user.target

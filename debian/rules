@@ -1,0 +1,52 @@
+#!/usr/bin/make -f
+
+SHELL := sh -e
+
+include /usr/share/dpkg/architecture.mk
+
+%:
+	dh ${@}
+
+override_dh_auto_configure-arch:
+	dh_auto_configure -- --disable-rpath --with-microhttpd=yes $(shell dpkg-buildflags --export=configure)
+
+override_dh_auto_configure-indep:
+
+override_dh_auto_build-indep:
+
+override_dh_auto_test:
+# Disabling test suite, incomplete
+
+override_dh_auto_install-arch:
+	dh_auto_install
+
+# Create config file
+	mkdir -p debian/tmp/etc
+	cp debian/etc/gnunet.conf debian/tmp/etc/
+
+# Removing useless files
+	rm -f debian/tmp/usr/lib/$(DEB_HOST_MULTIARCH)/*.la \
+		debian/tmp/usr/lib/$(DEB_HOST_MULTIARCH)/gnunet/*.la \
+		debian/tmp/usr/lib/$(DEB_HOST_MULTIARCH)/gnunet/nss/*.la \
+		debian/tmp/usr/share/doc/gnunet/COPYING \
+		debian/tmp/usr/bin/gnunet-service-template \
+		debian/tmp/usr/bin/gnunet-template \
+		debian/tmp/usr/bin/gnunet-helper-transport-wlan-dummy
+
+override_dh_auto_install-indep:
+
+execute_after_dh_auto_install:
+	dh_link -pgnunet-dev \
+		usr/lib/$(DEB_HOST_MULTIARCH)/gnunet/nss/libnss_gns.so.2 usr/lib/$(DEB_HOST_MULTIARCH)/libnss_gns.so \
+		usr/lib/$(DEB_HOST_MULTIARCH)/gnunet/nss/libnss_gns4.so.2 usr/lib/$(DEB_HOST_MULTIARCH)/libnss_gns4.so \
+		usr/lib/$(DEB_HOST_MULTIARCH)/gnunet/nss/libnss_gns6.so.2 usr/lib/$(DEB_HOST_MULTIARCH)/libnss_gns6.so
+
+override_dh_auto_clean:
+	dh_auto_clean
+	rm -rf contrib/gnunet_janitor.py contrib/gnunet_pyexpect.py libltdl/ \
+		src/integration-tests/*.py
+
+# Remove files already present in libgnunet from main gnunet package
+override_dh_install:
+	dh_install
+	cd debian/libgnunet; find . -type f -exec rm -f ../gnunet/{} \;
