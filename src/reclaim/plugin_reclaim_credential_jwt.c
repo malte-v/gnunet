@@ -160,6 +160,7 @@ jwt_parse_attributes (void *cls,
   char *val_str = NULL;
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Parsing JWT attributes.\n");
   char *decoded_jwt;
+  char *tmp;
   json_t *json_val;
   json_error_t *json_err = NULL;
 
@@ -175,7 +176,10 @@ jwt_parse_attributes (void *cls,
   json_val = json_loads (decoded_jwt, JSON_DECODE_ANY, json_err);
   GNUNET_free (decoded_jwt);
   const char *key;
+  const char *addr_key;
   json_t *value;
+  json_t *addr_value;
+
   json_object_foreach (json_val, key, value) {
     if (0 == strcmp ("iss", key))
       continue;
@@ -189,12 +193,45 @@ jwt_parse_attributes (void *cls,
       continue;
     if (0 == strcmp ("aud", key))
       continue;
+    if (0 == strcmp ("address", key))
+    {
+      if (!json_is_object(value)) {
+        GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
+                    "address claim in wrong format!");
+        continue;
+      }
+      json_object_foreach (value, addr_key, addr_value) {
+        val_str = json_dumps (addr_value, JSON_ENCODE_ANY);
+        tmp = val_str;
+        //Remove leading " from jasson conversion
+        if (tmp[0] == '"')
+          tmp++;
+        //Remove trailing " from jansson conversion
+        if (tmp[strlen(tmp)-1] == '"')
+          tmp[strlen(tmp)-1] = '\0';
+        GNUNET_RECLAIM_attribute_list_add (attrs,
+                                           addr_key,
+                                           NULL,
+                                           GNUNET_RECLAIM_ATTRIBUTE_TYPE_STRING,
+                                           tmp,
+                                           strlen (val_str));
+        GNUNET_free (val_str);
+      }
+      continue;
+    }
     val_str = json_dumps (value, JSON_ENCODE_ANY);
+    tmp = val_str;
+    //Remove leading " from jasson conversion
+    if (tmp[0] == '"')
+      tmp++;
+    //Remove trailing " from jansson conversion
+    if (tmp[strlen(tmp)-1] == '"')
+      tmp[strlen(tmp)-1] = '\0';
     GNUNET_RECLAIM_attribute_list_add (attrs,
                                        key,
                                        NULL,
                                        GNUNET_RECLAIM_ATTRIBUTE_TYPE_STRING,// FIXME
-                                       val_str,
+                                       tmp,
                                        strlen (val_str));
     GNUNET_free (val_str);
   }
