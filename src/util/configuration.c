@@ -543,23 +543,39 @@ GNUNET_CONFIGURATION_write (struct GNUNET_CONFIGURATION_Handle *cfg,
   }
   cfg_buf = GNUNET_CONFIGURATION_serialize (cfg,
                                             &size);
-  (void) GNUNET_DISK_directory_remove (fn);
-  if (GNUNET_OK !=
-      GNUNET_DISK_fn_write (fn,
-                            cfg_buf,
-                            size,
-                            GNUNET_DISK_PERM_USER_READ
-                            | GNUNET_DISK_PERM_USER_WRITE
-                            | GNUNET_DISK_PERM_GROUP_READ
-                            | GNUNET_DISK_PERM_GROUP_WRITE))
   {
-    GNUNET_free (fn);
-    GNUNET_free (cfg_buf);
-    LOG (GNUNET_ERROR_TYPE_WARNING,
-         "Writing configuration to file `%s' failed\n",
-         filename);
-    cfg->dirty = GNUNET_SYSERR;   /* last write failed */
-    return GNUNET_SYSERR;
+    struct GNUNET_DISK_FileHandle *h;
+
+    h = GNUNET_DISK_file_open (fn,
+                               GNUNET_DISK_OPEN_WRITE
+                               | GNUNET_DISK_OPEN_TRUNCATE
+                               | GNUNET_DISK_OPEN_CREATE,
+                               GNUNET_DISK_PERM_USER_READ
+                               | GNUNET_DISK_PERM_USER_WRITE
+                               | GNUNET_DISK_PERM_GROUP_READ
+                               | GNUNET_DISK_PERM_GROUP_WRITE);
+    if (NULL == h)
+    {
+      GNUNET_free (fn);
+      return GNUNET_SYSERR;
+    }
+    if (((ssize_t) size) !=
+        GNUNET_DISK_file_write (h,
+                                cfg_buf,
+                                size))
+    {
+      GNUNET_log_strerror_file (GNUNET_ERROR_TYPE_WARNING,
+                                "write",
+                                fn);
+      GNUNET_DISK_file_close (h);
+      (void) GNUNET_DISK_directory_remove (fn);
+      GNUNET_free (fn);
+      GNUNET_free (cfg_buf);
+      cfg->dirty = GNUNET_SYSERR;   /* last write failed */
+      return GNUNET_SYSERR;
+    }
+    GNUNET_assert (GNUNET_OK ==
+                   GNUNET_DISK_file_close (h));
   }
   GNUNET_free (fn);
   GNUNET_free (cfg_buf);

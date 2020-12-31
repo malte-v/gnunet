@@ -33,10 +33,6 @@ remove_gns() {
 		}
 		s/^(hosts:)(.*)/$1.remove($2)/e;
 	' /etc/nsswitch.conf
-        # remove the gns nsswitch plugins as well
-        rm -rf /usr/lib/x86_64-linux-gnu/usr/libnss_gns.so.2
-        rm -rf /usr/lib/x86_64-linux-gnu/usr/libnss_gns4.so.2
-        rm -rf /usr/lib/x86_64-linux-gnu/usr/libnss_gns6.so.2
 }
 
 
@@ -81,10 +77,18 @@ case "${1}" in
 			delgroup --quiet --system --only-if-empty ${GNUNETDNS_GROUP} || true
 		fi
 
-		rm -rf /var/log/gnunetd /var/lib/gnunet /etc/default/gnunet
+		rm -rf /var/log/gnunet.log /var/lib/gnunet /etc/default/gnunet
 		;;
 
 	remove|upgrade|failed-upgrade|abort-install|abort-upgrade|disappear)
+
+		if $_LIBNSSWITCH
+		then
+			rm -rf /usr/lib/x86_64-linux-gnu/usr/libnss_gns.so.2
+			rm -rf /usr/lib/x86_64-linux-gnu/usr/libnss_gns4.so.2
+			rm -rf /usr/lib/x86_64-linux-gnu/usr/libnss_gns6.so.2
+			remove_gns
+		fi
 
 		;;
 
