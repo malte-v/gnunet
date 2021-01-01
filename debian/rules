@@ -36,7 +36,7 @@ override_dh_auto_install-arch:
 override_dh_auto_install-indep:
 
 execute_after_dh_auto_install:
-	dh_link -pgnunet-dev \
+	dh_link -plibgnunet-dev \
 		usr/lib/$(DEB_HOST_MULTIARCH)/gnunet/nss/libnss_gns.so.2 usr/lib/$(DEB_HOST_MULTIARCH)/libnss_gns.so \
 		usr/lib/$(DEB_HOST_MULTIARCH)/gnunet/nss/libnss_gns4.so.2 usr/lib/$(DEB_HOST_MULTIARCH)/libnss_gns4.so \
 		usr/lib/$(DEB_HOST_MULTIARCH)/gnunet/nss/libnss_gns6.so.2 usr/lib/$(DEB_HOST_MULTIARCH)/libnss_gns6.so
