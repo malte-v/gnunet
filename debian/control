@@ -91,7 +91,7 @@ Description: GNU's framework for secure peer-to-peer networking (meta)
  includes the GNU Name System, a privacy-preserving, decentralized public key
  infrastructure.
 
-Package: gnunet-dev
+Package: libgnunet-dev
 Section: libdevel
 Architecture: any
 Depends:
