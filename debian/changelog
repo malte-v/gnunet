@@ -1,3 +1,10 @@
+gnunet (0.14.0-1) unstable; urgency=medium
+
+  * Renamed gnunet-dev to libgnunet-dev.
+  * Fixed /proc/$PID/maps parsing to ensure plugins are found.
+
+ -- Christian Grothoff <grothoff@gnu.org>  Sat, 02 Jan 2021 12:02:10 +0100
+
 gnunet (0.14.0) unstable; urgency=medium
 
   * Split libgnunet from main gnunet package.
