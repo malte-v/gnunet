@@ -443,12 +443,45 @@ GNUNET_CONFIGURATION_is_dirty (const struct GNUNET_CONFIGURATION_Handle *cfg)
 }
 
 
+/**
+ * Should we skip this configuration entry when serializing?
+ *
+ * @param sec section name
+ * @param key key
+ * @return true if we should skip it
+ */
+static bool
+do_skip (const char *sec,
+         const char *key)
+{
+  if (0 != strcasecmp ("PATHS",
+                       sec))
+    return false;
+  return ( (0 == strcasecmp ("DATADIR",
+                             key)) ||
+           (0 == strcasecmp ("LIBDIR",
+                             key)) ||
+           (0 == strcasecmp ("BINDIR",
+                             key)) ||
+           (0 == strcasecmp ("PREFIX",
+                             key)) ||
+           (0 == strcasecmp ("LOCALEDIR",
+                             key)) ||
+           (0 == strcasecmp ("ICONDIR",
+                             key)) ||
+           (0 == strcasecmp ("DOCDIR",
+                             key)) ||
+           (0 == strcasecmp ("DEFAULTCONFIG",
+                             key)) ||
+           (0 == strcasecmp ("LIBEXECDIR",
+                             key)) );
+}
+
+
 char *
 GNUNET_CONFIGURATION_serialize (const struct GNUNET_CONFIGURATION_Handle *cfg,
                                 size_t *size)
 {
-  struct ConfigSection *sec;
-  struct ConfigEntry *ent;
   char *mem;
   char *cbuf;
   char *val;
@@ -458,12 +491,19 @@ GNUNET_CONFIGURATION_serialize (const struct GNUNET_CONFIGURATION_Handle *cfg,
 
   /* Pass1 : calculate the buffer size required */
   m_size = 0;
-  for (sec = cfg->sections; NULL != sec; sec = sec->next)
+  for (struct ConfigSection *sec = cfg->sections;
+       NULL != sec;
+       sec = sec->next)
   {
     /* For each section we need to add 3 characters: {'[',']','\n'} */
     m_size += strlen (sec->name) + 3;
-    for (ent = sec->entries; NULL != ent; ent = ent->next)
+    for (struct ConfigEntry *ent = sec->entries;
+         NULL != ent;
+         ent = ent->next)
     {
+      if (do_skip (sec->name,
+                   ent->key))
+        continue;
       if (NULL != ent->val)
       {
         /* if val has any '\n' then they occupy +1 character as '\n'->'\\','n' */
@@ -484,20 +524,30 @@ GNUNET_CONFIGURATION_serialize (const struct GNUNET_CONFIGURATION_Handle *cfg,
 
   /* Pass2: Allocate memory and write the configuration to it */
   mem = GNUNET_malloc (m_size);
-  sec = cfg->sections;
   c_size = 0;
   *size = c_size;
-  while (NULL != sec)
+  for (struct ConfigSection *sec = cfg->sections;
+       NULL != sec;
+       sec = sec->next)
   {
     int len;
 
-    len = GNUNET_asprintf (&cbuf, "[%s]\n", sec->name);
+    len = GNUNET_asprintf (&cbuf,
+                           "[%s]\n",
+                           sec->name);
     GNUNET_assert (0 < len);
-    GNUNET_memcpy (mem + c_size, cbuf, len);
+    GNUNET_memcpy (mem + c_size,
+                   cbuf,
+                   len);
     c_size += len;
     GNUNET_free (cbuf);
-    for (ent = sec->entries; NULL != ent; ent = ent->next)
+    for (struct ConfigEntry *ent = sec->entries;
+         NULL != ent;
+         ent = ent->next)
     {
+      if (do_skip (sec->name,
+                   ent->key))
+        continue;
       if (NULL != ent->val)
       {
         val = GNUNET_malloc (strlen (ent->val) * 2 + 1);
@@ -517,7 +567,6 @@ GNUNET_CONFIGURATION_serialize (const struct GNUNET_CONFIGURATION_Handle *cfg,
     }
     GNUNET_memcpy (mem + c_size, "\n", 1);
     c_size++;
-    sec = sec->next;
   }
   GNUNET_assert (c_size == m_size);
   *size = c_size;
