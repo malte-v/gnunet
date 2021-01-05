@@ -111,17 +111,20 @@ clean_task (void *cls)
   ctx = NULL;
   if (output_filename == NULL)
     return;
-  if (GNUNET_OK != GNUNET_FS_directory_builder_finish (db, &dsize, &ddata))
+  if (GNUNET_OK !=
+      GNUNET_FS_directory_builder_finish (db, &dsize, &ddata))
   {
     GNUNET_break (0);
     GNUNET_free (output_filename);
     return;
   }
-  if (dsize != GNUNET_DISK_fn_write (output_filename,
-                                     ddata,
-                                     dsize,
-                                     GNUNET_DISK_PERM_USER_READ
-                                     | GNUNET_DISK_PERM_USER_WRITE))
+  (void) GNUNET_DISK_directory_remove (output_filename);
+  if (GNUNET_OK !=
+      GNUNET_DISK_fn_write (output_filename,
+                            ddata,
+                            dsize,
+                            GNUNET_DISK_PERM_USER_READ
+                            | GNUNET_DISK_PERM_USER_WRITE))
   {
     fprintf (stderr,
              _ ("Failed to write directory with search results to `%s'\n"),

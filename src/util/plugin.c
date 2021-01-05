@@ -72,7 +72,7 @@ static struct PluginList *plugins;
  * Setup libtool paths.
  */
 static void
-plugin_init ()
+plugin_init (void)
 {
   int err;
   const char *opath;
@@ -95,7 +95,10 @@ plugin_init ()
   {
     if (NULL != opath)
     {
-      GNUNET_asprintf (&cpath, "%s:%s", opath, path);
+      GNUNET_asprintf (&cpath,
+                       "%s:%s",
+                       opath,
+                       path);
       lt_dlsetsearchpath (cpath);
       GNUNET_free (path);
       GNUNET_free (cpath);
@@ -113,7 +116,7 @@ plugin_init ()
  * Shutdown libtool.
  */
 static void
-plugin_fini ()
+plugin_fini (void)
 {
   lt_dlsetsearchpath (old_dlsearchpath);
   if (NULL != old_dlsearchpath)
@@ -133,15 +136,21 @@ plugin_fini ()
  * @return NULL if the symbol was not found
  */
 static GNUNET_PLUGIN_Callback
-resolve_function (struct PluginList *plug, const char *name)
+resolve_function (struct PluginList *plug,
+                  const char *name)
 {
   char *initName;
   void *mptr;
 
-  GNUNET_asprintf (&initName, "_%s_%s", plug->name, name);
-  mptr = lt_dlsym (plug->handle, &initName[1]);
+  GNUNET_asprintf (&initName,
+                   "_%s_%s",
+                   plug->name,
+                   name);
+  mptr = lt_dlsym (plug->handle,
+                   &initName[1]);
   if (NULL == mptr)
-    mptr = lt_dlsym (plug->handle, initName);
+    mptr = lt_dlsym (plug->handle,
+                     initName);
   if (NULL == mptr)
     LOG (GNUNET_ERROR_TYPE_ERROR,
          _ ("`%s' failed to resolve method '%s' with error: %s\n"),
@@ -179,7 +188,8 @@ GNUNET_PLUGIN_test (const char *library_name)
     return GNUNET_NO;
   plug.handle = libhandle;
   plug.name = (char *) library_name;
-  init = resolve_function (&plug, "init");
+  init = resolve_function (&plug,
+                           "init");
   if (NULL == init)
   {
     GNUNET_break (0);
@@ -204,7 +214,8 @@ GNUNET_PLUGIN_test (const char *library_name)
  * @return whatever the initialization function returned
  */
 void *
-GNUNET_PLUGIN_load (const char *library_name, void *arg)
+GNUNET_PLUGIN_load (const char *library_name,
+                    void *arg)
 {
   void *libhandle;
   struct PluginList *plug;
@@ -217,7 +228,7 @@ GNUNET_PLUGIN_load (const char *library_name, void *arg)
     plugin_init ();
   }
   libhandle = lt_dlopenext (library_name);
-  if (libhandle == NULL)
+  if (NULL == libhandle)
   {
     LOG (GNUNET_ERROR_TYPE_ERROR,
          _ ("`%s' failed for library `%s' with error: %s\n"),
@@ -231,8 +242,10 @@ GNUNET_PLUGIN_load (const char *library_name, void *arg)
   plug->name = GNUNET_strdup (library_name);
   plug->next = plugins;
   plugins = plug;
-  init = resolve_function (plug, "init");
-  if ((init == NULL) || (NULL == (ret = init (arg))))
+  init = resolve_function (plug,
+                           "init");
+  if ( (NULL == init) ||
+       (NULL == (ret = init (arg))) )
   {
     lt_dlclose (libhandle);
     GNUNET_free (plug->name);
@@ -253,7 +266,8 @@ GNUNET_PLUGIN_load (const char *library_name, void *arg)
  * @return whatever the shutdown function returned
  */
 void *
-GNUNET_PLUGIN_unload (const char *library_name, void *arg)
+GNUNET_PLUGIN_unload (const char *library_name,
+                      void *arg)
 {
   struct PluginList *pos;
   struct PluginList *prev;
@@ -262,7 +276,9 @@ GNUNET_PLUGIN_unload (const char *library_name, void *arg)
 
   prev = NULL;
   pos = plugins;
-  while ((NULL != pos) && (0 != strcmp (pos->name, library_name)))
+  while ( (NULL != pos) &&
+          (0 != strcmp (pos->name,
+                        library_name)) )
   {
     prev = pos;
     pos = pos->next;
@@ -270,7 +286,8 @@ GNUNET_PLUGIN_unload (const char *library_name, void *arg)
   if (NULL == pos)
     return NULL;
 
-  done = resolve_function (pos, "done");
+  done = resolve_function (pos,
+                           "done");
   ret = NULL;
   if (NULL != done)
     ret = done (arg);
@@ -327,7 +344,8 @@ struct LoadAllContext
  * @return #GNUNET_OK (continue loading)
  */
 static int
-find_libraries (void *cls, const char *filename)
+find_libraries (void *cls,
+                const char *filename)
 {
   struct LoadAllContext *lac = cls;
   const char *slashpos;
@@ -338,19 +356,26 @@ find_libraries (void *cls, const char *filename)
   size_t n;
 
   libname = filename;
-  while (NULL != (slashpos = strstr (libname, DIR_SEPARATOR_STR)))
+  while (NULL != (slashpos = strstr (libname,
+                                     DIR_SEPARATOR_STR)))
     libname = slashpos + 1;
   n = strlen (libname);
-  if (0 != strncmp (lac->basename, libname, strlen (lac->basename)))
+  if (0 != strncmp (lac->basename,
+                    libname,
+                    strlen (lac->basename)))
     return GNUNET_OK; /* wrong name */
-  if ((n > 3) && (0 == strcmp (&libname[n - 3], ".la")))
+  if ( (n > 3) &&
+       (0 == strcmp (&libname[n - 3], ".la")) )
     return GNUNET_OK; /* .la file */
   basename = GNUNET_strdup (libname);
   if (NULL != (dot = strstr (basename, ".")))
     *dot = '\0';
-  lib_ret = GNUNET_PLUGIN_load (basename, lac->arg);
+  lib_ret = GNUNET_PLUGIN_load (basename,
+                                lac->arg);
   if (NULL != lib_ret)
-    lac->cb (lac->cb_cls, basename, lib_ret);
+    lac->cb (lac->cb_cls,
+             basename,
+             lib_ret);
   GNUNET_free (basename);
   return GNUNET_OK;
 }
@@ -388,7 +413,9 @@ GNUNET_PLUGIN_load_all (const char *basename,
   lac.arg = arg;
   lac.cb = cb;
   lac.cb_cls = cb_cls;
-  GNUNET_DISK_directory_scan (path, &find_libraries, &lac);
+  GNUNET_DISK_directory_scan (path,
+                              &find_libraries,
+                              &lac);
   GNUNET_free (path);
 }
 

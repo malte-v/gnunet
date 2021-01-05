@@ -82,7 +82,7 @@ GNUNET_CONFIGURATION_destroy (struct GNUNET_CONFIGURATION_Handle *cfg);
  * @param filename name of the configuration file, NULL to load defaults
  * @return #GNUNET_OK on success, #GNUNET_SYSERR on error
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_CONFIGURATION_load (struct GNUNET_CONFIGURATION_Handle *cfg,
                            const char *filename);
 
@@ -95,7 +95,7 @@ GNUNET_CONFIGURATION_load (struct GNUNET_CONFIGURATION_Handle *cfg,
  * @param defaults_d directory with the defaults
  * @return #GNUNET_OK on success, #GNUNET_SYSERR on error
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_CONFIGURATION_load_from (struct GNUNET_CONFIGURATION_Handle *cfg,
                                 const char *defaults_d);
 
@@ -120,7 +120,7 @@ GNUNET_CONFIGURATION_default (void);
  * @param filename name of the configuration file
  * @return #GNUNET_OK on success, #GNUNET_SYSERR on error
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_CONFIGURATION_parse (struct GNUNET_CONFIGURATION_Handle *cfg,
                             const char *filename);
 
@@ -149,7 +149,7 @@ GNUNET_CONFIGURATION_serialize (const struct GNUNET_CONFIGURATION_Handle *cfg,
  *          when we come across them
  * @return #GNUNET_OK on success, #GNUNET_SYSERR on error
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_CONFIGURATION_deserialize (struct GNUNET_CONFIGURATION_Handle *cfg,
                                   const char *mem,
                                   size_t size,
@@ -163,19 +163,20 @@ GNUNET_CONFIGURATION_deserialize (struct GNUNET_CONFIGURATION_Handle *cfg,
  * @param filename where to write the configuration
  * @return #GNUNET_OK on success, #GNUNET_SYSERR on error
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_CONFIGURATION_write (struct GNUNET_CONFIGURATION_Handle *cfg,
                             const char *filename);
 
 
 /**
  * Write only configuration entries that have been changed to configuration file
+ *
  * @param cfg_default default configuration
  * @param cfg_new new configuration
  * @param filename where to write the configuration diff between default and new
  * @return #GNUNET_OK on success, #GNUNET_SYSERR on error
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_CONFIGURATION_write_diffs (const struct
                                   GNUNET_CONFIGURATION_Handle *cfg_default,
                                   const struct
@@ -204,7 +205,7 @@ GNUNET_CONFIGURATION_get_diff (const struct
  * @param cfg configuration to inspect
  * @return #GNUNET_NO if clean, #GNUNET_YES if dirty, #GNUNET_SYSERR on error (i.e. last save failed)
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_CONFIGURATION_is_dirty (const struct GNUNET_CONFIGURATION_Handle *cfg);
 
 
@@ -215,7 +216,7 @@ GNUNET_CONFIGURATION_is_dirty (const struct GNUNET_CONFIGURATION_Handle *cfg);
  * @param cfg the configuration
  * @return status code
  */
-typedef int
+typedef enum GNUNET_GenericReturnValue
 (*GNUNET_CONFIGURATION_Callback)(void *cls,
                                  const struct GNUNET_CONFIGURATION_Handle *cfg);
 
@@ -231,7 +232,7 @@ typedef int
  * @return #GNUNET_SYSERR if parsing the configuration failed,
  *   otherwise return value from @a cb.
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_CONFIGURATION_parse_and_run (const char *filename,
                                     GNUNET_CONFIGURATION_Callback cb,
                                     void *cb_cls);
@@ -311,7 +312,7 @@ GNUNET_CONFIGURATION_remove_section (struct GNUNET_CONFIGURATION_Handle *cfg,
  * @param number where to store the numeric value of the option
  * @return #GNUNET_OK on success, #GNUNET_SYSERR on error
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_CONFIGURATION_get_value_number (const struct
                                        GNUNET_CONFIGURATION_Handle *cfg,
                                        const char *section,
@@ -328,7 +329,7 @@ GNUNET_CONFIGURATION_get_value_number (const struct
  * @param number where to store the floating value of the option
  * @return #GNUNET_OK on success, #GNUNET_SYSERR on error
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_CONFIGURATION_get_value_float (const struct
                                       GNUNET_CONFIGURATION_Handle *cfg,
                                       const char *section,
@@ -345,7 +346,7 @@ GNUNET_CONFIGURATION_get_value_float (const struct
  * @param time set to the time value stored in the configuration
  * @return #GNUNET_OK on success, #GNUNET_SYSERR on error
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_CONFIGURATION_get_value_time (const struct
                                      GNUNET_CONFIGURATION_Handle *cfg,
                                      const char *section,
@@ -362,7 +363,7 @@ GNUNET_CONFIGURATION_get_value_time (const struct
  * @param size set to the size in bytes as stored in the configuration
  * @return #GNUNET_OK on success, #GNUNET_SYSERR on error
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_CONFIGURATION_get_value_size (const struct
                                      GNUNET_CONFIGURATION_Handle *cfg,
                                      const char *section,
@@ -378,7 +379,7 @@ GNUNET_CONFIGURATION_get_value_size (const struct
  * @param option option of interest
  * @return #GNUNET_YES if so, #GNUNET_NO if not.
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_CONFIGURATION_have_value (const struct GNUNET_CONFIGURATION_Handle *cfg,
                                  const char *section,
                                  const char *option);
@@ -394,12 +395,12 @@ GNUNET_CONFIGURATION_have_value (const struct GNUNET_CONFIGURATION_Handle *cfg,
  *        value, or NULL if option is not specified
  * @return #GNUNET_OK on success, #GNUNET_SYSERR on error
  */
-int
-GNUNET_CONFIGURATION_get_value_string (const struct
-                                       GNUNET_CONFIGURATION_Handle *cfg,
-                                       const char *section,
-                                       const char *option,
-                                       char **value);
+enum GNUNET_GenericReturnValue
+GNUNET_CONFIGURATION_get_value_string (
+  const struct GNUNET_CONFIGURATION_Handle *cfg,
+  const char *section,
+  const char *option,
+  char **value);
 
 
 /**
@@ -413,7 +414,7 @@ GNUNET_CONFIGURATION_get_value_string (const struct
  *        value, or NULL if option is not specified
  * @return #GNUNET_OK on success, #GNUNET_SYSERR on error
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_CONFIGURATION_get_value_filename (const struct
                                          GNUNET_CONFIGURATION_Handle *cfg,
                                          const char *section,
@@ -466,7 +467,7 @@ GNUNET_CONFIGURATION_iterate_section_values (const struct
  *        or NULL if option is not specified and no default given
  * @return #GNUNET_OK on success, #GNUNET_SYSERR on error
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_CONFIGURATION_get_value_choice (const struct
                                        GNUNET_CONFIGURATION_Handle *cfg,
                                        const char *section,
@@ -483,7 +484,7 @@ GNUNET_CONFIGURATION_get_value_choice (const struct
  * @param option option of interest
  * @return #GNUNET_YES, #GNUNET_NO or if option has no valid value, #GNUNET_SYSERR
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_CONFIGURATION_get_value_yesno (const struct
                                       GNUNET_CONFIGURATION_Handle *cfg,
                                       const char *section,
@@ -502,7 +503,7 @@ GNUNET_CONFIGURATION_get_value_yesno (const struct
  *         #GNUNET_NO is the value does not exist
  *         #GNUNET_SYSERR on decoding error
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_CONFIGURATION_get_data (const struct GNUNET_CONFIGURATION_Handle *cfg,
                                const char *section,
                                const char *option,
@@ -527,9 +528,9 @@ GNUNET_CONFIGURATION_get_data (const struct GNUNET_CONFIGURATION_Handle *cfg,
  * @return $-expanded string
  */
 char *
-GNUNET_CONFIGURATION_expand_dollar (const struct
-                                    GNUNET_CONFIGURATION_Handle *cfg,
-                                    char *orig);
+GNUNET_CONFIGURATION_expand_dollar (
+  const struct GNUNET_CONFIGURATION_Handle *cfg,
+  char *orig);
 
 
 /**
@@ -573,7 +574,7 @@ GNUNET_CONFIGURATION_set_value_string (struct GNUNET_CONFIGURATION_Handle *cfg,
  * @return #GNUNET_OK on success,
  *         #GNUNET_SYSERR if the filename is not in the list
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_CONFIGURATION_remove_value_filename (struct
                                             GNUNET_CONFIGURATION_Handle *cfg,
                                             const char *section,
@@ -592,7 +593,7 @@ GNUNET_CONFIGURATION_remove_value_filename (struct
  * @return #GNUNET_OK on success,
  *         #GNUNET_SYSERR if the filename already in the list
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_CONFIGURATION_append_value_filename (struct
                                             GNUNET_CONFIGURATION_Handle *cfg,
                                             const char *section,

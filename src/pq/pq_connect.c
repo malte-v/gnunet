@@ -190,7 +190,7 @@ apply_patch (struct GNUNET_PQ_Context *db,
   if ( (GNUNET_OS_PROCESS_EXITED != type) ||
        (0 != code) )
   {
-    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+    GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
                 "Could not run PSQL on file %s: %d\n",
                 buf,
                 (int) code);
@@ -419,7 +419,7 @@ GNUNET_PQ_reconnect (struct GNUNET_PQ_Context *db)
         GNUNET_PQ_run_sql (db,
                            db->load_path))
     {
-      GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+      GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
                   "Failed to load SQL statements from `%s*'\n",
                   db->load_path);
       PQfinish (db->conn);

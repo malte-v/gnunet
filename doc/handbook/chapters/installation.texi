@@ -327,8 +327,8 @@ Now GNS should work in browsers that are configured to use a SOCKS proxy on
 
 @node Minimal configuration
 @section Minimal configuration
-GNUnet needs a configuration file to start. For the @emph{single-user setup}
-an empty file is sufficient:
+GNUnet needs a configuration file to start (@pxref{Config file format}).
+For the @emph{single-user setup} an empty file is sufficient:
 
 @example
 $ touch ~/.config/gnunet.conf
@@ -2493,4 +2493,3 @@ Furthermore, 'make install' will silently fail to set the DNS binaries to
 be owned by group "gnunetdns" unless that group already exists (!).
 An alternative name for the "gnunetdns" group can be specified using the
 @code{--with-gnunetdns=GRPNAME} configure option.
-

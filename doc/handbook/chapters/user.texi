@@ -2000,9 +2000,11 @@ integrate reclaimID as an Identity Provider with little effort.
 
 @menu
 * Managing Attributes::
+* Managing Credentials::
 * Sharing Attributes with Third Parties::
 * Revoking Authorizations of Third Parties::
 * OpenID Connect::
+* Providing Third Party Attestation::
 @end menu
 
 @node Managing Attributes
@@ -2032,13 +2034,51 @@ $ gnunet-reclaim -e "user" -D
 Currently, and by default, attribute values are interpreted as plain text.
 In the future there might be more value types such as X.509 certificate credentials.
 
+@node Managing Credentials
+@subsection Managing Credentials
+
+Attribute values may reference a claim in a third party attested credential.
+Such a credential can have a variety of formats such as JSON-Web-Tokens or
+X.509 certificates.
+Currently, reclaimID only supports JSON-Web-Token credentials.
+
+To add a credential to your user profile, invoke the @command{gnunet-reclaim} command line tool as follows:
+
+@example
+$ gnunet-reclaim -e "user"\
+                 --credential-name="email"\
+                 --credential-type="JWT"\
+                 --value="ey..."
+@end example
+
+All of your credentials can be listed using the @command{gnunet-reclaim}
+command line tool as well:
+
+@example
+$ gnunet-reclaim -e "user" --credentials
+@end example
+
+In order to add an attribe backed by a credential, specify the attribute
+value as the claim name in the credential to reference along with the credential
+ID:
+
+@example
+$ gnunet-reclaim -e "user"\
+                 --add="email"\
+                 --value="verified_email"\
+                 --credential-id="<CREDENTIAL_ID>"
+@end example
+
+
 @node Sharing Attributes with Third Parties
 @subsection Sharing Attributes with Third Parties
 
 If you want to allow a third party such as a website or friend to access to your attributes (or a subset thereof) execute:
 
 @example
-$ TICKET=$(gnunet-reclaim -e "user" -r "$RP_KEY" -i "attribute1,attribute2,...")
+$ TICKET=$(gnunet-reclaim -e "user"\
+                          -r "$RP_KEY"\
+                          -i "attribute1,attribute2,...")
 @end example
 
 The command will return a "ticket" string.
@@ -2172,6 +2212,30 @@ $ gnunet-config -s reclaim-rest-plugin -o JWT_SECRET
 The authorization code flow optionally supports @uref{https://tools.ietf.org/html/rfc7636, Proof Key for Code Exchange}.
 If PKCE is used, the client does not need to authenticate against the token
 endpoint.
+
+@node Providing Third Party Attestation
+@subsection Providing Third Party Attestation
+
+If you are running an identity provider (IdP) service you may be able to
+support providing credentials for re:claimID users.
+IdPs can issue JWT credentials as long as they support OpenID Connect and
+@uref{https://openid.net/specs/openid-connect-discovery-1_0.html,OpenID Connect Discovery}.
+
+In order to allow users to import attributes through the re:claimID user interface,
+you need to register the following public OAuth2/OIDC client:
+
+@itemize @bullet
+@item client_id: reclaimid
+@item client_secret: none
+@item redirect_uri: https://ui.reclaim (The URI of the re:claimID webextension)
+@item grant_type: authorization_code with PKCE (@uref{https://tools.ietf.org/html/rfc7636, RFC7636})
+@item scopes: all you want to offer.
+@item id_token: JWT
+@end itemize
+
+When your users add an attribute with name "email" which supports webfinger
+discovery they will be prompted with the option to retrieve the OpenID Connect
+ID Token through the user interface.
 
 @node Using the Virtual Public Network
 @section Using the Virtual Public Network

@@ -1464,7 +1464,7 @@ destroy_all_secrets (struct SharedSecret *ss, int withoutKce)
   }
 
   pos = ss_start;
-  while ( NULL != pos)
+  while (NULL != pos)
   {
     ss_to_destroy = pos;
     pos = pos->next;
@@ -1483,6 +1483,7 @@ destroy_all_secrets (struct SharedSecret *ss, int withoutKce)
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Finished destroy all.\n");
 }
+
 
 static void
 add_acks (struct SharedSecret *ss, int acks_to_add)
@@ -1520,6 +1521,7 @@ add_acks (struct SharedSecret *ss, int acks_to_add)
   destroy_all_secrets (ss, GNUNET_YES);
 }
 
+
 static uint32_t
 reset_rekey_kces (struct ReceiverAddress *receiver,
                   uint32_t acks_to_add)
@@ -1550,6 +1552,7 @@ reset_rekey_kces (struct ReceiverAddress *receiver,
   return acks_to_add;
 }
 
+
 static void
 add_acks_rekey (struct ReceiverAddress *receiver)
 {
@@ -1574,6 +1577,7 @@ add_acks_rekey (struct ReceiverAddress *receiver)
                             1,
                             GNUNET_NO);
 }
+
 
 /**
  * We received an ACK for @a pid. Check if it is for
@@ -1736,7 +1740,6 @@ try_handle_plaintext (struct SenderAddress *sender,
 }
 
 
-
 static void
 kce_generate_cb (void *cls)
 {
@@ -1770,6 +1773,7 @@ kce_generate_cb (void *cls)
 
 
 }
+
 
 static void
 kce_generate_rekey_cb (void *cls)
@@ -1870,7 +1874,8 @@ consider_ss_ack (struct SharedSecret *ss, int initial)
       kce_task_finished = GNUNET_NO;
     }
   }
-  else if ((NULL == kce_task) && ((KCN_THRESHOLD > ss->sender->acks_available)||
+  else if ((NULL == kce_task) && ((KCN_THRESHOLD >
+                                   ss->sender->acks_available) ||
                                   (GNUNET_YES == ss->sender->rekeying) ||
                                   (ss->sender->num_secrets > MAX_SECRETS) ))
   {
@@ -1945,12 +1950,14 @@ decrypt_box (const struct UDPBox *box,
   }
   else if (GNUNET_NO == box->rekeying)
     consider_ss_ack (ss, GNUNET_NO);
-  else{
+  else
+  {
     ss->sender->rekeying = GNUNET_YES;
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                 "Got Box: Receiver doing rekeying.\n");
   }
 }
+
 
 /**
  * We received a @a rekey with matching @a kce.  Decrypt and process it.
@@ -2038,6 +2045,7 @@ decrypt_rekey (const struct UDPRekey *rekey,
   consider_ss_ack (ss_rekey, GNUNET_YES);
 
 }
+
 
 /**
  * Closure for #find_sender_by_address()
@@ -2249,15 +2257,16 @@ sock_read (void *cls)
     box = (const struct UDPBox *) buf;
     kce = GNUNET_CONTAINER_multishortmap_get (key_cache, &rekey->kid);
 
-    if ((GNUNET_YES == box->rekeying)||(GNUNET_NO == box->rekeying))
+    if ((GNUNET_YES == box->rekeying) || (GNUNET_NO == box->rekeying))
       GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                   "UDPRekey has rekeying %u\n",
                   box->rekeying);
     else
       do_decrypt = GNUNET_YES;
 
-    if ((GNUNET_YES == do_decrypt)&& (NULL != kce) && (GNUNET_YES ==
-                                                       kce->ss->sender->rekeying))
+    if ((GNUNET_YES == do_decrypt) && (NULL != kce) && (GNUNET_YES ==
+                                                        kce->ss->sender->
+                                                        rekeying))
     {
       GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                   "UDPRekey with kid %s\n",
@@ -2400,7 +2409,8 @@ sock_read (void *cls)
     }
     else if (GNUNET_NO == kx->rekeying)
       consider_ss_ack (ss, GNUNET_YES);
-    else{
+    else
+    {
       ss->sender->rekeying = GNUNET_YES;
       GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                   "Got KX: Receiver doing rekeying.\n");
@@ -2664,6 +2674,7 @@ mq_send_kx (struct GNUNET_MQ_Handle *mq,
   GNUNET_MQ_impl_send_continue (mq);
 }
 
+
 static void
 check_for_rekeying (struct ReceiverAddress *receiver, struct UDPBox *box)
 {
@@ -2687,8 +2698,8 @@ check_for_rekeying (struct ReceiverAddress *receiver, struct UDPBox *box)
                 rt.rel_value_us,
                 receiver->rekey_timeout.abs_value_us);
 
-    if ((0 == rt.rel_value_us)||(receiver->rekey_send_bytes >
-                                 rekey_max_bytes) )
+    if ((0 == rt.rel_value_us) || (receiver->rekey_send_bytes >
+                                   rekey_max_bytes) )
     {
       GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                   "Bytes send %lu greater than %llu max bytes\n.",
@@ -2715,6 +2726,7 @@ check_for_rekeying (struct ReceiverAddress *receiver, struct UDPBox *box)
     }
   }
 }
+
 
 static void
 send_UDPRekey (struct ReceiverAddress *receiver, struct SharedSecret *ss)
@@ -3283,14 +3295,17 @@ do_shutdown (void *cls)
   }
   if (NULL != udp_sock)
   {
-    GNUNET_break (GNUNET_OK == GNUNET_NETWORK_socket_close (udp_sock));
+    GNUNET_break (GNUNET_OK ==
+                  GNUNET_NETWORK_socket_close (udp_sock));
     udp_sock = NULL;
   }
   GNUNET_CONTAINER_multipeermap_iterate (receivers,
                                          &get_receiver_delete_it,
                                          NULL);
   GNUNET_CONTAINER_multipeermap_destroy (receivers);
-  GNUNET_CONTAINER_multipeermap_iterate (senders, &get_sender_delete_it, NULL);
+  GNUNET_CONTAINER_multipeermap_iterate (senders,
+                                         &get_sender_delete_it,
+                                         NULL);
   GNUNET_CONTAINER_multipeermap_destroy (senders);
   GNUNET_CONTAINER_multishortmap_destroy (key_cache);
   GNUNET_CONTAINER_heap_destroy (senders_heap);
@@ -3438,25 +3453,29 @@ ifc_broadcast (void *cls)
       static int no = 0;
       ssize_t sent;
 
-      if (GNUNET_OK != GNUNET_NETWORK_socket_setsockopt (udp_sock,
-                                                         SOL_SOCKET,
-                                                         SO_BROADCAST,
-                                                         &yes,
-                                                         sizeof(int)))
-        GNUNET_log_strerror (GNUNET_ERROR_TYPE_WARNING, "setsockopt");
+      if (GNUNET_OK !=
+          GNUNET_NETWORK_socket_setsockopt (udp_sock,
+                                            SOL_SOCKET,
+                                            SO_BROADCAST,
+                                            &yes,
+                                            sizeof(int)))
+        GNUNET_log_strerror (GNUNET_ERROR_TYPE_WARNING,
+                             "setsockopt");
       sent = GNUNET_NETWORK_socket_sendto (udp_sock,
                                            &bi->bcm,
                                            sizeof(bi->bcm),
                                            bi->ba,
                                            bi->salen);
       if (-1 == sent)
-        GNUNET_log_strerror (GNUNET_ERROR_TYPE_WARNING, "sendto");
+        GNUNET_log_strerror (GNUNET_ERROR_TYPE_WARNING,
+                             "sendto");
       if (GNUNET_OK != GNUNET_NETWORK_socket_setsockopt (udp_sock,
                                                          SOL_SOCKET,
                                                          SO_BROADCAST,
                                                          &no,
                                                          sizeof(int)))
-        GNUNET_log_strerror (GNUNET_ERROR_TYPE_WARNING, "setsockopt");
+        GNUNET_log_strerror (GNUNET_ERROR_TYPE_WARNING,
+                             "setsockopt");
       break;
     }
 
@@ -3538,9 +3557,18 @@ iface_proc (void *cls,
     return GNUNET_OK; /* not using IPv6 */
 
   bi = GNUNET_new (struct BroadcastInterface);
-  bi->sa = GNUNET_memdup (addr, addrlen);
-  if (NULL != broadcast_addr)
-    bi->ba = GNUNET_memdup (broadcast_addr, addrlen);
+  bi->sa = GNUNET_memdup (addr,
+                          addrlen);
+  if ( (NULL != broadcast_addr) &&
+       (addrlen == sizeof (struct sockaddr_in)) )
+  {
+    struct sockaddr_in *ba;
+
+    ba = GNUNET_memdup (broadcast_addr,
+                        addrlen);
+    ba->sin_port = htons (2086); /* always GNUnet port, ignore configuration! */
+    bi->ba = (struct sockaddr *) ba;
+  }
   bi->salen = addrlen;
   bi->found = GNUNET_YES;
   bi->bcm.sender = my_identity;
@@ -3551,7 +3579,7 @@ iface_proc (void *cls,
   GNUNET_CRYPTO_eddsa_sign (my_private_key,
                             &ubs,
                             &bi->bcm.sender_sig);
-  if (NULL != broadcast_addr)
+  if (NULL != bi->ba)
   {
     bi->broadcast_task = GNUNET_SCHEDULER_add_now (&ifc_broadcast, bi);
     GNUNET_CONTAINER_DLL_insert (bi_head, bi_tail, bi);
@@ -3675,7 +3703,9 @@ run (void *cls,
     return;
   }
   udp_sock =
-    GNUNET_NETWORK_socket_create (in->sa_family, SOCK_DGRAM, IPPROTO_UDP);
+    GNUNET_NETWORK_socket_create (in->sa_family,
+                                  SOCK_DGRAM,
+                                  IPPROTO_UDP);
   if (NULL == udp_sock)
   {
     GNUNET_log_strerror (GNUNET_ERROR_TYPE_ERROR, "socket");
@@ -3685,9 +3715,14 @@ run (void *cls,
   }
   if (AF_INET6 == in->sa_family)
     have_v6_socket = GNUNET_YES;
-  if (GNUNET_OK != GNUNET_NETWORK_socket_bind (udp_sock, in, in_len))
+  if (GNUNET_OK !=
+      GNUNET_NETWORK_socket_bind (udp_sock,
+                                  in,
+                                  in_len))
   {
-    GNUNET_log_strerror_file (GNUNET_ERROR_TYPE_ERROR, "bind", bindto);
+    GNUNET_log_strerror_file (GNUNET_ERROR_TYPE_ERROR,
+                              "bind",
+                              bindto);
     GNUNET_NETWORK_socket_close (udp_sock);
     udp_sock = NULL;
     GNUNET_free (in);

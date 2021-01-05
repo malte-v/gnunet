@@ -610,6 +610,10 @@ cleanup_handle (struct RequestHandle *handle)
     GNUNET_free (handle->oidc->response_type);
     GNUNET_free (handle->oidc->scope);
     GNUNET_free (handle->oidc->state);
+    if (NULL != handle->oidc->claims)
+      GNUNET_free (handle->oidc->claims);
+    if (NULL != handle->oidc->code_challenge)
+      GNUNET_free (handle->oidc->code_challenge);
     GNUNET_free (handle->oidc);
   }
   if (NULL!=handle->attr_idtoken_list)
@@ -1193,8 +1197,7 @@ attr_in_claims_request (struct RequestHandle *handle,
     return GNUNET_YES;
 
   /** Try claims parameter if not in scope */
-  if ((NULL != handle->oidc->claims) &&
-      (GNUNET_YES != ret))
+  if (NULL != handle->oidc->claims)
   {
     root = json_loads (handle->oidc->claims, JSON_DECODE_ANY, &error);
     claims_j = json_object_get (root, claims_parameter);
@@ -1708,8 +1711,6 @@ authorize_endpoint (struct GNUNET_REST_RequestHandle *con_handle,
       handle->ego_entry = ego_tail;
     }
   }
-  handle->oidc->scope = get_url_parameter_copy (handle, OIDC_SCOPE_KEY);
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Scope: %s\n", handle->oidc->scope);
   if (NULL == handle->tld)
     GNUNET_CONFIGURATION_iterate_section_values (cfg, "gns", tld_iter, handle);
   if (NULL == handle->tld)
@@ -1872,11 +1873,18 @@ parse_credentials_post_body (struct RequestHandle *handle,
   if (GNUNET_NO == GNUNET_CONTAINER_multihashmap_contains (handle->rest_handle
                                                            ->url_param_map,
                                                            &cache_key))
+  {
+    GNUNET_free (*client_id);
+    *client_id = NULL;
     return GNUNET_SYSERR;
+  }
   pass = GNUNET_CONTAINER_multihashmap_get (handle->rest_handle->url_param_map,
                                             &cache_key);
-  if (NULL == pass)
+  if (NULL == pass) {
+    GNUNET_free (*client_id);
+    *client_id = NULL;
     return GNUNET_SYSERR;
+  }
   *client_secret = strdup (pass);
   return GNUNET_OK;
 }
@@ -1938,12 +1946,16 @@ check_authorization (struct RequestHandle *handle,
       GNUNET_free (expected_pass);
       handle->emsg = GNUNET_strdup (OIDC_ERROR_KEY_INVALID_CLIENT);
       handle->response_code = MHD_HTTP_UNAUTHORIZED;
+      GNUNET_free (received_cpw);
+      GNUNET_free (received_cid);
       return GNUNET_SYSERR;
     }
     GNUNET_free (expected_pass);
   }
   else
   {
+    GNUNET_free (received_cpw);
+    GNUNET_free (received_cid);
     handle->emsg = GNUNET_strdup (OIDC_ERROR_KEY_SERVER_ERROR);
     handle->edesc = GNUNET_strdup ("gnunet configuration failed");
     handle->response_code = MHD_HTTP_INTERNAL_SERVER_ERROR;
@@ -2102,9 +2114,13 @@ token_endpoint (struct GNUNET_REST_RequestHandle *con_handle,
     handle->edesc = GNUNET_strdup ("invalid code");
     handle->response_code = MHD_HTTP_BAD_REQUEST;
     GNUNET_free (code);
+    if (NULL != code_verifier)
+      GNUNET_free (code_verifier);
     GNUNET_SCHEDULER_add_now (&do_error, handle);
     return;
   }
+  if (NULL != code_verifier)
+    GNUNET_free (code_verifier);
 
   // create jwt
   if (GNUNET_OK != GNUNET_CONFIGURATION_get_value_time (cfg,
@@ -2116,6 +2132,8 @@ token_endpoint (struct GNUNET_REST_RequestHandle *con_handle,
     handle->edesc = GNUNET_strdup ("gnunet configuration failed");
     handle->response_code = MHD_HTTP_INTERNAL_SERVER_ERROR;
     GNUNET_free (code);
+    if (NULL != nonce)
+      GNUNET_free (nonce);
     GNUNET_SCHEDULER_add_now (&do_error, handle);
     return;
   }
@@ -2131,6 +2149,8 @@ token_endpoint (struct GNUNET_REST_RequestHandle *con_handle,
     handle->edesc = GNUNET_strdup ("No signing secret configured!");
     handle->response_code = MHD_HTTP_INTERNAL_SERVER_ERROR;
     GNUNET_free (code);
+    if (NULL != nonce)
+      GNUNET_free (nonce);
     GNUNET_SCHEDULER_add_now (&do_error, handle);
     return;
   }
@@ -2141,6 +2161,9 @@ token_endpoint (struct GNUNET_REST_RequestHandle *con_handle,
                                      &expiration_time,
                                      (NULL != nonce) ? nonce : NULL,
                                      jwt_secret);
+  GNUNET_free (jwt_secret);
+  if (NULL != nonce)
+    GNUNET_free (nonce);
   access_token = OIDC_access_token_new (&ticket);
   /* Store mapping from access token to code so we can later
    * fall back on the provided attributes in userinfo
@@ -2243,6 +2266,7 @@ consume_ticket (void *cls,
     atle->presentation = GNUNET_RECLAIM_presentation_new (pres->type,
                                                           pres->data,
                                                           pres->data_size);
+    atle->presentation->credential_id = pres->credential_id;
     GNUNET_CONTAINER_DLL_insert (handle->presentations->list_head,
                                  handle->presentations->list_tail,
                                  atle);
@@ -2292,6 +2316,8 @@ consume_timeout (void*cls)
     handle->edesc = GNUNET_strdup ("invalid code");
     handle->response_code = MHD_HTTP_BAD_REQUEST;
     GNUNET_free (cached_code);
+    if (NULL != nonce)
+      GNUNET_free (nonce);
     GNUNET_SCHEDULER_add_now (&do_error, handle);
     return;
   }
@@ -2336,7 +2362,7 @@ userinfo_endpoint (struct GNUNET_REST_RequestHandle *con_handle,
   const struct EgoEntry *aud_ego;
   const struct GNUNET_IDENTITY_PrivateKey *privkey;
 
-  GNUNET_log (GNUNET_ERROR_TYPE_ERROR, "Getting userinfo\n");
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Getting userinfo\n");
   GNUNET_CRYPTO_hash (OIDC_AUTHORIZATION_HEADER_KEY,
                       strlen (OIDC_AUTHORIZATION_HEADER_KEY),
                       &cache_key);
@@ -2402,7 +2428,7 @@ userinfo_endpoint (struct GNUNET_REST_RequestHandle *con_handle,
     GNUNET_free (authorization);
     return;
   }
-  GNUNET_log (GNUNET_ERROR_TYPE_ERROR, "Consuming ticket\n");
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Consuming ticket\n");
   privkey = GNUNET_IDENTITY_ego_get_private_key (aud_ego->ego);
   handle->attr_userinfo_list =
     GNUNET_new (struct GNUNET_RECLAIM_AttributeList);
@@ -2616,6 +2642,7 @@ oidc_config_endpoint (struct GNUNET_REST_RequestHandle *con_handle,
   oidc_config_str = json_dumps (oidc_config, JSON_INDENT (1));
   resp = GNUNET_REST_create_response (oidc_config_str);
   handle->proc (handle->proc_cls, resp, MHD_HTTP_OK);
+  json_decref (oidc_config);
   GNUNET_free (oidc_config_str);
   cleanup_handle (handle);
 }

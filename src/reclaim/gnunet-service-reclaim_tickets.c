@@ -1542,6 +1542,7 @@ filter_tickets_cb (void *cls,
                                      tih->presentations->list_tail,
                                      ple);
         GNUNET_free (cred);
+        break;
       }
     }
     if (GNUNET_GNSRECORD_TYPE_RECLAIM_PRESENTATION == rd[i].record_type)

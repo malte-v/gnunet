@@ -193,6 +193,7 @@ generate_userinfo_json (const struct GNUNET_IDENTITY_PublicKey *sub_key,
   json_object_set_new (body, "iss", json_string (SERVER_ADDRESS));
   // sub REQUIRED public key identity, not exceed 255 ASCII  length
   json_object_set_new (body, "sub", json_string (subject));
+  GNUNET_free (subject);
   pres_val_str = NULL;
   source_name = NULL;
   int i = 0;
@@ -202,11 +203,15 @@ generate_userinfo_json (const struct GNUNET_IDENTITY_PublicKey *sub_key,
     GNUNET_asprintf (&source_name,
                      "src%d",
                      i);
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "Adding new presentation source #%d\n", i);
     aggr_sources_jwt = json_object ();
     pres_val_str =
       GNUNET_RECLAIM_presentation_value_to_string (ple->presentation->type,
                                                    ple->presentation->data,
                                                    ple->presentation->data_size);
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "Presentation is: %s\n", pres_val_str);
     json_object_set_new (aggr_sources_jwt,
                          GNUNET_RECLAIM_presentation_number_to_typename (
                            ple->presentation->type),
@@ -218,12 +223,15 @@ generate_userinfo_json (const struct GNUNET_IDENTITY_PublicKey *sub_key,
     i++;
   }
 
+  int addr_is_aggregated = GNUNET_NO;
+  int addr_is_normal = GNUNET_NO;
   for (le = attrs->list_head; NULL != le; le = le->next)
   {
-
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "Processing %s for userinfo body\n",
+                le->attribute->name);
     if (GNUNET_YES == GNUNET_RECLAIM_id_is_zero (&le->attribute->credential))
     {
-
       attr_val_str =
         GNUNET_RECLAIM_attribute_value_to_string (le->attribute->type,
                                                   le->attribute->data,
@@ -231,13 +239,22 @@ generate_userinfo_json (const struct GNUNET_IDENTITY_PublicKey *sub_key,
       /**
        * There is this wierd quirk that the individual address claim(s) must be
        * inside a JSON object of the "address" claim.
-       * FIXME: Possibly include formatted claim here
        */
       if (GNUNET_YES == is_claim_in_address_scope (le->attribute->name))
       {
+        if (GNUNET_YES == addr_is_aggregated)
+        {
+          GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
+                      "Address is set as aggregated claim. Skipping self-issued value...\n");
+          GNUNET_free (attr_val_str);
+          continue;
+        }
+        addr_is_normal = GNUNET_YES;
+
         if (NULL == addr_claim)
         {
           addr_claim = json_object ();
+          json_object_set_new (body, "address", addr_claim);
         }
         json_object_set_new (addr_claim, le->attribute->name,
                              json_string (attr_val_str));
@@ -269,17 +286,42 @@ generate_userinfo_json (const struct GNUNET_IDENTITY_PublicKey *sub_key,
                     le->attribute->name);
         continue;
       }
-      // Presentation exists, hence take the respective source str
-      GNUNET_asprintf (&source_name,
-                       "src%d",
-                       j);
-      json_object_set_new (aggr_names, le->attribute->data,
-                           json_string (source_name));
-      GNUNET_free (source_name);
+      /**
+       * There is this wierd quirk that the individual address claim(s) must be
+       * inside a JSON object of the "address" claim.
+       */
+      if (GNUNET_YES == is_claim_in_address_scope (le->attribute->name))
+      {
+        if (GNUNET_YES == addr_is_normal)
+        {
+          GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
+                      "Address is already set as normal claim. Skipping attested value...\n");
+          continue;
+        }
+        addr_is_aggregated = GNUNET_YES;
+        /** This is/can only be set once! **/
+        if (NULL != addr_claim)
+          continue;
+        addr_claim = json_object ();
+        GNUNET_asprintf (&source_name,
+                         "src%d",
+                         j);
+        json_object_set_new (aggr_names, "address",
+                             json_string (source_name));
+        GNUNET_free (source_name);
+      }
+      else
+      {
+        // Presentation exists, hence take the respective source str
+        GNUNET_asprintf (&source_name,
+                         "src%d",
+                         j);
+        json_object_set_new (aggr_names, le->attribute->name,
+                             json_string (source_name));
+        GNUNET_free (source_name);
+      }
     }
   }
-  if (NULL != addr_claim)
-    json_object_set_new (body, "address", addr_claim);
   if (0 != i)
   {
     json_object_set_new (body, "_claim_names", aggr_names);
@@ -498,6 +540,9 @@ OIDC_build_authz_code (const struct GNUNET_IDENTITY_PrivateKey *issuer,
   if (NULL != presentations)
   {
     // Get length
+    // FIXME only add presentations relevant for attribute list!!!
+    // This is important because of the distinction between id_token and
+    // userinfo in OIDC
     pres_list_len =
       GNUNET_RECLAIM_presentation_list_serialize_get_size (presentations);
     params.pres_list_len = htonl (pres_list_len);
@@ -524,8 +569,10 @@ OIDC_build_authz_code (const struct GNUNET_IDENTITY_PrivateKey *issuer,
   }
   if (0 < attr_list_len)
     GNUNET_RECLAIM_attribute_list_serialize (attrs, tmp);
+  tmp += attr_list_len;
   if (0 < pres_list_len)
     GNUNET_RECLAIM_presentation_list_serialize (presentations, tmp);
+  tmp += pres_list_len;
 
   /** END **/
 
@@ -677,7 +724,7 @@ OIDC_parse_authz_code (const struct GNUNET_IDENTITY_PublicKey *audience,
   // cmp code_challenge code_verifier
   code_challenge_len = ntohl (params->code_challenge_len);
   code_challenge = ((char *) &params[1]);
-  if (!(opts & OIDC_VERIFICATION_NO_CODE_VERIFIER))
+  if (! (opts & OIDC_VERIFICATION_NO_CODE_VERIFIER))
   {
     if (GNUNET_OK != check_code_challenge (code_challenge,
                                            code_challenge_len,

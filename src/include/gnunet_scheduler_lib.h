@@ -497,13 +497,11 @@ GNUNET_SCHEDULER_cancel (struct GNUNET_SCHEDULER_Task *task);
  * @param priority priority to use for the task
  */
 void
-GNUNET_SCHEDULER_add_with_reason_and_priority (GNUNET_SCHEDULER_TaskCallback
-                                               task,
-                                               void *task_cls,
-                                               enum GNUNET_SCHEDULER_Reason
-                                               reason,
-                                               enum GNUNET_SCHEDULER_Priority
-                                               priority);
+GNUNET_SCHEDULER_add_with_reason_and_priority (
+  GNUNET_SCHEDULER_TaskCallback task,
+  void *task_cls,
+  enum GNUNET_SCHEDULER_Reason reason,
+  enum GNUNET_SCHEDULER_Priority priority);
 
 
 /**

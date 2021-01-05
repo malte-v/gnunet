@@ -82,7 +82,7 @@ basic_string_to_value (void *cls,
   {
   case GNUNET_RECLAIM_ATTRIBUTE_TYPE_STRING:
     *data = GNUNET_strdup (s);
-    *data_size = strlen (s);
+    *data_size = strlen (s) + 1;
     return GNUNET_OK;
 
   default:

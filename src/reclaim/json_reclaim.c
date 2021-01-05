@@ -95,6 +95,7 @@ parse_attr (void *cls, json_t *root, struct GNUNET_JSON_Specification *spec)
   }
   attr = GNUNET_RECLAIM_attribute_new (name_str, NULL,
                                        type, data, data_size);
+  GNUNET_free (data);
   if ((NULL != cred_str) && (0 != strlen (cred_str)))
   {
     GNUNET_STRINGS_string_to_data (cred_str,
@@ -211,8 +212,7 @@ parse_ticket (void *cls, json_t *root, struct GNUNET_JSON_Specification *spec)
       GNUNET_STRINGS_string_to_data (id_str,
                                      strlen (id_str),
                                      &ticket->identity,
-                                     sizeof(
-                                       struct GNUNET_CRYPTO_EcdsaPublicKey)))
+                                     sizeof(ticket->identity)))
   {
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Identity invalid\n");
     GNUNET_free (ticket);
@@ -223,8 +223,7 @@ parse_ticket (void *cls, json_t *root, struct GNUNET_JSON_Specification *spec)
       GNUNET_STRINGS_string_to_data (aud_str,
                                      strlen (aud_str),
                                      &ticket->audience,
-                                     sizeof(struct
-                                            GNUNET_CRYPTO_EcdsaPublicKey)))
+                                     sizeof(ticket->audience)))
   {
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Audience invalid\n");
     GNUNET_free (ticket);
@@ -336,6 +335,7 @@ parse_credential (void *cls, json_t *root, struct GNUNET_JSON_Specification *spe
     return GNUNET_SYSERR;
   }
   cred = GNUNET_RECLAIM_credential_new (name_str, type, data, data_size);
+  GNUNET_free (data);
   if ((NULL == id_str) || (0 == strlen (id_str)))
     memset (&cred->id, 0, sizeof (cred->id));
   else

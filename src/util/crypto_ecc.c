@@ -166,12 +166,6 @@ decode_private_ecdsa_key (const struct GNUNET_CRYPTO_EcdsaPrivateKey *priv)
 }
 
 
-/**
- * Extract the public key for the given private key.
- *
- * @param priv the private key
- * @param pub where to write the public key
- */
 void
 GNUNET_CRYPTO_ecdsa_key_get_public (
   const struct GNUNET_CRYPTO_EcdsaPrivateKey *priv,
@@ -183,12 +177,6 @@ GNUNET_CRYPTO_ecdsa_key_get_public (
 }
 
 
-/**
- * Extract the public key for the given private key.
- *
- * @param priv the private key
- * @param pub where to write the public key
- */
 void
 GNUNET_CRYPTO_eddsa_key_get_public (
   const struct GNUNET_CRYPTO_EddsaPrivateKey *priv,
@@ -205,12 +193,6 @@ GNUNET_CRYPTO_eddsa_key_get_public (
 }
 
 
-/**
- * Extract the public key for the given private key.
- *
- * @param priv the private key
- * @param pub where to write the public key
- */
 void
 GNUNET_CRYPTO_ecdhe_key_get_public (
   const struct GNUNET_CRYPTO_EcdhePrivateKey *priv,
@@ -222,12 +204,6 @@ GNUNET_CRYPTO_ecdhe_key_get_public (
 }
 
 
-/**
- * Convert a public key to a string.
- *
- * @param pub key to convert
- * @return string representing @a pub
- */
 char *
 GNUNET_CRYPTO_ecdsa_public_key_to_string (
   const struct GNUNET_CRYPTO_EcdsaPublicKey *pub)
@@ -255,12 +231,6 @@ GNUNET_CRYPTO_ecdsa_public_key_to_string (
 }
 
 
-/**
- * Convert a public key to a string.
- *
- * @param pub key to convert
- * @return string representing @a pub
- */
 char *
 GNUNET_CRYPTO_eddsa_public_key_to_string (
   const struct GNUNET_CRYPTO_EddsaPublicKey *pub)
@@ -288,12 +258,6 @@ GNUNET_CRYPTO_eddsa_public_key_to_string (
 }
 
 
-/**
- * Convert a private key to a string.
- *
- * @param priv key to convert
- * @return string representing @a pub
- */
 char *
 GNUNET_CRYPTO_eddsa_private_key_to_string (
   const struct GNUNET_CRYPTO_EddsaPrivateKey *priv)
@@ -321,12 +285,6 @@ GNUNET_CRYPTO_eddsa_private_key_to_string (
 }
 
 
-/**
- * Convert a private key to a string.
- *
- * @param priv key to convert
- * @return string representing @a priv
- */
 char *
 GNUNET_CRYPTO_ecdsa_private_key_to_string (
   const struct GNUNET_CRYPTO_EcdsaPrivateKey *priv)
@@ -354,15 +312,7 @@ GNUNET_CRYPTO_ecdsa_private_key_to_string (
 }
 
 
-/**
- * Convert a string representing a public key to a public key.
- *
- * @param enc encoded public key
- * @param enclen number of bytes in @a enc (without 0-terminator)
- * @param pub where to store the public key
- * @return #GNUNET_OK on success
- */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_CRYPTO_ecdsa_public_key_from_string (
   const char *enc,
   size_t enclen,
@@ -387,15 +337,7 @@ GNUNET_CRYPTO_ecdsa_public_key_from_string (
 }
 
 
-/**
- * Convert a string representing a public key to a public key.
- *
- * @param enc encoded public key
- * @param enclen number of bytes in @a enc (without 0-terminator)
- * @param pub where to store the public key
- * @return #GNUNET_OK on success
- */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_CRYPTO_eddsa_public_key_from_string (
   const char *enc,
   size_t enclen,
@@ -420,15 +362,7 @@ GNUNET_CRYPTO_eddsa_public_key_from_string (
 }
 
 
-/**
- * Convert a string representing a private key to a private key.
- *
- * @param enc encoded public key
- * @param enclen number of bytes in @a enc (without 0-terminator)
- * @param priv where to store the private key
- * @return #GNUNET_OK on success
- */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_CRYPTO_eddsa_private_key_from_string (
   const char *enc,
   size_t enclen,
@@ -460,12 +394,6 @@ GNUNET_CRYPTO_eddsa_private_key_from_string (
 }
 
 
-/**
- * @ingroup crypto
- * Clear memory that was used to store a private key.
- *
- * @param pk location of the key
- */
 void
 GNUNET_CRYPTO_ecdhe_key_clear (struct GNUNET_CRYPTO_EcdhePrivateKey *pk)
 {
@@ -473,12 +401,6 @@ GNUNET_CRYPTO_ecdhe_key_clear (struct GNUNET_CRYPTO_EcdhePrivateKey *pk)
 }
 
 
-/**
- * @ingroup crypto
- * Clear memory that was used to store a private key.
- *
- * @param pk location of the key
- */
 void
 GNUNET_CRYPTO_ecdsa_key_clear (struct GNUNET_CRYPTO_EcdsaPrivateKey *pk)
 {
@@ -486,12 +408,6 @@ GNUNET_CRYPTO_ecdsa_key_clear (struct GNUNET_CRYPTO_EcdsaPrivateKey *pk)
 }
 
 
-/**
- * @ingroup crypto
- * Clear memory that was used to store a private key.
- *
- * @param pk location of the key
- */
 void
 GNUNET_CRYPTO_eddsa_key_clear (struct GNUNET_CRYPTO_EddsaPrivateKey *pk)
 {
@@ -499,11 +415,6 @@ GNUNET_CRYPTO_eddsa_key_clear (struct GNUNET_CRYPTO_EddsaPrivateKey *pk)
 }
 
 
-/**
- * Create a new private key.
- *
- * @param[out] pk fresh private key
- */
 void
 GNUNET_CRYPTO_ecdhe_key_create (struct GNUNET_CRYPTO_EcdhePrivateKey *pk)
 {
@@ -515,11 +426,6 @@ GNUNET_CRYPTO_ecdhe_key_create (struct GNUNET_CRYPTO_EcdhePrivateKey *pk)
 }
 
 
-/**
- * Create a new private key.
- *
- * @param[out] pk private key to initialize
- */
 void
 GNUNET_CRYPTO_ecdsa_key_create (struct GNUNET_CRYPTO_EcdsaPrivateKey *pk)
 {
@@ -535,11 +441,6 @@ GNUNET_CRYPTO_ecdsa_key_create (struct GNUNET_CRYPTO_EcdsaPrivateKey *pk)
 }
 
 
-/**
- * Create a new private key.
- *
- * @param[out] pk set to fresh private key
- */
 void
 GNUNET_CRYPTO_eddsa_key_create (struct GNUNET_CRYPTO_EddsaPrivateKey *pk)
 {
@@ -560,11 +461,6 @@ GNUNET_CRYPTO_eddsa_key_create (struct GNUNET_CRYPTO_EddsaPrivateKey *pk)
 }
 
 
-/**
- * Get the shared private key we use for anonymous users.
- *
- * @return "anonymous" private key
- */
 const struct GNUNET_CRYPTO_EcdsaPrivateKey *
 GNUNET_CRYPTO_ecdsa_key_get_anonymous ()
 {
@@ -629,19 +525,7 @@ data_to_ecdsa_value (const struct GNUNET_CRYPTO_EccSignaturePurpose *purpose)
 }
 
 
-/**
- * Sign a given block.  The @a purpose data is the
- * beginning of the data of which the signature is to be
- * created. The `size` field in @a purpose must correctly
- * indicate the number of bytes of the data structure, including
- * its header.
- *
- * @param priv private key to use for the signing
- * @param purpose what to sign (size, purpose)
- * @param sig where to write the signature
- * @return #GNUNET_SYSERR on error, #GNUNET_OK on success
- */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_CRYPTO_ecdsa_sign_ (
   const struct GNUNET_CRYPTO_EcdsaPrivateKey *priv,
   const struct GNUNET_CRYPTO_EccSignaturePurpose *purpose,
@@ -691,19 +575,7 @@ GNUNET_CRYPTO_ecdsa_sign_ (
 }
 
 
-/**
- * Sign a given block. The @a purpose data is the
- * beginning of the data of which the signature is to be
- * created. The `size` field in @a purpose must correctly
- * indicate the number of bytes of the data structure, including
- * its header.
- *
- * @param priv private key to use for the signing
- * @param purpose what to sign (size, purpose)
- * @param sig where to write the signature
- * @return #GNUNET_SYSERR on error, #GNUNET_OK on success
- */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_CRYPTO_eddsa_sign_ (
   const struct GNUNET_CRYPTO_EddsaPrivateKey *priv,
   const struct GNUNET_CRYPTO_EccSignaturePurpose *purpose,
@@ -727,21 +599,7 @@ GNUNET_CRYPTO_eddsa_sign_ (
 }
 
 
-/**
- * Verify signature.   The @a validate data is the
- * beginning of the data of which the signature is to be
- * verified. The `size` field in @a validate must correctly
- * indicate the number of bytes of the data structure, including
- * its header.  If @a purpose does not match the purpose given
- * in @a validate (the latter
- *
- * @param purpose what is the purpose that the signature should have?
- * @param validate block to validate (size, purpose, data)
- * @param sig signature that is being validated
- * @param pub public key of the signer
- * @returns #GNUNET_OK if ok, #GNUNET_SYSERR if invalid
- */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_CRYPTO_ecdsa_verify_ (
   uint32_t purpose,
   const struct GNUNET_CRYPTO_EccSignaturePurpose *validate,
@@ -800,22 +658,7 @@ GNUNET_CRYPTO_ecdsa_verify_ (
 }
 
 
-/**
- * Verify signature. The @a validate data is the
- * beginning of the data of which the signature is to be
- * verified. The `size` field in @a validate must correctly
- * indicate the number of bytes of the data structure, including
- * its header.  If @a purpose does not match the purpose given
- * in @a validate (the latter must be in big endian), signature
- * verification fails.
- *
- * @param purpose what is the purpose that the signature should have?
- * @param validate block to validate (size, purpose, data)
- * @param sig signature that is being validated
- * @param pub public key of the signer
- * @returns #GNUNET_OK if ok, #GNUNET_SYSERR if invalid
- */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_CRYPTO_eddsa_verify_ (
   uint32_t purpose,
   const struct GNUNET_CRYPTO_EccSignaturePurpose *validate,
@@ -838,15 +681,7 @@ GNUNET_CRYPTO_eddsa_verify_ (
 }
 
 
-/**
- * Derive key material from a public and a private ECDHE key.
- *
- * @param priv private key to use for the ECDH (x)
- * @param pub public key to use for the ECDH (yG)
- * @param key_material where to write the key material (xyG)
- * @return #GNUNET_SYSERR on error, #GNUNET_OK on success
- */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_CRYPTO_ecc_ecdh (const struct GNUNET_CRYPTO_EcdhePrivateKey *priv,
                         const struct GNUNET_CRYPTO_EcdhePublicKey *pub,
                         struct GNUNET_HashCode *key_material)
@@ -895,18 +730,6 @@ derive_h (const struct GNUNET_CRYPTO_EcdsaPublicKey *pub,
 }
 
 
-/**
- * Derive a private key from a given private key and a label.
- * Essentially calculates a private key 'd = H(l,P) * x mod n'
- * where n is the size of the ECC group and P is the public
- * key associated with the private key 'd'.
- *
- * @param priv original private key
- * @param label label to use for key deriviation
- * @param context additional context to use for HKDF of 'h';
- *        typically the name of the subsystem/application
- * @return derived private key
- */
 struct GNUNET_CRYPTO_EcdsaPrivateKey *
 GNUNET_CRYPTO_ecdsa_private_key_derive (
   const struct GNUNET_CRYPTO_EcdsaPrivateKey *priv,
@@ -949,16 +772,6 @@ GNUNET_CRYPTO_ecdsa_private_key_derive (
 }
 
 
-/**
- * Derive a public key from a given public key and a label.
- * Essentially calculates a public key 'V = H(l,P) * P'.
- *
- * @param pub original public key
- * @param label label to use for key derivation
- * @param context additional context to use for HKDF of 'h';
- *        typically the name of the subsystem/application
- * @param result where to write the derived public key
- */
 void
 GNUNET_CRYPTO_ecdsa_public_key_derive (
   const struct GNUNET_CRYPTO_EcdsaPublicKey *pub,
@@ -1010,17 +823,7 @@ GNUNET_CRYPTO_ecdsa_public_key_derive (
 }
 
 
-/**
- * @ingroup crypto
- * Derive key material from a ECDH public key and a private EdDSA key.
- * Dual to #GNUNET_CRRYPTO_ecdh_eddsa.
- *
- * @param priv private key from EdDSA to use for the ECDH (x)
- * @param pub public key to use for the ECDH (yG)
- * @param key_material where to write the key material H(h(x)yG)
- * @return #GNUNET_SYSERR on error, #GNUNET_OK on success
- */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_CRYPTO_eddsa_ecdh (const struct GNUNET_CRYPTO_EddsaPrivateKey *priv,
                           const struct GNUNET_CRYPTO_EcdhePublicKey *pub,
                           struct GNUNET_HashCode *key_material)
@@ -1042,17 +845,7 @@ GNUNET_CRYPTO_eddsa_ecdh (const struct GNUNET_CRYPTO_EddsaPrivateKey *priv,
 }
 
 
-/**
- * @ingroup crypto
- * Derive key material from a ECDH public key and a private ECDSA key.
- * Dual to #GNUNET_CRRYPTO_ecdh_eddsa.
- *
- * @param priv private key from ECDSA to use for the ECDH (x)
- * @param pub public key to use for the ECDH (yG)
- * @param key_material where to write the key material H(h(x)yG)
- * @return #GNUNET_SYSERR on error, #GNUNET_OK on success
- */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_CRYPTO_ecdsa_ecdh (const struct GNUNET_CRYPTO_EcdsaPrivateKey *priv,
                           const struct GNUNET_CRYPTO_EcdhePublicKey *pub,
                           struct GNUNET_HashCode *key_material)
@@ -1070,17 +863,7 @@ GNUNET_CRYPTO_ecdsa_ecdh (const struct GNUNET_CRYPTO_EcdsaPrivateKey *priv,
 }
 
 
-/**
- * @ingroup crypto
- * Derive key material from a EdDSA public key and a private ECDH key.
- * Dual to #GNUNET_CRRYPTO_eddsa_ecdh.
- *
- * @param priv private key to use for the ECDH (y)
- * @param pub public key from EdDSA to use for the ECDH (X=h(x)G)
- * @param key_material where to write the key material H(yX)=H(h(x)yG)
- * @return #GNUNET_SYSERR on error, #GNUNET_OK on success
- */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_CRYPTO_ecdh_eddsa (const struct GNUNET_CRYPTO_EcdhePrivateKey *priv,
                           const struct GNUNET_CRYPTO_EddsaPublicKey *pub,
                           struct GNUNET_HashCode *key_material)
@@ -1097,17 +880,7 @@ GNUNET_CRYPTO_ecdh_eddsa (const struct GNUNET_CRYPTO_EcdhePrivateKey *priv,
 }
 
 
-/**
- * @ingroup crypto
- * Derive key material from a ECDSA public key and a private ECDH key.
- * Dual to #GNUNET_CRYPTO_ecdsa_ecdh.
- *
- * @param priv private key to use for the ECDH (y)
- * @param pub public key from ECDSA to use for the ECDH (X=h(x)G)
- * @param key_material where to write the key material H(yX)=H(h(x)yG)
- * @return #GNUNET_SYSERR on error, #GNUNET_OK on success
- */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_CRYPTO_ecdh_ecdsa (const struct GNUNET_CRYPTO_EcdhePrivateKey *priv,
                           const struct GNUNET_CRYPTO_EcdsaPublicKey *pub,
                           struct GNUNET_HashCode *key_material)

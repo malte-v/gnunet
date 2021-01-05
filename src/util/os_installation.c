@@ -142,7 +142,7 @@ GNUNET_OS_init (const struct GNUNET_OS_ProjectData *pd)
  * @return NULL on error
  */
 static char *
-get_path_from_proc_maps ()
+get_path_from_proc_maps (void)
 {
   char fn[64];
   char line[1024];
@@ -152,15 +152,19 @@ get_path_from_proc_maps ()
 
   if (NULL == current_pd->libname)
     return NULL;
-  GNUNET_snprintf (fn, sizeof(fn), "/proc/%u/maps", getpid ());
+  GNUNET_snprintf (fn,
+                   sizeof(fn),
+                   "/proc/%u/maps",
+                   getpid ());
   if (NULL == (f = fopen (fn, "r")))
     return NULL;
   while (NULL != fgets (line, sizeof(line), f))
   {
     if ((1 == sscanf (line,
-                      "%*x-%*x %*c%*c%*c%*c %*x %*2x:%*2x %*u%*[ ]%1023s",
+                      "%*p-%*p %*c%*c%*c%*c %*x %*x:%*x %*u%*[ ]%1023s",
                       dir)) &&
-        (NULL != (lgu = strstr (dir, current_pd->libname))))
+        (NULL != (lgu = strstr (dir,
+                                current_pd->libname))))
     {
       lgu[0] = '\0';
       fclose (f);
@@ -178,7 +182,7 @@ get_path_from_proc_maps ()
  * @return NULL on error
  */
 static char *
-get_path_from_proc_exe ()
+get_path_from_proc_exe (void)
 {
   char fn[64];
   char lnk[1024];
@@ -232,7 +236,7 @@ typedef int (*MyNSGetExecutablePathProto) (char *buf, size_t *bufsize);
  * @return NULL on error
  */
 static char *
-get_path_from_NSGetExecutablePath ()
+get_path_from_NSGetExecutablePath (void)
 {
   static char zero = '\0';
   char *path;
@@ -270,7 +274,7 @@ get_path_from_NSGetExecutablePath ()
  * @return NULL on error
  */
 static char *
-get_path_from_dyld_image ()
+get_path_from_dyld_image (void)
 {
   const char *path;
   char *p;
@@ -359,7 +363,7 @@ get_path_from_PATH (const char *binary)
  * @return NULL on error (environment variable not set)
  */
 static char *
-get_path_from_GNUNET_PREFIX ()
+get_path_from_GNUNET_PREFIX (void)
 {
   const char *p;
 
@@ -380,7 +384,7 @@ get_path_from_GNUNET_PREFIX ()
  * @return a pointer to the executable path, or NULL on error
  */
 static char *
-os_get_gnunet_path ()
+os_get_gnunet_path (void)
 {
   char *ret;
 
@@ -461,7 +465,6 @@ GNUNET_OS_installation_get_path (enum GNUNET_OS_InstallationPathKind dirkind)
    * guess for the current app */
   if (NULL == execpath)
     execpath = os_get_gnunet_path ();
-
   if (NULL == execpath)
     return NULL;
 

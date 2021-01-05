@@ -824,19 +824,26 @@ check_proof_of_work (const struct GNUNET_CRYPTO_EddsaPublicKey *pkey,
  * Write our current proof to disk.
  */
 static void
-write_proof ()
+write_proof (void)
 {
   char *proof;
 
   if (GNUNET_OK !=
-      GNUNET_CONFIGURATION_get_value_filename (cfg, "NSE", "PROOFFILE", &proof))
+      GNUNET_CONFIGURATION_get_value_filename (cfg,
+                                               "NSE",
+                                               "PROOFFILE",
+                                               &proof))
     return;
-  if (sizeof(my_proof) != GNUNET_DISK_fn_write (proof,
-                                                &my_proof,
-                                                sizeof(my_proof),
-                                                GNUNET_DISK_PERM_USER_READ
-                                                | GNUNET_DISK_PERM_USER_WRITE))
-    GNUNET_log_strerror_file (GNUNET_ERROR_TYPE_WARNING, "write", proof);
+  (void) GNUNET_DISK_directory_remove (proof);
+  if (GNUNET_OK !=
+      GNUNET_DISK_fn_write (proof,
+                            &my_proof,
+                            sizeof(my_proof),
+                            GNUNET_DISK_PERM_USER_READ
+                            | GNUNET_DISK_PERM_USER_WRITE))
+    GNUNET_log_strerror_file (GNUNET_ERROR_TYPE_WARNING,
+                              "write",
+                              proof);
   GNUNET_free (proof);
 }
 

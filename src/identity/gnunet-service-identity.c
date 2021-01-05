@@ -697,8 +697,7 @@ check_create_message (void *cls,
 
 
 /**
- * Handler for CREATE message from client, creates
- * new identity.
+ * Handler for CREATE message from client, creates new identity.
  *
  * @param cls unused
  * @param client who sent the message
@@ -737,8 +736,7 @@ handle_create_message (void *cls,
                                ego);
   send_result_code (client, 0, NULL);
   fn = get_ego_filename (ego);
-  (void) GNUNET_DISK_directory_create_for_file (fn);
-  if (sizeof(struct GNUNET_IDENTITY_PrivateKey) !=
+  if (GNUNET_OK !=
       GNUNET_DISK_fn_write (fn,
                             &crm->private_key,
                             sizeof(struct GNUNET_IDENTITY_PrivateKey),

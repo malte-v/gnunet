@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 # This file is in the public domain.
 # test -z being correct was a false assumption here.
 # I have no executable 'fooble', but this will

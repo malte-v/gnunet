@@ -71,7 +71,7 @@ extern "C" {
 /**
  * Version of the API (for entire gnunetutil.so library).
  */
-#define GNUNET_UTIL_VERSION 0x000A0103
+#define GNUNET_UTIL_VERSION 0x000A0104
 
 
 /**
@@ -345,7 +345,7 @@ struct GNUNET_AsyncScopeSave
  *  #GNUNET_NO to stop iteration with no error,
  *  #GNUNET_SYSERR to abort iteration with error!
  */
-typedef int
+typedef enum GNUNET_GenericReturnValue
 (*GNUNET_FileNameCallback) (void *cls,
                             const char *filename);
 

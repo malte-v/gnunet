@@ -20,10 +20,10 @@ rm -rf `gnunet-config -c test_reclaim.conf -s PATHS -o GNUNET_HOME -f`
 #  (3) PKEY3.user -> PKEY4
 
 
-which timeout &> /dev/null && DO_TIMEOUT="timeout 30"
+which timeout >/dev/null 2&>1 && DO_TIMEOUT="timeout 30"
 
 TEST_ATTR="test"
-gnunet-arm -s -c test_reclaim.conf 2&>1 > /dev/null
+gnunet-arm -s -c test_reclaim.conf >/dev/null 2&>1
 gnunet-identity -C alice -c test_reclaim.conf
 gnunet-identity -C bob -c test_reclaim.conf
 gnunet-identity -C eve -c test_reclaim.conf
@@ -43,7 +43,7 @@ sleep 16
 echo "Consuming $TICKET"
 
 gnunet-reclaim -e eve -C $TICKET_EVE -c test_reclaim.conf
-if test $? == 0
+if test $? = 0
 then
   echo "Eve can still resolve attributes..."
   gnunet-arm -e -c test_reclaim.conf
@@ -51,10 +51,10 @@ then
 fi
 
 gnunet-arm -e -c test_reclaim.conf
-gnunet-arm -s -c test_reclaim.conf 2&>1 > /dev/null
+gnunet-arm -s -c test_reclaim.conf >/dev/null 2&>1
 
 gnunet-reclaim -e bob -C $TICKET_BOB -c test_reclaim.conf
-#gnunet-reclaim -e bob -C $TICKET_BOB -c test_reclaim.conf 2&>1 >/dev/null
+#gnunet-reclaim -e bob -C $TICKET_BOB -c test_reclaim.conf >/dev/null 2&>1
 if test $? != 0
 then
   echo "Bob cannot resolve attributes..."

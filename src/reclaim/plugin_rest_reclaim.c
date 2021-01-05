@@ -974,9 +974,11 @@ attr_collect (void *cls,
   id_str = GNUNET_STRINGS_data_to_string_alloc (&attr->id,
                                                 sizeof(attr->id));
   json_object_set_new (attr_obj, "id", json_string (id_str));
+  GNUNET_free (id_str);
   id_str = GNUNET_STRINGS_data_to_string_alloc (&attr->credential,
                                                 sizeof(attr->credential));
   json_object_set_new (attr_obj, "credential", json_string (id_str));
+  GNUNET_free (id_str);
   json_array_append (handle->resp_object, attr_obj);
   json_decref (attr_obj);
   GNUNET_free (tmp_value);

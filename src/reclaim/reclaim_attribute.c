@@ -102,6 +102,37 @@ init ()
                           NULL);
 }
 
+/**
+ * Dual function to #init().
+ */
+void __attribute__ ((destructor))
+RECLAIM_ATTRIBUTE_fini ()
+{
+  struct Plugin *plugin;
+  const struct GNUNET_OS_ProjectData *pd = GNUNET_OS_project_data_get ();
+  const struct GNUNET_OS_ProjectData *dpd = GNUNET_OS_project_data_default ();
+
+  if (pd != dpd)
+    GNUNET_OS_init (dpd);
+
+  for (unsigned int i = 0; i < num_plugins; i++)
+  {
+    plugin = attr_plugins[i];
+    GNUNET_break (NULL ==
+                  GNUNET_PLUGIN_unload (plugin->library_name,
+                                        plugin->api));
+    GNUNET_free (plugin->library_name);
+    GNUNET_free (plugin);
+  }
+  GNUNET_free (attr_plugins);
+
+  if (pd != dpd)
+    GNUNET_OS_init (pd);
+
+  attr_plugins = NULL;
+}
+
+
 
 /**
  * Convert a type name to the corresponding number

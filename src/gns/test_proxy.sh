@@ -31,10 +31,10 @@ cat local.crt > /tmp/server_cacert.pem
 cat local.key >> /tmp/server_cacert.pem
 
 gnunet-identity -C test -c test_gns_proxy.conf
-gnunet-namestore -p -z test -a -n www -t A -V 127.0.0.1 -e never -c test_gns_proxy.conf
-gnunet-namestore -p -z test -a -n www -t LEHO -V "test.local" -e never -c test_gns_proxy.conf
-gnunet-namestore -p -z test -a -n www -t BOX -V "$OLDBOXVALUE" -e never -c test_gns_proxy.conf
-gnunet-namestore -p -z test -a -n www -t BOX -V "$BOXVALUE" -e never -c test_gns_proxy.conf
+gnunet-namestore -p -z "test" -a -n www -t A -V 127.0.0.1 -e never -c test_gns_proxy.conf
+gnunet-namestore -p -z "test" -a -n www -t LEHO -V "test.local" -e never -c test_gns_proxy.conf
+gnunet-namestore -p -z "test" -a -n www -t BOX -V "$OLDBOXVALUE" -e never -c test_gns_proxy.conf
+gnunet-namestore -p -z "test" -a -n www -t BOX -V "$BOXVALUE" -e never -c test_gns_proxy.conf
 
 gnunet-arm -i gns-proxy -c test_gns_proxy.conf
 

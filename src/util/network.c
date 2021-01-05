@@ -757,21 +757,17 @@ GNUNET_NETWORK_socket_recvfrom (const struct GNUNET_NETWORK_Handle *desc,
                                 struct sockaddr *src_addr,
                                 socklen_t *addrlen)
 {
-  int ret;
-  int flags;
-
-  flags = 0;
+  int flags = 0;
 
 #ifdef MSG_DONTWAIT
   flags |= MSG_DONTWAIT;
 #endif
-  ret = recvfrom (desc->fd,
-                  buffer,
-                  length,
-                  flags,
-                  src_addr,
-                  addrlen);
-  return ret;
+  return recvfrom (desc->fd,
+                   buffer,
+                   length,
+                   flags,
+                   src_addr,
+                   addrlen);
 }
 
 
@@ -853,10 +849,7 @@ GNUNET_NETWORK_socket_sendto (const struct GNUNET_NETWORK_Handle *desc,
                               const struct sockaddr *dest_addr,
                               socklen_t dest_len)
 {
-  int ret;
-  int flags;
-
-  flags = 0;
+  int flags = 0;
 
 #ifdef MSG_DONTWAIT
   flags |= MSG_DONTWAIT;
@@ -864,8 +857,12 @@ GNUNET_NETWORK_socket_sendto (const struct GNUNET_NETWORK_Handle *desc,
 #ifdef MSG_NOSIGNAL
   flags |= MSG_NOSIGNAL;
 #endif
-  ret = sendto (desc->fd, message, length, flags, dest_addr, dest_len);
-  return ret;
+  return sendto (desc->fd,
+                 message,
+                 length,
+                 flags,
+                 dest_addr,
+                 dest_len);
 }
 
 

@@ -92,7 +92,7 @@ struct GetFileSizeData
   int include_sym_links;
 
   /**
-   * GNUNET_YES if mode is file-only (return total == -1 for directories).
+   * #GNUNET_YES if mode is file-only (return total == -1 for directories).
    */
   int single_file_mode;
 };
@@ -142,8 +142,8 @@ translate_unix_perms (enum GNUNET_DISK_AccessPermissions perm)
  * @param fn current filename we are looking at
  * @return #GNUNET_SYSERR on serious errors, otherwise #GNUNET_OK
  */
-static int
-getSizeRec (void *cls, const char *fn)
+static enum GNUNET_GenericReturnValue
+get_size_rec (void *cls, const char *fn)
 {
   struct GetFileSizeData *gfsd = cls;
 
@@ -175,35 +175,23 @@ getSizeRec (void *cls, const char *fn)
   if ((S_ISDIR (buf.st_mode)) && (0 == access (fn, X_OK)) &&
       ((! S_ISLNK (buf.st_mode)) || (gfsd->include_sym_links == GNUNET_YES)))
   {
-    if (GNUNET_SYSERR == GNUNET_DISK_directory_scan (fn, &getSizeRec, gfsd))
+    if (GNUNET_SYSERR == GNUNET_DISK_directory_scan (fn, &get_size_rec, gfsd))
       return GNUNET_SYSERR;
   }
   return GNUNET_OK;
 }
 
 
-/**
- * Checks whether a handle is invalid
- *
- * @param h handle to check
- * @return #GNUNET_YES if invalid, #GNUNET_NO if valid
- */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_DISK_handle_invalid (const struct GNUNET_DISK_FileHandle *h)
 {
   return ((! h) || (h->fd == -1)) ? GNUNET_YES : GNUNET_NO;
 }
 
 
-/**
- * Get the size of an open file.
- *
- * @param fh open file handle
- * @param size where to write size of the file
- * @return #GNUNET_OK on success, #GNUNET_SYSERR on error
- */
-int
-GNUNET_DISK_file_handle_size (struct GNUNET_DISK_FileHandle *fh, off_t *size)
+enum GNUNET_GenericReturnValue
+GNUNET_DISK_file_handle_size (struct GNUNET_DISK_FileHandle *fh,
+                              off_t *size)
 {
   struct stat sbuf;
 
@@ -214,80 +202,42 @@ GNUNET_DISK_file_handle_size (struct GNUNET_DISK_FileHandle *fh, off_t *size)
 }
 
 
-/**
- * Move the read/write pointer in a file
- *
- * @param h handle of an open file
- * @param offset position to move to
- * @param whence specification to which position the offset parameter relates to
- * @return the new position on success, #GNUNET_SYSERR otherwise
- */
 off_t
 GNUNET_DISK_file_seek (const struct GNUNET_DISK_FileHandle *h,
                        off_t offset,
                        enum GNUNET_DISK_Seek whence)
 {
+  static int t[] = { SEEK_SET, SEEK_CUR, SEEK_END };
+
   if (h == NULL)
   {
     errno = EINVAL;
     return GNUNET_SYSERR;
   }
-
-  static int t[] = { SEEK_SET, SEEK_CUR, SEEK_END };
-
   return lseek (h->fd, offset, t[whence]);
 }
 
 
-/**
- * Get the size of the file (or directory) of the given file (in
- * bytes).
- *
- * @param filename name of the file or directory
- * @param size set to the size of the file (or,
- *             in the case of directories, the sum
- *             of all sizes of files in the directory)
- * @param include_symbolic_links should symbolic links be
- *        included?
- * @param single_file_mode #GNUNET_YES to only get size of one file
- *        and return #GNUNET_SYSERR for directories.
- * @return #GNUNET_SYSERR on error, #GNUNET_OK on success
- */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_DISK_file_size (const char *filename,
                        uint64_t *size,
                        int include_symbolic_links,
                        int single_file_mode)
 {
   struct GetFileSizeData gfsd;
-  int ret;
+  enum GNUNET_GenericReturnValue ret;
 
   GNUNET_assert (size != NULL);
   gfsd.total = 0;
   gfsd.include_sym_links = include_symbolic_links;
   gfsd.single_file_mode = single_file_mode;
-  ret = getSizeRec (&gfsd, filename);
+  ret = get_size_rec (&gfsd, filename);
   *size = gfsd.total;
   return ret;
 }
 
 
-/**
- * Obtain some unique identifiers for the given file
- * that can be used to identify it in the local system.
- * This function is used between GNUnet processes to
- * quickly check if two files with the same absolute path
- * are actually identical.  The two processes represent
- * the same peer but may communicate over the network
- * (and the file may be on an NFS volume).  This function
- * may not be supported on all operating systems.
- *
- * @param filename name of the file
- * @param dev set to the device ID
- * @param ino set to the inode ID
- * @return #GNUNET_OK on success
- */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_DISK_file_get_identifiers (const char *filename,
                                   uint64_t *dev,
                                   uint64_t *ino)
@@ -367,14 +317,6 @@ mktemp_name (const char *t)
 }
 
 
-/**
- * Update POSIX permissions mask of a file on disk.  If both argumets
- * are #GNUNET_NO, the file is made world-read-write-executable (777).
- *
- * @param fn name of the file to update
- * @param require_uid_match #GNUNET_YES means 700
- * @param require_gid_match #GNUNET_YES means 770 unless @a require_uid_match is set
- */
 void
 GNUNET_DISK_fix_permissions (const char *fn,
                              int require_uid_match,
@@ -394,17 +336,6 @@ GNUNET_DISK_fix_permissions (const char *fn,
 }
 
 
-/**
- * Create an (empty) temporary directory on disk.  If the given name is not
- * an absolute path, the current 'TMPDIR' will be prepended.  In any case,
- * 6 random characters will be appended to the name to create a unique
- * filename.
- *
- * @param t component to use for the name;
- *        does NOT contain "XXXXXX" or "/tmp/".
- * @return NULL on error, otherwise name of fresh
- *         file on disk in directory for temporary files
- */
 char *
 GNUNET_DISK_mkdtemp (const char *t)
 {
@@ -425,13 +356,6 @@ GNUNET_DISK_mkdtemp (const char *t)
 }
 
 
-/**
- * Move a file out of the way (create a backup) by
- * renaming it to "orig.NUM~" where NUM is the smallest
- * number that is not used yet.
- *
- * @param fil name of the file to back up
- */
 void
 GNUNET_DISK_file_backup (const char *fil)
 {
@@ -453,17 +377,6 @@ GNUNET_DISK_file_backup (const char *fil)
 }
 
 
-/**
- * Create an (empty) temporary file on disk.  If the given name is not
- * an absolute path, the current 'TMPDIR' will be prepended.  In any case,
- * 6 random characters will be appended to the name to create a unique
- * filename.
- *
- * @param t component to use for the name;
- *        does NOT contain "XXXXXX" or "/tmp/".
- * @return NULL on error, otherwise name of fresh
- *         file on disk in directory for temporary files
- */
 char *
 GNUNET_DISK_mktemp (const char *t)
 {
@@ -487,19 +400,7 @@ GNUNET_DISK_mktemp (const char *t)
 }
 
 
-/**
- * Test if @a fil is a directory and listable. Optionally, also check if the
- * directory is readable.  Will not print an error message if the directory does
- * not exist.  Will log errors if #GNUNET_SYSERR is returned (i.e., a file exists
- * with the same name).
- *
- * @param fil filename to test
- * @param is_readable #GNUNET_YES to additionally check if @a fil is readable;
- *          #GNUNET_NO to disable this check
- * @return #GNUNET_YES if yes, #GNUNET_NO if not; #GNUNET_SYSERR if it
- *           does not exist or stat'ed
- */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_DISK_directory_test (const char *fil, int is_readable)
 {
   struct stat filestat;
@@ -532,15 +433,7 @@ GNUNET_DISK_directory_test (const char *fil, int is_readable)
 }
 
 
-/**
- * Check that fil corresponds to a filename
- * (of a file that exists and that is not a directory).
- *
- * @param fil filename to check
- * @return #GNUNET_YES if yes, #GNUNET_NO if not a file, #GNUNET_SYSERR if something
- * else (will print an error message in that case, too).
- */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_DISK_file_test (const char *fil)
 {
   struct stat filestat;
@@ -552,7 +445,7 @@ GNUNET_DISK_file_test (const char *fil)
     return GNUNET_SYSERR;
 
   ret = stat (rdir, &filestat);
-  if (ret != 0)
+  if (0 != ret)
   {
     if (errno != ENOENT)
     {
@@ -579,13 +472,7 @@ GNUNET_DISK_file_test (const char *fil)
 }
 
 
-/**
- * Implementation of "mkdir -p"
- *
- * @param dir the directory to create
- * @return #GNUNET_OK on success, #GNUNET_SYSERR on failure
- */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_DISK_directory_create (const char *dir)
 {
   char *rdir;
@@ -671,22 +558,13 @@ GNUNET_DISK_directory_create (const char *dir)
 }
 
 
-/**
- * Create the directory structure for storing a file.
- *
- * @param filename name of a file in the directory
- * @returns #GNUNET_OK on success,
- *          #GNUNET_SYSERR on failure,
- *          #GNUNET_NO if the directory
- *          exists but is not writeable for us
- */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_DISK_directory_create_for_file (const char *filename)
 {
   char *rdir;
   size_t len;
-  int ret;
   int eno;
+  enum GNUNET_GenericReturnValue res;
 
   rdir = GNUNET_STRINGS_filename_expand (filename);
   if (NULL == rdir)
@@ -699,7 +577,6 @@ GNUNET_DISK_directory_create_for_file (const char *filename)
     GNUNET_free (rdir);
     return GNUNET_OK;
   }
-
   len = strlen (rdir);
   while ((len > 0) && (rdir[len] != DIR_SEPARATOR))
     len--;
@@ -710,24 +587,17 @@ GNUNET_DISK_directory_create_for_file (const char *filename)
     GNUNET_free (rdir);
     rdir = GNUNET_strdup ("/");
   }
-  ret = GNUNET_DISK_directory_create (rdir);
-  if ((GNUNET_OK == ret) && (0 != access (rdir, W_OK)))
-    ret = GNUNET_NO;
+  res = GNUNET_DISK_directory_create (rdir);
+  if ( (GNUNET_OK == res) &&
+       (0 != access (rdir, W_OK)) )
+    res = GNUNET_NO;
   eno = errno;
   GNUNET_free (rdir);
   errno = eno;
-  return ret;
+  return res;
 }
 
 
-/**
- * Read the contents of a binary file into a buffer.
- *
- * @param h handle to an open file
- * @param result the buffer to write the result to
- * @param len the maximum number of bytes to read
- * @return the number of bytes read on success, #GNUNET_SYSERR on failure
- */
 ssize_t
 GNUNET_DISK_file_read (const struct GNUNET_DISK_FileHandle *h,
                        void *result,
@@ -738,35 +608,23 @@ GNUNET_DISK_file_read (const struct GNUNET_DISK_FileHandle *h,
     errno = EINVAL;
     return GNUNET_SYSERR;
   }
-
   return read (h->fd, result, len);
 }
 
 
-/**
- * Read the contents of a binary file into a buffer.
- * Guarantees not to block (returns GNUNET_SYSERR and sets errno to EAGAIN
- * when no data can be read).
- *
- * @param h handle to an open file
- * @param result the buffer to write the result to
- * @param len the maximum number of bytes to read
- * @return the number of bytes read on success, #GNUNET_SYSERR on failure
- */
 ssize_t
 GNUNET_DISK_file_read_non_blocking (const struct GNUNET_DISK_FileHandle *h,
                                     void *result,
                                     size_t len)
 {
+  int flags;
+  ssize_t ret;
+
   if (NULL == h)
   {
     errno = EINVAL;
     return GNUNET_SYSERR;
   }
-
-  int flags;
-  ssize_t ret;
-
   /* set to non-blocking, read, then set back */
   flags = fcntl (h->fd, F_GETFL);
   if (0 == (flags & O_NONBLOCK))
@@ -782,22 +640,18 @@ GNUNET_DISK_file_read_non_blocking (const struct GNUNET_DISK_FileHandle *h,
 }
 
 
-/**
- * Read the contents of a binary file into a buffer.
- *
- * @param fn file name
- * @param result the buffer to write the result to
- * @param len the maximum number of bytes to read
- * @return number of bytes read, #GNUNET_SYSERR on failure
- */
 ssize_t
-GNUNET_DISK_fn_read (const char *fn, void *result, size_t len)
+GNUNET_DISK_fn_read (const char *fn,
+                     void *result,
+                     size_t len)
 {
   struct GNUNET_DISK_FileHandle *fh;
   ssize_t ret;
   int eno;
 
-  fh = GNUNET_DISK_file_open (fn, GNUNET_DISK_OPEN_READ, GNUNET_DISK_PERM_NONE);
+  fh = GNUNET_DISK_file_open (fn,
+                              GNUNET_DISK_OPEN_READ,
+                              GNUNET_DISK_PERM_NONE);
   if (NULL == fh)
     return GNUNET_SYSERR;
   ret = GNUNET_DISK_file_read (fh, result, len);
@@ -808,14 +662,6 @@ GNUNET_DISK_fn_read (const char *fn, void *result, size_t len)
 }
 
 
-/**
- * Write a buffer to a file.
- *
- * @param h handle to open file
- * @param buffer the data to write
- * @param n number of bytes to write
- * @return number of bytes written on success, #GNUNET_SYSERR on error
- */
 ssize_t
 GNUNET_DISK_file_write (const struct GNUNET_DISK_FileHandle *h,
                         const void *buffer,
@@ -831,29 +677,19 @@ GNUNET_DISK_file_write (const struct GNUNET_DISK_FileHandle *h,
 }
 
 
-/**
- * Write a buffer to a file, blocking, if necessary.
- *
- * @param h handle to open file
- * @param buffer the data to write
- * @param n number of bytes to write
- * @return number of bytes written on success, #GNUNET_SYSERR on error
- */
 ssize_t
 GNUNET_DISK_file_write_blocking (const struct GNUNET_DISK_FileHandle *h,
                                  const void *buffer,
                                  size_t n)
 {
+  int flags;
+  ssize_t ret;
+
   if (NULL == h)
   {
     errno = EINVAL;
     return GNUNET_SYSERR;
   }
-
-
-  int flags;
-  ssize_t ret;
-
   /* set to blocking, write, then set back */
   flags = fcntl (h->fd, F_GETFL);
   if (0 != (flags & O_NONBLOCK))
@@ -865,48 +701,95 @@ GNUNET_DISK_file_write_blocking (const struct GNUNET_DISK_FileHandle *h,
 }
 
 
-/**
- * Write a buffer to a file.  If the file is longer than the
- * number of bytes that will be written, it will be truncated.
- *
- * @param fn file name
- * @param buffer the data to write
- * @param n number of bytes to write
- * @param mode file permissions
- * @return number of bytes written on success, #GNUNET_SYSERR on error
- */
-ssize_t
+enum GNUNET_GenericReturnValue
 GNUNET_DISK_fn_write (const char *fn,
-                      const void *buffer,
-                      size_t n,
+                      const void *buf,
+                      size_t buf_size,
                       enum GNUNET_DISK_AccessPermissions mode)
 {
-  struct GNUNET_DISK_FileHandle *fh;
-  ssize_t ret;
+  char *tmpl;
+  int fd;
 
-  fh =
-    GNUNET_DISK_file_open (fn,
-                           GNUNET_DISK_OPEN_WRITE | GNUNET_DISK_OPEN_TRUNCATE
-                           | GNUNET_DISK_OPEN_CREATE,
-                           mode);
-  if (! fh)
+  if (GNUNET_OK !=
+      GNUNET_DISK_directory_create_for_file (fn))
+  {
+    GNUNET_log_strerror_file (GNUNET_ERROR_TYPE_WARNING,
+                              "mkstemp",
+                              fn);
     return GNUNET_SYSERR;
-  ret = GNUNET_DISK_file_write (fh, buffer, n);
-  GNUNET_assert (GNUNET_OK == GNUNET_DISK_file_close (fh));
-  return ret;
+  }
+  {
+    char *dname;
+
+    dname = GNUNET_strdup (fn);
+    GNUNET_asprintf (&tmpl,
+                     "%s/XXXXXX",
+                     dirname (dname));
+    GNUNET_free (dname);
+  }
+  fd = mkstemp (tmpl);
+  if (-1 == fd)
+  {
+    GNUNET_log_strerror_file (GNUNET_ERROR_TYPE_WARNING,
+                              "mkstemp",
+                              tmpl);
+    GNUNET_free (tmpl);
+    return GNUNET_SYSERR;
+  }
+
+  if (0 != fchmod (fd,
+                   translate_unix_perms (mode)))
+  {
+    GNUNET_log_strerror_file (GNUNET_ERROR_TYPE_WARNING,
+                              "chmod",
+                              tmpl);
+    GNUNET_assert (0 == close (fd));
+    if (0 != unlink (tmpl))
+      GNUNET_log_strerror_file (GNUNET_ERROR_TYPE_ERROR,
+                                "unlink",
+                                tmpl);
+    GNUNET_free (tmpl);
+    return GNUNET_SYSERR;
+  }
+  if (buf_size !=
+      write (fd,
+             buf,
+             buf_size))
+  {
+    GNUNET_log_strerror_file (GNUNET_ERROR_TYPE_WARNING,
+                              "write",
+                              tmpl);
+    GNUNET_assert (0 == close (fd));
+    if (0 != unlink (tmpl))
+      GNUNET_log_strerror_file (GNUNET_ERROR_TYPE_ERROR,
+                                "unlink",
+                                tmpl);
+    GNUNET_free (tmpl);
+    return GNUNET_SYSERR;
+  }
+  GNUNET_assert (0 == close (fd));
+
+  if (0 != link (tmpl,
+                 fn))
+  {
+    if (0 != unlink (tmpl))
+      GNUNET_log_strerror_file (GNUNET_ERROR_TYPE_ERROR,
+                                "unlink",
+                                tmpl);
+    GNUNET_free (tmpl);
+    return GNUNET_NO;
+  }
+  if (0 != unlink (tmpl))
+    GNUNET_log_strerror_file (GNUNET_ERROR_TYPE_ERROR,
+                              "unlink",
+                              tmpl);
+  GNUNET_free (tmpl);
+  return GNUNET_OK;
+
+
 }
 
 
-/**
- * Scan a directory for files.
- *
- * @param dir_name the name of the directory
- * @param callback the method to call for each file,
- *        can be NULL, in that case, we only count
- * @param callback_cls closure for @a callback
- * @return the number of files found, #GNUNET_SYSERR on error or
- *         ieration aborted by callback returning #GNUNET_SYSERR
- */
 int
 GNUNET_DISK_directory_scan (const char *dir_name,
                             GNUNET_FileNameCallback callback,
@@ -916,7 +799,7 @@ GNUNET_DISK_directory_scan (const char *dir_name,
   struct dirent *finfo;
   struct stat istat;
   int count = 0;
-  int ret;
+  enum GNUNET_GenericReturnValue ret;
   char *name;
   char *dname;
   unsigned int name_len;
@@ -1008,8 +891,9 @@ GNUNET_DISK_directory_scan (const char *dir_name,
  * @param fn directory to remove
  * @return #GNUNET_OK
  */
-static int
-remove_helper (void *unused, const char *fn)
+static enum GNUNET_GenericReturnValue
+remove_helper (void *unused,
+               const char *fn)
 {
   (void) unused;
   (void) GNUNET_DISK_directory_remove (fn);
@@ -1017,14 +901,7 @@ remove_helper (void *unused, const char *fn)
 }
 
 
-/**
- * Remove all files in a directory (rm -r). Call with
- * caution.
- *
- * @param filename the file to remove
- * @return #GNUNET_OK on success, #GNUNET_SYSERR on error
- */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_DISK_directory_remove (const char *filename)
 {
   struct stat istat;
@@ -1036,14 +913,17 @@ GNUNET_DISK_directory_remove (const char *filename)
   }
   if (0 != lstat (filename, &istat))
     return GNUNET_NO; /* file may not exist... */
-  (void) chmod (filename, S_IWUSR | S_IRUSR | S_IXUSR);
+  (void) chmod (filename,
+                S_IWUSR | S_IRUSR | S_IXUSR);
   if (0 == unlink (filename))
     return GNUNET_OK;
-  if ((errno != EISDIR) &&
-      /* EISDIR is not sufficient in all cases, e.g.
-      * sticky /tmp directory may result in EPERM on BSD.
-      * So we also explicitly check "isDirectory" */
-      (GNUNET_YES != GNUNET_DISK_directory_test (filename, GNUNET_YES)))
+  if ( (errno != EISDIR) &&
+       /* EISDIR is not sufficient in all cases, e.g.
+        * sticky /tmp directory may result in EPERM on BSD.
+        * So we also explicitly check "isDirectory" */
+       (GNUNET_YES !=
+        GNUNET_DISK_directory_test (filename,
+                                    GNUNET_YES)) )
   {
     LOG_STRERROR_FILE (GNUNET_ERROR_TYPE_WARNING, "rmdir", filename);
     return GNUNET_SYSERR;
@@ -1060,15 +940,9 @@ GNUNET_DISK_directory_remove (const char *filename)
 }
 
 
-/**
- * Copy a file.
- *
- * @param src file to copy
- * @param dst destination file name
- * @return #GNUNET_OK on success, #GNUNET_SYSERR on error
- */
-int
-GNUNET_DISK_file_copy (const char *src, const char *dst)
+enum GNUNET_GenericReturnValue
+GNUNET_DISK_file_copy (const char *src,
+                       const char *dst)
 {
   char *buf;
   uint64_t pos;
@@ -1131,10 +1005,6 @@ FAIL:
 }
 
 
-/**
- * @brief Removes special characters as ':' from a filename.
- * @param fn the filename to canonicalize
- */
 void
 GNUNET_DISK_filename_canonicalize (char *fn)
 {
@@ -1157,15 +1027,9 @@ GNUNET_DISK_filename_canonicalize (char *fn)
 }
 
 
-/**
- * @brief Change owner of a file
- *
- * @param filename name of file to change the owner of
- * @param user name of the new owner
- * @return #GNUNET_OK on success, #GNUNET_SYSERR on failure
- */
-int
-GNUNET_DISK_file_change_owner (const char *filename, const char *user)
+enum GNUNET_GenericReturnValue
+GNUNET_DISK_file_change_owner (const char *filename,
+                               const char *user)
 {
   struct passwd *pws;
 
@@ -1187,18 +1051,6 @@ GNUNET_DISK_file_change_owner (const char *filename, const char *user)
 }
 
 
-/**
- * Open a file.  Note that the access permissions will only be
- * used if a new file is created and if the underlying operating
- * system supports the given permissions.
- *
- * @param fn file name to be opened
- * @param flags opening flags, a combination of GNUNET_DISK_OPEN_xxx bit flags
- * @param perm permissions for the newly created file, use
- *             #GNUNET_DISK_PERM_NONE if a file could not be created by this
- *             call (because of flags)
- * @return IO handle on success, NULL on error
- */
 struct GNUNET_DISK_FileHandle *
 GNUNET_DISK_file_open (const char *fn,
                        enum GNUNET_DISK_OpenFlags flags,
@@ -1270,42 +1122,28 @@ GNUNET_DISK_file_open (const char *fn,
 }
 
 
-/**
- * Close an open file.
- *
- * @param h file handle
- * @return #GNUNET_OK on success, #GNUNET_SYSERR otherwise
- */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_DISK_file_close (struct GNUNET_DISK_FileHandle *h)
 {
-  int ret;
+  enum GNUNET_GenericReturnValue ret;
 
-  if (h == NULL)
+  if (NULL == h)
   {
     errno = EINVAL;
     return GNUNET_SYSERR;
   }
 
   ret = GNUNET_OK;
-
-  if (close (h->fd) != 0)
+  if (0 != close (h->fd))
   {
     LOG_STRERROR (GNUNET_ERROR_TYPE_WARNING, "close");
     ret = GNUNET_SYSERR;
   }
-
   GNUNET_free (h);
   return ret;
 }
 
 
-/**
- * Get a handle from a native integer FD.
- *
- * @param fno native integer file descriptor
- * @return file handle corresponding to the descriptor, NULL on error
- */
 struct GNUNET_DISK_FileHandle *
 GNUNET_DISK_get_handle_from_int_fd (int fno)
 {
@@ -1322,12 +1160,6 @@ GNUNET_DISK_get_handle_from_int_fd (int fno)
 }
 
 
-/**
- * Get a handle from a native streaming FD.
- *
- * @param fd native streaming file descriptor
- * @return file handle corresponding to the descriptor
- */
 struct GNUNET_DISK_FileHandle *
 GNUNET_DISK_get_handle_from_native (FILE *fd)
 {
@@ -1336,7 +1168,6 @@ GNUNET_DISK_get_handle_from_native (FILE *fd)
   fno = fileno (fd);
   if (-1 == fno)
     return NULL;
-
   return GNUNET_DISK_get_handle_from_int_fd (fno);
 }
 
@@ -1362,15 +1193,7 @@ struct GNUNET_DISK_MapHandle
 #define MAP_FAILED ((void *) -1)
 #endif
 
-/**
- * Map a file into memory
- *
- * @param h open file handle
- * @param m handle to the new mapping
- * @param access access specification, GNUNET_DISK_MAP_TYPE_xxx
- * @param len size of the mapping
- * @return pointer to the mapped memory region, NULL on failure
- */
+
 void *
 GNUNET_DISK_file_map (const struct GNUNET_DISK_FileHandle *h,
                       struct GNUNET_DISK_MapHandle **m,
@@ -1402,16 +1225,10 @@ GNUNET_DISK_file_map (const struct GNUNET_DISK_FileHandle *h,
 }
 
 
-/**
- * Unmap a file
- *
- * @param h mapping handle
- * @return #GNUNET_OK on success, #GNUNET_SYSERR otherwise
- */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_DISK_file_unmap (struct GNUNET_DISK_MapHandle *h)
 {
-  int ret;
+  enum GNUNET_GenericReturnValue ret;
 
   if (NULL == h)
   {
@@ -1424,12 +1241,7 @@ GNUNET_DISK_file_unmap (struct GNUNET_DISK_MapHandle *h)
 }
 
 
-/**
- * Write file changes to disk
- * @param h handle to an open file
- * @return #GNUNET_OK on success, #GNUNET_SYSERR otherwise
- */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_DISK_file_sync (const struct GNUNET_DISK_FileHandle *h)
 {
   if (h == NULL)
@@ -1446,12 +1258,6 @@ GNUNET_DISK_file_sync (const struct GNUNET_DISK_FileHandle *h)
 }
 
 
-/**
- * Creates an interprocess channel
- *
- * @param pf how to configure the pipe
- * @return handle to the new pipe, NULL on error
- */
 struct GNUNET_DISK_PipeHandle *
 GNUNET_DISK_pipe (enum GNUNET_DISK_PipeFlags pf)
 {
@@ -1469,15 +1275,6 @@ GNUNET_DISK_pipe (enum GNUNET_DISK_PipeFlags pf)
 }
 
 
-/**
- * Creates a pipe object from a couple of file descriptors.
- * Useful for wrapping existing pipe FDs.
- *
- * @param pf how to configure the pipe
- * @param fd an array of two fd values. One of them may be -1 for read-only or write-only pipes
- *
- * @return handle to the new pipe, NULL on error
- */
 struct GNUNET_DISK_PipeHandle *
 GNUNET_DISK_pipe_from_fd (enum GNUNET_DISK_PipeFlags pf,
                           int fd[2])
@@ -1551,18 +1348,11 @@ GNUNET_DISK_pipe_from_fd (enum GNUNET_DISK_PipeFlags pf,
 }
 
 
-/**
- * Closes an interprocess channel
- *
- * @param p pipe to close
- * @param end which end of the pipe to close
- * @return #GNUNET_OK on success, #GNUNET_SYSERR otherwise
- */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_DISK_pipe_close_end (struct GNUNET_DISK_PipeHandle *p,
                             enum GNUNET_DISK_PipeEnd end)
 {
-  int ret = GNUNET_OK;
+  enum GNUNET_GenericReturnValue ret = GNUNET_OK;
 
   if (end == GNUNET_DISK_PIPE_END_READ)
   {
@@ -1580,23 +1370,10 @@ GNUNET_DISK_pipe_close_end (struct GNUNET_DISK_PipeHandle *p,
       p->fd[1] = NULL;
     }
   }
-
   return ret;
 }
 
 
-/**
- * Detaches one of the ends from the pipe.
- * Detached end is a fully-functional FileHandle, it will
- * not be affected by anything you do with the pipe afterwards.
- * Each end of a pipe can only be detched from it once (i.e.
- * it is not duplicated).
- *
- * @param p pipe to detach an end from
- * @param end which end of the pipe to detach
- * @return Detached end on success, NULL on failure
- * (or if that end is not present or is closed).
- */
 struct GNUNET_DISK_FileHandle *
 GNUNET_DISK_pipe_detach_end (struct GNUNET_DISK_PipeHandle *p,
                              enum GNUNET_DISK_PipeEnd end)
@@ -1624,13 +1401,7 @@ GNUNET_DISK_pipe_detach_end (struct GNUNET_DISK_PipeHandle *p,
 }
 
 
-/**
- * Closes an interprocess channel
- *
- * @param p pipe to close
- * @return #GNUNET_OK on success, #GNUNET_SYSERR otherwise
- */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_DISK_pipe_close (struct GNUNET_DISK_PipeHandle *p)
 {
   int ret = GNUNET_OK;
@@ -1661,13 +1432,6 @@ GNUNET_DISK_pipe_close (struct GNUNET_DISK_PipeHandle *p)
 }
 
 
-/**
- * Get the handle to a particular pipe end
- *
- * @param p pipe
- * @param n end to access
- * @return handle for the respective end
- */
 const struct GNUNET_DISK_FileHandle *
 GNUNET_DISK_pipe_handle (const struct GNUNET_DISK_PipeHandle *p,
                          enum GNUNET_DISK_PipeEnd n)
@@ -1685,26 +1449,16 @@ GNUNET_DISK_pipe_handle (const struct GNUNET_DISK_PipeHandle *p,
 }
 
 
-/**
- * Retrieve OS file handle
- * @internal
- * @param fh GNUnet file descriptor
- * @param dst destination buffer
- * @param dst_len length of dst
- * @return #GNUNET_OK on success, #GNUNET_SYSERR otherwise
- */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_DISK_internal_file_handle_ (const struct GNUNET_DISK_FileHandle *fh,
                                    void *dst,
                                    size_t dst_len)
 {
   if (NULL == fh)
     return GNUNET_SYSERR;
-
   if (dst_len < sizeof(int))
     return GNUNET_SYSERR;
   *((int *) dst) = fh->fd;
-
   return GNUNET_OK;
 }
 
@@ -1716,8 +1470,9 @@ GNUNET_DISK_internal_file_handle_ (const struct GNUNET_DISK_FileHandle *fh,
  * @param cfg our configuration
  * @return #GNUNET_OK on success
  */
-static int
-purge_cfg_dir (void *cls, const struct GNUNET_CONFIGURATION_Handle *cfg)
+static enum GNUNET_GenericReturnValue
+purge_cfg_dir (void *cls,
+               const struct GNUNET_CONFIGURATION_Handle *cfg)
 {
   const char *option = cls;
   char *tmpname;
@@ -1739,15 +1494,9 @@ purge_cfg_dir (void *cls, const struct GNUNET_CONFIGURATION_Handle *cfg)
 }
 
 
-/**
- * Remove the directory given under @a option in
- * section [PATHS] in configuration under @a cfg_filename
- *
- * @param cfg_filename configuration file to parse
- * @param option option with the dir name to purge
- */
 void
-GNUNET_DISK_purge_cfg_dir (const char *cfg_filename, const char *option)
+GNUNET_DISK_purge_cfg_dir (const char *cfg_filename,
+                           const char *option)
 {
   GNUNET_break (GNUNET_OK ==
                 GNUNET_CONFIGURATION_parse_and_run (cfg_filename,
