@@ -61,6 +61,8 @@ static char *cfg_peers_name[NUM_PEERS];
 
 static int ret;
 
+static int bidirect = GNUNET_NO;
+
 static size_t long_message_size;
 
 static struct GNUNET_TIME_Absolute start_short;
@@ -70,6 +72,8 @@ static struct GNUNET_TIME_Absolute start_long;
 static struct GNUNET_TIME_Absolute timeout;
 
 static struct GNUNET_TRANSPORT_TESTING_TransportCommunicatorHandle *my_tc;
+
+static char *communicator_name;
 
 static char *test_name;
 
@@ -343,11 +347,8 @@ long_test_cb (void *cls)
   payload = make_payload (long_message_size);
   num_sent_long++;
   GNUNET_TRANSPORT_TESTING_transport_communicator_send (my_tc,
-                                                        ((BURST_PACKETS
-                                                          * 0.91 ==
-                                                          num_received_long) ||
-                                                         (BURST_PACKETS ==
-                                                          num_sent_long))
+                                                        (BURST_PACKETS ==
+                                                         num_sent_long)
                                                         ? NULL
                                                         : &long_test,
                                                         NULL,
@@ -385,11 +386,8 @@ short_test_cb (void *cls)
   payload = make_payload (SHORT_MESSAGE_SIZE);
   num_sent_short++;
   GNUNET_TRANSPORT_TESTING_transport_communicator_send (my_tc,
-                                                        ((BURST_PACKETS
-                                                          * 0.91 ==
-                                                          num_received_short) ||
-                                                         (BURST_PACKETS ==
-                                                          num_sent_short))
+                                                        (BURST_PACKETS ==
+                                                         num_sent_short)
                                                         ? NULL
                                                         : &short_test,
                                                         NULL,
@@ -625,7 +623,8 @@ incoming_message_cb (void *cls,
       num_received_short++;
       duration = GNUNET_TIME_absolute_get_duration (start_short);
       update_avg_latency (payload);
-      if (num_received_short == BURST_PACKETS * 0.91)
+      if ((num_sent_short == BURST_PACKETS) && (num_received_short >
+                                                BURST_PACKETS * 0.91) )
       {
         LOG (GNUNET_ERROR_TYPE_MESSAGE,
              "Short size packet test done.\n");
@@ -647,6 +646,9 @@ incoming_message_cb (void *cls,
         // num_sent_short = 0;
         avg_latency = 0;
         // num_received = 0;
+        /*LOG (GNUNET_ERROR_TYPE_DEBUG,
+             "Finished\n");
+             GNUNET_SCHEDULER_shutdown ();*/
         long_test (NULL);
       }
       break;
@@ -662,7 +664,8 @@ incoming_message_cb (void *cls,
       num_received_long++;
       duration = GNUNET_TIME_absolute_get_duration (start_long);
       update_avg_latency (payload);
-      if (num_received_long == BURST_PACKETS * 0.91)
+      if ((num_sent_long == BURST_PACKETS) && (num_received_long > BURST_PACKETS
+                                               * 0.91) )
       {
         LOG (GNUNET_ERROR_TYPE_MESSAGE,
              "Long size packet test done.\n");
@@ -723,8 +726,11 @@ incoming_message_cb (void *cls,
           short_test (NULL);
           break;
         }
-        if ((0 == strcmp ("rekey", test_name))||(0 == strcmp ("backchannel",
-                                                              test_name)) )
+        if ((0 == strcmp ("udp", communicator_name)) && ((0 == strcmp ("rekey",
+                                                                       test_name))
+                                                         ||(0 == strcmp (
+                                                              "backchannel",
+                                                              test_name))) )
         {
           if (NULL != box_stats)
             GNUNET_STATISTICS_get_cancel (box_stats);
@@ -810,11 +816,18 @@ run (void *cls)
       &handle_backchannel_cb,
       cfg_peers_name[i]);   /* cls */
 
-    if ((0 == strcmp ("rekey", test_name))||(0 == strcmp ("backchannel",
-                                                          test_name)) )
+    if ((0 == strcmp ("udp", communicator_name)) && ((0 == strcmp ("rekey",
+                                                                   test_name))||
+                                                     (0 == strcmp (
+                                                        "backchannel",
+                                                        test_name))) )
     {
       stats[i] = GNUNET_STATISTICS_create ("C-UDP",
                                            cfg_peers[i]);
+    }
+    else if ((0 == strcmp ("bidirect", test_name)))
+    {
+      bidirect = GNUNET_YES;
     }
   }
   GNUNET_SCHEDULER_add_shutdown (&do_shutdown,
@@ -827,7 +840,6 @@ main (int argc,
       char *const *argv)
 {
   struct GNUNET_CRYPTO_EddsaPrivateKey *private_key;
-  char *communicator_name;
   char *test_mode;
   char *cfg_peer;
 

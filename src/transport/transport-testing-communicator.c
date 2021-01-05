@@ -317,6 +317,7 @@ handle_add_address (void *cls,
     client->tc;
   uint16_t size;
   size = ntohs (msg->header.size) - sizeof(*msg);
+  LOG (GNUNET_ERROR_TYPE_DEBUG, "received add address cb %u\n", size);
   if (0 == size)
     return; /* receive-only communicator */
   LOG (GNUNET_ERROR_TYPE_DEBUG, "received add address cb %u\n", size);

@@ -541,6 +541,11 @@ struct Queue
   enum GNUNET_NetworkType nt;
 
   /**
+   * The connection status of this queue.
+   */
+  enum GNUNET_TRANSPORT_ConnectionStatus cs;
+
+  /**
    * Is MQ awaiting a #GNUNET_MQ_impl_send_continue() call?
    */
   int mq_awaits_continue;
@@ -828,7 +833,8 @@ int addrs_lens;
 /**
  * Size of data received without KX challenge played back.
  */
-size_t unverified_size;
+// TODO remove?
+// size_t unverified_size;
 
 /**
  * Database for peer's HELLOs.
@@ -1434,6 +1440,9 @@ try_handle_plaintext (struct Queue *queue)
   struct TcpHandshakeAckSignature thas;
   const struct ChallengeNonceP challenge = queue->challenge;
 
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "try handle plaintext!\n");
+
   if ((sizeof(*hdr) > queue->pread_off))
   {
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
@@ -1441,16 +1450,16 @@ try_handle_plaintext (struct Queue *queue)
     return 0; /* not even a header */
   }
 
-  if ((-1 != unverified_size) && (unverified_size > INITIAL_CORE_KX_SIZE))
-  {
-    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                "Already received data of size %lu bigger than KX size %lu!\n",
-                unverified_size,
-                INITIAL_CORE_KX_SIZE);
-    GNUNET_break_op (0);
-    queue_finish (queue);
-    return 0;
-  }
+  /* if ((-1 != unverified_size) && (unverified_size > INITIAL_CORE_KX_SIZE)) */
+  /* { */
+  /*   GNUNET_log (GNUNET_ERROR_TYPE_ERROR, */
+  /*               "Already received data of size %lu bigger than KX size %lu!\n", */
+  /*               unverified_size, */
+  /*               INITIAL_CORE_KX_SIZE); */
+  /*   GNUNET_break_op (0); */
+  /*   queue_finish (queue); */
+  /*   return 0; */
+  /* } */
 
   type = ntohs (hdr->type);
   switch (type)
@@ -1513,7 +1522,41 @@ try_handle_plaintext (struct Queue *queue)
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                 "Handling plaintext, ack processed!");
 
-    unverified_size = -1;
+    // unverified_size = -1;
+
+    /* char *foreign_addr; */
+
+    /* switch (queue->address->sa_family) */
+    /* { */
+    /* case AF_INET: */
+    /*   GNUNET_asprintf (&foreign_addr, */
+    /*                    "%s-%s", */
+    /*                    COMMUNICATOR_ADDRESS_PREFIX, */
+    /*                    GNUNET_a2s (queue->address, queue->address_len)); */
+    /*   break; */
+
+    /* case AF_INET6: */
+    /*   GNUNET_asprintf (&foreign_addr, */
+    /*                    "%s-%s", */
+    /*                    COMMUNICATOR_ADDRESS_PREFIX, */
+    /*                    GNUNET_a2s (queue->address, queue->address_len)); */
+    /*   break; */
+
+    /* default: */
+    /*   GNUNET_assert (0); */
+    /* } */
+
+    /* queue->qh = GNUNET_TRANSPORT_communicator_mq_add (ch, */
+    /*                                                   &queue->target, */
+    /*                                                   foreign_addr, */
+    /*                                                   0 /\* no MTU *\/, */
+    /*                                                   GNUNET_TRANSPORT_QUEUE_LENGTH_UNLIMITED, */
+    /*                                                   0, /\* Priority *\/ */
+    /*                                                   queue->nt, */
+    /*                                                   queue->cs, */
+    /*                                                   queue->mq); */
+
+    /* GNUNET_free (foreign_addr); */
 
     size = ntohs (hdr->size);
     break;
@@ -1590,8 +1633,8 @@ try_handle_plaintext (struct Queue *queue)
     return 0;
   }
   GNUNET_assert (0 != size);
-  if (-1 != unverified_size)
-    unverified_size += size;
+  /* if (-1 != unverified_size) */
+  /*   unverified_size += size; */
   return size;
 }
 
@@ -2139,11 +2182,12 @@ queue_write (void *cls)
     queue->cwrite_off += queue->pwrite_off;
     queue->pwrite_off = 0;
   }
-  if ((-1 != unverified_size)&& ((0 == queue->pwrite_off) &&
-                                 ((0 == queue->rekey_left_bytes) ||
-                                  (0 ==
-                                   GNUNET_TIME_absolute_get_remaining (
-                                     queue->rekey_time).rel_value_us))))
+  // if ((-1 != unverified_size)&& ((0 == queue->pwrite_off) &&
+  if (((0 == queue->pwrite_off) &&
+       ((0 == queue->rekey_left_bytes) ||
+        (0 ==
+         GNUNET_TIME_absolute_get_remaining (
+           queue->rekey_time).rel_value_us))))
   {
     inject_rekey (queue);
   }
@@ -2282,7 +2326,7 @@ mq_error (void *cls, enum GNUNET_MQ_Error error)
  * @param queue queue to boot
  */
 static void
-boot_queue (struct Queue *queue, enum GNUNET_TRANSPORT_ConnectionStatus cs)
+boot_queue (struct Queue *queue)
 {
   queue->nt =
     GNUNET_NT_scanner_get_type (is, queue->address, queue->address_len);
@@ -2333,7 +2377,7 @@ boot_queue (struct Queue *queue, enum GNUNET_TRANSPORT_ConnectionStatus cs)
                                                       GNUNET_TRANSPORT_QUEUE_LENGTH_UNLIMITED,
                                                       0, /* Priority */
                                                       queue->nt,
-                                                      cs,
+                                                      queue->cs,
                                                       queue->mq);
     GNUNET_free (foreign_addr);
   }
@@ -2557,7 +2601,7 @@ free_proto_queue (struct ProtoQueue *pq)
  * @param queue The queue context.
  */
 static void
-send_challenge (struct TCPConfirmation tc, struct Queue *queue)
+send_challenge (struct ChallengeNonceP challenge, struct Queue *queue)
 {
   struct TCPConfirmationAck tca;
   struct TcpHandshakeAckSignature thas;
@@ -2569,7 +2613,7 @@ send_challenge (struct TCPConfirmation tc, struct Queue *queue)
   tca.header.type = ntohs (
     GNUNET_MESSAGE_TYPE_COMMUNICATOR_TCP_CONFIRMATION_ACK);
   tca.header.size = ntohs (sizeof(tca));
-  tca.challenge = tc.challenge;
+  tca.challenge = challenge;
   tca.sender = my_identity;
   tca.monotonic_time =
     GNUNET_TIME_absolute_hton (GNUNET_TIME_absolute_get_monotonic (cfg));
@@ -2665,7 +2709,8 @@ proto_read_kx (void *cls)
               "start kx proto\n");
 
   start_initial_kx_out (queue);
-  boot_queue (queue, GNUNET_TRANSPORT_CS_INBOUND);
+  queue->cs = GNUNET_TRANSPORT_CS_INBOUND;
+  boot_queue (queue);
   queue->read_task =
     GNUNET_SCHEDULER_add_read_net (GNUNET_CONSTANTS_IDLE_CONNECTION_TIMEOUT,
                                    queue->sock,
@@ -2676,7 +2721,8 @@ proto_read_kx (void *cls)
                                     queue->sock,
                                     &queue_write,
                                     queue);
-  send_challenge (tc, queue);
+  // TODO To early! Move it somewhere else.
+  // send_challenge (tc, queue);
 
   GNUNET_CONTAINER_DLL_remove (proto_head, proto_tail, pq);
   GNUNET_free (pq);
@@ -2762,7 +2808,9 @@ queue_read_kx (void *cls)
   rcvd = GNUNET_NETWORK_socket_recv (queue->sock,
                                      &queue->cread_buf[queue->cread_off],
                                      BUF_SIZE - queue->cread_off);
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Received %lu bytes for KX\n", rcvd);
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "Received %lu bytes for KX\n",
+              rcvd);
   if (-1 == rcvd)
   {
     if ((EAGAIN != errno) && (EINTR != errno))
@@ -2804,14 +2852,20 @@ queue_read_kx (void *cls)
     queue_destroy (queue);
     return;
   }
-  send_challenge (tc, queue);
+  send_challenge (tc.challenge, queue);
   /* update queue timeout */
   reschedule_queue_timeout (queue);
   /* prepare to continue with regular read task immediately */
   memmove (queue->cread_buf,
            &queue->cread_buf[INITIAL_KX_SIZE],
            queue->cread_off - (INITIAL_KX_SIZE));
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "cread_off is %lu bytes before adjusting\n",
+              queue->cread_off);
   queue->cread_off -= INITIAL_KX_SIZE;
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "cread_off set to %lu bytes\n",
+              queue->cread_off);
   if (0 < queue->cread_off)
     queue->read_task = GNUNET_SCHEDULER_add_now (&queue_read, queue);
 }
@@ -2893,7 +2947,8 @@ mq_init (void *cls, const struct GNUNET_PeerIdentity *peer, const char *address)
   queue->address = in;
   queue->address_len = in_len;
   queue->sock = sock;
-  boot_queue (queue, GNUNET_TRANSPORT_CS_OUTBOUND);
+  queue->cs = GNUNET_TRANSPORT_CS_OUTBOUND;
+  boot_queue (queue);
   // queue->mq_awaits_continue = GNUNET_YES;
   queue->read_task =
     GNUNET_SCHEDULER_add_read_net (GNUNET_CONSTANTS_IDLE_CONNECTION_TIMEOUT,
