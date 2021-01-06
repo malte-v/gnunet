@@ -118,11 +118,8 @@ read_call (void *cls)
 static void
 run_task (void *cls)
 {
-  char *fn;
   const struct GNUNET_DISK_FileHandle *stdout_read_handle;
   const struct GNUNET_DISK_FileHandle *wh;
-
-  GNUNET_asprintf (&fn, "cat");
 
   hello_pipe_stdin = GNUNET_DISK_pipe (GNUNET_DISK_PF_BLOCKING_RW);
   hello_pipe_stdout = GNUNET_DISK_pipe (GNUNET_DISK_PF_BLOCKING_RW);
@@ -130,17 +127,14 @@ run_task (void *cls)
   {
     GNUNET_break (0);
     ok = 1;
-    GNUNET_free (fn);
     return;
   }
 
   proc =
     GNUNET_OS_start_process (GNUNET_OS_INHERIT_STD_ERR,
                              hello_pipe_stdin, hello_pipe_stdout, NULL,
-                             fn,
-                             "test_gnunet_echo_hello", "-", NULL);
-  GNUNET_free (fn);
-
+                             "cat",
+                             "cat", "-", NULL);
   /* Close the write end of the read pipe */
   GNUNET_DISK_pipe_close_end (hello_pipe_stdout, GNUNET_DISK_PIPE_END_WRITE);
   /* Close the read end of the write pipe */
