@@ -187,6 +187,11 @@ extract_fixed_blob (void *cls,
                      fnum);
   if (*dst_size != len)
   {
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                "Expected %u bytes for field `%s', got %u\n",
+                *dst_size,
+                fname,
+                len);
     GNUNET_break (0);
     return GNUNET_SYSERR;
   }
