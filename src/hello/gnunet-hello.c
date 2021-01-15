@@ -51,7 +51,7 @@ static int address_count;
 
 
 /**
- * Add the given address with infinit expiration to the buffer.
+ * Add the given address with infinite expiration to the buffer.
  *
  * @param cls closure
  * @param address address to add
