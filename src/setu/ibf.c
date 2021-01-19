@@ -112,7 +112,7 @@ ibf_create (uint32_t size, uint8_t hash_num)
 
 
 /**
- * Store unique bucket indices for the specified key in dst.
+ * Store unique bucket indices for the specified @a key in @a dst.
  */
 static void
 ibf_get_indices (const struct InvertibleBloomFilter *ibf,
@@ -126,9 +126,9 @@ ibf_get_indices (const struct InvertibleBloomFilter *ibf,
   bucket = GNUNET_CRYPTO_crc32_n (&key, sizeof key);
   for (i = 0, filled = 0; filled < ibf->hash_num; i++)
   {
-    unsigned int j;
     uint64_t x;
-    for (j = 0; j < filled; j++)
+
+    for (unsigned int j = 0; j < filled; j++)
       if (dst[j] == bucket)
         goto try_next;
     dst[filled++] = bucket % ibf->size;
@@ -142,13 +142,13 @@ try_next:;
 static void
 ibf_insert_into (struct InvertibleBloomFilter *ibf,
                  struct IBF_Key key,
-                 const int *buckets, int side)
+                 const int *buckets,
+                 int side)
 {
-  int i;
-
-  for (i = 0; i < ibf->hash_num; i++)
+  for (unsigned int i = 0; i < ibf->hash_num; i++)
   {
     const int bucket = buckets[i];
+
     ibf->count[bucket].count_val += side;
     ibf->key_sum[bucket].key_val ^= key.key_val;
     ibf->key_hash_sum[bucket].key_hash_val
