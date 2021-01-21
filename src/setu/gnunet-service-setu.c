@@ -1000,7 +1000,8 @@ op_register_element (struct Operation *op,
 
 
 /**
- * FIXME.
+ * Modify an IBF key @a k_in based on the @a salt, returning a
+ * salted key in @a k_out.
  */
 static void
 salt_key (const struct IBF_Key *k_in,

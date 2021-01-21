@@ -129,10 +129,10 @@ ibf_get_indices (const struct InvertibleBloomFilter *ibf,
     uint64_t x;
 
     for (unsigned int j = 0; j < filled; j++)
-      if (dst[j] == bucket)
+      if (dst[j] == bucket % ibf->size)
         goto try_next;
     dst[filled++] = bucket % ibf->size;
-try_next:;
+try_next:
     x = ((uint64_t) bucket << 32) | i;
     bucket = GNUNET_CRYPTO_crc32_n (&x, sizeof x);
   }
