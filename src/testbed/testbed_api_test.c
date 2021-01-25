@@ -23,9 +23,11 @@
  * @brief high-level test function
  * @author Christian Grothoff
  * @author Sree Harsha Totakura
+ * @author Tobias Frisch
  */
 #include "platform.h"
 #include "gnunet_testbed_service.h"
+#include "testbed.h"
 
 
 /**
@@ -143,6 +145,10 @@ GNUNET_TESTBED_test_run (const char *testname,
   argv2[2] = GNUNET_strdup (cfg_filename);
   GNUNET_assert (NULL != test_master);
   GNUNET_assert (num_peers > 0);
+
+  char* envcfg = getenv(ENV_TESTBED_CONFIG);
+  setenv(ENV_TESTBED_CONFIG, cfg_filename, 1);
+
   rc = GNUNET_malloc (sizeof(struct TestRunContext)
                       + (num_peers * sizeof(struct GNUNET_TESTBED_Peer *)));
   rc->test_master = test_master;
@@ -153,6 +159,12 @@ GNUNET_TESTBED_test_run (const char *testname,
   rc->cc_cls = cc_cls;
   ret = GNUNET_PROGRAM_run ((sizeof(argv2) / sizeof(char *)) - 1, argv2,
                             testname, "nohelp", options, &run, rc);
+
+  if (envcfg)
+    setenv(ENV_TESTBED_CONFIG, envcfg, 1);
+  else
+    unsetenv(ENV_TESTBED_CONFIG);
+
   GNUNET_free (rc);
   GNUNET_free (argv2[0]);
   GNUNET_free (argv2[2]);

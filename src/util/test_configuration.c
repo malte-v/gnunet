@@ -70,12 +70,17 @@ initDiffsCBData (struct DiffsCBData *cbData)
  * and comparing configuration
  */
 static void
-diffsCallBack (void *cls, const char *section, const char *option,
+diffsCallBack (void *cls,
+               const char *section,
+               const char *option,
                const char *value)
 {
   struct DiffsCBData *cbData = cls;
   int cbOption = cbData->callBackOption;
 
+  if (0 == strcasecmp ("PATHS",
+                       section))
+    return;
   switch (cbOption)
   {
   case EDIT_SECTION:
@@ -89,14 +94,12 @@ diffsCallBack (void *cls, const char *section, const char *option,
                                              "new-value");
     }
     break;
-
   case EDIT_ALL:
     GNUNET_CONFIGURATION_set_value_string (cbData->cfg, section, option,
                                            "new-value");
     GNUNET_CONFIGURATION_set_value_string (cbData->cfgDiffs, section, option,
                                            "new-value");
     break;
-
   case ADD_NEW_ENTRY:
     {
       static int hit = 0;
@@ -111,7 +114,6 @@ diffsCallBack (void *cls, const char *section, const char *option,
       }
       break;
     }
-
   case COMPARE:
     {
       int ret;
@@ -119,15 +121,32 @@ diffsCallBack (void *cls, const char *section, const char *option,
 
       diffValue = NULL;
       ret =
-        GNUNET_CONFIGURATION_get_value_string (cbData->cfgDiffs, section,
-                                               option, &diffValue);
+        GNUNET_CONFIGURATION_get_value_string (cbData->cfgDiffs,
+                                               section,
+                                               option,
+                                               &diffValue);
       if (NULL != diffValue)
       {
-        if ((ret == GNUNET_SYSERR) || (strcmp (diffValue, value) != 0) )
+        if ( (ret == GNUNET_SYSERR) ||
+             (strcmp (diffValue, value) != 0) )
+        {
+          GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                      "Unexpected value %s in %s/%s\n",
+                      diffValue,
+                      section,
+                      option);
           cbData->status = 1;
+        }
       }
       else
+      {
+        GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                    "Unexpected value %s in %s/%s\n",
+                    diffValue,
+                    section,
+                    option);
         cbData->status = 1;
+      }
       GNUNET_free (diffValue);
       break;
     }
@@ -153,7 +172,8 @@ diffsCallBack (void *cls, const char *section, const char *option,
 
 
 static struct GNUNET_CONFIGURATION_Handle *
-editConfiguration (struct GNUNET_CONFIGURATION_Handle *cfg, int option)
+editConfiguration (struct GNUNET_CONFIGURATION_Handle *cfg,
+                   int option)
 {
   struct DiffsCBData diffsCB;
 
@@ -244,7 +264,9 @@ checkDiffs (struct GNUNET_CONFIGURATION_Handle *cfg_default, int option)
                               diffsFileName);
   cbData.callBackOption = COMPARE;
   cbData.cfgDiffs = cfgDiffs;
-  GNUNET_CONFIGURATION_iterate (cfg, diffsCallBack, &cbData);
+  GNUNET_CONFIGURATION_iterate (cfg,
+                                &diffsCallBack,
+                                &cbData);
   if (1 == (ret = cbData.status))
   {
     fprintf (stderr, "%s",

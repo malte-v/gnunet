@@ -716,6 +716,32 @@ GNUNET_TIME_time_to_year (struct GNUNET_TIME_Absolute at)
 }
 
 
+#ifndef HAVE_TIMEGM
+/**
+ * As suggested in the timegm() man page.
+ */
+static time_t
+my_timegm (struct tm *tm)
+{
+  time_t ret;
+  char *tz;
+
+  tz = getenv ("TZ");
+  setenv ("TZ", "", 1);
+  tzset ();
+  ret = mktime (tm);
+  if (tz)
+    setenv ("TZ", tz, 1);
+  else
+    unsetenv ("TZ");
+  tzset ();
+  return ret;
+}
+
+
+#endif
+
+
 /**
  * Convert a year to an expiration time of January 1st of that year.
  *
@@ -740,7 +766,11 @@ GNUNET_TIME_year_to_time (unsigned int year)
   t.tm_mon = 0;
   t.tm_wday = 1;
   t.tm_yday = 1;
-  tp = mktime (&t);
+#ifndef HAVE_TIMEGM
+  tp = my_timegm (&t);
+#else
+  tp = timegm (&t);
+#endif
   GNUNET_break (tp != (time_t) -1);
   ret.abs_value_us = tp * 1000LL * 1000LL; /* seconds to microseconds */
   return ret;

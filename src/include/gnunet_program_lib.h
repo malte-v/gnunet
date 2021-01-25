@@ -72,9 +72,12 @@ typedef void
  * @param task_cls closure for @a task
  * @param run_without_scheduler #GNUNET_NO start the scheduler,
  *        #GNUNET_YES do not start the scheduler just run the main task
- * @return #GNUNET_SYSERR on error, #GNUNET_OK on success
+ * @return #GNUNET_SYSERR on error,
+ *         #GNUNET_NO if successful option processing called
+ *                    for the program to terminate,
+ *         #GNUNET_OK on success (#a task was invoked)
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_PROGRAM_run2 (int argc,
                      char *const *argv,
                      const char *binaryName,
@@ -96,9 +99,12 @@ GNUNET_PROGRAM_run2 (int argc,
  * @param options command line options
  * @param task main function to run
  * @param task_cls closure for @a task
- * @return #GNUNET_SYSERR on error, #GNUNET_OK on success
+ * @return #GNUNET_SYSERR on error,
+ *         #GNUNET_NO if successful option processing called
+ *                    for the program to terminate,
+ *         #GNUNET_OK on success (#a task was invoked)
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_PROGRAM_run (int argc,
                     char *const *argv,
                     const char *binaryName,

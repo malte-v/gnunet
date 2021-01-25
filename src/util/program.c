@@ -122,22 +122,7 @@ cmd_sorter (const void *a1, const void *a2)
 }
 
 
-/**
- * Run a standard GNUnet command startup sequence (initialize loggers
- * and configuration, parse options).
- *
- * @param argc number of command line arguments in @a argv
- * @param argv command line arguments
- * @param binaryName our expected name
- * @param binaryHelp help text for the program
- * @param options command line options
- * @param task main function to run
- * @param task_cls closure for @a task
- * @param run_without_scheduler #GNUNET_NO start the scheduler, #GNUNET_YES do not
- *        start the scheduler just run the main task
- * @return #GNUNET_SYSERR on error, #GNUNET_OK on success
- */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_PROGRAM_run2 (int argc,
                      char *const *argv,
                      const char *binaryName,
@@ -156,7 +141,8 @@ GNUNET_PROGRAM_run2 (int argc,
   char *logfile;
   char *cfg_fn;
   const char *xdg;
-  int ret;
+  enum GNUNET_GenericReturnValue ret;
+  int iret;
   unsigned int cnt;
   unsigned long long skew_offset;
   unsigned long long skew_variance;
@@ -232,7 +218,7 @@ GNUNET_PROGRAM_run2 (int argc,
          sizeof(struct GNUNET_GETOPT_CommandLineOption),
          &cmd_sorter);
   loglev = NULL;
-  if (NULL != pd->config_file && NULL != pd->user_config_file)
+  if ((NULL != pd->config_file) && (NULL != pd->user_config_file))
   {
     xdg = getenv ("XDG_CONFIG_HOME");
     if (NULL != xdg)
@@ -249,12 +235,18 @@ GNUNET_PROGRAM_run2 (int argc,
   lpfx = GNUNET_strdup (binaryName);
   if (NULL != (spc = strstr (lpfx, " ")))
     *spc = '\0';
-  ret = GNUNET_GETOPT_run (binaryName, allopts, (unsigned int) argc, argv);
-  if ((GNUNET_OK > ret) ||
-      (GNUNET_OK != GNUNET_log_setup (lpfx, loglev, logfile)))
+  iret = GNUNET_GETOPT_run (binaryName,
+                            allopts,
+                            (unsigned int) argc,
+                            argv);
+  if ((GNUNET_OK > iret) ||
+      (GNUNET_OK != GNUNET_log_setup (lpfx,
+                                      loglev,
+                                      logfile)))
   {
     GNUNET_free (allopts);
     GNUNET_free (lpfx);
+    ret = (enum GNUNET_GenericReturnValue) iret;
     goto cleanup;
   }
   if (NULL != cc.cfgfile)
@@ -274,7 +266,7 @@ GNUNET_PROGRAM_run2 (int argc,
   }
   else
   {
-    if (NULL != cfg_fn && GNUNET_YES == GNUNET_DISK_file_test (cfg_fn))
+    if ((NULL != cfg_fn) && (GNUNET_YES == GNUNET_DISK_file_test (cfg_fn)))
     {
       if (GNUNET_SYSERR == GNUNET_CONFIGURATION_load (cfg, cfg_fn))
       {
@@ -306,14 +298,16 @@ GNUNET_PROGRAM_run2 (int argc,
   }
   GNUNET_free (allopts);
   GNUNET_free (lpfx);
-  if ((GNUNET_OK == GNUNET_CONFIGURATION_get_value_number (cc.cfg,
-                                                           "testing",
-                                                           "skew_offset",
-                                                           &skew_offset)) &&
-      (GNUNET_OK == GNUNET_CONFIGURATION_get_value_number (cc.cfg,
-                                                           "testing",
-                                                           "skew_variance",
-                                                           &skew_variance)))
+  if ((GNUNET_OK ==
+       GNUNET_CONFIGURATION_get_value_number (cc.cfg,
+                                              "testing",
+                                              "skew_offset",
+                                              &skew_offset)) &&
+      (GNUNET_OK ==
+       GNUNET_CONFIGURATION_get_value_number (cc.cfg,
+                                              "testing",
+                                              "skew_variance",
+                                              &skew_variance)))
   {
     clock_offset = skew_offset - skew_variance;
     GNUNET_TIME_set_offset (clock_offset);
@@ -323,16 +317,26 @@ GNUNET_PROGRAM_run2 (int argc,
      specified in the configuration, remember the command-line option
      in "cfg".  This is typically really only having an effect if we
      are running code in src/arm/, as obviously the rest of the code
-     has little business with ARM-specific options. */if (GNUNET_YES != GNUNET_CONFIGURATION_have_value (cfg, "arm", "CONFIG"))
+     has little business with ARM-specific options. */
+  if (GNUNET_YES !=
+      GNUNET_CONFIGURATION_have_value (cfg,
+                                       "arm",
+                                       "CONFIG"))
   {
     if (NULL != cc.cfgfile)
-      GNUNET_CONFIGURATION_set_value_string (cfg, "arm", "CONFIG", cc.cfgfile);
+      GNUNET_CONFIGURATION_set_value_string (cfg,
+                                             "arm",
+                                             "CONFIG",
+                                             cc.cfgfile);
     else if (NULL != cfg_fn)
-      GNUNET_CONFIGURATION_set_value_string (cfg, "arm", "CONFIG", cfg_fn);
+      GNUNET_CONFIGURATION_set_value_string (cfg,
+                                             "arm",
+                                             "CONFIG",
+                                             cfg_fn);
   }
 
   /* run */
-  cc.args = &argv[ret];
+  cc.args = &argv[iret];
   if ((NULL == cc.cfgfile) && (NULL != cfg_fn))
     cc.cfgfile = GNUNET_strdup (cfg_fn);
   if (GNUNET_NO == run_without_scheduler)
@@ -355,20 +359,7 @@ cleanup:
 }
 
 
-/**
- * Run a standard GNUnet command startup sequence (initialize loggers
- * and configuration, parse options).
- *
- * @param argc number of command line arguments
- * @param argv command line arguments
- * @param binaryName our expected name
- * @param binaryHelp help text for the program
- * @param options command line options
- * @param task main function to run
- * @param task_cls closure for @a task
- * @return #GNUNET_SYSERR on error, #GNUNET_OK on success
- */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_PROGRAM_run (int argc,
                     char *const *argv,
                     const char *binaryName,

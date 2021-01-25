@@ -170,6 +170,9 @@ extract_fixed_blob (void *cls,
   if (fnum < 0)
   {
     GNUNET_break (0);
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                "Result does not have field %s\n",
+                fname);
     return GNUNET_SYSERR;
   }
   if (PQgetisnull (result,
@@ -187,6 +190,11 @@ extract_fixed_blob (void *cls,
                      fnum);
   if (*dst_size != len)
   {
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                "Expected %u bytes for field `%s', got %u\n",
+                (unsigned int) *dst_size,
+                fname,
+                (unsigned int) len);
     GNUNET_break (0);
     return GNUNET_SYSERR;
   }
@@ -861,6 +869,9 @@ extract_uint64 (void *cls,
                     fname);
   if (fnum < 0)
   {
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                "Field %s missing in result\n",
+                fname);
     GNUNET_break (0);
     return GNUNET_SYSERR;
   }
