@@ -1882,6 +1882,7 @@ consider_ss_ack (struct SharedSecret *ss, int initial)
 
     // kce_generate (ss, ++ss->sequence_allowed);
     // kce_generate (ss, ++ss->sequence_allowed);
+    // TODO This task must be per sender!
     kce_task = GNUNET_SCHEDULER_add_delayed (WORKING_QUEUE_INTERVALL,
                                              kce_generate_cb,
                                              ss);
