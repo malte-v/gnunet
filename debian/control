@@ -6,7 +6,7 @@ Build-Depends:
  autoconf (>=2.59),
  automake (>=1.11.1),
  autopoint,
- debhelper-compat (= 13),
+ debhelper-compat (>= 12),
  default-libmysqlclient-dev,
  gettext,
  iptables,
