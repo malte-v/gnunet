@@ -618,7 +618,8 @@ check_PROGRAMS += \
   test_communicator_basic-udp \
   test_communicator_rekey-tcp \
   test_communicator_rekey-udp \
-  test_communicator_backchannel-udp
+  test_communicator_backchannel-udp \
+  test_communicator_bidirect-tcp
 endif
 endif
 
@@ -696,7 +697,8 @@ TESTS += \
   test_communicator_basic-udp \
   test_communicator_rekey-tcp \
   test_communicator_rekey-udp \
-  test_communicator_backchannel-udp
+  test_communicator_backchannel-udp \
+  test_communicator_bidirect-tcp
 endif
 endif
 
@@ -853,6 +855,14 @@ test_communicator_rekey_udp_LDADD = \
 test_communicator_backchannel_udp_SOURCES = \
  test_communicator_basic.c
 test_communicator_backchannel_udp_LDADD = \
+ libgnunettransporttesting2.la \
+ $(top_builddir)/src/testing/libgnunettesting.la \
+ $(top_builddir)/src/util/libgnunetutil.la \
+ $(top_builddir)/src/statistics/libgnunetstatistics.la
+
+test_communicator_bidirect_tcp_SOURCES = \
+ test_communicator_basic.c
+test_communicator_bidirect_tcp_LDADD = \
  libgnunettransporttesting2.la \
  $(top_builddir)/src/testing/libgnunettesting.la \
  $(top_builddir)/src/util/libgnunetutil.la \
@@ -1567,4 +1577,6 @@ test_communicator_tcp_rekey_peer2.conf \
 test_communicator_udp_rekey_peer1.conf \
 test_communicator_udp_rekey_peer2.conf \
 test_communicator_udp_backchannel_peer1.conf \
-test_communicator_udp_backchannel_peer2.conf
+test_communicator_udp_backchannel_peer2.conf \
+test_communicator_tcp_bidirect_peer1.conf \
+test_communicator_tcp_bidirect_peer2.conf

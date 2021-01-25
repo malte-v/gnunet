@@ -590,6 +590,11 @@ struct Queue
   struct ChallengeNonceP challenge;
 
   /**
+   * Challenge value received. In case of inbound connection we have to remember the value, because we send the challenge back later after we received the GNUNET_MESSAGE_TYPE_COMMUNICATOR_TCP_CONFIRMATION_ACK.
+   */
+  struct ChallengeNonceP challenge_received;
+
+  /**
    * Iteration Context for retrieving the monotonic time send with key for rekeying.
    */
   struct GNUNET_PEERSTORE_IterateContext *rekey_monotime_get;
@@ -834,7 +839,7 @@ int addrs_lens;
  * Size of data received without KX challenge played back.
  */
 // TODO remove?
-// size_t unverified_size;
+size_t unverified_size;
 
 /**
  * Database for peer's HELLOs.
@@ -1188,23 +1193,6 @@ setup_cipher (const struct GNUNET_HashCode *dh,
                                     0));
 }
 
-
-/**
- * Setup cipher of @a queue for decryption.
- *
- * @param ephemeral ephemeral key we received from the other peer
- * @param queue[in,out] queue to initialize decryption cipher for
- */
-static void
-setup_in_cipher (const struct GNUNET_CRYPTO_EcdhePublicKey *ephemeral,
-                 struct Queue *queue)
-{
-  struct GNUNET_HashCode dh;
-
-  GNUNET_CRYPTO_eddsa_ecdh (my_private_key, ephemeral, &dh);
-  setup_cipher (&dh, &my_identity, &queue->in_cipher, &queue->in_hmac);
-}
-
 /**
  * Callback called when peerstore store operation for rekey monotime value is finished.
  * @param cls Queue context the store operation was executed.
@@ -1277,6 +1265,23 @@ rekey_monotime_cb (void *cls,
                                                      &rekey_monotime_store_cb,
                                                      queue);
 }
+
+/**
+ * Setup cipher of @a queue for decryption.
+ *
+ * @param ephemeral ephemeral key we received from the other peer
+ * @param queue[in,out] queue to initialize decryption cipher for
+ */
+static void
+setup_in_cipher (const struct GNUNET_CRYPTO_EcdhePublicKey *ephemeral,
+                 struct Queue *queue)
+{
+  struct GNUNET_HashCode dh;
+
+  GNUNET_CRYPTO_eddsa_ecdh (my_private_key, ephemeral, &dh);
+  setup_cipher (&dh, &my_identity, &queue->in_cipher, &queue->in_hmac);
+}
+
 
 /**
  * Handle @a rekey message on @a queue. The message was already
@@ -1416,6 +1421,220 @@ handshake_ack_monotime_cb (void *cls,
 }
 
 /**
+ * Sending challenge with TcpConfirmationAck back to sender of ephemeral key.
+ *
+ * @param tc The TCPConfirmation originally send.
+ * @param queue The queue context.
+ */
+static void
+send_challenge (struct ChallengeNonceP challenge, struct Queue *queue)
+{
+  struct TCPConfirmationAck tca;
+  struct TcpHandshakeAckSignature thas;
+
+  GNUNET_log_from_nocheck (GNUNET_ERROR_TYPE_DEBUG,
+                           "transport",
+                           "sending challenge\n");
+
+  tca.header.type = ntohs (
+    GNUNET_MESSAGE_TYPE_COMMUNICATOR_TCP_CONFIRMATION_ACK);
+  tca.header.size = ntohs (sizeof(tca));
+  tca.challenge = challenge;
+  tca.sender = my_identity;
+  tca.monotonic_time =
+    GNUNET_TIME_absolute_hton (GNUNET_TIME_absolute_get_monotonic (cfg));
+  thas.purpose.purpose = htonl (
+    GNUNET_SIGNATURE_COMMUNICATOR_TCP_HANDSHAKE_ACK);
+  thas.purpose.size = htonl (sizeof(thas));
+  thas.sender = my_identity;
+  thas.receiver = queue->target;
+  thas.monotonic_time = tca.monotonic_time;
+  thas.challenge = tca.challenge;
+  GNUNET_CRYPTO_eddsa_sign (my_private_key,
+                            &thas,
+                            &tca.sender_sig);
+  GNUNET_assert (0 ==
+                 gcry_cipher_encrypt (queue->out_cipher,
+                                      &queue->cwrite_buf[queue->cwrite_off],
+                                      sizeof(tca),
+                                      &tca,
+                                      sizeof(tca)));
+  queue->cwrite_off += sizeof(tca);
+  GNUNET_log_from_nocheck (GNUNET_ERROR_TYPE_DEBUG,
+                           "transport",
+                           "sending challenge done\n");
+}
+
+/**
+ * Setup cipher for outgoing data stream based on target and
+ * our ephemeral private key.
+ *
+ * @param queue queue to setup outgoing (encryption) cipher for
+ */
+static void
+setup_out_cipher (struct Queue *queue)
+{
+  struct GNUNET_HashCode dh;
+
+  GNUNET_CRYPTO_ecdh_eddsa (&queue->ephemeral, &queue->target.public_key, &dh);
+  /* we don't need the private key anymore, drop it! */
+  memset (&queue->ephemeral, 0, sizeof(queue->ephemeral));
+  setup_cipher (&dh, &queue->target, &queue->out_cipher, &queue->out_hmac);
+  queue->rekey_time = GNUNET_TIME_relative_to_absolute (rekey_interval);
+  queue->rekey_left_bytes =
+    GNUNET_CRYPTO_random_u64 (GNUNET_CRYPTO_QUALITY_WEAK, REKEY_MAX_BYTES);
+}
+
+
+/**
+ * Inject a `struct TCPRekey` message into the queue's plaintext
+ * buffer.
+ *
+ * @param queue queue to perform rekeying on
+ */
+static void
+inject_rekey (struct Queue *queue)
+{
+  struct TCPRekey rekey;
+  struct TcpRekeySignature thp;
+
+  GNUNET_assert (0 == queue->pwrite_off);
+  memset (&rekey, 0, sizeof(rekey));
+  GNUNET_CRYPTO_ecdhe_key_create (&queue->ephemeral);
+  rekey.header.type = ntohs (GNUNET_MESSAGE_TYPE_COMMUNICATOR_TCP_REKEY);
+  rekey.header.size = ntohs (sizeof(rekey));
+  GNUNET_CRYPTO_ecdhe_key_get_public (&queue->ephemeral, &rekey.ephemeral);
+  rekey.monotonic_time =
+    GNUNET_TIME_absolute_hton (GNUNET_TIME_absolute_get_monotonic (cfg));
+  thp.purpose.purpose = htonl (GNUNET_SIGNATURE_COMMUNICATOR_TCP_REKEY);
+  thp.purpose.size = htonl (sizeof(thp));
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "inject_rekey size %u\n",
+              thp.purpose.size);
+  thp.sender = my_identity;
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "sender %s\n",
+              GNUNET_p2s (&thp.sender.public_key));
+  thp.receiver = queue->target;
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "receiver %s\n",
+              GNUNET_p2s (&thp.receiver.public_key));
+  thp.ephemeral = rekey.ephemeral;
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "ephemeral %s\n",
+              GNUNET_e2s (&thp.ephemeral));
+  thp.monotonic_time = rekey.monotonic_time;
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "time %s\n",
+              GNUNET_STRINGS_absolute_time_to_string (
+                GNUNET_TIME_absolute_ntoh (thp.monotonic_time)));
+  GNUNET_CRYPTO_eddsa_sign (my_private_key,
+                            &thp,
+                            &rekey.sender_sig);
+  calculate_hmac (&queue->out_hmac, &rekey, sizeof(rekey), &rekey.hmac);
+  /* Encrypt rekey message with 'old' cipher */
+  GNUNET_assert (0 ==
+                 gcry_cipher_encrypt (queue->out_cipher,
+                                      &queue->cwrite_buf[queue->cwrite_off],
+                                      sizeof(rekey),
+                                      &rekey,
+                                      sizeof(rekey)));
+  queue->cwrite_off += sizeof(rekey);
+  /* Setup new cipher for successive messages */
+  gcry_cipher_close (queue->out_cipher);
+  setup_out_cipher (queue);
+}
+
+/**
+ * We have been notified that our socket is ready to write.
+ * Then reschedule this function to be called again once more is available.
+ *
+ * @param cls a `struct Queue`
+ */
+static void
+queue_write (void *cls)
+{
+  struct Queue *queue = cls;
+  ssize_t sent;
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "In queue write\n");
+  queue->write_task = NULL;
+  if (0 != queue->cwrite_off)
+  {
+    sent = GNUNET_NETWORK_socket_send (queue->sock,
+                                       queue->cwrite_buf,
+                                       queue->cwrite_off);
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "Sent %lu bytes to TCP queue\n", sent);
+    if ((-1 == sent) && (EAGAIN != errno) && (EINTR != errno))
+    {
+      GNUNET_log_strerror (GNUNET_ERROR_TYPE_WARNING, "send");
+      queue_destroy (queue);
+      return;
+    }
+    if (sent > 0)
+    {
+      size_t usent = (size_t) sent;
+      queue->cwrite_off -= usent;
+      memmove (queue->cwrite_buf,
+               &queue->cwrite_buf[usent],
+               queue->cwrite_off);
+      reschedule_queue_timeout (queue);
+    }
+  }
+  /* can we encrypt more? (always encrypt full messages, needed
+     such that #mq_cancel() can work!) */
+  if ((0 < queue->rekey_left_bytes) &&
+      (queue->pwrite_off > 0) &&
+      (queue->cwrite_off + queue->pwrite_off <= BUF_SIZE))
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "Encrypting %lu bytes\n", queue->pwrite_off);
+    GNUNET_assert (0 ==
+                   gcry_cipher_encrypt (queue->out_cipher,
+                                        &queue->cwrite_buf[queue->cwrite_off],
+                                        queue->pwrite_off,
+                                        queue->pwrite_buf,
+                                        queue->pwrite_off));
+    if (queue->rekey_left_bytes > queue->pwrite_off)
+      queue->rekey_left_bytes -= queue->pwrite_off;
+    else
+      queue->rekey_left_bytes = 0;
+    queue->cwrite_off += queue->pwrite_off;
+    queue->pwrite_off = 0;
+  }
+  // if ((-1 != unverified_size)&& ((0 == queue->pwrite_off) &&
+  if (((0 == queue->pwrite_off) &&
+       ((0 == queue->rekey_left_bytes) ||
+        (0 ==
+         GNUNET_TIME_absolute_get_remaining (
+           queue->rekey_time).rel_value_us))))
+  {
+    inject_rekey (queue);
+  }
+  if ((0 == queue->pwrite_off) && (! queue->finishing) &&
+      (GNUNET_YES == queue->mq_awaits_continue))
+  {
+    queue->mq_awaits_continue = GNUNET_NO;
+    GNUNET_MQ_impl_send_continue (queue->mq);
+  }
+  /* did we just finish writing 'finish'? */
+  if ((0 == queue->cwrite_off) && (GNUNET_YES == queue->finishing))
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "Finishing queue\n");
+    queue_destroy (queue);
+    return;
+  }
+  /* do we care to write more? */
+  if ((0 < queue->cwrite_off) || (0 < queue->pwrite_off))
+    queue->write_task =
+      GNUNET_SCHEDULER_add_write_net (GNUNET_TIME_UNIT_FOREVER_REL,
+                                      queue->sock,
+                                      &queue_write,
+                                      queue);
+}
+
+/**
  * Test if we have received a full message in plaintext.
  * If so, handle it.
  *
@@ -1450,16 +1669,16 @@ try_handle_plaintext (struct Queue *queue)
     return 0; /* not even a header */
   }
 
-  /* if ((-1 != unverified_size) && (unverified_size > INITIAL_CORE_KX_SIZE)) */
-  /* { */
-  /*   GNUNET_log (GNUNET_ERROR_TYPE_ERROR, */
-  /*               "Already received data of size %lu bigger than KX size %lu!\n", */
-  /*               unverified_size, */
-  /*               INITIAL_CORE_KX_SIZE); */
-  /*   GNUNET_break_op (0); */
-  /*   queue_finish (queue); */
-  /*   return 0; */
-  /* } */
+  if ((-1 != unverified_size) && (unverified_size > INITIAL_CORE_KX_SIZE))
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                "Already received data of size %lu bigger than KX size %lu!\n",
+                unverified_size,
+                INITIAL_CORE_KX_SIZE);
+    GNUNET_break_op (0);
+    queue_finish (queue);
+    return 0;
+  }
 
   type = ntohs (hdr->type);
   switch (type)
@@ -1520,43 +1739,53 @@ try_handle_plaintext (struct Queue *queue)
                                                                   queue);
 
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                "Handling plaintext, ack processed!");
+                "Handling plaintext, ack processed!\n");
 
-    // unverified_size = -1;
+    if (GNUNET_TRANSPORT_CS_INBOUND ==     queue->cs)
+    {
+      send_challenge (queue->challenge_received, queue);
+      queue->write_task =
+        GNUNET_SCHEDULER_add_write_net (GNUNET_TIME_UNIT_FOREVER_REL,
+                                        queue->sock,
+                                        &queue_write,
+                                        queue);
+    }
 
-    /* char *foreign_addr; */
+    unverified_size = -1;
 
-    /* switch (queue->address->sa_family) */
-    /* { */
-    /* case AF_INET: */
-    /*   GNUNET_asprintf (&foreign_addr, */
-    /*                    "%s-%s", */
-    /*                    COMMUNICATOR_ADDRESS_PREFIX, */
-    /*                    GNUNET_a2s (queue->address, queue->address_len)); */
-    /*   break; */
+    char *foreign_addr;
 
-    /* case AF_INET6: */
-    /*   GNUNET_asprintf (&foreign_addr, */
-    /*                    "%s-%s", */
-    /*                    COMMUNICATOR_ADDRESS_PREFIX, */
-    /*                    GNUNET_a2s (queue->address, queue->address_len)); */
-    /*   break; */
+    switch (queue->address->sa_family)
+    {
+    case AF_INET:
+      GNUNET_asprintf (&foreign_addr,
+                       "%s-%s",
+                       COMMUNICATOR_ADDRESS_PREFIX,
+                       GNUNET_a2s (queue->address, queue->address_len));
+      break;
 
-    /* default: */
-    /*   GNUNET_assert (0); */
-    /* } */
+    case AF_INET6:
+      GNUNET_asprintf (&foreign_addr,
+                       "%s-%s",
+                       COMMUNICATOR_ADDRESS_PREFIX,
+                       GNUNET_a2s (queue->address, queue->address_len));
+      break;
 
-    /* queue->qh = GNUNET_TRANSPORT_communicator_mq_add (ch, */
-    /*                                                   &queue->target, */
-    /*                                                   foreign_addr, */
-    /*                                                   0 /\* no MTU *\/, */
-    /*                                                   GNUNET_TRANSPORT_QUEUE_LENGTH_UNLIMITED, */
-    /*                                                   0, /\* Priority *\/ */
-    /*                                                   queue->nt, */
-    /*                                                   queue->cs, */
-    /*                                                   queue->mq); */
+    default:
+      GNUNET_assert (0);
+    }
 
-    /* GNUNET_free (foreign_addr); */
+    queue->qh = GNUNET_TRANSPORT_communicator_mq_add (ch,
+                                                      &queue->target,
+                                                      foreign_addr,
+                                                      0 /* no MTU */,
+                                                      GNUNET_TRANSPORT_QUEUE_LENGTH_UNLIMITED,
+                                                      0, /* Priority */
+                                                      queue->nt,
+                                                      queue->cs,
+                                                      queue->mq);
+
+    GNUNET_free (foreign_addr);
 
     size = ntohs (hdr->size);
     break;
@@ -1633,8 +1862,8 @@ try_handle_plaintext (struct Queue *queue)
     return 0;
   }
   GNUNET_assert (0 != size);
-  /* if (-1 != unverified_size) */
-  /*   unverified_size += size; */
+  if (-1 != unverified_size)
+    unverified_size += size;
   return size;
 }
 
@@ -2043,178 +2272,6 @@ tcp_address_to_sockaddr (const char *bindto, socklen_t *sock_len)
   return in;
 }
 
-
-/**
- * Setup cipher for outgoing data stream based on target and
- * our ephemeral private key.
- *
- * @param queue queue to setup outgoing (encryption) cipher for
- */
-static void
-setup_out_cipher (struct Queue *queue)
-{
-  struct GNUNET_HashCode dh;
-
-  GNUNET_CRYPTO_ecdh_eddsa (&queue->ephemeral, &queue->target.public_key, &dh);
-  /* we don't need the private key anymore, drop it! */
-  memset (&queue->ephemeral, 0, sizeof(queue->ephemeral));
-  setup_cipher (&dh, &queue->target, &queue->out_cipher, &queue->out_hmac);
-  queue->rekey_time = GNUNET_TIME_relative_to_absolute (rekey_interval);
-  queue->rekey_left_bytes =
-    GNUNET_CRYPTO_random_u64 (GNUNET_CRYPTO_QUALITY_WEAK, REKEY_MAX_BYTES);
-}
-
-
-/**
- * Inject a `struct TCPRekey` message into the queue's plaintext
- * buffer.
- *
- * @param queue queue to perform rekeying on
- */
-static void
-inject_rekey (struct Queue *queue)
-{
-  struct TCPRekey rekey;
-  struct TcpRekeySignature thp;
-
-  GNUNET_assert (0 == queue->pwrite_off);
-  memset (&rekey, 0, sizeof(rekey));
-  GNUNET_CRYPTO_ecdhe_key_create (&queue->ephemeral);
-  rekey.header.type = ntohs (GNUNET_MESSAGE_TYPE_COMMUNICATOR_TCP_REKEY);
-  rekey.header.size = ntohs (sizeof(rekey));
-  GNUNET_CRYPTO_ecdhe_key_get_public (&queue->ephemeral, &rekey.ephemeral);
-  rekey.monotonic_time =
-    GNUNET_TIME_absolute_hton (GNUNET_TIME_absolute_get_monotonic (cfg));
-  thp.purpose.purpose = htonl (GNUNET_SIGNATURE_COMMUNICATOR_TCP_REKEY);
-  thp.purpose.size = htonl (sizeof(thp));
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "inject_rekey size %u\n",
-              thp.purpose.size);
-  thp.sender = my_identity;
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "sender %s\n",
-              GNUNET_p2s (&thp.sender.public_key));
-  thp.receiver = queue->target;
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "receiver %s\n",
-              GNUNET_p2s (&thp.receiver.public_key));
-  thp.ephemeral = rekey.ephemeral;
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "ephemeral %s\n",
-              GNUNET_e2s (&thp.ephemeral));
-  thp.monotonic_time = rekey.monotonic_time;
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "time %s\n",
-              GNUNET_STRINGS_absolute_time_to_string (
-                GNUNET_TIME_absolute_ntoh (thp.monotonic_time)));
-  GNUNET_CRYPTO_eddsa_sign (my_private_key,
-                            &thp,
-                            &rekey.sender_sig);
-  calculate_hmac (&queue->out_hmac, &rekey, sizeof(rekey), &rekey.hmac);
-  /* Encrypt rekey message with 'old' cipher */
-  GNUNET_assert (0 ==
-                 gcry_cipher_encrypt (queue->out_cipher,
-                                      &queue->cwrite_buf[queue->cwrite_off],
-                                      sizeof(rekey),
-                                      &rekey,
-                                      sizeof(rekey)));
-  queue->cwrite_off += sizeof(rekey);
-  /* Setup new cipher for successive messages */
-  gcry_cipher_close (queue->out_cipher);
-  setup_out_cipher (queue);
-}
-
-
-/**
- * We have been notified that our socket is ready to write.
- * Then reschedule this function to be called again once more is available.
- *
- * @param cls a `struct Queue`
- */
-static void
-queue_write (void *cls)
-{
-  struct Queue *queue = cls;
-  ssize_t sent;
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "In queue write\n");
-  queue->write_task = NULL;
-  if (0 != queue->cwrite_off)
-  {
-    sent = GNUNET_NETWORK_socket_send (queue->sock,
-                                       queue->cwrite_buf,
-                                       queue->cwrite_off);
-    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                "Sent %lu bytes to TCP queue\n", sent);
-    if ((-1 == sent) && (EAGAIN != errno) && (EINTR != errno))
-    {
-      GNUNET_log_strerror (GNUNET_ERROR_TYPE_WARNING, "send");
-      queue_destroy (queue);
-      return;
-    }
-    if (sent > 0)
-    {
-      size_t usent = (size_t) sent;
-      queue->cwrite_off -= usent;
-      memmove (queue->cwrite_buf,
-               &queue->cwrite_buf[usent],
-               queue->cwrite_off);
-      reschedule_queue_timeout (queue);
-    }
-  }
-  /* can we encrypt more? (always encrypt full messages, needed
-     such that #mq_cancel() can work!) */
-  if ((0 < queue->rekey_left_bytes) &&
-      (queue->pwrite_off > 0) &&
-      (queue->cwrite_off + queue->pwrite_off <= BUF_SIZE))
-  {
-    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                "Encrypting %lu bytes\n", queue->pwrite_off);
-    GNUNET_assert (0 ==
-                   gcry_cipher_encrypt (queue->out_cipher,
-                                        &queue->cwrite_buf[queue->cwrite_off],
-                                        queue->pwrite_off,
-                                        queue->pwrite_buf,
-                                        queue->pwrite_off));
-    if (queue->rekey_left_bytes > queue->pwrite_off)
-      queue->rekey_left_bytes -= queue->pwrite_off;
-    else
-      queue->rekey_left_bytes = 0;
-    queue->cwrite_off += queue->pwrite_off;
-    queue->pwrite_off = 0;
-  }
-  // if ((-1 != unverified_size)&& ((0 == queue->pwrite_off) &&
-  if (((0 == queue->pwrite_off) &&
-       ((0 == queue->rekey_left_bytes) ||
-        (0 ==
-         GNUNET_TIME_absolute_get_remaining (
-           queue->rekey_time).rel_value_us))))
-  {
-    inject_rekey (queue);
-  }
-  if ((0 == queue->pwrite_off) && (! queue->finishing) &&
-      (GNUNET_YES == queue->mq_awaits_continue))
-  {
-    queue->mq_awaits_continue = GNUNET_NO;
-    GNUNET_MQ_impl_send_continue (queue->mq);
-  }
-  /* did we just finish writing 'finish'? */
-  if ((0 == queue->cwrite_off) && (GNUNET_YES == queue->finishing))
-  {
-    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                "Finishing queue\n");
-    queue_destroy (queue);
-    return;
-  }
-  /* do we care to write more? */
-  if ((0 < queue->cwrite_off) || (0 < queue->pwrite_off))
-    queue->write_task =
-      GNUNET_SCHEDULER_add_write_net (GNUNET_TIME_UNIT_FOREVER_REL,
-                                      queue->sock,
-                                      &queue_write,
-                                      queue);
-}
-
-
 /**
  * Signature of functions implementing the sending functionality of a
  * message queue.
@@ -2348,39 +2405,39 @@ boot_queue (struct Queue *queue)
                                              NULL,
                                              &mq_error,
                                              queue);
-  {
-    char *foreign_addr;
+  /* { */
+  /*   char *foreign_addr; */
 
-    switch (queue->address->sa_family)
-    {
-    case AF_INET:
-      GNUNET_asprintf (&foreign_addr,
-                       "%s-%s",
-                       COMMUNICATOR_ADDRESS_PREFIX,
-                       GNUNET_a2s (queue->address, queue->address_len));
-      break;
+  /*   switch (queue->address->sa_family) */
+  /*   { */
+  /*   case AF_INET: */
+  /*     GNUNET_asprintf (&foreign_addr, */
+  /*                      "%s-%s", */
+  /*                      COMMUNICATOR_ADDRESS_PREFIX, */
+  /*                      GNUNET_a2s (queue->address, queue->address_len)); */
+  /*     break; */
 
-    case AF_INET6:
-      GNUNET_asprintf (&foreign_addr,
-                       "%s-%s",
-                       COMMUNICATOR_ADDRESS_PREFIX,
-                       GNUNET_a2s (queue->address, queue->address_len));
-      break;
+  /*   case AF_INET6: */
+  /*     GNUNET_asprintf (&foreign_addr, */
+  /*                      "%s-%s", */
+  /*                      COMMUNICATOR_ADDRESS_PREFIX, */
+  /*                      GNUNET_a2s (queue->address, queue->address_len)); */
+  /*     break; */
 
-    default:
-      GNUNET_assert (0);
-    }
-    queue->qh = GNUNET_TRANSPORT_communicator_mq_add (ch,
-                                                      &queue->target,
-                                                      foreign_addr,
-                                                      0 /* no MTU */,
-                                                      GNUNET_TRANSPORT_QUEUE_LENGTH_UNLIMITED,
-                                                      0, /* Priority */
-                                                      queue->nt,
-                                                      queue->cs,
-                                                      queue->mq);
-    GNUNET_free (foreign_addr);
-  }
+  /*   default: */
+  /*     GNUNET_assert (0); */
+  /*   } */
+  /*   queue->qh = GNUNET_TRANSPORT_communicator_mq_add (ch, */
+  /*                                                     &queue->target, */
+  /*                                                     foreign_addr, */
+  /*                                                     0 /\* no MTU *\/, */
+  /*                                                     GNUNET_TRANSPORT_QUEUE_LENGTH_UNLIMITED, */
+  /*                                                     0, /\* Priority *\/ */
+  /*                                                     queue->nt, */
+  /*                                                     queue->cs, */
+  /*                                                     queue->mq); */
+  /*   GNUNET_free (foreign_addr); */
+  /* } */
 }
 
 
@@ -2595,48 +2652,6 @@ free_proto_queue (struct ProtoQueue *pq)
 }
 
 /**
- * Sending challenge with TcpConfirmationAck back to sender of ephemeral key.
- *
- * @param tc The TCPConfirmation originally send.
- * @param queue The queue context.
- */
-static void
-send_challenge (struct ChallengeNonceP challenge, struct Queue *queue)
-{
-  struct TCPConfirmationAck tca;
-  struct TcpHandshakeAckSignature thas;
-
-  GNUNET_log_from_nocheck (GNUNET_ERROR_TYPE_DEBUG,
-                           "transport",
-                           "sending challenge\n");
-
-  tca.header.type = ntohs (
-    GNUNET_MESSAGE_TYPE_COMMUNICATOR_TCP_CONFIRMATION_ACK);
-  tca.header.size = ntohs (sizeof(tca));
-  tca.challenge = challenge;
-  tca.sender = my_identity;
-  tca.monotonic_time =
-    GNUNET_TIME_absolute_hton (GNUNET_TIME_absolute_get_monotonic (cfg));
-  thas.purpose.purpose = htonl (
-    GNUNET_SIGNATURE_COMMUNICATOR_TCP_HANDSHAKE_ACK);
-  thas.purpose.size = htonl (sizeof(thas));
-  thas.sender = my_identity;
-  thas.receiver = queue->target;
-  thas.monotonic_time = tca.monotonic_time;
-  thas.challenge = tca.challenge;
-  GNUNET_CRYPTO_eddsa_sign (my_private_key,
-                            &thas,
-                            &tca.sender_sig);
-  GNUNET_assert (0 ==
-                 gcry_cipher_encrypt (queue->out_cipher,
-                                      &queue->cwrite_buf[queue->cwrite_off],
-                                      sizeof(tca),
-                                      &tca,
-                                      sizeof(tca)));
-  queue->cwrite_off += sizeof(tca);
-}
-
-/**
  * Read from the socket of the proto queue until we have enough data
  * to upgrade to full queue.
  *
@@ -2722,7 +2737,8 @@ proto_read_kx (void *cls)
                                     &queue_write,
                                     queue);
   // TODO To early! Move it somewhere else.
-  // send_challenge (tc, queue);
+  // send_challenge (tc.challenge, queue);
+  queue->challenge_received = tc.challenge;
 
   GNUNET_CONTAINER_DLL_remove (proto_head, proto_tail, pq);
   GNUNET_free (pq);
@@ -2853,6 +2869,12 @@ queue_read_kx (void *cls)
     return;
   }
   send_challenge (tc.challenge, queue);
+  queue->write_task =
+    GNUNET_SCHEDULER_add_write_net (GNUNET_TIME_UNIT_FOREVER_REL,
+                                    queue->sock,
+                                    &queue_write,
+                                    queue);
+
   /* update queue timeout */
   reschedule_queue_timeout (queue);
   /* prepare to continue with regular read task immediately */
@@ -2866,7 +2888,7 @@ queue_read_kx (void *cls)
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "cread_off set to %lu bytes\n",
               queue->cread_off);
-  if (0 < queue->cread_off)
+  if (0 <= queue->cread_off)
     queue->read_task = GNUNET_SCHEDULER_add_now (&queue_read, queue);
 }
 
