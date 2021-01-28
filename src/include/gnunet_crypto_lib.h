@@ -475,6 +475,22 @@ GNUNET_CRYPTO_random_block (enum GNUNET_CRYPTO_Quality mode,
                             void *buffer,
                             size_t length);
 
+
+/**
+ * @ingroup crypto
+ * Fill UUID with a timeflake pseudo-random value.  Note that
+ * timeflakes use only 80 bits of randomness and 48 bits
+ * to encode a timestamp in milliseconds. So what we return
+ * here is not a completely random number.
+ *
+ * @param mode desired quality of the random number
+ * @param uuid the value to fill
+ */
+void
+GNUNET_CRYPTO_random_timeflake (enum GNUNET_CRYPTO_Quality mode,
+                                struct GNUNET_Uuid *uuid);
+
+
 /**
  * @ingroup crypto
  * Produce a random value.

@@ -33,6 +33,7 @@ test (enum GNUNET_CRYPTO_Quality mode)
   unsigned int *b2;
   int i;
   unsigned long long n;
+  struct GNUNET_Uuid tf;
 
   for (i = 0; i < 1024; i++)
     GNUNET_break (1024 > (buf[i] = GNUNET_CRYPTO_random_u32 (mode, 1024)));
@@ -53,6 +54,8 @@ test (enum GNUNET_CRYPTO_Quality mode)
 
   for (n = 10; n < 1024LL * 1024LL * 1024LL; n *= 10)
     GNUNET_break (n > GNUNET_CRYPTO_random_u64 (mode, n));
+  GNUNET_CRYPTO_random_timeflake (mode,
+                                  &tf);
   return 0;
 }
 
