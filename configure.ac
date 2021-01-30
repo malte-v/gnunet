@@ -1261,7 +1261,7 @@ gl_LIBUNISTRING
 AS_IF([test $HAVE_LIBUNISTRING != yes],
       [AC_MSG_ERROR([GNUnet requires libunistring])])
 
-AX_COMPARE_VERSION([$LIBUNISTRING_VERSION],[le],[0.9.1.1],
+AS_VERSION_COMPARE([$LIBUNISTRING_VERSION],[0.9.1.1],
   [AC_MSG_ERROR([GNUnet requires libunistring >= 0.9.1.1])])
 
 AC_CHECK_HEADERS([unistr.h],
