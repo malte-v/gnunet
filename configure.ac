@@ -1261,8 +1261,9 @@ gl_LIBUNISTRING
 AS_IF([test $HAVE_LIBUNISTRING != yes],
       [AC_MSG_ERROR([GNUnet requires libunistring])])
 
-AS_IF([test "x$gl_libunistring_hexversion" = "x" || test "$gl_libunistring_hexversion" -le 2305],
-      [AC_MSG_ERROR([GNUnet requires libunistring >= 0.9.1.1])])
+AS_VERSION_COMPARE([$LIBUNISTRING_VERSION],[0.9.1.1],
+  [AC_MSG_ERROR([GNUnet requires libunistring >= 0.9.1.1])])
+
 AC_CHECK_HEADERS([unistr.h],
                  ,
                  AC_MSG_ERROR([Compiling GNUnet requires unistr.h (from libunistring) to be installed]))

@@ -281,7 +281,8 @@ check_SCRIPTS = \
   test_gns_rel_expiration.sh\
   test_gns_soa_lookup.sh\
   test_gns_revocation.sh\
-  test_gns_cname_lookup.sh
+  test_gns_cname_lookup.sh\
+  test_proxy.sh
 
 if HAVE_GNUTLS
 if HAVE_LIBGNURL

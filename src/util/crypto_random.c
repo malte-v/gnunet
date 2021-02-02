@@ -26,6 +26,7 @@
  */
 #include "platform.h"
 #include "gnunet_crypto_lib.h"
+#include "gnunet_time_lib.h"
 #include <gcrypt.h>
 
 #define LOG(kind, ...) GNUNET_log_from (kind, "util-crypto-random", __VA_ARGS__)
@@ -80,7 +81,7 @@ glibc_weak_rand32 ()
  * @return number between 0 and 1.
  */
 static double
-get_weak_random ()
+get_weak_random (void)
 {
   return((double) random () / RAND_MAX);
 }
@@ -176,7 +177,8 @@ GNUNET_CRYPTO_random_block (enum GNUNET_CRYPTO_Quality mode,
  * @return a random value in the interval [0,i[.
  */
 uint32_t
-GNUNET_CRYPTO_random_u32 (enum GNUNET_CRYPTO_Quality mode, uint32_t i)
+GNUNET_CRYPTO_random_u32 (enum GNUNET_CRYPTO_Quality mode,
+                          uint32_t i)
 {
 #ifdef gcry_fast_random_poll
   static unsigned int invokeCount;
@@ -235,7 +237,8 @@ GNUNET_CRYPTO_random_u32 (enum GNUNET_CRYPTO_Quality mode, uint32_t i)
  * @return the permutation array (allocated from heap)
  */
 unsigned int *
-GNUNET_CRYPTO_random_permute (enum GNUNET_CRYPTO_Quality mode, unsigned int n)
+GNUNET_CRYPTO_random_permute (enum GNUNET_CRYPTO_Quality mode,
+                              unsigned int n)
 {
   unsigned int *ret;
   unsigned int i;
@@ -265,7 +268,8 @@ GNUNET_CRYPTO_random_permute (enum GNUNET_CRYPTO_Quality mode, unsigned int n)
  * @return random 64-bit number
  */
 uint64_t
-GNUNET_CRYPTO_random_u64 (enum GNUNET_CRYPTO_Quality mode, uint64_t max)
+GNUNET_CRYPTO_random_u64 (enum GNUNET_CRYPTO_Quality mode,
+                          uint64_t max)
 {
   uint64_t ret;
   uint64_t ul;
@@ -304,6 +308,38 @@ GNUNET_CRYPTO_random_u64 (enum GNUNET_CRYPTO_Quality mode, uint64_t max)
     GNUNET_assert (0);
   }
   return 0;
+}
+
+
+/**
+ * @ingroup crypto
+ * Fill UUID with a timeflake pseudo-random value.  Note that
+ * timeflakes use only 80 bits of randomness and 48 bits
+ * to encode a timestamp in milliseconds. So what we return
+ * here is not a completely random number.
+ *
+ * @param mode desired quality of the random number
+ * @param uuid the value to fill
+ */
+void
+GNUNET_CRYPTO_random_timeflake (enum GNUNET_CRYPTO_Quality mode,
+                                struct GNUNET_Uuid *uuid)
+{
+  struct GNUNET_TIME_Absolute now;
+  uint64_t ms;
+  uint64_t be;
+  char *base;
+
+  GNUNET_CRYPTO_random_block (mode,
+                              uuid,
+                              sizeof (struct GNUNET_Uuid));
+  now = GNUNET_TIME_absolute_get ();
+  ms = now.abs_value_us / GNUNET_TIME_UNIT_MILLISECONDS.rel_value_us;
+  be = GNUNET_htonll (ms);
+  base = (char *) &be;
+  memcpy (uuid,
+          base + 2,
+          sizeof (be) - 2);
 }
 
 

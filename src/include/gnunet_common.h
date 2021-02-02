@@ -256,7 +256,12 @@ struct GNUNET_ShortHashCode
 
 
 /**
- * A UUID, a 128 bit random value.
+ * A UUID, a 128 bit "random" value.  We OFTEN use
+ * timeflakes (see: https://github.com/anthonynsimon/timeflake),
+ * where only 80 bits are random and the rest encodes
+ * a timestamp to improve database access.
+ *
+ * See #GNUNET_CRYPTO_random_timeflake().
  */
 struct GNUNET_Uuid
 {
