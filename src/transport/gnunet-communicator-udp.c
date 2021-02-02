@@ -574,6 +574,22 @@ struct SenderAddress
    * sender_destroy already called on sender.
    */
   int sender_destroy_called;
+
+
+  /**
+   * ID of kce working queue task
+   */
+  struct GNUNET_SCHEDULER_Task *kce_task;
+
+  /**
+   * ID of kce rekey working queue task
+   */
+  struct GNUNET_SCHEDULER_Task *kce_task_rekey;
+
+  /**
+   * Is the kce_task finished?
+   */
+  int kce_task_finished;
 };
 
 
@@ -787,21 +803,6 @@ static struct GNUNET_SCHEDULER_Task *read_task;
  * ID of timeout task
  */
 static struct GNUNET_SCHEDULER_Task *timeout_task;
-
-/**
- * ID of kce working queue task
- */
-static struct GNUNET_SCHEDULER_Task *kce_task;
-
-/**
- * ID of kce rekey working queue task
- */
-static struct GNUNET_SCHEDULER_Task *kce_task_rekey;
-
-/**
- * Is the kce_task finished?
- */
-static int kce_task_finished = GNUNET_NO;
 
 /**
  * ID of master broadcast task
@@ -1744,7 +1745,8 @@ static void
 kce_generate_cb (void *cls)
 {
   struct SharedSecret *ss = cls;
-  kce_task = NULL;
+
+  ss->sender->kce_task = NULL;
 
   if (((GNUNET_NO == ss->sender->rekeying) && (ss->sender->acks_available <
                                                KCN_TARGET) ) ||
@@ -1759,16 +1761,17 @@ kce_generate_cb (void *cls)
     for (int i = 0; i < GENERATE_AT_ONCE; i++)
       kce_generate (ss, ++ss->sequence_allowed);
 
-    kce_task = GNUNET_SCHEDULER_add_delayed (WORKING_QUEUE_INTERVALL,
-                                             kce_generate_cb,
-                                             ss);
+    ss->sender->kce_task = GNUNET_SCHEDULER_add_delayed (
+      WORKING_QUEUE_INTERVALL,
+      kce_generate_cb,
+      ss);
   }
   else
   {
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                 "We have enough keys.\n");
     ss_finished = ss;
-    kce_task_finished = GNUNET_YES;
+    ss->sender->kce_task_finished = GNUNET_YES;
   }
 
 
@@ -1779,9 +1782,10 @@ static void
 kce_generate_rekey_cb (void *cls)
 {
   struct SharedSecret *ss = cls;
-  kce_task_rekey = NULL;
 
-  if (NULL == kce_task)
+  ss->sender->kce_task_rekey = NULL;
+
+  if (NULL == ss->sender->kce_task)
   {
 
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
@@ -1791,16 +1795,18 @@ kce_generate_rekey_cb (void *cls)
     for (int i = 0; i < GENERATE_AT_ONCE; i++)
       kce_generate (ss, ++ss->sequence_allowed);
 
-    kce_task = GNUNET_SCHEDULER_add_delayed (WORKING_QUEUE_INTERVALL,
-                                             kce_generate_cb,
-                                             ss);
-    kce_task_rekey = NULL;
+    ss->sender->kce_task = GNUNET_SCHEDULER_add_delayed (
+      WORKING_QUEUE_INTERVALL,
+      kce_generate_cb,
+      ss);
+    ss->sender->kce_task_rekey = NULL;
   }
   else
   {
-    kce_task_rekey = GNUNET_SCHEDULER_add_delayed (WORKING_QUEUE_INTERVALL,
-                                                   kce_generate_rekey_cb,
-                                                   ss);
+    ss->sender->kce_task_rekey = GNUNET_SCHEDULER_add_delayed (
+      WORKING_QUEUE_INTERVALL,
+      kce_generate_rekey_cb,
+      ss);
   }
 }
 
@@ -1817,6 +1823,14 @@ kce_generate_rekey_cb (void *cls)
 static void
 consider_ss_ack (struct SharedSecret *ss, int initial)
 {
+  struct GNUNET_SCHEDULER_Task *kce_task_rekey;
+  struct GNUNET_SCHEDULER_Task *kce_task;
+  int kce_task_finished;
+
+  kce_task_rekey = ss->sender->kce_task_rekey;
+  kce_task_finished = ss->sender->kce_task_finished;
+  kce_task = ss->sender->kce_task;
+
   GNUNET_assert (NULL != ss->sender);
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Considering SS UDPAck %s\n",
@@ -1886,6 +1900,7 @@ consider_ss_ack (struct SharedSecret *ss, int initial)
     kce_task = GNUNET_SCHEDULER_add_delayed (WORKING_QUEUE_INTERVALL,
                                              kce_generate_cb,
                                              ss);
+    kce_task_finished = GNUNET_NO;
 
   }
   else if ((NULL == kce_task_rekey) && (GNUNET_YES ==
@@ -3247,6 +3262,18 @@ get_sender_delete_it (void *cls,
 
   (void) cls;
   (void) target;
+
+  if (NULL != sender->kce_task_rekey)
+  {
+    GNUNET_SCHEDULER_cancel (sender->kce_task_rekey);
+    sender->kce_task_rekey = NULL;
+  }
+  if (NULL != sender->kce_task)
+  {
+    GNUNET_SCHEDULER_cancel (sender->kce_task);
+    sender->kce_task = NULL;
+  }
+
   sender_destroy (sender);
   return GNUNET_OK;
 }
@@ -3273,16 +3300,6 @@ do_shutdown (void *cls)
   {
     GNUNET_SCHEDULER_cancel (broadcast_task);
     broadcast_task = NULL;
-  }
-  if (NULL != kce_task_rekey)
-  {
-    GNUNET_SCHEDULER_cancel (kce_task_rekey);
-    kce_task_rekey = NULL;
-  }
-  if (NULL != kce_task)
-  {
-    GNUNET_SCHEDULER_cancel (kce_task);
-    kce_task = NULL;
   }
   if (NULL != timeout_task)
   {

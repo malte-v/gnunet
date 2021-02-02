@@ -326,199 +326,6 @@ get_peer_nr (void *cls, unsigned int get_the_other_one)
 }
 
 static void
-latency_timeout (void *cls)
-{
-
-  struct GNUNET_TRANSPORT_TESTING_TransportCommunicatorHandle *tc_h = cls;
-  unsigned int peer_nr;
-  size_t num_sent = 0;
-  size_t num_received = 0;
-
-  peer_nr = get_peer_nr_from_tc (tc_h);
-  to_task[peer_nr] = NULL;
-  if (GNUNET_TIME_absolute_get_remaining (timeout[peer_nr]).rel_value_us > 0)
-  {
-    to_task[peer_nr] = GNUNET_SCHEDULER_add_at (timeout[peer_nr],
-                                                &latency_timeout,
-                                                cls);
-    return;
-  }
-  switch (phase[peer_nr])
-  {
-  case TP_INIT:
-    GNUNET_assert (0);
-    break;
-  case TP_BURST_SHORT:
-    num_sent = num_sent_short[peer_nr];
-    num_received = num_received_short[peer_nr];
-    break;
-  case TP_BURST_LONG:
-    num_sent = num_sent_long[peer_nr];
-    num_received = num_received_long[peer_nr];
-    break;
-  case TP_SIZE_CHECK:
-    num_sent = num_sent_size[peer_nr];
-    num_received = num_received_size[peer_nr];
-    break;
-  }
-  LOG (GNUNET_ERROR_TYPE_ERROR,
-       "Latency too high. Test failed. (Phase: %d. Sent: %lu, Received: %lu)\n",
-       phase[peer_nr], num_sent, num_received);
-  ret = 2;
-  GNUNET_SCHEDULER_shutdown ();
-}
-
-static void
-size_test (void *cls)
-{
-  unsigned int peer_nr;
-  char *payload;
-  size_t max_size = 64000;
-  struct GNUNET_TRANSPORT_TESTING_TransportCommunicatorHandle *tc_h = cls;
-
-  peer_nr = get_peer_nr_from_tc (tc_h);
-  LOG (GNUNET_ERROR_TYPE_DEBUG,
-       "size_test_cb %u\n",
-       (unsigned int) num_sent_size[peer_nr]);
-  GNUNET_assert (TP_SIZE_CHECK == phase[peer_nr]);
-  if (LONG_MESSAGE_SIZE != long_message_size)
-    max_size = long_message_size;
-  if (ack[peer_nr] + 10 > max_size)
-    return; /* Leave some room for our protocol, so not 2^16 exactly */
-  ack[peer_nr] += 10;
-  payload = make_payload (ack[peer_nr]);
-  num_sent_size[peer_nr]++;
-  GNUNET_TRANSPORT_TESTING_transport_communicator_send (tc_h,
-                                                        (ack[peer_nr] <
-                                                         max_size)
-                                                        ? &size_test
-                                                        : NULL,
-                                                        cls,
-                                                        payload,
-                                                        ack[peer_nr]);
-  GNUNET_free (payload);
-  timeout[peer_nr] = GNUNET_TIME_relative_to_absolute (
-    GNUNET_TIME_relative_multiply (
-      GNUNET_TIME_UNIT_SECONDS,
-      TIMEOUT_MULTIPLIER));
-}
-
-
-static void
-long_test (void *cls);
-
-static void
-long_test_cb (void *cls)
-{
-  unsigned int peer_nr;
-  char *payload;
-  struct GNUNET_TRANSPORT_TESTING_TransportCommunicatorHandle *tc_h = cls;
-
-  peer_nr = get_peer_nr_from_tc (tc_h);
-
-  LOG (GNUNET_ERROR_TYPE_DEBUG,
-       "long_test_cb %u/%u\n",
-       (unsigned int) num_sent_long[peer_nr],
-       (unsigned int) num_received_long[peer_nr]);
-  payload = make_payload (long_message_size);
-  num_sent_long[peer_nr]++;
-  GNUNET_TRANSPORT_TESTING_transport_communicator_send (tc_h,
-                                                        (burst_packets_long ==
-                                                         num_sent_long[peer_nr])
-                                                        ? NULL
-                                                        : &long_test,
-                                                        cls,
-                                                        payload,
-                                                        long_message_size);
-  GNUNET_free (payload);
-  timeout[peer_nr] = GNUNET_TIME_relative_to_absolute (
-    GNUNET_TIME_relative_multiply (
-      GNUNET_TIME_UNIT_SECONDS,
-      TIMEOUT_MULTIPLIER));
-}
-
-
-static void
-long_test (void *cls)
-{
-  GNUNET_SCHEDULER_add_delayed (delay_long,
-                                &long_test_cb,
-                                cls);
-}
-
-
-static void
-short_test (void *cls);
-
-
-static void
-short_test_cb (void *cls)
-{
-  struct GNUNET_TRANSPORT_TESTING_TransportCommunicatorHandle *tc_h = cls;
-  unsigned int peer_nr;
-  char *payload;
-
-  peer_nr = get_peer_nr_from_tc (tc_h);
-
-  LOG (GNUNET_ERROR_TYPE_DEBUG,
-       "short_test_cb %u/%u for peer %u and handle %p\n",
-       (unsigned int) num_sent_short[peer_nr],
-       (unsigned int) num_received_short[peer_nr],
-       peer_nr,
-       tc_h);
-  payload = make_payload (SHORT_MESSAGE_SIZE);
-  num_sent_short[peer_nr]++;
-  GNUNET_TRANSPORT_TESTING_transport_communicator_send (tc_h,
-                                                        (burst_packets_short ==
-                                                         num_sent_short[peer_nr])
-                                                        ? NULL
-                                                        : &short_test,
-                                                        cls,
-                                                        payload,
-                                                        SHORT_MESSAGE_SIZE);
-  GNUNET_free (payload);
-  timeout[peer_nr] = GNUNET_TIME_relative_to_absolute (
-    GNUNET_TIME_relative_multiply (
-      GNUNET_TIME_UNIT_SECONDS,
-      TIMEOUT_MULTIPLIER));
-}
-
-
-static void
-short_test (void *cls)
-{
-  GNUNET_SCHEDULER_add_delayed (delay_short,
-                                &short_test_cb,
-                                cls);
-}
-
-
-/* static int test_prepared = GNUNET_NO; */
-
-/* This helps establishing the backchannel */
-/* static void */
-/* prepare_test (void *cls) */
-/* { */
-/*   char *payload; */
-
-/*   if (GNUNET_YES == test_prepared) */
-/*   { */
-/*     GNUNET_SCHEDULER_add_delayed (GNUNET_TIME_UNIT_SECONDS, */
-/*                                   &short_test, */
-/*                                   NULL); */
-/*     return; */
-/*   } */
-/*   test_prepared = GNUNET_YES; */
-/*   payload = make_payload (SHORT_MESSAGE_SIZE); */
-/*   GNUNET_TRANSPORT_TESTING_transport_communicator_send (my_tc, */
-/*                                                         &prepare_test, */
-/*                                                         NULL, */
-/*                                                         payload, */
-/*                                                         SHORT_MESSAGE_SIZE); */
-/*   GNUNET_free (payload); */
-/* } */
-
-static void
 process_statistics_box_done (void *cls, int success)
 {
   struct GNUNET_TRANSPORT_TESTING_TransportCommunicatorHandle *tc_h = cls;
@@ -554,7 +361,6 @@ process_statistics_rekey_done (void *cls, int success)
     GNUNET_SCHEDULER_shutdown ();
   }
 }
-
 
 static int
 process_statistics (void *cls,
@@ -599,6 +405,126 @@ process_statistics (void *cls,
     GNUNET_SCHEDULER_shutdown ();
   }
   return GNUNET_OK;
+}
+
+static void
+short_test (void *cls);
+
+static void
+short_test_cb (void *cls)
+{
+  struct GNUNET_TRANSPORT_TESTING_TransportCommunicatorHandle *tc_h = cls;
+  unsigned int peer_nr;
+  char *payload;
+
+  peer_nr = get_peer_nr_from_tc (tc_h);
+
+  LOG (GNUNET_ERROR_TYPE_DEBUG,
+       "short_test_cb %u/%u for peer %u and handle %p\n",
+       (unsigned int) num_sent_short[peer_nr],
+       (unsigned int) num_received_short[peer_nr],
+       peer_nr,
+       tc_h);
+  payload = make_payload (SHORT_MESSAGE_SIZE);
+  num_sent_short[peer_nr]++;
+  GNUNET_TRANSPORT_TESTING_transport_communicator_send (tc_h,
+                                                        (burst_packets_short ==
+                                                         num_sent_short[peer_nr])
+                                                        ? NULL
+                                                        : &short_test,
+                                                        cls,
+                                                        payload,
+                                                        SHORT_MESSAGE_SIZE);
+  GNUNET_free (payload);
+  timeout[peer_nr] = GNUNET_TIME_relative_to_absolute (
+    GNUNET_TIME_relative_multiply (
+      GNUNET_TIME_UNIT_SECONDS,
+      TIMEOUT_MULTIPLIER));
+}
+
+static void
+short_test (void *cls)
+{
+  GNUNET_SCHEDULER_add_delayed (delay_short,
+                                &short_test_cb,
+                                cls);
+}
+
+static void
+size_test (void *cls)
+{
+  unsigned int peer_nr;
+  char *payload;
+  size_t max_size = 64000;
+  struct GNUNET_TRANSPORT_TESTING_TransportCommunicatorHandle *tc_h = cls;
+
+  peer_nr = get_peer_nr_from_tc (tc_h);
+  LOG (GNUNET_ERROR_TYPE_DEBUG,
+       "size_test_cb %u\n",
+       (unsigned int) num_sent_size[peer_nr]);
+  GNUNET_assert (TP_SIZE_CHECK == phase[peer_nr]);
+  if (LONG_MESSAGE_SIZE != long_message_size)
+    max_size = long_message_size;
+  if (ack[peer_nr] + 10 > max_size)
+    return; /* Leave some room for our protocol, so not 2^16 exactly */
+  ack[peer_nr] += 10;
+  payload = make_payload (ack[peer_nr]);
+  num_sent_size[peer_nr]++;
+  GNUNET_TRANSPORT_TESTING_transport_communicator_send (tc_h,
+                                                        (ack[peer_nr] <
+                                                         max_size)
+                                                        ? &size_test
+                                                        : NULL,
+                                                        cls,
+                                                        payload,
+                                                        ack[peer_nr]);
+  GNUNET_free (payload);
+  timeout[peer_nr] = GNUNET_TIME_relative_to_absolute (
+    GNUNET_TIME_relative_multiply (
+      GNUNET_TIME_UNIT_SECONDS,
+      TIMEOUT_MULTIPLIER));
+}
+
+static void
+long_test (void *cls);
+
+static void
+long_test_cb (void *cls)
+{
+  unsigned int peer_nr;
+  char *payload;
+  struct GNUNET_TRANSPORT_TESTING_TransportCommunicatorHandle *tc_h = cls;
+
+  peer_nr = get_peer_nr_from_tc (tc_h);
+
+  LOG (GNUNET_ERROR_TYPE_DEBUG,
+       "long_test_cb %u/%u\n",
+       (unsigned int) num_sent_long[peer_nr],
+       (unsigned int) num_received_long[peer_nr]);
+  payload = make_payload (long_message_size);
+  num_sent_long[peer_nr]++;
+  GNUNET_TRANSPORT_TESTING_transport_communicator_send (tc_h,
+                                                        (burst_packets_long ==
+                                                         num_sent_long[peer_nr])
+                                                        ? NULL
+                                                        : &long_test,
+                                                        cls,
+                                                        payload,
+                                                        long_message_size);
+  GNUNET_free (payload);
+  timeout[peer_nr] = GNUNET_TIME_relative_to_absolute (
+    GNUNET_TIME_relative_multiply (
+      GNUNET_TIME_UNIT_SECONDS,
+      TIMEOUT_MULTIPLIER));
+}
+
+
+static void
+long_test (void *cls)
+{
+  GNUNET_SCHEDULER_add_delayed (delay_long,
+                                &long_test_cb,
+                                cls);
 }
 
 static void
@@ -661,8 +587,11 @@ choose_phase (struct GNUNET_TRANSPORT_TESTING_TransportCommunicatorHandle *tc_h)
     }
     else
     {
-      if (((PEER_A == peer_nr) && finished[PEER_B]) || ((PEER_B == peer_nr) &&
-                                                        finished[PEER_A]))
+      if ((GNUNET_NO == bidirect)|| (((PEER_A == peer_nr) &&
+                                      finished[PEER_B]) || ((PEER_B ==
+                                                             peer_nr) &&
+                                                            finished
+                                                            [PEER_A])))
       {
         LOG (GNUNET_ERROR_TYPE_DEBUG,
              "Finished\n");
@@ -671,6 +600,137 @@ choose_phase (struct GNUNET_TRANSPORT_TESTING_TransportCommunicatorHandle *tc_h)
       finished[peer_nr] = GNUNET_YES;
     }
   }
+}
+
+static void finish_phase_long (unsigned int peer_nr)
+{
+  static struct GNUNET_TIME_Relative duration;
+
+  duration = GNUNET_TIME_absolute_get_duration (start_long[peer_nr]);
+  LOG (GNUNET_ERROR_TYPE_MESSAGE,
+       "Long size packet test  for peer %u done.\n",
+       peer_nr);
+  char *goodput = GNUNET_STRINGS_byte_size_fancy (
+    (long_message_size * num_received_long[peer_nr] * 1000 * 1000)
+    / duration.
+    rel_value_us);
+
+  LOG (GNUNET_ERROR_TYPE_MESSAGE,
+       "%lu/%lu packets in %llu us (%s/s) -- avg latency: %llu us\n",
+       (unsigned long) num_received_long[peer_nr],
+       (unsigned long) num_sent_long[peer_nr],
+       (unsigned long long) duration.rel_value_us,
+       goodput,
+       (unsigned long long) avg_latency[peer_nr]);
+  GNUNET_free (goodput);
+  ack[peer_nr] = 0;
+  // phase = TP_SIZE_CHECK;
+  // num_received = 0;
+  // num_sent_long = 0;
+  avg_latency[peer_nr] = 0;
+  // size_test (NULL);
+  phase_long[peer_nr] = GNUNET_NO;
+  choose_phase (get_tc_h (peer_nr));
+}
+
+static void
+finish_phase_short (unsigned int peer_nr)
+{
+  static struct GNUNET_TIME_Relative duration;
+
+  duration = GNUNET_TIME_absolute_get_duration (start_short[peer_nr]);
+  LOG (GNUNET_ERROR_TYPE_MESSAGE,
+       "Short size packet test for peer %u done.\n",
+       peer_nr);
+  char *goodput = GNUNET_STRINGS_byte_size_fancy (
+    (SHORT_MESSAGE_SIZE * num_received_short[peer_nr] * 1000 * 1000)
+    / duration.rel_value_us);
+  LOG (GNUNET_ERROR_TYPE_MESSAGE,
+       "%lu/%lu packets in %llu us (%s/s) -- avg latency: %llu us\n",
+       (unsigned long) num_received_short[peer_nr],
+       (unsigned long) num_sent_short[peer_nr],
+       (unsigned long long) duration.rel_value_us,
+       goodput,
+       (unsigned long long) avg_latency[peer_nr]);
+  GNUNET_free (goodput);
+  // start_long = GNUNET_TIME_absolute_get ();
+  // phase = TP_BURST_LONG;
+  // num_sent_short = 0;
+  avg_latency[peer_nr] = 0;
+  // num_received = 0;
+  phase_short[peer_nr] = GNUNET_NO;
+  choose_phase (get_tc_h (peer_nr));
+  // long_test (NULL);
+}
+
+static void
+latency_timeout (void *cls)
+{
+
+  struct GNUNET_TRANSPORT_TESTING_TransportCommunicatorHandle *tc_h = cls;
+  unsigned int peer_nr;
+  size_t num_sent = 0;
+  size_t num_received = 0;
+
+  peer_nr = get_peer_nr_from_tc (tc_h);
+  to_task[peer_nr] = NULL;
+
+  switch (phase[peer_nr])
+  {
+  case TP_INIT:
+    GNUNET_assert (0);
+    break;
+  case TP_BURST_SHORT:
+    num_sent = num_sent_short[peer_nr];
+    num_received = num_received_short[peer_nr];
+    if ((num_sent_short[peer_nr] == burst_packets_short) &&
+        (num_received_short[peer_nr] >
+         burst_packets_short
+         / 100
+         *
+         allowed_packet_loss_short) )
+    {
+      finish_phase_short (peer_nr);
+      to_task[peer_nr] = GNUNET_SCHEDULER_add_at (timeout[peer_nr],
+                                                  &latency_timeout,
+                                                  cls);
+      return;
+    }
+    break;
+  case TP_BURST_LONG:
+    num_sent = num_sent_long[peer_nr];
+    num_received = num_received_long[peer_nr];
+    if ((num_sent_long[peer_nr] == burst_packets_long) &&
+        (num_received_long[peer_nr] >
+         burst_packets_long
+         / 100
+         *
+         allowed_packet_loss_long) )
+    {
+      finish_phase_long (peer_nr);
+      to_task[peer_nr] = GNUNET_SCHEDULER_add_at (timeout[peer_nr],
+                                                  &latency_timeout,
+                                                  cls);
+      return;
+    }
+    break;
+  case TP_SIZE_CHECK:
+    num_sent = num_sent_size[peer_nr];
+    num_received = num_received_size[peer_nr];
+    break;
+  }
+  if (GNUNET_TIME_absolute_get_remaining (timeout[peer_nr]).rel_value_us > 0)
+  {
+    to_task[peer_nr] = GNUNET_SCHEDULER_add_at (timeout[peer_nr],
+                                                &latency_timeout,
+                                                cls);
+    return;
+  }
+  LOG (GNUNET_ERROR_TYPE_ERROR,
+       "Latency too high. Test failed. (Phase: %d. Sent: %lu, Received: %lu)\n",
+       phase[peer_nr], num_sent, num_received);
+  ret = 2;
+  GNUNET_SCHEDULER_shutdown ();
 }
 
 /**
@@ -812,6 +872,8 @@ load_phase_config ()
   phase_size[1] = phase_size[0];
 }
 
+
+
 /**
  * @brief Handle an incoming message
  *
@@ -829,7 +891,7 @@ incoming_message_cb (
   size_t payload_len)
 {
   unsigned int peer_nr;
-  static struct GNUNET_TIME_Relative duration;
+
 
   peer_nr = get_peer_nr (cls, GNUNET_YES);
 
@@ -854,37 +916,13 @@ incoming_message_cb (
     {
       GNUNET_assert (SHORT_MESSAGE_SIZE == payload_len);
       num_received_short[peer_nr]++;
-      duration = GNUNET_TIME_absolute_get_duration (start_short[peer_nr]);
+
       update_avg_latency (payload, peer_nr);
       if ((num_sent_short[peer_nr] == burst_packets_short) &&
-          (num_received_short[peer_nr] >
-           burst_packets_short
-           / 100
-           *
-           allowed_packet_loss_short) )
+          (num_received_short[peer_nr] ==
+           burst_packets_short))
       {
-        LOG (GNUNET_ERROR_TYPE_MESSAGE,
-             "Short size packet test for peer %u done.\n",
-             peer_nr);
-        char *goodput = GNUNET_STRINGS_byte_size_fancy (
-          (SHORT_MESSAGE_SIZE * num_received_short[peer_nr] * 1000 * 1000)
-          / duration.rel_value_us);
-        LOG (GNUNET_ERROR_TYPE_MESSAGE,
-             "%lu/%lu packets in %llu us (%s/s) -- avg latency: %llu us\n",
-             (unsigned long) num_received_short[peer_nr],
-             (unsigned long) num_sent_short[peer_nr],
-             (unsigned long long) duration.rel_value_us,
-             goodput,
-             (unsigned long long) avg_latency[peer_nr]);
-        GNUNET_free (goodput);
-        // start_long = GNUNET_TIME_absolute_get ();
-        // phase = TP_BURST_LONG;
-        // num_sent_short = 0;
-        avg_latency[peer_nr] = 0;
-        // num_received = 0;
-        phase_short[peer_nr] = GNUNET_NO;
-        choose_phase (get_tc_h (peer_nr));
-        // long_test (NULL);
+        finish_phase_short (peer_nr);
       }
       break;
     }
@@ -897,39 +935,13 @@ incoming_message_cb (
         return;   // Ignore
       }
       num_received_long[peer_nr]++;
-      duration = GNUNET_TIME_absolute_get_duration (start_long[peer_nr]);
+
       update_avg_latency (payload, peer_nr);
       if ((num_sent_long[peer_nr] == burst_packets_long) &&
           (num_received_long[peer_nr] >
-           burst_packets_long
-           / 100
-           *
-           allowed_packet_loss_short) )
+           burst_packets_long))
       {
-        LOG (GNUNET_ERROR_TYPE_MESSAGE,
-             "Long size packet test  for peer %u done.\n",
-             peer_nr);
-        char *goodput = GNUNET_STRINGS_byte_size_fancy (
-          (long_message_size * num_received_long[peer_nr] * 1000 * 1000)
-          / duration.
-          rel_value_us);
-
-        LOG (GNUNET_ERROR_TYPE_MESSAGE,
-             "%lu/%lu packets in %llu us (%s/s) -- avg latency: %llu us\n",
-             (unsigned long) num_received_long[peer_nr],
-             (unsigned long) num_sent_long[peer_nr],
-             (unsigned long long) duration.rel_value_us,
-             goodput,
-             (unsigned long long) avg_latency[peer_nr]);
-        GNUNET_free (goodput);
-        ack[peer_nr] = 0;
-        // phase = TP_SIZE_CHECK;
-        // num_received = 0;
-        // num_sent_long = 0;
-        avg_latency[peer_nr] = 0;
-        // size_test (NULL);
-        phase_long[peer_nr] = GNUNET_NO;
-        choose_phase (get_tc_h (peer_nr));
+        finish_phase_long (peer_nr);
       }
       break;
     }
