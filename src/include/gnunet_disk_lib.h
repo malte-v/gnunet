@@ -405,6 +405,7 @@ enum GNUNET_DISK_PipeFlags
    * Configure read end to block when reading if set.
    */
   GNUNET_DISK_PF_BLOCKING_READ = 1,
+
   /**
    * Configure write end to block when writing if set.
    */

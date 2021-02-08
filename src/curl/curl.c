@@ -389,18 +389,22 @@ setup_job_headers (struct GNUNET_CURL_Context *ctx,
 {
   struct curl_slist *all_headers = NULL;
 
-  for (const struct curl_slist *curr = job_headers; curr != NULL;
+  for (const struct curl_slist *curr = job_headers;
+       NULL != curr;
        curr = curr->next)
   {
     GNUNET_assert (NULL !=
-                   (all_headers = curl_slist_append (all_headers, curr->data)));
+                   (all_headers = curl_slist_append (all_headers,
+                                                     curr->data)));
   }
 
-  for (const struct curl_slist *curr = ctx->common_headers; curr != NULL;
+  for (const struct curl_slist *curr = ctx->common_headers;
+       NULL != curr;
        curr = curr->next)
   {
     GNUNET_assert (NULL !=
-                   (all_headers = curl_slist_append (all_headers, curr->data)));
+                   (all_headers = curl_slist_append (all_headers,
+                                                     curr->data)));
   }
 
   if (NULL != ctx->async_scope_id_header)
@@ -410,11 +414,12 @@ setup_job_headers (struct GNUNET_CURL_Context *ctx,
     GNUNET_async_scope_get (&scope);
     if (GNUNET_YES == scope.have_scope)
     {
-      char *aid_header = NULL;
+      char *aid_header;
+
       aid_header =
-        GNUNET_STRINGS_data_to_string_alloc (&scope.scope_id,
-                                             sizeof(
-                                               struct GNUNET_AsyncScopeId));
+        GNUNET_STRINGS_data_to_string_alloc (
+          &scope.scope_id,
+          sizeof(struct GNUNET_AsyncScopeId));
       GNUNET_assert (NULL != aid_header);
       GNUNET_assert (NULL != curl_slist_append (all_headers, aid_header));
       GNUNET_free (aid_header);
