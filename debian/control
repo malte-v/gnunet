@@ -7,7 +7,6 @@ Build-Depends:
  automake (>=1.11.1),
  autopoint,
  debhelper-compat (= 13),
- default-libmysqlclient-dev,
  gettext,
  iptables,
  libbluetooth-dev,

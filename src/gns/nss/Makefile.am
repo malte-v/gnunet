@@ -22,9 +22,7 @@ EXTRA_DIST = map-file
 
 AM_LDFLAGS=-avoid-version -module -export-dynamic
 
-nssdir = $(libdir)/gnunet/nss
-
-nss_LTLIBRARIES = \
+lib_LTLIBRARIES = \
 	libnss_gns.la \
 	libnss_gns4.la \
 	libnss_gns6.la

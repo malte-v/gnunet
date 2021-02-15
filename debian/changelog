@@ -1,3 +1,16 @@
+gnunet (0.14.0-4) unstable; urgency=medium
+
+  * Remove dependency of libgnunetutil on gnunet.
+
+ -- Christian Grothoff <grothoff@gnu.org>  Mon, 15 Feb 2021 13:02:10 +0100
+
+gnunet (0.14.0-3) unstable; urgency=medium
+
+  * Reduce libgnunetutil dependencies.
+  * Modify package instructions to work on non-AMD64 architectures.
+
+ -- Christian Grothoff <grothoff@gnu.org>  Mon, 15 Feb 2021 12:02:10 +0100
+
 gnunet (0.14.0-2) unstable; urgency=medium
 
   * Bugfix in GMT conversion of GNUNET_TIME_year_to_time().
