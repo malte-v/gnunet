@@ -138,6 +138,12 @@ enum UnionOperationPhase
    * that the local peer is missing.
    */
   PHASE_FULL_SENDING,
+
+  /**
+   * Phase that receives full set first and then sends elements that are
+   * the local peer missing
+   */
+   PHASE_FULL_RECEIVING
 };
 
 
@@ -1448,7 +1454,7 @@ handle_union_p2p_strata_estimator (void *cls,
 
       LOG (GNUNET_ERROR_TYPE_DEBUG,
            "Telling other peer that we expect its full set\n");
-      op->phase = PHASE_EXPECT_IBF;
+      op->phase = PHASE_FULL_RECEIVING;
       ev = GNUNET_MQ_msg_header (
         GNUNET_MESSAGE_TYPE_SETU_P2P_REQUEST_FULL);
       GNUNET_MQ_send (op->mq,
@@ -2051,6 +2057,12 @@ check_union_p2p_full_element (void *cls,
 {
   struct Operation *op = cls;
 
+  // Allow only receiving of full element message if in expect IBF or in PHASE_FULL_RECEIVING state
+  if ( op->phase != PHASE_EXPECT_IBF && op->phase != PHASE_FULL_RECEIVING ) {
+      GNUNET_break_op (0);
+      return GNUNET_SYSERR;
+  }
+
   (void) op;
   // FIXME: check that we expect full elements here?
   return GNUNET_OK;
@@ -2071,6 +2083,8 @@ handle_union_p2p_full_element (void *cls,
   struct ElementEntry *ee;
   struct KeyEntry *ke;
   uint16_t element_size;
+
+  op->phase = PHASE_FULL_RECEIVING;
 
   element_size = ntohs (emsg->header.size)
                  - sizeof(struct GNUNET_SETU_ElementMessage);
