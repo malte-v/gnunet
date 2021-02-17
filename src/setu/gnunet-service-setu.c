@@ -113,7 +113,7 @@ enum UnionOperationPhase
   /**
    * The other peer is decoding the IBF we just sent.
    */
-  PHASE_PASIVE_DECODING,
+  PHASE_PASSIVE_DECODING,
 
   /**
    * The protocol is almost finished, but we still have to flush our message
@@ -1225,7 +1225,7 @@ send_ibf (struct Operation *op,
 
   /* The other peer must decode the IBF, so
    * we're passive. */
-  op->phase = PHASE_PASIVE_DECODING;
+  op->phase = PHASE_PASSIVE_DECODING;
   return GNUNET_OK;
 }
 
@@ -1747,7 +1747,7 @@ check_union_p2p_ibf (void *cls,
       return GNUNET_SYSERR;
     }
   }
-  else if ((op->phase != PHASE_PASIVE_DECODING) &&
+  else if ((op->phase != PHASE_PASSIVE_DECODING) &&
            (op->phase != PHASE_EXPECT_IBF))
   {
     GNUNET_break_op (0);
@@ -1776,7 +1776,7 @@ handle_union_p2p_ibf (void *cls,
 
   buckets_in_message = (ntohs (msg->header.size) - sizeof *msg)
                        / IBF_BUCKET_SIZE;
-  if ((op->phase == PHASE_PASIVE_DECODING) ||
+  if ((op->phase == PHASE_PASSIVE_DECODING) ||
       (op->phase == PHASE_EXPECT_IBF))
   {
     op->phase = PHASE_EXPECT_IBF_CONT;
@@ -2154,7 +2154,7 @@ check_union_p2p_inquiry (void *cls,
   struct Operation *op = cls;
   unsigned int num_keys;
 
-  if (op->phase != PHASE_PASIVE_DECODING)
+  if (op->phase != PHASE_PASSIVE_DECODING)
   {
     GNUNET_break_op (0);
     return GNUNET_SYSERR;
@@ -2437,7 +2437,7 @@ check_union_p2p_offer (void *cls,
   unsigned int num_hashes;
 
   /* look up elements and send them */
-  if ((op->phase != PHASE_PASIVE_DECODING) &&
+  if ((op->phase != PHASE_PASSIVE_DECODING) &&
       (op->phase != PHASE_ACTIVE_DECODING))
   {
     GNUNET_break_op (0);
@@ -2531,7 +2531,7 @@ handle_union_p2p_done (void *cls,
 
   switch (op->phase)
   {
-  case PHASE_PASIVE_DECODING:
+  case PHASE_PASSIVE_DECODING:
     /* We got all requests, but still have to send our elements in response. */
     op->phase = PHASE_FINISH_WAITING;
     LOG (GNUNET_ERROR_TYPE_DEBUG,
