@@ -103,7 +103,7 @@ enum UnionOperationPhase
   /**
    * Continuation for multi part IBFs.
    */
-  PHASE_EXPECT_IBF_CONT,
+  PHASE_EXPECT_IBF_LAST,
 
   /**
    * We are decoding an IBF.
@@ -1729,7 +1729,7 @@ check_union_p2p_ibf (void *cls,
     GNUNET_break_op (0);
     return GNUNET_SYSERR;
   }
-  if (op->phase == PHASE_EXPECT_IBF_CONT)
+  if (op->phase == PHASE_EXPECT_IBF_LAST)
   {
     if (ntohl (msg->offset) != op->ibf_buckets_received)
     {
@@ -1779,7 +1779,7 @@ handle_union_p2p_ibf (void *cls,
   if ((op->phase == PHASE_PASSIVE_DECODING) ||
       (op->phase == PHASE_EXPECT_IBF))
   {
-    op->phase = PHASE_EXPECT_IBF_CONT;
+    op->phase = PHASE_EXPECT_IBF_LAST;
     GNUNET_assert (NULL == op->remote_ibf);
     LOG (GNUNET_ERROR_TYPE_DEBUG,
          "Creating new ibf of size %u\n",
@@ -1806,7 +1806,7 @@ handle_union_p2p_ibf (void *cls,
   }
   else
   {
-    GNUNET_assert (op->phase == PHASE_EXPECT_IBF_CONT);
+    GNUNET_assert (op->phase == PHASE_EXPECT_IBF_LAST);
     LOG (GNUNET_ERROR_TYPE_DEBUG,
          "Received more of IBF\n");
   }
