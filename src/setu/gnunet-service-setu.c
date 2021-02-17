@@ -103,17 +103,17 @@ enum UnionOperationPhase
   /**
    * Continuation for multi part IBFs.
    */
-  PHASE_EXPECT_IBF_CONT,
+  PHASE_EXPECT_IBF_LAST,
 
   /**
    * We are decoding an IBF.
    */
-  PHASE_INVENTORY_ACTIVE,
+  PHASE_ACTIVE_DECODING,
 
   /**
    * The other peer is decoding the IBF we just sent.
    */
-  PHASE_INVENTORY_PASSIVE,
+  PHASE_PASSIVE_DECODING,
 
   /**
    * The protocol is almost finished, but we still have to flush our message
@@ -131,13 +131,19 @@ enum UnionOperationPhase
    * In the ultimate phase, we wait until our demands are satisfied and then
    * quit (sending another DONE message).
    */
-  PHASE_DONE,
+  PHASE_FINISHED,
 
   /**
    * After sending the full set, wait for responses with the elements
    * that the local peer is missing.
    */
   PHASE_FULL_SENDING,
+
+  /**
+   * Phase that receives full set first and then sends elements that are
+   * the local peer missing
+   */
+   PHASE_FULL_RECEIVING
 };
 
 
@@ -657,7 +663,7 @@ send_client_done (void *cls)
 
   if (GNUNET_YES == op->client_done_sent)
     return;
-  if (PHASE_DONE != op->phase)
+  if (PHASE_FINISHED != op->phase)
   {
     LOG (GNUNET_ERROR_TYPE_WARNING,
          "Union operation failed\n");
@@ -1225,7 +1231,7 @@ send_ibf (struct Operation *op,
 
   /* The other peer must decode the IBF, so
    * we're passive. */
-  op->phase = PHASE_INVENTORY_PASSIVE;
+  op->phase = PHASE_PASSIVE_DECODING;
   return GNUNET_OK;
 }
 
@@ -1448,7 +1454,7 @@ handle_union_p2p_strata_estimator (void *cls,
 
       LOG (GNUNET_ERROR_TYPE_DEBUG,
            "Telling other peer that we expect its full set\n");
-      op->phase = PHASE_EXPECT_IBF;
+      op->phase = PHASE_FULL_RECEIVING;
       ev = GNUNET_MQ_msg_header (
         GNUNET_MESSAGE_TYPE_SETU_P2P_REQUEST_FULL);
       GNUNET_MQ_send (op->mq,
@@ -1552,7 +1558,7 @@ decode_and_send (struct Operation *op)
   unsigned int num_decoded;
   struct InvertibleBloomFilter *diff_ibf;
 
-  GNUNET_assert (PHASE_INVENTORY_ACTIVE == op->phase);
+  GNUNET_assert (PHASE_ACTIVE_DECODING == op->phase);
 
   if (GNUNET_OK !=
       prepare_ibf (op,
@@ -1729,7 +1735,7 @@ check_union_p2p_ibf (void *cls,
     GNUNET_break_op (0);
     return GNUNET_SYSERR;
   }
-  if (op->phase == PHASE_EXPECT_IBF_CONT)
+  if (op->phase == PHASE_EXPECT_IBF_LAST)
   {
     if (ntohl (msg->offset) != op->ibf_buckets_received)
     {
@@ -1747,7 +1753,7 @@ check_union_p2p_ibf (void *cls,
       return GNUNET_SYSERR;
     }
   }
-  else if ((op->phase != PHASE_INVENTORY_PASSIVE) &&
+  else if ((op->phase != PHASE_PASSIVE_DECODING) &&
            (op->phase != PHASE_EXPECT_IBF))
   {
     GNUNET_break_op (0);
@@ -1776,10 +1782,10 @@ handle_union_p2p_ibf (void *cls,
 
   buckets_in_message = (ntohs (msg->header.size) - sizeof *msg)
                        / IBF_BUCKET_SIZE;
-  if ((op->phase == PHASE_INVENTORY_PASSIVE) ||
+  if ((op->phase == PHASE_PASSIVE_DECODING) ||
       (op->phase == PHASE_EXPECT_IBF))
   {
-    op->phase = PHASE_EXPECT_IBF_CONT;
+    op->phase = PHASE_EXPECT_IBF_LAST;
     GNUNET_assert (NULL == op->remote_ibf);
     LOG (GNUNET_ERROR_TYPE_DEBUG,
          "Creating new ibf of size %u\n",
@@ -1806,7 +1812,7 @@ handle_union_p2p_ibf (void *cls,
   }
   else
   {
-    GNUNET_assert (op->phase == PHASE_EXPECT_IBF_CONT);
+    GNUNET_assert (op->phase == PHASE_EXPECT_IBF_LAST);
     LOG (GNUNET_ERROR_TYPE_DEBUG,
          "Received more of IBF\n");
   }
@@ -1822,7 +1828,7 @@ handle_union_p2p_ibf (void *cls,
   {
     LOG (GNUNET_ERROR_TYPE_DEBUG,
          "received full ibf\n");
-    op->phase = PHASE_INVENTORY_ACTIVE;
+    op->phase = PHASE_ACTIVE_DECODING;
     if (GNUNET_OK !=
         decode_and_send (op))
     {
@@ -1901,7 +1907,7 @@ maybe_finish (struct Operation *op)
     {
       struct GNUNET_MQ_Envelope *ev;
 
-      op->phase = PHASE_DONE;
+      op->phase = PHASE_FINISHED;
       ev = GNUNET_MQ_msg_header (GNUNET_MESSAGE_TYPE_SETU_P2P_DONE);
       GNUNET_MQ_send (op->mq,
                       ev);
@@ -1916,7 +1922,7 @@ maybe_finish (struct Operation *op)
          num_demanded);
     if (0 == num_demanded)
     {
-      op->phase = PHASE_DONE;
+      op->phase = PHASE_FINISHED;
       send_client_done (op);
       _GSS_operation_destroy2 (op);
     }
@@ -2051,6 +2057,12 @@ check_union_p2p_full_element (void *cls,
 {
   struct Operation *op = cls;
 
+  // Allow only receiving of full element message if in expect IBF or in PHASE_FULL_RECEIVING state
+  if ( op->phase != PHASE_EXPECT_IBF && op->phase != PHASE_FULL_RECEIVING ) {
+      GNUNET_break_op (0);
+      return GNUNET_SYSERR;
+  }
+
   (void) op;
   // FIXME: check that we expect full elements here?
   return GNUNET_OK;
@@ -2071,6 +2083,8 @@ handle_union_p2p_full_element (void *cls,
   struct ElementEntry *ee;
   struct KeyEntry *ke;
   uint16_t element_size;
+
+  op->phase = PHASE_FULL_RECEIVING;
 
   element_size = ntohs (emsg->header.size)
                  - sizeof(struct GNUNET_SETU_ElementMessage);
@@ -2154,7 +2168,7 @@ check_union_p2p_inquiry (void *cls,
   struct Operation *op = cls;
   unsigned int num_keys;
 
-  if (op->phase != PHASE_INVENTORY_PASSIVE)
+  if (op->phase != PHASE_PASSIVE_DECODING)
   {
     GNUNET_break_op (0);
     return GNUNET_SYSERR;
@@ -2297,7 +2311,7 @@ handle_union_p2p_full_done (void *cls,
       ev = GNUNET_MQ_msg_header (GNUNET_MESSAGE_TYPE_SETU_P2P_FULL_DONE);
       GNUNET_MQ_send (op->mq,
                       ev);
-      op->phase = PHASE_DONE;
+      op->phase = PHASE_FINISHED;
       /* we now wait until the other peer sends us the OVER message*/
     }
     break;
@@ -2307,7 +2321,7 @@ handle_union_p2p_full_done (void *cls,
       LOG (GNUNET_ERROR_TYPE_DEBUG,
            "got FULL DONE, finishing\n");
       /* We sent the full set, and got the response for that.  We're done. */
-      op->phase = PHASE_DONE;
+      op->phase = PHASE_FINISHED;
       GNUNET_CADET_receive_done (op->channel);
       send_client_done (op);
       _GSS_operation_destroy2 (op);
@@ -2437,8 +2451,8 @@ check_union_p2p_offer (void *cls,
   unsigned int num_hashes;
 
   /* look up elements and send them */
-  if ((op->phase != PHASE_INVENTORY_PASSIVE) &&
-      (op->phase != PHASE_INVENTORY_ACTIVE))
+  if ((op->phase != PHASE_PASSIVE_DECODING) &&
+      (op->phase != PHASE_ACTIVE_DECODING))
   {
     GNUNET_break_op (0);
     return GNUNET_SYSERR;
@@ -2531,7 +2545,7 @@ handle_union_p2p_done (void *cls,
 
   switch (op->phase)
   {
-  case PHASE_INVENTORY_PASSIVE:
+  case PHASE_PASSIVE_DECODING:
     /* We got all requests, but still have to send our elements in response. */
     op->phase = PHASE_FINISH_WAITING;
     LOG (GNUNET_ERROR_TYPE_DEBUG,
@@ -2547,7 +2561,7 @@ handle_union_p2p_done (void *cls,
      */GNUNET_CADET_receive_done (op->channel);
     maybe_finish (op);
     return;
-  case PHASE_INVENTORY_ACTIVE:
+  case PHASE_ACTIVE_DECODING:
     LOG (GNUNET_ERROR_TYPE_DEBUG,
          "got DONE (as active partner), waiting to finish\n");
     /* All demands of the other peer are satisfied,
