@@ -108,7 +108,7 @@ enum UnionOperationPhase
   /**
    * We are decoding an IBF.
    */
-  PHASE_INVENTORY_ACTIVE,
+  PHASE_ACTIVE_DECODING,
 
   /**
    * The other peer is decoding the IBF we just sent.
@@ -1552,7 +1552,7 @@ decode_and_send (struct Operation *op)
   unsigned int num_decoded;
   struct InvertibleBloomFilter *diff_ibf;
 
-  GNUNET_assert (PHASE_INVENTORY_ACTIVE == op->phase);
+  GNUNET_assert (PHASE_ACTIVE_DECODING == op->phase);
 
   if (GNUNET_OK !=
       prepare_ibf (op,
@@ -1822,7 +1822,7 @@ handle_union_p2p_ibf (void *cls,
   {
     LOG (GNUNET_ERROR_TYPE_DEBUG,
          "received full ibf\n");
-    op->phase = PHASE_INVENTORY_ACTIVE;
+    op->phase = PHASE_ACTIVE_DECODING;
     if (GNUNET_OK !=
         decode_and_send (op))
     {
@@ -2438,7 +2438,7 @@ check_union_p2p_offer (void *cls,
 
   /* look up elements and send them */
   if ((op->phase != PHASE_INVENTORY_PASSIVE) &&
-      (op->phase != PHASE_INVENTORY_ACTIVE))
+      (op->phase != PHASE_ACTIVE_DECODING))
   {
     GNUNET_break_op (0);
     return GNUNET_SYSERR;
@@ -2547,7 +2547,7 @@ handle_union_p2p_done (void *cls,
      */GNUNET_CADET_receive_done (op->channel);
     maybe_finish (op);
     return;
-  case PHASE_INVENTORY_ACTIVE:
+  case PHASE_ACTIVE_DECODING:
     LOG (GNUNET_ERROR_TYPE_DEBUG,
          "got DONE (as active partner), waiting to finish\n");
     /* All demands of the other peer are satisfied,

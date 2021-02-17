@@ -73,3 +73,6 @@ cmake/
 build
 CMakeLists.txt
 CMakeFiles.txt
+
+# Prevent IDEA files from being pushed
+.idea/
