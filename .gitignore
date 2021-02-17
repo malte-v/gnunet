@@ -74,5 +74,5 @@ build
 CMakeLists.txt
 CMakeFiles.txt
 
-# Prevent IDEA files from being pushed
+# Prevent cache files from IDEA from being commited
 .idea/
