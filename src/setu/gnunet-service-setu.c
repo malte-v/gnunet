@@ -131,7 +131,7 @@ enum UnionOperationPhase
    * In the ultimate phase, we wait until our demands are satisfied and then
    * quit (sending another DONE message).
    */
-  PHASE_DONE,
+  PHASE_FINISHED,
 
   /**
    * After sending the full set, wait for responses with the elements
@@ -657,7 +657,7 @@ send_client_done (void *cls)
 
   if (GNUNET_YES == op->client_done_sent)
     return;
-  if (PHASE_DONE != op->phase)
+  if (PHASE_FINISHED != op->phase)
   {
     LOG (GNUNET_ERROR_TYPE_WARNING,
          "Union operation failed\n");
@@ -1901,7 +1901,7 @@ maybe_finish (struct Operation *op)
     {
       struct GNUNET_MQ_Envelope *ev;
 
-      op->phase = PHASE_DONE;
+      op->phase = PHASE_FINISHED;
       ev = GNUNET_MQ_msg_header (GNUNET_MESSAGE_TYPE_SETU_P2P_DONE);
       GNUNET_MQ_send (op->mq,
                       ev);
@@ -1916,7 +1916,7 @@ maybe_finish (struct Operation *op)
          num_demanded);
     if (0 == num_demanded)
     {
-      op->phase = PHASE_DONE;
+      op->phase = PHASE_FINISHED;
       send_client_done (op);
       _GSS_operation_destroy2 (op);
     }
@@ -2297,7 +2297,7 @@ handle_union_p2p_full_done (void *cls,
       ev = GNUNET_MQ_msg_header (GNUNET_MESSAGE_TYPE_SETU_P2P_FULL_DONE);
       GNUNET_MQ_send (op->mq,
                       ev);
-      op->phase = PHASE_DONE;
+      op->phase = PHASE_FINISHED;
       /* we now wait until the other peer sends us the OVER message*/
     }
     break;
@@ -2307,7 +2307,7 @@ handle_union_p2p_full_done (void *cls,
       LOG (GNUNET_ERROR_TYPE_DEBUG,
            "got FULL DONE, finishing\n");
       /* We sent the full set, and got the response for that.  We're done. */
-      op->phase = PHASE_DONE;
+      op->phase = PHASE_FINISHED;
       GNUNET_CADET_receive_done (op->channel);
       send_client_done (op);
       _GSS_operation_destroy2 (op);
