@@ -143,7 +143,7 @@ enum UnionOperationPhase
    * Phase that receives full set first and then sends elements that are
    * the local peer missing
    */
-   PHASE_FULL_RECEIVING
+  PHASE_FULL_RECEIVING
 };
 
 
@@ -2057,13 +2057,14 @@ check_union_p2p_full_element (void *cls,
 {
   struct Operation *op = cls;
 
-  // Allow only receiving of full element message if in expect IBF or in PHASE_FULL_RECEIVING state
-  if ( op->phase != PHASE_EXPECT_IBF && op->phase != PHASE_FULL_RECEIVING ) {
-      GNUNET_break_op (0);
-      return GNUNET_SYSERR;
-  }
-
   (void) op;
+  /* Allow only receiving of full element message if in expect IBF or in PHASE_FULL_RECEIVING state */
+  if ( (PHASE_EXPECT_IBF != op->phase) &&
+       (PHASE_FULL_RECEIVING != op->phase) )
+  {
+    GNUNET_break_op (0);
+    return GNUNET_SYSERR;
+  }
   // FIXME: check that we expect full elements here?
   return GNUNET_OK;
 }
