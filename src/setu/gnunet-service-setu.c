@@ -2058,13 +2058,7 @@ check_union_p2p_full_element (void *cls,
   struct Operation *op = cls;
 
   (void) op;
-  /* Allow only receiving of full element message if in expect IBF or in PHASE_FULL_RECEIVING state */
-  if ( (PHASE_EXPECT_IBF != op->phase) &&
-       (PHASE_FULL_RECEIVING != op->phase) )
-  {
-    GNUNET_break_op (0);
-    return GNUNET_SYSERR;
-  }
+
   // FIXME: check that we expect full elements here?
   return GNUNET_OK;
 }
@@ -2084,6 +2078,16 @@ handle_union_p2p_full_element (void *cls,
   struct ElementEntry *ee;
   struct KeyEntry *ke;
   uint16_t element_size;
+
+
+    /* Allow only receiving of full element message if in expect IBF or in PHASE_FULL_RECEIVING state */
+    if ( (PHASE_EXPECT_IBF != op->phase) &&
+         (PHASE_FULL_RECEIVING != op->phase) )
+    {
+        GNUNET_break_op (0);
+        fail_union_operation (op);
+        return;
+    }
 
   op->phase = PHASE_FULL_RECEIVING;
 
