@@ -1787,6 +1787,11 @@ struct Queue
   unsigned int queue_length;
 
   /**
+   * Queue priority
+   */
+  uint32_t priority;
+
+  /**
    * Network type offered by this queue.
    */
   enum GNUNET_NetworkType nt;
@@ -9575,6 +9580,50 @@ handle_add_queue_message (void *cls,
 
 
 /**
+ * @brief Handle updates to queues.
+ *
+ * @param cls the transport client.
+ * @param msg Message struct.
+ */
+static void
+handle_update_queue_message (void *cls,
+                             const struct
+                             GNUNET_TRANSPORT_UpdateQueueMessage *msg)
+{
+  struct TransportClient *tc = cls;
+  struct Queue *target_queue = NULL;
+
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "Received queue update message for %u with q_len %llu\n",
+              msg->qid, (unsigned long long) GNUNET_ntohll (msg->q_len));
+  for (target_queue = tc->details.communicator.queue_head;
+       NULL != target_queue;
+       target_queue = target_queue->next_client)
+  {
+    if (msg->qid == target_queue->qid)
+      break;
+  }
+  if (NULL == target_queue)
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
+                "Queue to update no longer exists! Discarding update.\n");
+    return;
+  }
+
+  target_queue->nt = msg->nt;
+  target_queue->mtu = ntohl (msg->mtu);
+  target_queue->cs = msg->cs;
+  target_queue->priority = ntohl (msg->priority);
+  /* The update message indicates how many _additional_
+   * messages the queue should be able to handle
+   */
+  target_queue->queue_length += GNUNET_ntohll (msg->q_len);
+  GNUNET_SERVICE_client_continue (tc->client);
+}
+
+
+
+/**
  * Communicator tells us that our request to create a queue "worked", that
  * is setting up the queue is now in process.
  *
@@ -10101,6 +10150,10 @@ GNUNET_SERVICE_MAIN (
                          GNUNET_MESSAGE_TYPE_TRANSPORT_QUEUE_SETUP,
                          struct GNUNET_TRANSPORT_AddQueueMessage,
                          NULL),
+  GNUNET_MQ_hd_fixed_size (update_queue_message,
+                           GNUNET_MESSAGE_TYPE_TRANSPORT_QUEUE_UPDATE,
+                           struct GNUNET_TRANSPORT_UpdateQueueMessage,
+                           NULL),
   GNUNET_MQ_hd_fixed_size (del_queue_message,
                            GNUNET_MESSAGE_TYPE_TRANSPORT_QUEUE_TEARDOWN,
                            struct GNUNET_TRANSPORT_DelQueueMessage,
