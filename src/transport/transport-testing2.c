@@ -335,9 +335,15 @@ hello_iter_cb (void *cb_cls,
                const char *emsg)
 {
   struct GNUNET_TRANSPORT_TESTING_PeerContext *p = cb_cls;
+  if ((NULL == record) && (NULL == emsg))
+  {
+    LOG (GNUNET_ERROR_TYPE_DEBUG, "Iteration End\n");
+    return;
+  }
   //Check record type et al?
-  p->hello = GNUNET_malloc (record->value_size);
-  memcpy (p->hello, record->value, record->value_size);
+  p->hello_size = record->value_size;
+  p->hello = GNUNET_malloc (p->hello_size);
+  memcpy (p->hello, record->value, p->hello_size);
 
   GNUNET_PEERSTORE_iterate_cancel (p->pic);
   if (NULL != p->start_cb)
@@ -350,6 +356,23 @@ hello_iter_cb (void *cb_cls,
     p->start_cb = NULL;
   }
 }
+
+static void
+retrieve_hello(void *cls)
+{
+  struct GNUNET_TRANSPORT_TESTING_PeerContext *p = cls;
+    LOG (GNUNET_ERROR_TYPE_DEBUG,
+         "Getting hello...\n");
+
+  p->pic = GNUNET_PEERSTORE_iterate (p->ph,
+                                     "transport",
+                                     &p->id,
+                                     GNUNET_PEERSTORE_TRANSPORT_HELLO_KEY,
+                                     hello_iter_cb,
+                                     p);
+
+}
+
 
 
 /**
@@ -507,13 +530,15 @@ GNUNET_TRANSPORT_TESTING_start_peer (struct
     GNUNET_TRANSPORT_TESTING_stop_peer (p);
     return NULL;
   }
-  p->pic = GNUNET_PEERSTORE_iterate (p->ph,
-                                     "transport",
-                                     &p->id,
-                                     GNUNET_PEERSTORE_TRANSPORT_HELLO_KEY,
-                                     hello_iter_cb,
-                                     p);
-  GNUNET_assert (NULL != p->pic);
+  p->ph = GNUNET_PEERSTORE_connect (p->cfg);
+  // FIXME Error handling
+  p->ah = GNUNET_TRANSPORT_application_init (p->cfg);
+  GNUNET_assert (NULL != p->ah);
+  // FIXME Error handleing
+  GNUNET_SCHEDULER_add_delayed (GNUNET_TIME_UNIT_SECONDS,
+                                retrieve_hello,
+                                p);
+  //GNUNET_assert (NULL != p->pic);
 
   return p;
 }
@@ -739,18 +764,18 @@ offer_hello (void *cls)
          GNUNET_i2s (&p1->id),
          p2->no,
          p2_s,
-         cc->p2->hello);
+         p2->hello);
     GNUNET_free (p2_s);
   }
 
-  addr = GNUNET_HELLO_extract_address (cc->p2->hello,
-                                       cc->p2->hello_size,
-                                       &cc->p2->id,
+  addr = GNUNET_HELLO_extract_address (p2->hello,
+                                       strlen (p2->hello),
+                                       &p2->id,
                                        &nt,
                                        &t);
-  GNUNET_assert (NULL == addr);
-  GNUNET_TRANSPORT_application_validate (cc->p1->ah,
-                                         &cc->p2->id,
+  GNUNET_assert (NULL != addr);
+  GNUNET_TRANSPORT_application_validate (p1->ah,
+                                         &p2->id,
                                          nt,
                                          addr);
   GNUNET_free (addr);
