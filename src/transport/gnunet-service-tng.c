@@ -9505,7 +9505,8 @@ handle_add_queue_message (void *cls,
   const char *addr;
   uint16_t addr_len;
 
-  if (ntohl (aqm->mtu) <= sizeof(struct TransportFragmentBoxMessage))
+  if ((0 != ntohl (aqm->mtu)) &&
+      (ntohl (aqm->mtu) <= sizeof(struct TransportFragmentBoxMessage)))
   {
     /* MTU so small as to be useless for transmissions,
        required for #fragment_message()! */

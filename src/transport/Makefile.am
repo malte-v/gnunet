@@ -124,9 +124,7 @@ endif
 
 noinst_PROGRAMS = \
  gnunet-transport-profiler \
- gnunet-communicator-tcp \
  gnunet-communicator-udp \
- gnunet-service-tng \
  $(WLAN_BIN_SENDER) \
  $(WLAN_BIN_RECEIVER)
 
@@ -170,6 +168,10 @@ libgnunettransporttesting_la_LDFLAGS = \
 
 libgnunettransporttesting2_la_SOURCES = \
   transport-testing2.c transport-testing2.h \
+  transport-testing-filenames2.c \
+  transport-testing-loggers2.c \
+  transport-testing-main2.c \
+  transport-testing-send2.c \
   transport-testing-communicator.c transport-testing-communicator.h
 libgnunettransporttesting2_la_LIBADD = \
   libgnunettransport.la \
@@ -253,6 +255,7 @@ libexec_PROGRAMS = \
  $(WLAN_BIN_DUMMY) \
  $(BT_BIN) \
  gnunet-service-transport \
+ gnunet-service-tng \
  gnunet-communicator-unix \
  gnunet-communicator-udp \
  gnunet-communicator-tcp
@@ -554,6 +557,7 @@ check_PROGRAMS = \
  test_transport_api_blacklisting_tcp \
  test_transport_api_disconnect_tcp \
  test_transport_api_tcp \
+ test_transport_api2_tcp \
  test_transport_api_restart_1peer \
  test_transport_api_restart_2peers \
  test_transport_api_timeout_tcp \
@@ -948,6 +952,14 @@ test_transport_api_tcp_LDADD = \
  $(top_builddir)/src/hello/libgnunethello.la \
  $(top_builddir)/src/util/libgnunetutil.la  \
  libgnunettransporttesting.la
+
+test_transport_api2_tcp_SOURCES = \
+ test_transport_api.c
+test_transport_api2_tcp_LDADD = \
+ libgnunettransport.la \
+ $(top_builddir)/src/hello/libgnunethello.la \
+ $(top_builddir)/src/util/libgnunetutil.la  \
+ libgnunettransporttesting2.la
 
 test_transport_api_restart_1peer_SOURCES = \
  test_transport_api_restart_reconnect.c
@@ -1503,6 +1515,8 @@ test_transport_api_tcp_nat_peer1.conf\
 test_transport_api_tcp_nat_peer2.conf\
 test_transport_api_tcp_peer1.conf\
 test_transport_api_tcp_peer2.conf\
+test_transport_api2_tcp_peer1.conf\
+test_transport_api2_tcp_peer2.conf\
 test_transport_api_udp_nat_peer1.conf\
 test_transport_api_udp_nat_peer2.conf\
 test_transport_api_udp_peer1.conf\

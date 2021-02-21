@@ -448,9 +448,13 @@ src/transport/tcp_server_mst_legacy.c
 src/transport/tcp_service_legacy.c
 src/transport/transport-testing-communicator.c
 src/transport/transport-testing-filenames.c
+src/transport/transport-testing-filenames2.c
 src/transport/transport-testing-loggers.c
+src/transport/transport-testing-loggers2.c
 src/transport/transport-testing-main.c
+src/transport/transport-testing-main2.c
 src/transport/transport-testing-send.c
+src/transport/transport-testing-send2.c
 src/transport/transport-testing.c
 src/transport/transport-testing2.c
 src/transport/transport_api2_application.c

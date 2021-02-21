@@ -344,6 +344,7 @@ hello_iter_cb (void *cb_cls,
   p->hello_size = record->value_size;
   p->hello = GNUNET_malloc (p->hello_size);
   memcpy (p->hello, record->value, p->hello_size);
+  p->hello[p->hello_size-1] = '\0';
 
   GNUNET_PEERSTORE_iterate_cancel (p->pic);
   if (NULL != p->start_cb)
@@ -751,7 +752,7 @@ offer_hello (void *cls)
   struct GNUNET_TRANSPORT_TESTING_PeerContext *p1 = cc->p1;
   struct GNUNET_TRANSPORT_TESTING_PeerContext *p2 = cc->p2;
   struct GNUNET_TIME_Absolute t;
-  enum GNUNET_NetworkType nt;
+  enum GNUNET_NetworkType nt = 0;
   char *addr;
 
   cc->tct = NULL;
@@ -769,11 +770,12 @@ offer_hello (void *cls)
   }
 
   addr = GNUNET_HELLO_extract_address (p2->hello,
-                                       strlen (p2->hello),
+                                       p2->hello_size,
                                        &p2->id,
                                        &nt,
                                        &t);
   GNUNET_assert (NULL != addr);
+  GNUNET_assert (NULL != p1->hello);
   GNUNET_TRANSPORT_application_validate (p1->ah,
                                          &p2->id,
                                          nt,

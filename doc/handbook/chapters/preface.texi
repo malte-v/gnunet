@@ -185,8 +185,8 @@ The current maintainers of GNUnet are:
 
 @itemize @bullet
 
-@item @uref{https://grothoff.org/christian/, Christian Grothoff}
-@item @uref{https://schanzen.eu, Martin Schanzenbach}
+@item @uref{Christian Grothoff, https://grothoff.org/christian/}
+@item @uref{Martin Schanzenbach, https://schanzen.eu}
 
 @end itemize
 
