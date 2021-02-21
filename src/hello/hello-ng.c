@@ -123,7 +123,7 @@ GNUNET_HELLO_extract_address (const void *raw,
   struct SignedAddress sa;
   struct GNUNET_CRYPTO_EddsaSignature *sig;
 
-  if ('\0' != raws[raw_size])
+  if ('\0' != raws[raw_size-1])
   {
     GNUNET_break_op (0);
     return NULL;

@@ -24,7 +24,8 @@ noinst_PROGRAMS = \
 
 check_PROGRAMS = \
  test_hello \
- test_friend_hello
+ test_friend_hello \
+ test_hello-ng
 
 if ENABLE_TEST_RUN
 AM_TESTS_ENVIRONMENT=export GNUNET_PREFIX=$${GNUNET_PREFIX:-@libdir@};export PATH=$${GNUNET_PREFIX:-@prefix@}/bin:$$PATH;unset XDG_DATA_HOME;unset XDG_CONFIG_HOME;
@@ -36,6 +37,13 @@ test_hello_SOURCES = \
 test_hello_LDADD = \
  libgnunethello.la \
  $(top_builddir)/src/util/libgnunetutil.la  
+
+test_hello_ng_SOURCES = \
+ test_hello-ng.c
+test_hello_ng_LDADD = \
+ libgnunethello.la \
+ $(top_builddir)/src/util/libgnunetutil.la  
+
 
 test_friend_hello_SOURCES = \
  test_friend_hello.c
