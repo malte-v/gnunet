@@ -781,7 +781,7 @@ struct GNUNET_FS_ProgressInfo
     /**
      * Values for all "GNUNET_FS_STATUS_PUBLISH_*" events.
      */
-    struct
+    struct GNUNET_FS_PublishStatusEvent
     {
       /**
        * Context for controlling the upload.
@@ -850,7 +850,7 @@ struct GNUNET_FS_ProgressInfo
          * These values are only valid for
          * #GNUNET_FS_STATUS_PUBLISH_PROGRESS events.
          */
-        struct
+        struct GNUNET_FS_PublishProgressEvent
         {
           /**
            * Data block we just published.
@@ -878,7 +878,7 @@ struct GNUNET_FS_ProgressInfo
          * These values are only valid for
          * #GNUNET_FS_STATUS_PUBLISH_PROGRESS_DIRECTORY events.
          */
-        struct
+        struct GNUNET_FS_PublishProgressDirectoryEvent
         {
           /**
            * How far are we along in the overall directory?
@@ -903,7 +903,7 @@ struct GNUNET_FS_ProgressInfo
          * These values are only valid for
          * #GNUNET_FS_STATUS_PUBLISH_RESUME events.
          */
-        struct
+        struct GNUNET_FS_PublishResumeEvent
         {
           /**
            * Error message, NULL if no error was encountered so far.
@@ -925,7 +925,7 @@ struct GNUNET_FS_ProgressInfo
          * These values are only valid for
          * #GNUNET_FS_STATUS_PUBLISH_COMPLETED events.
          */
-        struct
+        struct GNUNET_FS_PublishCompletedEvent
         {
           /**
            * CHK URI of the file.
@@ -942,7 +942,7 @@ struct GNUNET_FS_ProgressInfo
          * These values are only valid for
          * #GNUNET_FS_STATUS_PUBLISH_ERROR events.
          */
-        struct
+        struct GNUNET_FS_PublishErrorEvent
         {
           /**
            * Error message, never NULL.
@@ -956,7 +956,7 @@ struct GNUNET_FS_ProgressInfo
     /**
      * Values for all "GNUNET_FS_STATUS_DOWNLOAD_*" events.
      */
-    struct
+    struct GNUNET_FS_DownloadStatusEvent
     {
       /**
        * Context for controlling the download.
@@ -1037,7 +1037,7 @@ struct GNUNET_FS_ProgressInfo
          * These values are only valid for
          * #GNUNET_FS_STATUS_DOWNLOAD_PROGRESS events.
          */
-        struct
+        struct GNUNET_FS_DownloadProgressEvent
         {
           /**
            * Data block we just obtained, can be NULL (even if
@@ -1090,7 +1090,7 @@ struct GNUNET_FS_ProgressInfo
          * These values are only valid for
          * #GNUNET_FS_STATUS_DOWNLOAD_START events.
          */
-        struct
+        struct GNUNET_FS_DownloadStartEvent
         {
           /**
            * Known metadata for the download.
@@ -1102,7 +1102,7 @@ struct GNUNET_FS_ProgressInfo
          * These values are only valid for
          * #GNUNET_FS_STATUS_DOWNLOAD_RESUME events.
          */
-        struct
+        struct GNUNET_FS_DownloadResumeEvent
         {
           /**
            * Known metadata for the download.
@@ -1119,7 +1119,7 @@ struct GNUNET_FS_ProgressInfo
          * These values are only valid for
          * #GNUNET_FS_STATUS_DOWNLOAD_ERROR events.
          */
-        struct
+        struct GNUNET_FS_DownloadErrorEvent
         {
           /**
            * Error message.
@@ -1132,7 +1132,7 @@ struct GNUNET_FS_ProgressInfo
     /**
      * Values for all "GNUNET_FS_STATUS_SEARCH_*" events.
      */
-    struct
+    struct GNUNET_FS_SearchStatusEvent
     {
       /**
        * Context for controlling the search, NULL for
@@ -1187,7 +1187,7 @@ struct GNUNET_FS_ProgressInfo
          * These values are only valid for
          * #GNUNET_FS_STATUS_SEARCH_RESULT events.
          */
-        struct
+        struct GNUNET_FS_SearchResultEvent
         {
           /**
            * Metadata for the search result.
@@ -1215,7 +1215,7 @@ struct GNUNET_FS_ProgressInfo
          * These values are only valid for
          * #GNUNET_FS_STATUS_SEARCH_RESUME_RESULT events.
          */
-        struct
+        struct GNUNET_FS_SearchResumeResultEvent
         {
           /**
            * Metadata for the search result.
@@ -1256,7 +1256,7 @@ struct GNUNET_FS_ProgressInfo
          * These values are only valid for
          * #GNUNET_FS_STATUS_SEARCH_UPDATE events.
          */
-        struct
+        struct GNUNET_FS_SearchUpdateEvent
         {
           /**
            * Private context set for for this result
@@ -1308,7 +1308,7 @@ struct GNUNET_FS_ProgressInfo
          * happens primarily to give the client a chance
          * to clean up the "cctx" (if needed).
          */
-        struct
+        struct GNUNET_FS_SearchSuspendResultEvent
         {
           /**
            * Private context set for for this result
@@ -1336,7 +1336,7 @@ struct GNUNET_FS_ProgressInfo
          * happens primarily to give the client a chance
          * to clean up the "cctx" (if needed).
          */
-        struct
+        struct GNUNET_FS_SearchStoppedResultEvent
         {
           /**
            * Private context set for for this result
@@ -1359,7 +1359,7 @@ struct GNUNET_FS_ProgressInfo
          * These values are only valid for
          * #GNUNET_FS_STATUS_SEARCH_RESUME events.
          */
-        struct
+        struct GNUNET_GS_SearchResumeEvent
         {
           /**
            * Error message, NULL if we have not encountered any error yet.
@@ -1376,7 +1376,7 @@ struct GNUNET_FS_ProgressInfo
          * These values are only valid for
          * #GNUNET_FS_STATUS_SEARCH_ERROR events.
          */
-        struct
+        struct GNUNET_FS_SearchErrorEvent
         {
           /**
            * Error message.
@@ -1387,7 +1387,7 @@ struct GNUNET_FS_ProgressInfo
         /**
          * Values for #GNUNET_FS_STATUS_SEARCH_RESULT_NAMESPACE events.
          */
-        struct
+        struct GNUNET_GS_SearchResultNamespaceEvent
         {
           /**
            * Short, human-readable name of the namespace.
@@ -1415,7 +1415,7 @@ struct GNUNET_FS_ProgressInfo
     /**
      * Values for all "GNUNET_FS_STATUS_UNINDEX_*" events.
      */
-    struct
+    struct GNUNET_FS_UnindexEvent
     {
       /**
        * Context for controlling the unindexing.
@@ -1466,7 +1466,7 @@ struct GNUNET_FS_ProgressInfo
          * These values are only valid for
          * #GNUNET_FS_STATUS_UNINDEX_PROGRESS events.
          */
-        struct
+        struct GNUNET_FS_UnindexProgressEvent
         {
           /**
            * Data block we just unindexed.
@@ -1494,7 +1494,7 @@ struct GNUNET_FS_ProgressInfo
          * These values are only valid for
          * #GNUNET_FS_STATUS_UNINDEX_RESUME events.
          */
-        struct
+        struct GNUNET_FS_UnindexResumeEvent
         {
           /**
            * Error message, NULL if we have not encountered any error yet.
@@ -1506,7 +1506,7 @@ struct GNUNET_FS_ProgressInfo
          * These values are only valid for
          * #GNUNET_FS_STATUS_UNINDEX_ERROR events.
          */
-        struct
+        struct GNUNET_FS_UnindexErrorEvent
         {
           /**
            * Error message.
