@@ -112,12 +112,13 @@ GNUNET_HELLO_extract_address (const void *raw,
 {
   const struct GNUNET_CRYPTO_EddsaPublicKey *public_key = &pid->public_key;
   const char *raws = raw;
-  unsigned long long raw_us;
-  unsigned int raw_nt;
+  unsigned long long raw_us = 0;
+  unsigned int raw_nt = 0;
   const char *sc;
   const char *sc2;
   const char *sc3;
   const char *raw_addr;
+  char *data = NULL;
   struct GNUNET_TIME_Absolute raw_mono_time;
   struct SignedAddress sa;
   struct GNUNET_CRYPTO_EddsaSignature *sig;
@@ -142,22 +143,21 @@ GNUNET_HELLO_extract_address (const void *raw,
     GNUNET_break_op (0);
     return NULL;
   }
-  if (1 != sscanf (sc + 1, "%llu;%u;", &raw_us, &raw_nt))
+  if (2 != sscanf (sc + 1, "%llu;%u;%*s", &raw_us, &raw_nt))
   {
     GNUNET_break_op (0);
-    return NULL;
-  }
-  raw_mono_time.abs_value_us = raw_us;
-  sig = NULL;
-  if (sizeof(struct GNUNET_CRYPTO_EddsaSignature) !=
-      GNUNET_STRINGS_base64_decode (raws, sc - raws, (void **) &sig))
-  {
-    GNUNET_break_op (0);
-    GNUNET_free (sig);
     return NULL;
   }
   raw_addr = sc3 + 1;
-
+  raw_mono_time.abs_value_us = raw_us;
+    if (sizeof(struct GNUNET_CRYPTO_EddsaSignature) !=
+      GNUNET_STRINGS_base64_decode (raws, sc - raws, (void **) &data))
+  {
+    GNUNET_break_op (0);
+    GNUNET_free (data);
+    return NULL;
+  }
+  sig = (struct GNUNET_CRYPTO_EddsaSignature*) data;
   sa.purpose.purpose = htonl (GNUNET_SIGNATURE_PURPOSE_TRANSPORT_ADDRESS);
   sa.purpose.size = htonl (sizeof(sa));
   sa.mono_time = GNUNET_TIME_absolute_hton (raw_mono_time);
@@ -169,12 +169,10 @@ GNUNET_HELLO_extract_address (const void *raw,
                                   public_key))
   {
     GNUNET_break_op (0);
-    GNUNET_free (sig);
     return NULL;
   }
-  GNUNET_free (sig);
   *mono_time = raw_mono_time;
-  *nt = (enum GNUNET_NetworkType) raw_nt;
+  *nt = raw_nt;
   return GNUNET_strdup (raw_addr);
 }
 
