@@ -1033,7 +1033,6 @@ GNUNET_RECLAIM_presentation_get_expiration (const struct
 /**
  * Create a presentation from a credential and a lift of (selected)
  * attributes in the credential.
- * FIXME not yet implemented
  *
  * @param cred the credential to use
  * @param attrs the attributes to present from the credential

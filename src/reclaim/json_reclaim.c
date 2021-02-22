@@ -290,10 +290,11 @@ parse_credential (void *cls, json_t *root, struct GNUNET_JSON_Specification *spe
 {
   struct GNUNET_RECLAIM_Credential *cred;
   const char *name_str = NULL;
-  const char *val_str = NULL;
   const char *type_str = NULL;
   const char *id_str = NULL;
-  char *data;
+  json_t *val_json;
+  char *data = NULL;
+  char *val_str = NULL;
   int unpack_state;
   uint32_t type;
   size_t data_size;
@@ -308,7 +309,7 @@ parse_credential (void *cls, json_t *root, struct GNUNET_JSON_Specification *spe
   }
   // interpret single attribute
   unpack_state = json_unpack (root,
-                              "{s:s, s?s, s:s, s:s!}",
+                              "{s:s, s?s, s:s, s:o!}",
                               "name",
                               &name_str,
                               "id",
@@ -316,13 +317,18 @@ parse_credential (void *cls, json_t *root, struct GNUNET_JSON_Specification *spe
                               "type",
                               &type_str,
                               "value",
-                              &val_str);
-  if ((0 != unpack_state) || (NULL == name_str) || (NULL == val_str) ||
+                              &val_json);
+  if ((0 != unpack_state) || (NULL == name_str) || (NULL == val_json) ||
       (NULL == type_str))
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                 "Error json object has a wrong format!\n");
     return GNUNET_SYSERR;
+  }
+  if (json_is_string (val_json)) {
+    val_str = GNUNET_strdup (json_string_value (val_json));
+  } else {
+    val_str = json_dumps (val_json, JSON_COMPACT);
   }
   type = GNUNET_RECLAIM_credential_typename_to_number (type_str);
   if (GNUNET_SYSERR ==
