@@ -30,6 +30,7 @@
 #include "gnunet_util_lib.h"
 #include "gnunet_ats_service.h"
 
+GNUNET_NETWORK_STRUCT_BEGIN
 /**
  * Binary block we sign when we sign an address.
  */
@@ -48,9 +49,9 @@ struct SignedAddress
   /**
    * Hash of the address.
    */
-  struct GNUNET_HashCode h_addr;
+  struct GNUNET_HashCode addr_hash GNUNET_PACKED;
 };
-
+GNUNET_NETWORK_STRUCT_END
 
 /**
  * Build address record by signing raw information with private key.
@@ -78,7 +79,7 @@ GNUNET_HELLO_sign_address (
   sa.purpose.purpose = htonl (GNUNET_SIGNATURE_PURPOSE_TRANSPORT_ADDRESS);
   sa.purpose.size = htonl (sizeof(sa));
   sa.mono_time = GNUNET_TIME_absolute_hton (mono_time);
-  GNUNET_CRYPTO_hash (address, strlen (address), &sa.h_addr);
+  GNUNET_CRYPTO_hash (address, strlen (address), &sa.addr_hash);
   GNUNET_CRYPTO_eddsa_sign (private_key, &sa, &sig);
   sig_str = NULL;
   (void) GNUNET_STRINGS_base64_encode (&sig, sizeof(sig), &sig_str);
@@ -161,7 +162,7 @@ GNUNET_HELLO_extract_address (const void *raw,
   sa.purpose.purpose = htonl (GNUNET_SIGNATURE_PURPOSE_TRANSPORT_ADDRESS);
   sa.purpose.size = htonl (sizeof(sa));
   sa.mono_time = GNUNET_TIME_absolute_hton (raw_mono_time);
-  GNUNET_CRYPTO_hash (raw_addr, strlen (raw_addr), &sa.h_addr);
+  GNUNET_CRYPTO_hash (raw_addr, strlen (raw_addr), &sa.addr_hash);
   if (GNUNET_YES !=
       GNUNET_CRYPTO_eddsa_verify (GNUNET_SIGNATURE_PURPOSE_TRANSPORT_ADDRESS,
                                   &sa,

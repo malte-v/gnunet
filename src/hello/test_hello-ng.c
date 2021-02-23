@@ -26,7 +26,7 @@ main (int argc,
                              (void**)&res,
                              &res_len);
   GNUNET_log (GNUNET_ERROR_TYPE_MESSAGE,
-              "%s", res);
+              "%s\n", res);
   GNUNET_assert (NULL !=
                  GNUNET_HELLO_extract_address ((void**)res,
                                                res_len,
