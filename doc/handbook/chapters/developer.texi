@@ -82,6 +82,7 @@ new chapters, sections or insightful comments.
 * REGEX Subsystem::
 * REST Subsystem::
 * RPS Subsystem::
+* TRANSPORT-NG Subsystem::
 @end menu
 
 @node Developer Introduction
@@ -9474,3 +9475,247 @@ view are sampled through the sampler from the random stream of peer IDs.
 
 According to the theoretical analysis of Bortnikov et al. this suffices
 to keep the network connected and having random peers in the view.
+
+@cindex TRANSPORT-NG Subsystem
+@node TRANSPORT-NG Subsystem
+@section TRANSPORT-NG Subsystem
+
+The current GNUnet TRANSPORT architecture is rooted in the GNUnet 0.4 design
+of using plugins for the actual transmission operations and the ATS subsystem
+to select a plugin and allocate bandwidth. The following key issues have been
+identified with this design:
+
+@menu
+* Issues with TRANSPORT::
+* Design goals of TNG::
+* HELLO-NG::
+* Priorities and preferences::
+* Communicators::
+@end menu
+
+@node Issues with TRANSPORT
+@subsection Issues with TRANSPORT
+
+
+@itemize @bullet
+@item Bugs in one plugin can affect the TRANSPORT service and other plugins.
+      There is at least one open bug that affects sockets, where the origin is
+      difficult to pinpoint due to the large code base.
+@item Relevant operating system default configurations often impose a limit of
+      1024 file descriptors per process. Thus, one plugin may impact other
+      plugin's connectivity choices.
+@item Plugins are required to offer bi-directional connectivity. However,
+      firewalls (incl. NAT boxes) and physical environments sometimes only
+      allow uni-directional connectivity, which then currently cannot be
+      utilized at all.
+@item Distance vector routing was implemented in 209 but shortly afterwards
+      broken and due to the complexity of implementing it as a plugin and
+      dealing with the resource allocation consequences was never useful.
+@item Most existing plugins communicate completely using cleartext, exposing
+      metad data (message size) and making it easy to fingerprint and
+      possibly block GNUnet traffic.
+@item Various NAT traversal methods are not supported.
+@item The service logic is cluttered with "manipulation" support code for
+      TESTBED to enable faking network characteristics like lossy connections
+      or firewewalls.
+@item Bandwidth allocation is done in ATS, requiring the duplication of state
+      and resulting in much delayed allocation decisions. As a result,
+      often available bandwidth goes unused. Users are expected to manually
+      configure bandwidth limits, instead of TRANSPORT using congestion control
+      to adapt automatically.
+@item TRANSPORT is difficult to test and has bad test coverage.
+@item HELLOs include an absolute expiration time. Nodes with unsynchronized
+      clocks cannot connect.
+@item Displaying the contents of a HELLO requires the respective plugin as the
+      plugin-specific data is encoded in binary. This also complicates logging.
+@end itemize
+
+
+@node Design goals of TNG
+@subsection Design goals of TNG
+
+In order to address the above issues, we want to:
+
+@itemize @bullet
+@item Move plugins into separate processes which we shall call
+      @emph{communicators}. Communicators connect as clients to the transport
+      service.
+@item TRANSPORT should be able to utilize any number of communcators to the
+      same peer at the same time.
+@item TRANSPORT should be responsible for fragmentation, retransmission,
+      flow- and congestion-control. Users should no longer have to configure
+      bandwidth limits: TRANSPORT should detect what is available and use it.
+@item Commnunicators should be allowed to be uni-directional and unreliable.
+      TRANSPORT shall create bi-directional channels from this whenever
+      possible.
+@item DV should no longer be a plugin, but part of TRANSPORT.
+@item TRANSPORT should provide communicators help communicating (i.e. in the
+      case of uni-directional communicators or the need for out-of-band
+      signalling for NAT traversal). We call this functionality
+      @emph{backchannels}.
+@item Transport manipulation should be signalled to CORE on a per-message basis
+      instead of an approximate bandwidth.
+@item CORE should signal performance requirements (reliability, latency, etc.)
+      on a per-message basis to TRANSPORT. If possible, TRANSPORT should
+      consider those options when scheduling messages for transmission.
+@item HELLOs should be in a humman-readable format with monotonic time
+      expirations.
+@end itemize
+
+The new architecture is planned as follows:
+
+@verbatim
+
+       APPLICATIONS
+             |
+             |
+CORE -- TRANSPORT -- COMMUNICATOR(S) -- NAT
+             \            /
+              \          /
+                PEERSTORE
+
+@end verbatim
+
+TRANSPORT's main objective is to establish bi-directional virtual links using a
+variety of possibly uni-directional communicators. Links undergo the following
+steps:
+
+@enumerate
+@item Communicator informs TRANSPORT A that a queue (direct neighbour) is
+      available, or equivalently TRANSPORT A discovers a (DV) path to a target
+      B.
+@item TRANSPORT A sends a challenge to the target peer, trying to confirm that
+      the peer can receive. FIXME: This is not implemented properly for DV.
+      Here we should really take a validated DVH and send a challenge exactly
+      down that path!
+@item The other TRANSPORT, TRANSPORT B, receives the challenge, and sends back
+      a response, possibly using a dierent path. If TRANSPORT B does not yet
+      have a virtual link to A, it must try to establish a virtual link.
+@item Upon receiving the response, TRANSPORT A creates the virtual link. If the
+      response included a challenge, TRANSPORT A must respond to this challenge
+      as well, eectively re-creating the TCP 3-way handshake (just with longer
+      challenge values).
+@end enumerate
+
+@node HELLO-NG
+@subsection HELLO-NG
+
+HELLOs change in three ways. First of all, communicators encode the respective
+addresses in a human-readable URL-like string. This way, we do no longer
+require the communicator to print the contents of a HELLO.
+Second, HELLOs no longer contain an expiration time, only a creation time.
+The receiver must only compare the respective absolute values. So given a HELLO
+from the same sender with a larger creation time, then the old one is no longer
+valid. This also obsoletes the need for the gnunet-hello binary to set HELLO
+expiration times to never.
+Third, a peer no longer generates one big HELLO that always contains all of the
+addresses. Instead, each address is signed individually and shared only over
+the address scopes where it makes sense to share the address. In particular,
+care should be taken to not share MACs across the Internet and confine their
+use to the LAN.
+As each address is signed separately, having multiple addresses valid at the
+same time (given the new creation time expiration logic) requires that those
+addresses must have exactly the same creation time.
+Whenever that monotonic time is increased, all addresses must be re-signed and
+re-distributed.
+
+@node Priorities and preferences
+@subsection Priorities and preferences
+
+In the new design, TRANSPORT adopts a feature (which was previously already
+available in CORE) of the MQ API to allow applications to specify priorities and
+preferences per message (or rather, per MQ envelope).
+The (updated) MQ API allows applications to specify one of four priority levels
+as well as desired preferences for transmission by setting options on an
+envelope. These preferences currently are:
+
+@itemize @bullet
+@item GNUNET_MQ_PREF_UNRELIABLE: Disables TRANSPORT waiting for ACKS on
+      unreliable channels like UDP. Now it is fire and forget. These messages
+      then cannot be used for RTT estimates either.
+@item GNUNET_MQ_PREF_LOW_LATENCY: Directs TRANSPORT to select the
+      lowest-latency transmission choices possible.
+@item GNUNET_MQ_PREF_CORK_ALLOWED: Allows TRANSPORT to delay transmission to
+      group the message with other messages into a larger batch to reduce the
+      number of packets sent.
+@item GNUNET_MQ_PREF_GOODPUT: Directs TRANSPORT to select the highest goodput
+      channel available.
+@item GNUNET_MQ_PREF_OUT_OF_ORDER: Allows TRANSPORT to reorder the messages as
+      it sees fit, otherwise TRANSPORT should attempt to preserve transmission
+      order.
+@end itemize
+
+Each MQ envelope is always able to store those options (and the priority), and
+in the future this uniform API will be used by TRANSPORT, CORE, CADET and
+possibly other subsystems that send messages (like LAKE).
+When CORE sets preferences and priorities, it is supposed to respect the
+preferences and priorities it is given from higher layers. Similarly, CADET also
+simply passes on the preferences and priorities of the layer above CADET. When a
+layer combines multiple smaller messages into one larger transmission, the
+@code{GNUNET_MQ_env_combine_options()} should be used to calculate options for
+the combined message. We note that the exact semantics of the options may differ
+by layer. For example, CADET will always strictly implement reliable and
+in-order delivery of messages, while the same options are only advisory for
+TRANSPORT and CORE: they should try (using ACKs on unreliable communicators,
+not changing the message order themselves), but if messages are lost anyway
+(i.e. because a TCP is dropped in the middle), or if messages are reordered
+(i.e. because they took dierent paths over the network and arrived in a
+different order) TRANSPORT and CORE do not have to correct this. Whether a
+preference is strict or loose is thus dened by the respective layer.
+
+@node Communicators
+@subsection Communicators
+
+The API for communicators is defined in
+@code{gnunet_transport_communication_service.h}.
+Each communicator must specify its (global) communication characteristics, which
+for now only say whether the communication is reliable (e.g. TCP, HTTPS) or
+unreliable (e.g. UDP, WLAN). Each communicator must specify a unique address
+prex, or NULL if the communicator cannot establish outgoing connections (i.e.
+is only acting as a TCP server).
+A communicator must tell TRANSPORT which addresses it is reachable under.
+Addresses may be added or removed at any time. A communicator may have zero
+addresses (transmission only).
+Addresses do not have to match the address prefix.
+
+TRANSPORT may ask a communicator to try to connect to another address.
+TRANSPORT will only ask for connections where the address matches the
+communicator's address prefix that was provided when the connection was
+established. Communicators should then attempt to establish a connection.
+No response is provided to TRANSPORT service on failure. The TRANSPORT service
+has to ask the communicator explicitly to retry.
+
+If a communicator succeeds in establishing an outgoing connection for
+transmission, or if a communicator receives an incoming bi-directional
+connection, the communicator must inform the TRANSPORT service that a message
+queue (MQ) for transmission is now available. For that MQ, the communicator must
+provide the peer identity claimed by the other end, a human-readable address
+(for debugging) and a maximum transfer unit (MTU). A MTU of zero means sending
+is not supported, SIZE_MAX should be used for no MTU. The communicator should
+also tell TRANSPORT what network type is used for the queue. The communicator
+may tell TRANSPORT anytime that the queue was deleted and is no longer
+available.
+
+The communicator API also provides for flow control. First, communicators
+exhibit back-pressure on TRANSPORT: the number of messages TRANSPORT may add to
+a queue for transmission will be limited. So by not draining the transmission
+queue, back-pressure is provided to TRANSPORT. In the other direction,
+communicators may allow TRANSPORT to give back-pressure towards the
+communicator by providing a non-NULL
+@code{GNUNET_TRANSPORT_MessageCompletedCallback}
+argument to the @code{GNUNET_TRANSPORT_communicator_receive} function. In this
+case, TRANSPORT will only invoke this function once it has processed the message
+and is ready to receive more. Communicators should then limit how much traffic
+they receive based on this backpressure. Note that communicators do not have to
+provide a @code{GNUNET_TRANSPORT_MessageCompletedCallback};
+for example, UDP cannot support back-pressure due to the nature of the UDP
+protocol. In this case, TRANSPORT will implement its own TRANSPORT-to-TRANSPORT
+flow control to reduce the sender's data rate to acceptable levels.
+
+TRANSPORT may notify a communicator about backchannel messages TRANSPORT
+received from other peers for this communicator. Similarly, communicators can
+ask TRANSPORT to try to send a backchannel message to other communicators of
+other peers. The semantics of the backchannel message are up to the
+communicators which use them.
+TRANSPORT may fail transmitting backchannel messages, and TRANSPORT will not
+attempt to retransmit them.
