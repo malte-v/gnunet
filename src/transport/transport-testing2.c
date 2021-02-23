@@ -536,7 +536,7 @@ GNUNET_TRANSPORT_TESTING_start_peer (struct
   p->ah = GNUNET_TRANSPORT_application_init (p->cfg);
   GNUNET_assert (NULL != p->ah);
   // FIXME Error handleing
-  GNUNET_SCHEDULER_add_delayed (GNUNET_TIME_UNIT_SECONDS,
+  GNUNET_SCHEDULER_add_delayed (GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_SECONDS, 10),
                                 retrieve_hello,
                                 p);
   //GNUNET_assert (NULL != p->pic);

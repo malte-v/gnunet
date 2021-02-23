@@ -779,7 +779,7 @@ GNUNET_TIME_year_to_time (unsigned int year)
 
 /**
  * Randomized exponential back-off, starting at 1 ms
- * and going up by a factor of 2+r, where 0 <= r <= 0.5, up
+ * and going up by a factor of 2+r, where 0 <= r < 0.5, up
  * to a maximum of the given threshold.
  *
  * @param r current backoff time, initially zero
@@ -809,7 +809,7 @@ GNUNET_TIME_randomized_backoff (struct GNUNET_TIME_Relative rt,
 struct GNUNET_TIME_Relative
 GNUNET_TIME_randomize (struct GNUNET_TIME_Relative r)
 {
-  double d = ((rand () % 1001) - 500) / 1000.0;
+  double d = ((rand () % 1001) + 500) / 1000.0;
 
   return relative_multiply_double (r, d);
 }

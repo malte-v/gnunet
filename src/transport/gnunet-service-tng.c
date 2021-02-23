@@ -2693,12 +2693,12 @@ static struct GNUNET_CONTAINER_MultiShortmap *dvlearn_map;
 /**
  * Head of a DLL sorted by launch time.
  */
-static struct LearnLaunchEntry *lle_head;
+static struct LearnLaunchEntry *lle_head = NULL;
 
 /**
  * Tail of a DLL sorted by launch time.
  */
-static struct LearnLaunchEntry *lle_tail;
+static struct LearnLaunchEntry *lle_tail = NULL;
 
 /**
  * MIN Heap sorted by "next_challenge" to `struct ValidationState` entries
@@ -3497,13 +3497,17 @@ check_link_down (void *cls)
 
   vl->visibility_task = NULL;
   dvh_timeout = GNUNET_TIME_UNIT_ZERO_ABS;
-  for (struct DistanceVectorHop *pos = dv->dv_head; NULL != pos;
-       pos = pos->next_dv)
-    dvh_timeout = GNUNET_TIME_absolute_max (dvh_timeout, pos->path_valid_until);
-  if (0 == GNUNET_TIME_absolute_get_remaining (dvh_timeout).rel_value_us)
+  if (NULL != dv)
   {
-    vl->dv->vl = NULL;
-    vl->dv = NULL;
+    for (struct DistanceVectorHop *pos = dv->dv_head; NULL != pos;
+         pos = pos->next_dv)
+      dvh_timeout = GNUNET_TIME_absolute_max (dvh_timeout,
+                                              pos->path_valid_until);
+    if (0 == GNUNET_TIME_absolute_get_remaining (dvh_timeout).rel_value_us)
+    {
+      vl->dv->vl = NULL;
+      vl->dv = NULL;
+    }
   }
   q_timeout = GNUNET_TIME_UNIT_ZERO_ABS;
   for (struct Queue *q = n->queue_head; NULL != q; q = q->next_neighbour)
@@ -4702,6 +4706,24 @@ route_control_message_without_fc (const struct GNUNET_PeerIdentity *target,
 }
 
 
+static void
+consider_sending_fc (void *cls);
+
+/**
+ * Something changed on the virtual link with respect to flow
+ * control. Consider retransmitting the FC window size.
+ *
+ * @param cls a `struct VirtualLink` to work with
+ */
+static void
+task_consider_sending_fc (void *cls)
+{
+  struct VirtualLink *vl = cls;
+  vl->fc_retransmit_task = NULL;
+  consider_sending_fc (cls);
+}
+
+
 /**
  * Something changed on the virtual link with respect to flow
  * control. Consider retransmitting the FC window size.
@@ -4759,7 +4781,7 @@ consider_sending_fc (void *cls)
   if (NULL != vl->fc_retransmit_task)
     GNUNET_SCHEDULER_cancel (vl->fc_retransmit_task);
   vl->fc_retransmit_task =
-    GNUNET_SCHEDULER_add_delayed (rtt, &consider_sending_fc, vl);
+    GNUNET_SCHEDULER_add_delayed (rtt, &task_consider_sending_fc, vl);
 }
 
 
@@ -7637,7 +7659,7 @@ start_address_validation (const struct GNUNET_PeerIdentity *pid,
                    validation_map,
                    &vs->pid,
                    vs,
-                   GNUNET_CONTAINER_MULTIHASHMAPOPTION_UNIQUE_ONLY));
+                   GNUNET_CONTAINER_MULTIHASHMAPOPTION_MULTIPLE));
   update_next_challenge_time (vs, now);
 }
 
@@ -7672,6 +7694,8 @@ handle_hello_for_incoming (void *cls,
   }
   start_address_validation (&ir->pid, (const char *) record->value);
 }
+
+
 
 
 /**
@@ -7730,12 +7754,22 @@ handle_validation_challenge (
                               &tvp,
                               &tvr.signature);
   }
-  route_control_message_without_fc (&cmc->im.sender,
-                                    &tvr.header,
-                                    RMO_ANYTHING_GOES | RMO_REDUNDANT);
   sender = cmc->im.sender;
-  finish_cmc_handling (cmc);
   vl = lookup_virtual_link (&sender);
+  if (NULL != vl)
+  {
+    route_control_message_without_fc (&cmc->im.sender,
+                                      &tvr.header,
+                                      RMO_ANYTHING_GOES | RMO_REDUNDANT);
+  } else {
+    /* Use route via neighbour */
+    n = lookup_neighbour (&sender);
+    if (NULL != n)
+      for (struct Queue *q = n->queue_head; NULL != q; q = q->next_neighbour)
+        queue_send_msg (q, NULL, &tvr, sizeof(tvr));
+  }
+
+  finish_cmc_handling (cmc);
   if (NULL != vl)
     return;
 
@@ -8149,41 +8183,41 @@ demultiplex_with_cmc (struct CommunicatorMessageContext *cmc,
   { GNUNET_MQ_hd_var_size (fragment_box,
                            GNUNET_MESSAGE_TYPE_TRANSPORT_FRAGMENT,
                            struct TransportFragmentBoxMessage,
-                           &cmc),
+                           cmc),
     GNUNET_MQ_hd_var_size (reliability_box,
                            GNUNET_MESSAGE_TYPE_TRANSPORT_RELIABILITY_BOX,
                            struct TransportReliabilityBoxMessage,
-                           &cmc),
+                           cmc),
     GNUNET_MQ_hd_var_size (reliability_ack,
                            GNUNET_MESSAGE_TYPE_TRANSPORT_RELIABILITY_ACK,
                            struct TransportReliabilityAckMessage,
-                           &cmc),
+                           cmc),
     GNUNET_MQ_hd_var_size (backchannel_encapsulation,
                            GNUNET_MESSAGE_TYPE_TRANSPORT_BACKCHANNEL_ENCAPSULATION,
                            struct TransportBackchannelEncapsulationMessage,
-                           &cmc),
+                           cmc),
     GNUNET_MQ_hd_var_size (dv_learn,
                            GNUNET_MESSAGE_TYPE_TRANSPORT_DV_LEARN,
                            struct TransportDVLearnMessage,
-                           &cmc),
+                           cmc),
     GNUNET_MQ_hd_var_size (dv_box,
                            GNUNET_MESSAGE_TYPE_TRANSPORT_DV_BOX,
                            struct TransportDVBoxMessage,
-                           &cmc),
+                           cmc),
     GNUNET_MQ_hd_fixed_size (
       validation_challenge,
       GNUNET_MESSAGE_TYPE_TRANSPORT_ADDRESS_VALIDATION_CHALLENGE,
       struct TransportValidationChallengeMessage,
-      &cmc),
+      cmc),
     GNUNET_MQ_hd_fixed_size (flow_control,
                              GNUNET_MESSAGE_TYPE_TRANSPORT_FLOW_CONTROL,
                              struct TransportFlowControlMessage,
-                             &cmc),
+                             cmc),
     GNUNET_MQ_hd_fixed_size (
       validation_response,
       GNUNET_MESSAGE_TYPE_TRANSPORT_ADDRESS_VALIDATION_RESPONSE,
       struct TransportValidationResponseMessage,
-      &cmc),
+      cmc),
     GNUNET_MQ_handler_end () };
   int ret;
 
@@ -8202,7 +8236,7 @@ demultiplex_with_cmc (struct CommunicatorMessageContext *cmc,
   if (GNUNET_NO == ret)
   {
     /* unencapsulated 'raw' message */
-    handle_raw_message (&cmc, msg);
+    handle_raw_message (cmc, msg);
   }
 }
 
@@ -8949,20 +8983,30 @@ handle_send_message_ack (void *cls,
 
   /* find our queue entry matching the ACK */
   qe = NULL;
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "Looking for queue for PID %s\n",
+              GNUNET_i2s (&sma->receiver));
   for (struct Queue *queue = tc->details.communicator.queue_head; NULL != queue;
        queue = queue->next_client)
   {
     if (0 != GNUNET_memcmp (&queue->neighbour->pid, &sma->receiver))
       continue;
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "Found PID %s\n",
+              GNUNET_i2s (&queue->neighbour->pid));
+
+
     for (struct QueueEntry *qep = queue->queue_head; NULL != qep;
          qep = qep->next)
     {
+      GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                  "QueueEntry MID: %lu, Ack MID: %lu\n",
+                  qep->mid, sma->mid);
       if (qep->mid != sma->mid)
         continue;
       qe = qep;
       break;
     }
-    break;
   }
   if (NULL == qe)
   {
@@ -9333,6 +9377,7 @@ start_dv_learn (void *cls)
     return; /* lost all connectivity, cannot do learning */
   qqc.quality_count = 0;
   qqc.num_queues = 0;
+  qqc.k = GNUNET_CONTAINER_multipeermap_size (neighbours);
   GNUNET_CONTAINER_multipeermap_iterate (neighbours,
                                          &check_connection_quality,
                                          &qqc);
@@ -9352,7 +9397,7 @@ start_dv_learn (void *cls)
     return;
   }
   /* remove old entries in #dvlearn_map if it has grown too big */
-  while (MAX_DV_LEARN_PENDING >=
+  while (MAX_DV_LEARN_PENDING <=
          GNUNET_CONTAINER_multishortmap_size (dvlearn_map))
   {
     lle = lle_tail;

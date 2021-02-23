@@ -954,7 +954,7 @@ test_transport_api_tcp_LDADD = \
  libgnunettransporttesting.la
 
 test_transport_api2_tcp_SOURCES = \
- test_transport_api.c
+ test_transport_api2.c
 test_transport_api2_tcp_LDADD = \
  libgnunettransport.la \
  $(top_builddir)/src/hello/libgnunethello.la \
