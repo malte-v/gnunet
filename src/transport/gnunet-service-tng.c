@@ -4891,6 +4891,9 @@ handle_client_send (void *cls, const struct OutboundMessage *obm)
   vl = lookup_virtual_link (&obm->peer);
   if (NULL == vl)
   {
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "Don't have %s as a neighbour (anymore).\n",
+                GNUNET_i2s (&obm->peer));
     /* Failure: don't have this peer as a neighbour (anymore).
        Might have gone down asynchronously, so this is NOT
        a protocol violation by CORE. Still count the event,
@@ -6122,6 +6125,7 @@ activate_core_visible_dv_path (struct DistanceVectorHop *hop)
   dv->vl = vl;
   vl->core_recv_window = RECV_WINDOW_SIZE;
   vl->available_fc_window_size = DEFAULT_WINDOW_SIZE;
+  vl->incoming_fc_window_size = DEFAULT_WINDOW_SIZE;
   vl->visibility_task =
     GNUNET_SCHEDULER_add_at (hop->path_valid_until, &check_link_down, vl);
   GNUNET_break (GNUNET_YES ==
@@ -8047,6 +8051,7 @@ handle_validation_response (
   n->vl = vl;
   vl->core_recv_window = RECV_WINDOW_SIZE;
   vl->available_fc_window_size = DEFAULT_WINDOW_SIZE;
+  vl->incoming_fc_window_size = DEFAULT_WINDOW_SIZE;
   vl->visibility_task =
     GNUNET_SCHEDULER_add_at (q->validated_until, &check_link_down, vl);
   GNUNET_break (GNUNET_YES ==
