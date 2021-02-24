@@ -1778,7 +1778,7 @@ try_handle_plaintext (struct Queue *queue)
     queue->qh = GNUNET_TRANSPORT_communicator_mq_add (ch,
                                                       &queue->target,
                                                       foreign_addr,
-                                                      0 /* no MTU */,
+                                                      UINT32_MAX, /* no MTU */
                                                       GNUNET_TRANSPORT_QUEUE_LENGTH_UNLIMITED,
                                                       0, /* Priority */
                                                       queue->nt,

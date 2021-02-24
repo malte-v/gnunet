@@ -7765,8 +7765,8 @@ handle_validation_challenge (
     /* Use route via neighbour */
     n = lookup_neighbour (&sender);
     if (NULL != n)
-      for (struct Queue *q = n->queue_head; NULL != q; q = q->next_neighbour)
-        queue_send_msg (q, NULL, &tvr, sizeof(tvr));
+      route_via_neighbour (n, &tvr.header,
+                           RMO_ANYTHING_GOES | RMO_REDUNDANT);
   }
 
   finish_cmc_handling (cmc);
@@ -9550,8 +9550,7 @@ handle_add_queue_message (void *cls,
   const char *addr;
   uint16_t addr_len;
 
-  if ((0 != ntohl (aqm->mtu)) &&
-      (ntohl (aqm->mtu) <= sizeof(struct TransportFragmentBoxMessage)))
+  if (ntohl (aqm->mtu) <= sizeof(struct TransportFragmentBoxMessage))
   {
     /* MTU so small as to be useless for transmissions,
        required for #fragment_message()! */
