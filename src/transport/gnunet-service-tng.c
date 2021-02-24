@@ -3451,6 +3451,8 @@ schedule_transmit_on_queue (struct Queue *queue,
   if (queue->tc->details.communicator.total_queue_length >=
       COMMUNICATOR_TOTAL_QUEUE_LIMIT)
   {
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "Transmission throttled due to communicator queue limit\n");
     GNUNET_STATISTICS_update (
       GST_stats,
       "# Transmission throttled due to communicator queue limit",
@@ -3461,6 +3463,8 @@ schedule_transmit_on_queue (struct Queue *queue,
   }
   if (queue->queue_length >= QUEUE_LENGTH_LIMIT)
   {
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "Transmission throttled due to communicator queue length limit\n");
     GNUNET_STATISTICS_update (GST_stats,
                               "# Transmission throttled due to queue queue limit",
                               1,
@@ -4157,7 +4161,7 @@ queue_send_msg (struct Queue *queue,
   struct GNUNET_TRANSPORT_SendMessageTo *smt;
   struct GNUNET_MQ_Envelope *env;
 
-  queue->idle = GNUNET_NO;
+  //queue->idle = GNUNET_NO;
   GNUNET_log (
     GNUNET_ERROR_TYPE_DEBUG,
     "Queueing %u bytes of payload for transmission <%llu> on queue %llu to %s\n",
@@ -4834,16 +4838,22 @@ check_vl_transmission (struct VirtualLink *vl)
   }
   if (GNUNET_NO == elig)
     return;
-
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "Not stalled. Scheduling transmission on queue\n");
   /* Notify queues at direct neighbours that we are interested */
   now = GNUNET_TIME_absolute_get ();
   if (NULL != n)
   {
     for (struct Queue *queue = n->queue_head; NULL != queue;
          queue = queue->next_neighbour)
+    {
       if ((GNUNET_YES == queue->idle) &&
           (queue->validated_until.abs_value_us > now.abs_value_us))
         schedule_transmit_on_queue (queue, GNUNET_SCHEDULER_PRIORITY_DEFAULT);
+      else
+        GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                    "Queue busy or invalid\n");
+    }
   }
   /* Notify queues via DV that we are interested */
   if (NULL != dv)
@@ -5233,7 +5243,8 @@ handle_raw_message (void *cls, const struct GNUNET_MessageHeader *mh)
        we pass this on, CORE would be confused (link down, messages
        arrive).  We should investigate more if this happens often,
        or in a persistent manner, and possibly do "something" about
-       it. Thus logging as error for now. */GNUNET_break_op (0);
+       it. Thus logging as error for now. */
+    GNUNET_break_op (0);
     GNUNET_STATISTICS_update (GST_stats,
                               "# CORE messages droped (virtual link still down)",
                               1,
@@ -8049,6 +8060,7 @@ handle_validation_response (
   vl->target = n->pid;
   vl->n = n;
   n->vl = vl;
+  q->idle = GNUNET_YES;
   vl->core_recv_window = RECV_WINDOW_SIZE;
   vl->available_fc_window_size = DEFAULT_WINDOW_SIZE;
   vl->incoming_fc_window_size = DEFAULT_WINDOW_SIZE;
@@ -8107,11 +8119,15 @@ handle_flow_control (void *cls, const struct TransportFlowControlMessage *fc)
   uint64_t os;
   uint64_t wnd;
 
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "Received FC from %s\n", GNUNET_i2s (&cmc->im.sender));
   vl = lookup_virtual_link (&cmc->im.sender);
   if (NULL == vl)
   {
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "FC dropped: VL unknown\n");
     GNUNET_STATISTICS_update (GST_stats,
-                              "# FC dropped: virtual link unknown",
+                              "# FC dropped: Virtual link unknown",
                               1,
                               GNUNET_NO);
     finish_cmc_handling (cmc);
@@ -8120,6 +8136,8 @@ handle_flow_control (void *cls, const struct TransportFlowControlMessage *fc)
   st = GNUNET_TIME_absolute_ntoh (fc->sender_time);
   if (st.abs_value_us < vl->last_fc_timestamp.abs_value_us)
   {
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "FC dropped: Message out of order\n");
     /* out of order, drop */
     GNUNET_STATISTICS_update (GST_stats,
                               "# FC dropped: message out of order",
@@ -8152,8 +8170,10 @@ handle_flow_control (void *cls, const struct TransportFlowControlMessage *fc)
       (0 == GNUNET_CRYPTO_random_u32 (GNUNET_CRYPTO_QUALITY_WEAK, UINT32_MAX)
        % FC_NO_CHANGE_REPLY_PROBABILITY))
   {
-    /* Consider re-sending our FC message, as clearly the
-       other peer's idea of the window is not up-to-date */
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "Consider re-sending our FC message, as clearly the  ther peer's idea of the window is not up-to-date (%llu vs %llu)\n",
+                (unsigned long long) wnd,
+                (unsigned long long) vl->incoming_fc_window_size);
     consider_sending_fc (vl);
   }
   if ((wnd == vl->incoming_fc_window_size) &&
@@ -8878,7 +8898,8 @@ transmit_on_queue (void *cls)
      via DV (and thus the ultimate target of the pending message is for
      a different virtual link than the one of the queue), then we need
      to use up not only the window of the direct link but also the
-     flow control window for the DV link! */pm->vl->outbound_fc_window_size_used += pm->bytes_msg;
+     flow control window for the DV link! */
+  pm->vl->outbound_fc_window_size_used += pm->bytes_msg;
 
   if (pm->vl != queue->neighbour->vl)
   {
@@ -9048,7 +9069,10 @@ handle_send_message_ack (void *cls,
     for (struct Queue *queue = tc->details.communicator.queue_head;
          NULL != queue;
          queue = queue->next_client)
+    {
+      queue->idle = GNUNET_YES;
       schedule_transmit_on_queue (queue, GNUNET_SCHEDULER_PRIORITY_DEFAULT);
+    }
   }
   else if (QUEUE_LENGTH_LIMIT - 1 == qe->queue->queue_length)
   {
@@ -9057,6 +9081,7 @@ handle_send_message_ack (void *cls,
                               "# Transmission throttled due to queue queue limit",
                               -1,
                               GNUNET_NO);
+    qe->queue->idle = GNUNET_YES;
     schedule_transmit_on_queue (qe->queue, GNUNET_SCHEDULER_PRIORITY_DEFAULT);
   }
 
@@ -9261,6 +9286,9 @@ validation_start_cb (void *cls)
     (NULL != vs) &&
     (0 == GNUNET_TIME_absolute_get_remaining (vs->valid_until).rel_value_us))
   {
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "Validation response %s cleaned up\n",
+                GNUNET_sh2s (&vs->challenge.value));
     free_validation_state (vs);
     vs = GNUNET_CONTAINER_heap_peek (validation_heap);
   }
