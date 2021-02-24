@@ -85,11 +85,6 @@ struct GNUNET_TRANSPORT_TESTING_PeerContext
   struct GNUNET_TRANSPORT_CoreHandle *th;
 
   /**
-   * Peer's transport service manipulation handle
-   */
-  struct GNUNET_TRANSPORT_ManipulationHandle *tmh;
-
-  /**
    * Peer's ATS handle.
    */
   struct GNUNET_ATS_ConnectivityHandle *ats;

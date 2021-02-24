@@ -504,15 +504,13 @@ GNUNET_TRANSPORT_TESTING_start_peer (struct
        "Peer %u configured with identity `%s'\n",
        p->no,
        GNUNET_i2s_full (&p->id));
-  p->tmh = GNUNET_TRANSPORT_manipulation_connect (p->cfg);
   p->th = GNUNET_TRANSPORT_core_connect (p->cfg,
                                          NULL,
                                          handlers,
                                          p,
                                          &notify_connect,
                                          &notify_disconnect);
-  if ((NULL == p->th) ||
-      (NULL == p->tmh))
+  if (NULL == p->th)
   {
     LOG (GNUNET_ERROR_TYPE_ERROR,
          "Failed to connect to transport service for peer `%s': `%s'\n",
@@ -576,11 +574,6 @@ GNUNET_TRANSPORT_TESTING_restart_peer (struct
   {
     GNUNET_TRANSPORT_core_disconnect (p->th);
     p->th = NULL;
-  }
-  if (NULL != p->tmh)
-  {
-    GNUNET_TRANSPORT_manipulation_disconnect (p->tmh);
-    p->tmh = NULL;
   }
   for (cc = p->tth->cc_head; NULL != cc; cc = ccn)
   {
@@ -667,11 +660,6 @@ GNUNET_TRANSPORT_TESTING_stop_peer (struct
   {
     GNUNET_PEERSTORE_iterate_cancel (p->pic);
     p->pic = NULL;
-  }
-  if (NULL != p->tmh)
-  {
-    GNUNET_TRANSPORT_manipulation_disconnect (p->tmh);
-    p->tmh = NULL;
   }
   if (NULL != p->th)
   {

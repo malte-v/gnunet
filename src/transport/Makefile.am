@@ -174,7 +174,6 @@ libgnunettransporttesting2_la_SOURCES = \
   transport-testing-send2.c \
   transport-testing-communicator.c transport-testing-communicator.h
 libgnunettransporttesting2_la_LIBADD = \
-  libgnunettransport.la \
   libgnunettransportapplication.la \
   libgnunettransportcore.la \
   $(top_builddir)/src/arm/libgnunetarm.la \
@@ -956,7 +955,6 @@ test_transport_api_tcp_LDADD = \
 test_transport_api2_tcp_SOURCES = \
  test_transport_api2.c
 test_transport_api2_tcp_LDADD = \
- libgnunettransport.la \
  $(top_builddir)/src/hello/libgnunethello.la \
  $(top_builddir)/src/util/libgnunetutil.la  \
  libgnunettransporttesting2.la
