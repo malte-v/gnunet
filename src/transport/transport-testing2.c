@@ -337,6 +337,7 @@ hello_iter_cb (void *cb_cls,
   struct GNUNET_TRANSPORT_TESTING_PeerContext *p = cb_cls;
   if ((NULL == record) && (NULL == emsg))
   {
+    p->pic = NULL;
     LOG (GNUNET_ERROR_TYPE_DEBUG, "Iteration End\n");
     return;
   }
@@ -347,6 +348,7 @@ hello_iter_cb (void *cb_cls,
   p->hello[p->hello_size-1] = '\0';
 
   GNUNET_PEERSTORE_iterate_cancel (p->pic);
+  p->pic = NULL;
   if (NULL != p->start_cb)
   {
     LOG (GNUNET_ERROR_TYPE_DEBUG,
@@ -658,7 +660,7 @@ GNUNET_TRANSPORT_TESTING_stop_peer (struct
   }
   if (NULL != p->pic)
   {
-    GNUNET_PEERSTORE_iterate_cancel (p->pic);
+    //GNUNET_PEERSTORE_iterate_cancel (p->pic);
     p->pic = NULL;
   }
   if (NULL != p->th)
@@ -683,6 +685,11 @@ GNUNET_TRANSPORT_TESTING_stop_peer (struct
   {
     GNUNET_ATS_connectivity_done (p->ats);
     p->ats = NULL;
+  }
+  if (NULL != p->ah)
+  {
+    GNUNET_TRANSPORT_application_done (p->ah);
+    p->ah = NULL;
   }
   if (NULL != p->ph)
   {

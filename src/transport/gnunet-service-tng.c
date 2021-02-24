@@ -3551,6 +3551,8 @@ free_queue (struct Queue *queue)
   struct PendingAcknowledgement *pa;
   struct VirtualLink *vl;
 
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "Cleaning up queue %u\n", queue->qid);
   if (NULL != queue->transmit_task)
   {
     GNUNET_SCHEDULER_cancel (queue->transmit_task);
@@ -4161,7 +4163,7 @@ queue_send_msg (struct Queue *queue,
   struct GNUNET_TRANSPORT_SendMessageTo *smt;
   struct GNUNET_MQ_Envelope *env;
 
-  //queue->idle = GNUNET_NO;
+  // queue->idle = GNUNET_NO;
   GNUNET_log (
     GNUNET_ERROR_TYPE_DEBUG,
     "Queueing %u bytes of payload for transmission <%llu> on queue %llu to %s\n",
@@ -9592,57 +9594,71 @@ handle_add_queue_message (void *cls,
     GNUNET_SERVICE_client_drop (tc->client);
     return;
   }
-  neighbour = lookup_neighbour (&aqm->receiver);
-  if (NULL == neighbour)
+  /* This may simply be a queue update */
+  for (queue = tc->details.communicator.queue_head;
+       NULL != queue;
+       queue = queue->next_client)
   {
-    neighbour = GNUNET_new (struct Neighbour);
-    neighbour->pid = aqm->receiver;
-    GNUNET_assert (GNUNET_OK ==
-                   GNUNET_CONTAINER_multipeermap_put (
-                     neighbours,
-                     &neighbour->pid,
-                     neighbour,
-                     GNUNET_CONTAINER_MULTIHASHMAPOPTION_UNIQUE_ONLY));
-    neighbour->get =
-      GNUNET_PEERSTORE_iterate (peerstore,
-                                "transport",
-                                &neighbour->pid,
-                                GNUNET_PEERSTORE_TRANSPORT_DVLEARN_MONOTIME,
-                                &neighbour_dv_monotime_cb,
-                                neighbour);
+    if (queue->qid != aqm->qid)
+      continue;
+    neighbour = queue->neighbour;
+    break;
   }
-  addr_len = ntohs (aqm->header.size) - sizeof(*aqm);
-  addr = (const char *) &aqm[1];
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "New queue %s to %s available with QID %llu\n",
-              addr,
-              GNUNET_i2s (&aqm->receiver),
-              (unsigned long long) aqm->qid);
-  queue = GNUNET_malloc (sizeof(struct Queue) + addr_len);
-  queue->tc = tc;
-  queue->address = (const char *) &queue[1];
-  queue->pd.aged_rtt = GNUNET_TIME_UNIT_FOREVER_REL;
-  queue->qid = aqm->qid;
+  if (NULL == queue)
+  {
+    neighbour = lookup_neighbour (&aqm->receiver);
+    if (NULL == neighbour)
+    {
+      neighbour = GNUNET_new (struct Neighbour);
+      neighbour->pid = aqm->receiver;
+      GNUNET_assert (GNUNET_OK ==
+                     GNUNET_CONTAINER_multipeermap_put (
+                       neighbours,
+                       &neighbour->pid,
+                       neighbour,
+                       GNUNET_CONTAINER_MULTIHASHMAPOPTION_UNIQUE_ONLY));
+      neighbour->get =
+        GNUNET_PEERSTORE_iterate (peerstore,
+                                  "transport",
+                                  &neighbour->pid,
+                                  GNUNET_PEERSTORE_TRANSPORT_DVLEARN_MONOTIME,
+                                  &neighbour_dv_monotime_cb,
+                                  neighbour);
+    }
+    addr_len = ntohs (aqm->header.size) - sizeof(*aqm);
+    addr = (const char *) &aqm[1];
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "New queue %s to %s available with QID %llu\n",
+                addr,
+                GNUNET_i2s (&aqm->receiver),
+                (unsigned long long) aqm->qid);
+    queue = GNUNET_malloc (sizeof(struct Queue) + addr_len);
+    queue->tc = tc;
+    queue->address = (const char *) &queue[1];
+    queue->pd.aged_rtt = GNUNET_TIME_UNIT_FOREVER_REL;
+    queue->qid = aqm->qid;
+    queue->neighbour = neighbour;
+    memcpy (&queue[1], addr, addr_len);
+    /* notify monitors about new queue */
+    {
+      struct MonitorEvent me = { .rtt = queue->pd.aged_rtt, .cs = queue->cs };
+
+      notify_monitors (&neighbour->pid, queue->address, queue->nt, &me);
+    }
+    GNUNET_CONTAINER_MDLL_insert (neighbour,
+                                  neighbour->queue_head,
+                                  neighbour->queue_tail,
+                                  queue);
+    GNUNET_CONTAINER_MDLL_insert (client,
+                                  tc->details.communicator.queue_head,
+                                  tc->details.communicator.queue_tail,
+                                  queue);
+
+  }
   queue->mtu = ntohl (aqm->mtu);
   queue->nt = (enum GNUNET_NetworkType) ntohl (aqm->nt);
   queue->cs = (enum GNUNET_TRANSPORT_ConnectionStatus) ntohl (aqm->cs);
-  queue->neighbour = neighbour;
   queue->idle = GNUNET_YES;
-  memcpy (&queue[1], addr, addr_len);
-  /* notify monitors about new queue */
-  {
-    struct MonitorEvent me = { .rtt = queue->pd.aged_rtt, .cs = queue->cs };
-
-    notify_monitors (&neighbour->pid, queue->address, queue->nt, &me);
-  }
-  GNUNET_CONTAINER_MDLL_insert (neighbour,
-                                neighbour->queue_head,
-                                neighbour->queue_tail,
-                                queue);
-  GNUNET_CONTAINER_MDLL_insert (client,
-                                tc->details.communicator.queue_head,
-                                tc->details.communicator.queue_tail,
-                                queue);
   /* check if valdiations are waiting for the queue */
   (void)
   GNUNET_CONTAINER_multipeermap_get_multiple (validation_map,
@@ -10043,7 +10059,8 @@ do_shutdown (void *cls)
 
   (void) cls;
 
-  GNUNET_CONTAINER_multipeermap_iterate (neighbours, &free_neighbour_cb, NULL);
+  //GNUNET_CONTAINER_multipeermap_iterate (neighbours,
+  //&free_neighbour_cb, NULL);
   if (NULL != peerstore)
   {
     GNUNET_PEERSTORE_disconnect (peerstore, GNUNET_NO);

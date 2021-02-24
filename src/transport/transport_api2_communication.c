@@ -677,7 +677,7 @@ handle_send_msg (void *cls, const struct GNUNET_TRANSPORT_SendMessageTo *smt)
   struct GNUNET_TRANSPORT_QueueHandle *qh;
 
   for (qh = ch->queue_head; NULL != qh; qh = qh->next)
-    if ((qh->queue_id == smt->qid) &&
+    if ((qh->queue_id == ntohl (smt->qid)) &&
         (0 == memcmp (&qh->peer,
                       &smt->receiver,
                       sizeof(struct GNUNET_PeerIdentity))))
