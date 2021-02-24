@@ -696,6 +696,11 @@ GNUNET_TRANSPORT_TESTING_stop_peer (struct
     GNUNET_ATS_connectivity_done (p->ats);
     p->ats = NULL;
   }
+  if (NULL != p->ph)
+  {
+    GNUNET_PEERSTORE_disconnect (p->ph, GNUNET_NO);
+    p->ph = NULL;
+  }
   if (NULL != p->hello)
   {
     GNUNET_free (p->hello);

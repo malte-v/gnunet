@@ -4230,7 +4230,7 @@ route_via_neighbour (const struct Neighbour *n,
   for (struct Queue *pos = n->queue_head; NULL != pos;
        pos = pos->next_neighbour)
   {
-    if ((0 == (options & RMO_UNCONFIRMED_ALLOWED)) ||
+    if ((0 != (options & RMO_UNCONFIRMED_ALLOWED)) ||
         (pos->validated_until.abs_value_us > now.abs_value_us))
       candidates++;
   }
@@ -4259,7 +4259,7 @@ route_via_neighbour (const struct Neighbour *n,
   for (struct Queue *pos = n->queue_head; NULL != pos;
        pos = pos->next_neighbour)
   {
-    if ((0 == (options & RMO_UNCONFIRMED_ALLOWED)) ||
+    if ((0 != (options & RMO_UNCONFIRMED_ALLOWED)) ||
         (pos->validated_until.abs_value_us > now.abs_value_us))
     {
       if ((sel1 == candidates) || (sel2 == candidates))
@@ -7696,8 +7696,6 @@ handle_hello_for_incoming (void *cls,
 }
 
 
-
-
 /**
  * Communicator gave us a transport address validation challenge.  Process the
  * request.
@@ -7761,12 +7759,15 @@ handle_validation_challenge (
     route_control_message_without_fc (&cmc->im.sender,
                                       &tvr.header,
                                       RMO_ANYTHING_GOES | RMO_REDUNDANT);
-  } else {
+  }
+  else
+  {
     /* Use route via neighbour */
     n = lookup_neighbour (&sender);
     if (NULL != n)
       route_via_neighbour (n, &tvr.header,
-                           RMO_ANYTHING_GOES | RMO_REDUNDANT);
+                           RMO_ANYTHING_GOES | RMO_REDUNDANT
+                           | RMO_UNCONFIRMED_ALLOWED);
   }
 
   finish_cmc_handling (cmc);
@@ -8992,8 +8993,8 @@ handle_send_message_ack (void *cls,
     if (0 != GNUNET_memcmp (&queue->neighbour->pid, &sma->receiver))
       continue;
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "Found PID %s\n",
-              GNUNET_i2s (&queue->neighbour->pid));
+                "Found PID %s\n",
+                GNUNET_i2s (&queue->neighbour->pid));
 
 
     for (struct QueueEntry *qep = queue->queue_head; NULL != qep;
@@ -9665,7 +9666,6 @@ handle_update_queue_message (void *cls,
   target_queue->queue_length += GNUNET_ntohll (msg->q_len);
   GNUNET_SERVICE_client_continue (tc->client);
 }
-
 
 
 /**
