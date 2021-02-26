@@ -3681,6 +3681,7 @@ stop_peer_request (void *cls,
   return GNUNET_OK;
 }
 
+
 static void
 do_shutdown (void *cls);
 
@@ -3712,8 +3713,8 @@ client_disconnect_cb (void *cls,
 
   case CT_CORE: {
       GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "CORE Client %p disconnected, cleaning up.\n",
-              tc);
+                  "CORE Client %p disconnected, cleaning up.\n",
+                  tc);
 
       struct PendingMessage *pm;
 
@@ -4198,7 +4199,18 @@ queue_send_msg (struct Queue *queue,
   struct GNUNET_TRANSPORT_SendMessageTo *smt;
   struct GNUNET_MQ_Envelope *env;
 
-  // queue->idle = GNUNET_NO;
+  /**
+   * FIXME: the queue idle member does not really make
+   * sense in the code.
+   * It is not clear what "idle" should mean? If it means
+   * the queue is empty, then other code (see schedule_retransmit)
+   * does not make sense at it ALWAYS expects and idle queue
+   * or will refuse to transmit because it is "busy".
+   * The problem is that the queue is (was) never set to
+   * idle in the code. Now it is, but it is unclear if the
+   * expected logic is preserved.
+   */
+  //queue->idle = GNUNET_NO;
   GNUNET_log (
     GNUNET_ERROR_TYPE_DEBUG,
     "Queueing %u bytes of payload for transmission <%llu> on queue %llu to %s\n",
@@ -5204,7 +5216,7 @@ handle_del_address (void *cls,
   GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
               "Communicator removed address we did not even have.\n");
   GNUNET_SERVICE_client_continue (tc->client);
-  //GNUNET_SERVICE_client_drop (tc->client);
+  // GNUNET_SERVICE_client_drop (tc->client);
 }
 
 
@@ -8978,7 +8990,8 @@ transmit_on_queue (void *cls)
 
        OPTIMIZE: Note that in the future this heuristic should likely
        be improved further (measure RTT stability, consider message
-       urgency and size when delaying ACKs, etc.) */update_pm_next_attempt (pm,
+       urgency and size when delaying ACKs, etc.) */
+    update_pm_next_attempt (pm,
                             GNUNET_TIME_relative_to_absolute (
                               GNUNET_TIME_relative_multiply (queue->pd.aged_rtt,
                                                              4)));
@@ -10168,6 +10181,7 @@ do_shutdown (void *cls)
   dv_routes = NULL;
   GNUNET_SCHEDULER_shutdown ();
 }
+
 
 static void
 shutdown_task (void *cls)
