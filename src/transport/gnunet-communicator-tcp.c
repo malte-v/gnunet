@@ -739,7 +739,6 @@ struct Addresses
 };
 
 
-
 /**
  * Maximum queue length before we stop reading towards the transport service.
  */
@@ -952,6 +951,9 @@ queue_destroy (struct Queue *queue)
     queue->destroyed = GNUNET_YES;
   else
     GNUNET_free (queue);
+
+  if (NULL == lt)
+    return;
 
   if ((! shutdown_running) && (NULL == lt->listen_task))
   {
@@ -1193,6 +1195,7 @@ setup_cipher (const struct GNUNET_HashCode *dh,
                                     0));
 }
 
+
 /**
  * Callback called when peerstore store operation for rekey monotime value is finished.
  * @param cls Queue context the store operation was executed.
@@ -1209,6 +1212,7 @@ rekey_monotime_store_cb (void *cls, int success)
   }
   queue->rekey_monotime_sc = NULL;
 }
+
 
 /**
  * Callback called by peerstore when records for GNUNET_PEERSTORE_TRANSPORT_TCP_COMMUNICATOR_REKEY
@@ -1265,6 +1269,7 @@ rekey_monotime_cb (void *cls,
                                                      &rekey_monotime_store_cb,
                                                      queue);
 }
+
 
 /**
  * Setup cipher of @a queue for decryption.
@@ -1344,6 +1349,7 @@ do_rekey (struct Queue *queue, const struct TCPRekey *rekey)
   setup_in_cipher (&rekey->ephemeral, queue);
 }
 
+
 /**
  * Callback called when peerstore store operation for handshake ack monotime value is finished.
  * @param cls Queue context the store operation was executed.
@@ -1361,6 +1367,7 @@ handshake_ack_monotime_store_cb (void *cls, int success)
   }
   queue->handshake_ack_monotime_sc = NULL;
 }
+
 
 /**
  * Callback called by peerstore when records for GNUNET_PEERSTORE_TRANSPORT_TCP_COMMUNICATOR_HANDSHAKE_ACK
@@ -1420,6 +1427,7 @@ handshake_ack_monotime_cb (void *cls,
                                                              queue);
 }
 
+
 /**
  * Sending challenge with TcpConfirmationAck back to sender of ephemeral key.
  *
@@ -1464,6 +1472,7 @@ send_challenge (struct ChallengeNonceP challenge, struct Queue *queue)
                            "transport",
                            "sending challenge done\n");
 }
+
 
 /**
  * Setup cipher for outgoing data stream based on target and
@@ -1544,6 +1553,7 @@ inject_rekey (struct Queue *queue)
   gcry_cipher_close (queue->out_cipher);
   setup_out_cipher (queue);
 }
+
 
 /**
  * We have been notified that our socket is ready to write.
@@ -1633,6 +1643,7 @@ queue_write (void *cls)
                                       &queue_write,
                                       queue);
 }
+
 
 /**
  * Test if we have received a full message in plaintext.
@@ -1975,6 +1986,7 @@ queue_read (void *cls)
   queue_finish (queue);
 }
 
+
 /**
  * Convert a `struct sockaddr_in6 to a `struct sockaddr *`
  *
@@ -2001,6 +2013,7 @@ tcp_address_to_sockaddr_numeric_v6 (socklen_t *sock_len, struct sockaddr_in6 v6,
   return in;
 }
 
+
 /**
  * Convert a `struct sockaddr_in4 to a `struct sockaddr *`
  *
@@ -2023,6 +2036,7 @@ tcp_address_to_sockaddr_numeric_v4 (socklen_t *sock_len, struct sockaddr_in v4,
   *sock_len = sizeof(struct sockaddr_in);
   return in;
 }
+
 
 /**
  * Convert TCP bind specification to a `struct PortOnlyIpv4Ipv6  *`
@@ -2083,6 +2097,7 @@ tcp_address_to_sockaddr_port_only (const char *bindto, unsigned int *port)
   return po;
 }
 
+
 /**
  * This Method extracts the address part of the BINDTO string.
  *
@@ -2117,7 +2132,8 @@ extract_address (const char *bindto)
     start++;   /* skip over '['*/
     cp[strlen (cp) - 1] = '\0';  /* eat ']'*/
   }
-  else {
+  else
+  {
     token = strtok_r (cp, "]", &rest);
     if (strlen (bindto) == strlen (token))
     {
@@ -2138,6 +2154,7 @@ extract_address (const char *bindto)
 
   return start;
 }
+
 
 /**
  * This Method extracts the port part of the BINDTO string.
@@ -2217,6 +2234,7 @@ extract_port (const char *addr_and_port)
   return port;
 }
 
+
 /**
  * Convert TCP bind specification to a `struct sockaddr *`
  *
@@ -2245,7 +2263,6 @@ tcp_address_to_sockaddr (const char *bindto, socklen_t *sock_len)
               bindto);
 
 
-
   if (1 == inet_pton (AF_INET, start, &v4.sin_addr))
   {
     // colon = strrchr (cp, ':');
@@ -2263,7 +2280,8 @@ tcp_address_to_sockaddr (const char *bindto, socklen_t *sock_len)
     port = extract_port (bindto);
     in = tcp_address_to_sockaddr_numeric_v6 (sock_len, v6, port);
   }
-  else{
+  else
+  {
     GNUNET_assert (0);
   }
 
@@ -2271,6 +2289,7 @@ tcp_address_to_sockaddr (const char *bindto, socklen_t *sock_len)
 
   return in;
 }
+
 
 /**
  * Signature of functions implementing the sending functionality of a
@@ -2510,6 +2529,7 @@ start_initial_kx_out (struct Queue *queue)
   transmit_kx (queue, &epub);
 }
 
+
 /**
  * Callback called when peerstore store operation for handshake monotime is finished.
  * @param cls Queue context the store operation was executed.
@@ -2526,6 +2546,7 @@ handshake_monotime_store_cb (void *cls, int success)
   }
   queue->handshake_monotime_sc = NULL;
 }
+
 
 /**
  * Callback called by peerstore when records for GNUNET_PEERSTORE_TRANSPORT_TCP_COMMUNICATOR_HANDSHAKE
@@ -2584,6 +2605,7 @@ handshake_monotime_cb (void *cls,
                                                          handshake_monotime_store_cb,
                                                          queue);
 }
+
 
 /**
  * We have received the first bytes from the other side on a @a queue.
@@ -2650,6 +2672,7 @@ free_proto_queue (struct ProtoQueue *pq)
   GNUNET_CONTAINER_DLL_remove (proto_head, proto_tail, pq);
   GNUNET_free (pq);
 }
+
 
 /**
  * Read from the socket of the proto queue until we have enough data
@@ -2892,6 +2915,7 @@ queue_read_kx (void *cls)
     queue->read_task = GNUNET_SCHEDULER_add_now (&queue_read, queue);
 }
 
+
 /**
  * Function called by the transport service to initialize a
  * message queue given address information about another peer.
@@ -2991,6 +3015,7 @@ mq_init (void *cls, const struct GNUNET_PeerIdentity *peer, const char *address)
   return GNUNET_OK;
 }
 
+
 /**
  * Iterator over all ListenTasks to clean up.
  *
@@ -3021,6 +3046,7 @@ get_lt_delete_it (void *cls,
   return GNUNET_OK;
 }
 
+
 /**
  * Iterator over all message queues to clean up.
  *
@@ -3041,6 +3067,7 @@ get_queue_delete_it (void *cls,
   queue_destroy (queue);
   return GNUNET_OK;
 }
+
 
 /**
  * Shutdown the UNIX communicator.
@@ -3182,6 +3209,7 @@ nat_address_cb (void *cls,
   }
 }
 
+
 /**
  * This method adds addresses to the DLL, that are later register at the NAT service.
  */
@@ -3210,6 +3238,7 @@ add_addr (struct sockaddr *in, socklen_t in_len)
 
   addrs_lens++;
 }
+
 
 /**
  * This method launch network interactions for each address we like to bind to.
@@ -3336,7 +3365,7 @@ init_socket (struct sockaddr *addr,
   if (NULL == queue_map)
     queue_map = GNUNET_CONTAINER_multipeermap_create (10, GNUNET_NO);
 
-  if (NULL == ch )
+  if (NULL == ch)
     ch = GNUNET_TRANSPORT_communicator_connect (cfg,
                                                 COMMUNICATOR_CONFIG_SECTION,
                                                 COMMUNICATOR_ADDRESS_PREFIX,
@@ -3359,6 +3388,7 @@ init_socket (struct sockaddr *addr,
   return GNUNET_OK;
 
 }
+
 
 /**
  * This method reads from the DLL addrs_head to register them at the NAT service.
@@ -3421,6 +3451,7 @@ nat_register ()
   }
 }
 
+
 /**
  * This method is the callback called by the resolver API, and wraps method init_socket.
  *
@@ -3475,6 +3506,7 @@ init_socket_resolv (void *cls,
 
   }
 }
+
 
 /**
  * Setup communicator and launch network interactions.

@@ -341,11 +341,11 @@ hello_iter_cb (void *cb_cls,
     LOG (GNUNET_ERROR_TYPE_DEBUG, "Iteration End\n");
     return;
   }
-  //Check record type et al?
+  // Check record type et al?
   p->hello_size = record->value_size;
   p->hello = GNUNET_malloc (p->hello_size);
   memcpy (p->hello, record->value, p->hello_size);
-  p->hello[p->hello_size-1] = '\0';
+  p->hello[p->hello_size - 1] = '\0';
 
   GNUNET_PEERSTORE_iterate_cancel (p->pic);
   p->pic = NULL;
@@ -360,13 +360,15 @@ hello_iter_cb (void *cb_cls,
   }
 }
 
+
 static void
-retrieve_hello(void *cls)
+retrieve_hello (void *cls)
 {
   struct GNUNET_TRANSPORT_TESTING_PeerContext *p = cls;
-    LOG (GNUNET_ERROR_TYPE_DEBUG,
-         "Getting hello...\n");
+  LOG (GNUNET_ERROR_TYPE_DEBUG,
+       "Getting hello...\n");
 
+  p->rh_task = NULL;
   p->pic = GNUNET_PEERSTORE_iterate (p->ph,
                                      "transport",
                                      &p->id,
@@ -375,7 +377,6 @@ retrieve_hello(void *cls)
                                      p);
 
 }
-
 
 
 /**
@@ -536,10 +537,11 @@ GNUNET_TRANSPORT_TESTING_start_peer (struct
   p->ah = GNUNET_TRANSPORT_application_init (p->cfg);
   GNUNET_assert (NULL != p->ah);
   // FIXME Error handleing
-  GNUNET_SCHEDULER_add_delayed (GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_SECONDS, 10),
-                                retrieve_hello,
-                                p);
-  //GNUNET_assert (NULL != p->pic);
+  p->rh_task = GNUNET_SCHEDULER_add_delayed (GNUNET_TIME_relative_multiply (
+                                               GNUNET_TIME_UNIT_SECONDS, 10),
+                                             retrieve_hello,
+                                             p);
+  // GNUNET_assert (NULL != p->pic);
 
   return p;
 }
@@ -650,6 +652,11 @@ GNUNET_TRANSPORT_TESTING_stop_peer (struct
   struct GNUNET_TRANSPORT_TESTING_Handle *tth = p->tth;
   struct GNUNET_TRANSPORT_TESTING_ConnectRequest *cc;
   struct GNUNET_TRANSPORT_TESTING_ConnectRequest *ccn;
+  /* shutdown */
+  LOG (GNUNET_ERROR_TYPE_DEBUG,
+       "Stopping peer %u (`%s')\n",
+       p->no,
+       GNUNET_i2s (&p->id));
 
   for (cc = tth->cc_head; NULL != cc; cc = ccn)
   {
@@ -660,7 +667,7 @@ GNUNET_TRANSPORT_TESTING_stop_peer (struct
   }
   if (NULL != p->pic)
   {
-    //GNUNET_PEERSTORE_iterate_cancel (p->pic);
+    // GNUNET_PEERSTORE_iterate_cancel (p->pic);
     p->pic = NULL;
   }
   if (NULL != p->th)
@@ -718,6 +725,9 @@ GNUNET_TRANSPORT_TESTING_stop_peer (struct
        "Peer %u (`%s') stopped\n",
        p->no,
        GNUNET_i2s (&p->id));
+  if (NULL != p->rh_task)
+    GNUNET_SCHEDULER_cancel (p->rh_task);
+  p->rh_task = NULL;
   GNUNET_free (p);
 }
 

@@ -5164,9 +5164,10 @@ handle_del_address (void *cls,
                 ale->address);
     free_address_list_entry (ale);
     GNUNET_SERVICE_client_continue (tc->client);
+    return;
   }
   GNUNET_break (0);
-  GNUNET_SERVICE_client_drop (tc->client);
+  //GNUNET_SERVICE_client_drop (tc->client);
 }
 
 
@@ -10045,6 +10046,52 @@ free_ack_cummulator_cb (void *cls,
   return GNUNET_OK;
 }
 
+void
+cleanup_client (struct TransportClient *tc)
+{
+  switch (tc->type)
+  {
+  case CT_NONE:
+    break;
+
+  case CT_CORE: {
+      struct PendingMessage *pm;
+
+      while (NULL != (pm = tc->details.core.pending_msg_head))
+      {
+        GNUNET_CONTAINER_MDLL_remove (client,
+                                      tc->details.core.pending_msg_head,
+                                      tc->details.core.pending_msg_tail,
+                                      pm);
+        pm->client = NULL;
+      }
+    }
+    break;
+
+  case CT_MONITOR:
+    break;
+
+  case CT_COMMUNICATOR: {
+      struct Queue *q;
+      struct AddressListEntry *ale;
+
+      while (NULL != (q = tc->details.communicator.queue_head))
+        free_queue (q);
+      while (NULL != (ale = tc->details.communicator.addr_head))
+        free_address_list_entry (ale);
+      GNUNET_free (tc->details.communicator.address_prefix);
+    }
+    break;
+
+  case CT_APPLICATION:
+    GNUNET_CONTAINER_multipeermap_iterate (tc->details.application.requests,
+                                           &stop_peer_request,
+                                           tc);
+    GNUNET_CONTAINER_multipeermap_destroy (tc->details.application.requests);
+    break;
+  }
+
+}
 
 /**
  * Function called when the service shuts down.  Unloads our plugins
@@ -10056,15 +10103,29 @@ static void
 do_shutdown (void *cls)
 {
   struct LearnLaunchEntry *lle;
+  struct TransportClient *client;
 
   (void) cls;
-
+  for (client = clients_head; NULL != client; client = client->next)
+  {
+    cleanup_client (client);
+  }
   //GNUNET_CONTAINER_multipeermap_iterate (neighbours,
   //&free_neighbour_cb, NULL);
   if (NULL != peerstore)
   {
     GNUNET_PEERSTORE_disconnect (peerstore, GNUNET_NO);
     peerstore = NULL;
+  }
+  if (NULL != validation_task)
+  {
+    GNUNET_SCHEDULER_cancel (validation_task);
+    validation_task = NULL;
+  }
+  if (NULL != dvlearn_task)
+  {
+    GNUNET_SCHEDULER_cancel (dvlearn_task);
+    dvlearn_task = NULL;
   }
   if (NULL != GST_stats)
   {
