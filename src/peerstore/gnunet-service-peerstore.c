@@ -77,6 +77,8 @@ static unsigned int num_clients;
 static void
 do_shutdown ()
 {
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "Shutting down peerstore, bye.\n");
   if (NULL != db_lib_name)
   {
     GNUNET_break (NULL == GNUNET_PLUGIN_unload (db_lib_name, db));
@@ -105,6 +107,8 @@ do_shutdown ()
 static void
 shutdown_task (void *cls)
 {
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "Priming PEERSTORE for shutdown.\n");
   in_shutdown = GNUNET_YES;
   if (0 == num_clients) /* Only when no connected clients. */
     do_shutdown ();
@@ -176,6 +180,8 @@ client_connect_cb (void *cls,
                    struct GNUNET_MQ_Handle *mq)
 {
   num_clients++;
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "A client connected (now %u)\n", num_clients);
   return client;
 }
 
@@ -195,7 +201,7 @@ client_disconnect_it (void *cls, const struct GNUNET_HashCode *key, void *value)
   {
     GNUNET_assert (GNUNET_YES ==
                    GNUNET_CONTAINER_multihashmap_remove (watchers, key, value));
-    num_clients++;
+    num_clients++; /* Watchers do not count */
   }
   return GNUNET_OK;
 }
@@ -212,12 +218,14 @@ client_disconnect_cb (void *cls,
                       struct GNUNET_SERVICE_Client *client,
                       void *app_cls)
 {
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "A client disconnected, cleaning up.\n");
+  num_clients--;
   if (NULL != watchers)
     GNUNET_CONTAINER_multihashmap_iterate (watchers,
                                            &client_disconnect_it,
                                            client);
-  num_clients--;
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "A client disconnected (%u remaining).\n",
+              num_clients);
   if ((0 == num_clients) && in_shutdown)
     do_shutdown ();
 }
@@ -540,6 +548,7 @@ run (void *cls,
   char *database;
 
   in_shutdown = GNUNET_NO;
+  num_clients = 0;
   cfg = c;
   if (GNUNET_OK != GNUNET_CONFIGURATION_get_value_string (cfg,
                                                           "peerstore",

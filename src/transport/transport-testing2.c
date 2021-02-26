@@ -328,6 +328,8 @@ notify_disconnect (void *cls,
   }
 }
 
+static void
+retrieve_hello (void *cls);
 
 static void
 hello_iter_cb (void *cb_cls,
@@ -339,6 +341,12 @@ hello_iter_cb (void *cb_cls,
   {
     p->pic = NULL;
     LOG (GNUNET_ERROR_TYPE_DEBUG, "Iteration End\n");
+    if (NULL != p->start_cb)
+    {
+      LOG (GNUNET_ERROR_TYPE_DEBUG,
+           "Did not yet get my hello. Retrying...\n");
+      p->rh_task = GNUNET_SCHEDULER_add_now (retrieve_hello, p);
+    }
     return;
   }
   // Check record type et al?
@@ -536,12 +544,8 @@ GNUNET_TRANSPORT_TESTING_start_peer (struct
   // FIXME Error handling
   p->ah = GNUNET_TRANSPORT_application_init (p->cfg);
   GNUNET_assert (NULL != p->ah);
-  // FIXME Error handleing
-  p->rh_task = GNUNET_SCHEDULER_add_delayed (GNUNET_TIME_relative_multiply (
-                                               GNUNET_TIME_UNIT_SECONDS, 10),
-                                             retrieve_hello,
-                                             p);
-  // GNUNET_assert (NULL != p->pic);
+  // FIXME Error handling
+  p->rh_task = GNUNET_SCHEDULER_add_now (retrieve_hello, p);
 
   return p;
 }
@@ -667,26 +671,13 @@ GNUNET_TRANSPORT_TESTING_stop_peer (struct
   }
   if (NULL != p->pic)
   {
-    // GNUNET_PEERSTORE_iterate_cancel (p->pic);
+    GNUNET_PEERSTORE_iterate_cancel (p->pic);
     p->pic = NULL;
   }
   if (NULL != p->th)
   {
     GNUNET_TRANSPORT_core_disconnect (p->th);
     p->th = NULL;
-  }
-  if (NULL != p->peer)
-  {
-    if (GNUNET_OK !=
-        GNUNET_TESTING_peer_stop (p->peer))
-    {
-      LOG (GNUNET_ERROR_TYPE_DEBUG,
-           "Testing lib failed to stop peer %u (`%s')\n",
-           p->no,
-           GNUNET_i2s (&p->id));
-    }
-    GNUNET_TESTING_peer_destroy (p->peer);
-    p->peer = NULL;
   }
   if (NULL != p->ats)
   {
@@ -700,8 +691,24 @@ GNUNET_TRANSPORT_TESTING_stop_peer (struct
   }
   if (NULL != p->ph)
   {
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "Disconnecting from PEERSTORE service\n");
     GNUNET_PEERSTORE_disconnect (p->ph, GNUNET_NO);
     p->ph = NULL;
+  }
+
+  if (NULL != p->peer)
+  {
+    if (GNUNET_OK !=
+        GNUNET_TESTING_peer_stop (p->peer))
+    {
+      LOG (GNUNET_ERROR_TYPE_DEBUG,
+           "Testing lib failed to stop peer %u (`%s')\n",
+           p->no,
+           GNUNET_i2s (&p->id));
+    }
+    GNUNET_TESTING_peer_destroy (p->peer);
+    p->peer = NULL;
   }
   if (NULL != p->hello)
   {
@@ -738,16 +745,16 @@ GNUNET_TRANSPORT_TESTING_stop_peer (struct
  * FIXME maybe schedule the application_validate somehow
  */
 /*
-static void
-hello_offered (void *cls)
-{
-  struct GNUNET_TRANSPORT_TESTING_ConnectRequest *cc = cls;
+   static void
+   hello_offered (void *cls)
+   {
+   struct GNUNET_TRANSPORT_TESTING_ConnectRequest *cc = cls;
 
-  cc->oh = NULL;
-  cc->tct = GNUNET_SCHEDULER_add_delayed (GNUNET_TIME_UNIT_SECONDS,
-                                          &offer_hello,
-                                          cc);
-}*/
+   cc->oh = NULL;
+   cc->tct = GNUNET_SCHEDULER_add_delayed (GNUNET_TIME_UNIT_SECONDS,
+   &offer_hello,
+   cc);
+   }*/
 
 
 /**
