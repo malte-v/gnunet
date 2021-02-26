@@ -340,13 +340,8 @@ hello_iter_cb (void *cb_cls,
   if ((NULL == record) && (NULL == emsg))
   {
     p->pic = NULL;
-    LOG (GNUNET_ERROR_TYPE_DEBUG, "Iteration End\n");
     if (NULL != p->start_cb)
-    {
-      LOG (GNUNET_ERROR_TYPE_DEBUG,
-           "Did not yet get my hello. Retrying...\n");
       p->rh_task = GNUNET_SCHEDULER_add_now (retrieve_hello, p);
-    }
     return;
   }
   // Check record type et al?
@@ -373,9 +368,6 @@ static void
 retrieve_hello (void *cls)
 {
   struct GNUNET_TRANSPORT_TESTING_PeerContext *p = cls;
-  LOG (GNUNET_ERROR_TYPE_DEBUG,
-       "Getting hello...\n");
-
   p->rh_task = NULL;
   p->pic = GNUNET_PEERSTORE_iterate (p->ph,
                                      "transport",

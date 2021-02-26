@@ -4210,7 +4210,7 @@ queue_send_msg (struct Queue *queue,
    * idle in the code. Now it is, but it is unclear if the
    * expected logic is preserved.
    */
-  //queue->idle = GNUNET_NO;
+  queue->idle = GNUNET_NO;
   GNUNET_log (
     GNUNET_ERROR_TYPE_DEBUG,
     "Queueing %u bytes of payload for transmission <%llu> on queue %llu to %s\n",
@@ -9107,6 +9107,7 @@ handle_send_message_ack (void *cls,
               qe->queue->queue_length,
               tc->details.communicator.total_queue_length);
   GNUNET_SERVICE_client_continue (tc->client);
+  qe->queue->idle = GNUNET_YES;
 
   /* if applicable, resume transmissions that waited on ACK */
   if (COMMUNICATOR_TOTAL_QUEUE_LIMIT - 1 ==
@@ -9123,7 +9124,6 @@ handle_send_message_ack (void *cls,
          NULL != queue;
          queue = queue->next_client)
     {
-      queue->idle = GNUNET_YES;
       schedule_transmit_on_queue (queue, GNUNET_SCHEDULER_PRIORITY_DEFAULT);
     }
   }
@@ -9134,7 +9134,6 @@ handle_send_message_ack (void *cls,
                               "# Transmission throttled due to queue queue limit",
                               -1,
                               GNUNET_NO);
-    qe->queue->idle = GNUNET_YES;
     schedule_transmit_on_queue (qe->queue, GNUNET_SCHEDULER_PRIORITY_DEFAULT);
   }
 
