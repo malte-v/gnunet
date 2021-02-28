@@ -1,6 +1,6 @@
 /*
      This file is part of GNUnet
-     Copyright (C) 2012-2020 GNUnet e.V.
+     Copyright (C) 2012-2021 GNUnet e.V.
 
      GNUnet is free software: you can redistribute it and/or modify it
      under the terms of the GNU Affero General Public License as published
@@ -19,6 +19,15 @@
  */
 #ifndef GNU_NAME_SYSTEM_RECORD_TYPES_H
 #define GNU_NAME_SYSTEM_RECORD_TYPES_H
+
+/**
+ * WARNING:
+ * This header is generated!
+ * In order to add GNS record types, you must register
+ * them in GANA, and then use the header generation script
+ * to create an update of this file. You may then replace this
+ * file with the update.
+ */
 
 #ifdef __cplusplus
 extern "C" {
