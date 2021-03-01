@@ -9485,18 +9485,6 @@ of using plugins for the actual transmission operations and the ATS subsystem
 to select a plugin and allocate bandwidth. The following key issues have been
 identified with this design:
 
-@menu
-* Issues with TRANSPORT::
-* Design goals of TNG::
-* HELLO-NG::
-* Priorities and preferences::
-* Communicators::
-@end menu
-
-@node Issues with TRANSPORT
-@subsection Issues with TRANSPORT
-
-
 @itemize @bullet
 @item Bugs in one plugin can affect the TRANSPORT service and other plugins.
       There is at least one open bug that affects sockets, where the origin is
@@ -9531,6 +9519,13 @@ identified with this design:
 @end itemize
 
 
+@menu
+* Design goals of TNG::
+* HELLO-NG::
+* Priorities and preferences::
+* Communicators::
+@end menu
+
 @node Design goals of TNG
 @subsection Design goals of TNG
 
@@ -9564,17 +9559,8 @@ In order to address the above issues, we want to:
 
 The new architecture is planned as follows:
 
-@verbatim
 
-       APPLICATIONS
-             |
-             |
-CORE -- TRANSPORT -- COMMUNICATOR(S) -- NAT
-             \            /
-              \          /
-                PEERSTORE
-
-@end verbatim
+@image{images/tng,5in,,TNG architecture.}
 
 TRANSPORT's main objective is to establish bi-directional virtual links using a
 variety of possibly uni-directional communicators. Links undergo the following

@@ -1,0 +1,55 @@
+// house = application
+// circle (default) = service
+// box = daemon
+// diamond = library
+// black line = dependency
+// blue line = extension via plugin
+// red line = possibly useful
+// dashed = in planning
+
+// this is what we have...o
+digraph tng {
+  // splines = true;
+  compound=true;
+  subgraph cluster0 {
+    label="Our peer";
+    style=dashed;
+    color=black;
+  subgraph cluster1 {
+    style=solid;
+    color=black;
+    tcp;
+    udp;
+    others [style=dotted];
+    label="Communicators";
+  }
+  subgraph cluster2 {
+    style=solid;
+    color=black;
+    dht;
+    fs;
+    cadet;
+    label="Applications";
+  }
+  cadet -> core [ltail=cluster2,label="Communicate with peers"];
+  dht -> transport [ltail=cluster2,label="Suggest connection to peer"];
+  core -> transport [label="Send/receive messages via secure channel"];
+  transport -> tcp [lhead=cluster1,dir=both,label="Offer connectivity/channel to other peer"];
+  udp -> nat [label="Get addresses"];
+  tcp -> nat;
+  }
+  subgraph cluster3 {
+    rank = sink;
+    style=dashed;
+    color=black;
+    peer3;
+    peer1;
+    peer2;
+    label="Other peers";
+  }
+
+
+  tcp -> peer1 [dir=both];
+  udp -> peer2;
+  transport->peer1 [style=invis];
+}
