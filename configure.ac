@@ -558,6 +558,18 @@ AS_IF([test "x$include_manpages" = "xyes"],
 # texinfo5 switches are used. This comes with no version checks, is
 # enabled only at distributors action (ie defaults to "no").
 # Mantis #3914 for more details (https://bugs.gnunet.org/view.php?id=3914)
+# While GNU makeinfo 6.5 supports --css-ref=URL,
+# makeinfo 4.8 (in NetBSD 8.0, macOS, and maybe other
+# base) does only support --css-include=FILE.
+# The only difference is a shorter html output and
+# in 6.5 the ability to use refs instead of include.
+# We prefer not to break builds in this case, so
+# we use the include version which is backwards compatible
+# and upwards compatible, while the ref variant is neither.
+# In the 5.x version they added `--split=chapters|sections` in
+# addition to `--split=nodes`.
+# Hold on to your hats: In version 6.5 this is already removed, ffs.
+# GNU Texinfo, please be more consistent than 1 version in switches.
 AC_MSG_CHECKING(whether to enable texinfo4 switches)
 AC_ARG_ENABLE([texinfo4],
    [AS_HELP_STRING([--enable-texinfo4], [Use texinfo version 4 specific switches])],
@@ -568,11 +580,15 @@ AS_IF([test "x$activate_texinfo4" = "xyes"],
  [
   AM_CONDITIONAL([ACTIVATE_TEXINFO4],true)
   AC_DEFINE([ACTIVATE_TEXINFO4],[1],[Using texinfo version 4 specific switches])
+  TEXINFO_HTMLFLAGS="--no-split --css-include=style.css --css-include=manual.css"
  ],[
   AM_CONDITIONAL([ACTIVATE_TEXINFO4],false)
   AC_DEFINE([INCLUDE_MANPAGES],[0],[Using texinfo version 5 or later switches])
+  TEXINFO_HTMLFLAGS="--split --css-ref='../style.css' --css-ref='../manual.css'"
+
  ])
 
+AC_SUBST([TEXINFO_HTMLFLAGS])
 
 # Adam shostack suggests the following for Windows:
 # -D_FORTIFY_SOURCE=2 -fstack-protector-all

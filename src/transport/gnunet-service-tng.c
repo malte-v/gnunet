@@ -4199,18 +4199,6 @@ queue_send_msg (struct Queue *queue,
   struct GNUNET_TRANSPORT_SendMessageTo *smt;
   struct GNUNET_MQ_Envelope *env;
 
-  /**
-   * FIXME: the queue idle member does not really make
-   * sense in the code.
-   * It is not clear what "idle" should mean? If it means
-   * the queue is empty, then other code (see schedule_retransmit)
-   * does not make sense at it ALWAYS expects and idle queue
-   * or will refuse to transmit because it is "busy".
-   * The problem is that the queue is (was) never set to
-   * idle in the code. Now it is, but it is unclear if the
-   * expected logic is preserved.
-   */
-  queue->idle = GNUNET_NO;
   GNUNET_log (
     GNUNET_ERROR_TYPE_DEBUG,
     "Queueing %u bytes of payload for transmission <%llu> on queue %llu to %s\n",
@@ -8882,6 +8870,8 @@ transmit_on_queue (void *cls)
     queue->idle = GNUNET_YES;
     return;
   }
+  /* There is a message pending, we are certainly not idle */
+  queue->idle = GNUNET_NO;
 
   /* Given selection in `sc`, do transmission */
   pm = sc.best;
@@ -9107,7 +9097,6 @@ handle_send_message_ack (void *cls,
               qe->queue->queue_length,
               tc->details.communicator.total_queue_length);
   GNUNET_SERVICE_client_continue (tc->client);
-  qe->queue->idle = GNUNET_YES;
 
   /* if applicable, resume transmissions that waited on ACK */
   if (COMMUNICATOR_TOTAL_QUEUE_LIMIT - 1 ==
