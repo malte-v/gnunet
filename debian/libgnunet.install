@@ -7,6 +7,7 @@ usr/lib/*/libgnunetutil.so.*
 usr/share/locale/
 usr/share/gnunet/config.d/util.conf
 usr/bin/gnunet-arm
+usr/bin/gnunet-base32
 usr/bin/gnunet-bugreport
 usr/bin/gnunet-config
 usr/bin/gnunet-ecc
