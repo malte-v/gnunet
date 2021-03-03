@@ -290,8 +290,8 @@ run (void *cls,
 int
 main (int argc, char *const *argv)
 {
-  struct GNUNET_GETOPT_CommandLineOption options[] =
-  { GNUNET_GETOPT_option_ulong (
+  struct GNUNET_GETOPT_CommandLineOption options[] = {
+    GNUNET_GETOPT_option_ulong (
       'b',
       "bits",
       "BITS",
@@ -315,7 +315,8 @@ main (int argc, char *const *argv)
                                         gettext_noop (
                                           "time to wait between calculations"),
                                         &proof_find_delay),
-    GNUNET_GETOPT_OPTION_END };
+    GNUNET_GETOPT_OPTION_END
+  };
   int ret;
 
   if (GNUNET_OK != GNUNET_STRINGS_get_utf8_args (argc, argv, &argc, &argv))

@@ -50,6 +50,7 @@ man_MANS = \
   gnunet-arm.1 \
   gnunet-ats.1 \
   gnunet-auto-share.1 \
+  gnunet-base32.1 \
   gnunet-bcd.1 \
   gnunet-bugreport.1 \
   gnunet-config.1 \

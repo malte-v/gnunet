@@ -152,9 +152,10 @@ libexec_PROGRAMS = \
  gnunet-timeout
 
 bin_PROGRAMS = \
- gnunet-resolver \
+ gnunet-base32 \
  gnunet-config \
  gnunet-crypto-tvg \
+ gnunet-resolver \
  $(GNUNET_ECC) \
  $(GNUNET_SCRYPT) \
  gnunet-uri
@@ -202,6 +203,12 @@ gnunet_ecc_SOURCES = \
 gnunet_ecc_LDADD = \
   libgnunetutil.la \
   $(GN_LIBINTL) -lgcrypt
+
+gnunet_base32_SOURCES = \
+ gnunet-base32.c
+gnunet_base32_LDADD = \
+  libgnunetutil.la \
+  $(GN_LIBINTL)
 
 gnunet_scrypt_SOURCES = \
  gnunet-scrypt.c
