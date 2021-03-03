@@ -584,7 +584,7 @@ AS_IF([test "x$activate_texinfo4" = "xyes"],
  ],[
   AM_CONDITIONAL([ACTIVATE_TEXINFO4],false)
   AC_DEFINE([INCLUDE_MANPAGES],[0],[Using texinfo version 5 or later switches])
-  TEXINFO_HTMLFLAGS="--split --css-ref='../style.css' --css-ref='../manual.css'"
+  TEXINFO_HTMLFLAGS="--no-split --css-ref='../style.css' --css-ref='../manual.css'"
 
  ])
 
