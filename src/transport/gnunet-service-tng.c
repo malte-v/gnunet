@@ -2772,6 +2772,11 @@ static unsigned int pa_count;
  */
 static struct GNUNET_TIME_Absolute hello_mono_time;
 
+/**
+ * Indication if we have received a shutdown signal
+ * and are in the process of cleaning up.
+ */
+static int in_shutdown;
 
 /**
  * Get an offset into the transmission history buffer for `struct
@@ -2805,6 +2810,7 @@ free_incoming_request (struct IncomingRequest *ir)
   GNUNET_assert (ir_total > 0);
   ir_total--;
   GNUNET_PEERSTORE_watch_cancel (ir->wc);
+  ir->wc = NULL;
   GNUNET_free (ir);
 }
 
@@ -3333,6 +3339,8 @@ free_neighbour (struct Neighbour *neighbour)
                  GNUNET_CONTAINER_multipeermap_remove (neighbours,
                                                        &neighbour->pid,
                                                        neighbour));
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "Freeing neighbour\n");
   if (NULL != neighbour->reassembly_map)
   {
     GNUNET_CONTAINER_multihashmap32_iterate (neighbour->reassembly_map,
@@ -3499,6 +3507,8 @@ check_link_down (void *cls)
   struct GNUNET_TIME_Absolute dvh_timeout;
   struct GNUNET_TIME_Absolute q_timeout;
 
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "Checking if link is down\n");
   vl->visibility_task = NULL;
   dvh_timeout = GNUNET_TIME_UNIT_ZERO_ABS;
   if (NULL != dv)
@@ -3660,6 +3670,7 @@ stop_peer_request (void *cls,
   struct PeerRequest *pr = value;
 
   GNUNET_PEERSTORE_watch_cancel (pr->wc);
+  pr->wc = NULL;
   GNUNET_assert (
     GNUNET_YES ==
     GNUNET_CONTAINER_multipeermap_remove (tc->details.application.requests,
@@ -3670,6 +3681,9 @@ stop_peer_request (void *cls,
   return GNUNET_OK;
 }
 
+
+static void
+do_shutdown (void *cls);
 
 /**
  * Called whenever a client is disconnected.  Frees our
@@ -3688,16 +3702,20 @@ client_disconnect_cb (void *cls,
 
   (void) cls;
   (void) client;
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "Client %p disconnected, cleaning up.\n",
-              tc);
   GNUNET_CONTAINER_DLL_remove (clients_head, clients_tail, tc);
   switch (tc->type)
   {
   case CT_NONE:
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "Unknown Client %p disconnected, cleaning up.\n",
+                tc);
     break;
 
   case CT_CORE: {
+      GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                  "CORE Client %p disconnected, cleaning up.\n",
+                  tc);
+
       struct PendingMessage *pm;
 
       while (NULL != (pm = tc->details.core.pending_msg_head))
@@ -3712,9 +3730,17 @@ client_disconnect_cb (void *cls,
     break;
 
   case CT_MONITOR:
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "MONITOR Client %p disconnected, cleaning up.\n",
+                tc);
+
     break;
 
   case CT_COMMUNICATOR: {
+      GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                  "COMMUNICATOR Client %p disconnected, cleaning up.\n",
+                  tc);
+
       struct Queue *q;
       struct AddressListEntry *ale;
 
@@ -3727,6 +3753,10 @@ client_disconnect_cb (void *cls,
     break;
 
   case CT_APPLICATION:
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "APPLICATION Client %p disconnected, cleaning up.\n",
+                tc);
+
     GNUNET_CONTAINER_multipeermap_iterate (tc->details.application.requests,
                                            &stop_peer_request,
                                            tc);
@@ -3734,6 +3764,12 @@ client_disconnect_cb (void *cls,
     break;
   }
   GNUNET_free (tc);
+  if ((GNUNET_YES == in_shutdown) && (NULL == clients_head))
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                "Our last client disconnected\n");
+    do_shutdown (cls);
+  }
 }
 
 
@@ -4163,7 +4199,6 @@ queue_send_msg (struct Queue *queue,
   struct GNUNET_TRANSPORT_SendMessageTo *smt;
   struct GNUNET_MQ_Envelope *env;
 
-  // queue->idle = GNUNET_NO;
   GNUNET_log (
     GNUNET_ERROR_TYPE_DEBUG,
     "Queueing %u bytes of payload for transmission <%llu> on queue %llu to %s\n",
@@ -5164,9 +5199,12 @@ handle_del_address (void *cls,
                 ale->address);
     free_address_list_entry (ale);
     GNUNET_SERVICE_client_continue (tc->client);
+    return;
   }
-  GNUNET_break (0);
-  GNUNET_SERVICE_client_drop (tc->client);
+  GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
+              "Communicator removed address we did not even have.\n");
+  GNUNET_SERVICE_client_continue (tc->client);
+  // GNUNET_SERVICE_client_drop (tc->client);
 }
 
 
@@ -8832,6 +8870,8 @@ transmit_on_queue (void *cls)
     queue->idle = GNUNET_YES;
     return;
   }
+  /* There is a message pending, we are certainly not idle */
+  queue->idle = GNUNET_NO;
 
   /* Given selection in `sc`, do transmission */
   pm = sc.best;
@@ -8940,7 +8980,8 @@ transmit_on_queue (void *cls)
 
        OPTIMIZE: Note that in the future this heuristic should likely
        be improved further (measure RTT stability, consider message
-       urgency and size when delaying ACKs, etc.) */update_pm_next_attempt (pm,
+       urgency and size when delaying ACKs, etc.) */
+    update_pm_next_attempt (pm,
                             GNUNET_TIME_relative_to_absolute (
                               GNUNET_TIME_relative_multiply (queue->pd.aged_rtt,
                                                              4)));
@@ -9072,7 +9113,6 @@ handle_send_message_ack (void *cls,
          NULL != queue;
          queue = queue->next_client)
     {
-      queue->idle = GNUNET_YES;
       schedule_transmit_on_queue (queue, GNUNET_SCHEDULER_PRIORITY_DEFAULT);
     }
   }
@@ -9083,7 +9123,6 @@ handle_send_message_ack (void *cls,
                               "# Transmission throttled due to queue queue limit",
                               -1,
                               GNUNET_NO);
-    qe->queue->idle = GNUNET_YES;
     schedule_transmit_on_queue (qe->queue, GNUNET_SCHEDULER_PRIORITY_DEFAULT);
   }
 
@@ -10058,13 +10097,17 @@ do_shutdown (void *cls)
   struct LearnLaunchEntry *lle;
 
   (void) cls;
-
-  //GNUNET_CONTAINER_multipeermap_iterate (neighbours,
-  //&free_neighbour_cb, NULL);
-  if (NULL != peerstore)
+  GNUNET_CONTAINER_multipeermap_iterate (neighbours,
+                                         &free_neighbour_cb, NULL);
+  if (NULL != validation_task)
   {
-    GNUNET_PEERSTORE_disconnect (peerstore, GNUNET_NO);
-    peerstore = NULL;
+    GNUNET_SCHEDULER_cancel (validation_task);
+    validation_task = NULL;
+  }
+  if (NULL != dvlearn_task)
+  {
+    GNUNET_SCHEDULER_cancel (dvlearn_task);
+    dvlearn_task = NULL;
   }
   if (NULL != GST_stats)
   {
@@ -10110,6 +10153,13 @@ do_shutdown (void *cls)
     GNUNET_CONTAINER_DLL_remove (lle_head, lle_tail, lle);
     GNUNET_free (lle);
   }
+  if (NULL != peerstore)
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "Disconnecting from PEERSTORE service\n");
+    GNUNET_PEERSTORE_disconnect (peerstore, GNUNET_NO);
+    peerstore = NULL;
+  }
   GNUNET_CONTAINER_multishortmap_destroy (dvlearn_map);
   dvlearn_map = NULL;
   GNUNET_CONTAINER_heap_destroy (validation_heap);
@@ -10117,6 +10167,16 @@ do_shutdown (void *cls)
   GNUNET_CONTAINER_multipeermap_iterate (dv_routes, &free_dv_routes_cb, NULL);
   GNUNET_CONTAINER_multipeermap_destroy (dv_routes);
   dv_routes = NULL;
+  GNUNET_SCHEDULER_shutdown ();
+}
+
+
+static void
+shutdown_task (void *cls)
+{
+  in_shutdown = GNUNET_YES;
+  if (NULL == clients_head)
+    do_shutdown (cls);
 }
 
 
@@ -10136,6 +10196,7 @@ run (void *cls,
   (void) service;
   /* setup globals */
   hello_mono_time = GNUNET_TIME_absolute_get_monotonic (c);
+  in_shutdown = GNUNET_NO;
   GST_cfg = c;
   backtalkers = GNUNET_CONTAINER_multipeermap_create (16, GNUNET_YES);
   pending_acks = GNUNET_CONTAINER_multiuuidmap_create (32768, GNUNET_YES);
@@ -10165,7 +10226,7 @@ run (void *cls,
               "My identity is `%s'\n",
               GNUNET_i2s_full (&GST_my_identity));
   GST_stats = GNUNET_STATISTICS_create ("transport", GST_cfg);
-  GNUNET_SCHEDULER_add_shutdown (&do_shutdown, NULL);
+  GNUNET_SCHEDULER_add_shutdown (&shutdown_task, NULL);
   peerstore = GNUNET_PEERSTORE_connect (GST_cfg);
   if (NULL == peerstore)
   {

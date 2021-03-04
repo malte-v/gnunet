@@ -1539,7 +1539,12 @@ authoritative zone (replacing ".+" with the name of the location
 where the name was encountered) and hence generate a
 valid GNS name.
 
-GNS currently supports the following record types:
+The GNS currently supports the record types as defined in
+@uref{https://git.gnunet.org/gana.git/tree/gnu-name-system-record-types/registry.rec, GANA}.
+In addition, GNS supports DNS record types, such as A, AAAA or TXT.
+
+In the following, we discuss GNS records with specific behaviour or special
+handling of DNS records.
 
 @menu
 * NICK::
@@ -1547,22 +1552,9 @@ GNS currently supports the following record types:
 * BOX::
 * LEHO::
 * VPN::
-* A AAAA and TXT::
 * CNAME::
 * GNS2DNS::
 * SOA SRV PTR and MX::
-* PLACE::
-* PHONE::
-* ID ATTR::
-* ID TOKEN::
-* ID TOKEN METADATA::
-* CREDENTIAL::
-* POLICY::
-* ATTRIBUTE::
-* ABE KEY::
-* ABE MASTER::
-* RECLAIM OIDC CLIENT::
-* RECLAIM OIDC REDIRECT::
 @end menu
 
 @node NICK
@@ -1657,11 +1649,6 @@ having the following lines in the @file{gnunet.conf} configuration file:
 [web.gnunet.]
 TCP_REDIRECTS = 80:localhost4:8080
 @end example
-
-@node A AAAA and TXT
-@subsubsection A AAAA and TXT
-
-Those records work in exactly the same fashion as in traditional DNS.
 
 @node CNAME
 @subsubsection CNAME
@@ -1770,90 +1757,6 @@ command:
 $ gnunet-namestore -a -n mail -t MX -z bar -e 3600s -V \
 >    "10,mail.bar"
 @end example
-
-@node PLACE
-@subsubsection PLACE
-
-@c TODO describe record type and give an example of how and
-@c when to use it
-Record type for a social place.
-
-@node PHONE
-@subsubsection PHONE
-
-@c TODO describe record type and give an example of how and
-@c when to use it
-Record type for a phone (of CONVERSATION).
-
-@node ID ATTR
-@subsubsection ID ATTR
-
-@c TODO describe record type and give an example of how and
-@c when to use it
-Record type for identity attributes (of IDENTITY).
-
-@node ID TOKEN
-@subsubsection ID TOKEN
-
-@c TODO describe record type and give an example of how and
-@c when to use it
-Record type for an identity token (of IDENTITY-TOKEN).
-
-@node ID TOKEN METADATA
-@subsubsection ID TOKEN METADATA
-
-@c TODO describe record type and give an example of how and
-@c when to use it
-Record type for the private metadata of an identity token (of IDENTITY-TOKEN).
-
-@node CREDENTIAL
-@subsubsection CREDENTIAL
-
-@c TODO describe record type and give an example of how and
-@c when to use it
-Record type for credential.
-
-@node POLICY
-@subsubsection POLICY
-
-@c TODO describe record type and give an example of how and
-@c when to use it
-Record type for policies.
-
-@node ATTRIBUTE
-@subsubsection ATTRIBUTE
-
-@c TODO describe record type and give an example of how and
-@c when to use it
-Record type for reverse lookups.
-
-@node ABE KEY
-@subsubsection ABE KEY
-
-@c TODO describe record type and give an example of how and
-@c when to use it
-Record type for ABE records.
-
-@node ABE MASTER
-@subsubsection ABE MASTER
-
-@c TODO describe record type and give an example of how and
-@c when to use it
-Record type for ABE master keys.
-
-@node RECLAIM OIDC CLIENT
-@subsubsection RECLAIM OIDC CLIENT
-
-@c TODO describe record type and give an example of how and
-@c when to use it
-Record type for reclaim OIDC clients.
-
-@node RECLAIM OIDC REDIRECT
-@subsubsection RECLAIM OIDC REDIRECT
-
-@c TODO describe record type and give an example of how and
-@c when to use it
-Record type for reclaim OIDC redirect URIs.
 
 @node Synchronizing with legacy DNS
 @subsection Synchronizing with legacy DNS

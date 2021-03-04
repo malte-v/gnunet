@@ -145,6 +145,11 @@ struct GNUNET_TRANSPORT_TESTING_PeerContext
   GNUNET_SCHEDULER_TaskCallback start_cb;
 
   /**
+   * Hello get task
+   */
+  struct GNUNET_SCHEDULER_Task *rh_task;
+
+  /**
    * Closure for the @a nc and @a nd callbacks
    */
   void *cb_cls;
