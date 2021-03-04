@@ -1,6 +1,6 @@
 /*
       This file is part of GNUnet
-      Copyright (C) 2008, 2009, 2012 GNUnet e.V.
+      Copyright (C) 2021 GNUnet e.V.
 
       GNUnet is free software: you can redistribute it and/or modify it
       under the terms of the GNU Affero General Public License as published
