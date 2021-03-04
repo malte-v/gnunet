@@ -27,8 +27,7 @@
 #ifndef GNUNET_TESTING_NG_LIB_H
 #define GNUNET_TESTING_NG_LIB_H
 
-#include <gnunet/gnunet_json_lib.h>
-#include <microhttpd.h>
+#include "gnunet_scheduler_lib.h"
 
 
 /* ********************* Helper functions ********************* */
