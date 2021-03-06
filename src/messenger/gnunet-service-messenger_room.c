@@ -939,6 +939,9 @@ iterate_update_member_sessions (void *cls, const struct GNUNET_IDENTITY_PublicKe
   return GNUNET_YES;
 }
 
+static void
+remove_room_member_session (struct GNUNET_MESSENGER_SrvRoom *room, struct GNUNET_MESSENGER_MemberSession *session);
+
 void
 callback_room_handle_message (struct GNUNET_MESSENGER_SrvRoom *room, struct GNUNET_MESSENGER_SrvHandle *handle,
                               const struct GNUNET_MESSENGER_Message *message, const struct GNUNET_HashCode *hash)
@@ -975,7 +978,7 @@ callback_room_handle_message (struct GNUNET_MESSENGER_SrvRoom *room, struct GNUN
   {
     struct GNUNET_MESSENGER_MemberSessionCompletion *element = update.head;
 
-    remove_member_session (element->session->member, element->session);
+    remove_room_member_session (room, element->session);
 
     GNUNET_CONTAINER_DLL_remove(update.head, update.tail, element);
     GNUNET_free (element);
@@ -1086,4 +1089,36 @@ save_room (struct GNUNET_MESSENGER_SrvRoom *room)
   }
 
   GNUNET_free(room_dir);
+}
+
+static void
+remove_room_member_session (struct GNUNET_MESSENGER_SrvRoom *room, struct GNUNET_MESSENGER_MemberSession *session)
+{
+  GNUNET_assert ((room) && (session));
+
+  remove_member_session (session->member, session);
+
+  const struct GNUNET_IDENTITY_PublicKey *public_key = get_member_session_public_key(session);
+
+  struct GNUNET_HashCode hash;
+  GNUNET_CRYPTO_hash(public_key, sizeof(*public_key), &hash);
+
+  char *room_dir;
+  get_room_data_subdir (room, &room_dir);
+
+  char* session_dir;
+  GNUNET_asprintf (
+      &session_dir, "%s%s%c%s%c%s%c%s%c", room_dir,
+      "members", DIR_SEPARATOR,
+      GNUNET_sh2s(get_member_session_id(session)), DIR_SEPARATOR,
+      "sessions", DIR_SEPARATOR,
+      GNUNET_h2s(&hash), DIR_SEPARATOR
+  );
+
+  GNUNET_free (room_dir);
+
+  GNUNET_DISK_directory_remove(session_dir);
+  GNUNET_free (session_dir);
+
+  destroy_member_session(session);
 }

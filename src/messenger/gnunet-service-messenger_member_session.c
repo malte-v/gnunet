@@ -68,6 +68,7 @@ create_member_session (struct GNUNET_MESSENGER_Member *member,
 
   init_list_messages(&(session->messages));
 
+  session->prev = NULL;
   session->next = NULL;
 
   session->closed = GNUNET_NO;
@@ -222,6 +223,7 @@ switch_member_session (struct GNUNET_MESSENGER_MemberSession *session,
   copy_list_messages(&(next->messages), &(session->messages));
 
   session->next = next;
+  next->prev = session;
   next->next = NULL;
 
   session->closed = GNUNET_YES;
@@ -516,6 +518,14 @@ load_member_session (struct GNUNET_MESSENGER_Member *member, const char *directo
       goto destroy_config;
 
     session = create_member_session(member, &key);
+
+    unsigned long long numeric_value;
+
+    if (GNUNET_OK == GNUNET_CONFIGURATION_get_value_number(cfg, "session", "closed", &numeric_value))
+      session->closed = (GNUNET_YES == numeric_value? GNUNET_YES : GNUNET_NO);
+
+    if (GNUNET_OK == GNUNET_CONFIGURATION_get_value_number(cfg, "session", "completed", &numeric_value))
+      session->completed = (GNUNET_YES == numeric_value? GNUNET_YES : GNUNET_NO);
   }
 
 destroy_config:
@@ -599,6 +609,9 @@ load_member_session_next (struct GNUNET_MESSENGER_MemberSession *session, const 
     session->next = get_cycle_safe_next_session(
         session, member? get_member_session (member, &next_key) : NULL
     );
+
+    if (session->next)
+      session->next->prev = session;
   }
 
 destroy_config:
@@ -687,6 +700,9 @@ save_member_session (struct GNUNET_MESSENGER_MemberSession *session, const char 
       GNUNET_free(key_data);
     }
   }
+
+  GNUNET_CONFIGURATION_set_value_number (cfg, "session", "closed", session->closed);
+  GNUNET_CONFIGURATION_set_value_number (cfg, "session", "completed", session->completed);
 
   GNUNET_CONFIGURATION_write (cfg, config_file);
   GNUNET_CONFIGURATION_destroy (cfg);

@@ -46,6 +46,7 @@ struct GNUNET_MESSENGER_MemberSession {
   struct GNUNET_CONTAINER_MultiHashMap *history;
   struct GNUNET_MESSENGER_ListMessages messages;
 
+  struct GNUNET_MESSENGER_MemberSession* prev;
   struct GNUNET_MESSENGER_MemberSession* next;
 
   int closed;
