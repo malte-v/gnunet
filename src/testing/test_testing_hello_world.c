@@ -46,8 +46,10 @@ run (void *cls,
   };
 
   GNUNET_TESTING_run (is,
-                      commands);
+                      commands,
+                      GNUNET_TIME_UNIT_FOREVER_REL);
 }
+
 
 int
 main (int argc,

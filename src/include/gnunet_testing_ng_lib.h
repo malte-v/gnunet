@@ -44,27 +44,6 @@
     return; \
   } while (0)
 
-/**
- * Remove files from previous runs
- *
- * @param config_name configuration file to use+
- */
-void
-GNUNET_TESTING_cleanup_files (const char *config_name);
-
-
-/**
- * Remove files from previous runs
- *
- * @param cls NULL
- * @param cfg configuration
- * @return #GNUNET_OK on success
- */
-int
-GNUNET_TESTING_cleanup_files_cfg (void *cls,
-                                  const struct
-                                  GNUNET_CONFIGURATION_Handle *cfg);
-
 
 /* ******************* Generic interpreter logic ************ */
 
@@ -86,12 +65,6 @@ struct GNUNET_TESTING_Interpreter
   struct GNUNET_SCHEDULER_Task *task;
 
   /**
-   * ID of task called whenever we get a SIGCHILD.
-   * Used for #GNUNET_TESTING_wait_for_sigchld().
-   */
-  struct GNUNET_SCHEDULER_Task *child_death_task;
-
-  /**
    * Our configuration.
    */
   const struct GNUNET_CONFIGURATION_Handle *cfg;
@@ -100,16 +73,6 @@ struct GNUNET_TESTING_Interpreter
    * Task run on timeout.
    */
   struct GNUNET_SCHEDULER_Task *timeout_task;
-
-  /**
-   * Function to call for cleanup at the end. Can be NULL.
-   */
-  GNUNET_SCHEDULER_TaskCallback final_cleanup_cb;
-
-  /**
-   * Closure for #final_cleanup_cb().
-   */
-  void *final_cleanup_cb_cls;
 
   /**
    * Instruction pointer.  Tells #interpreter_run() which instruction to run
@@ -122,50 +85,6 @@ struct GNUNET_TESTING_Interpreter
    * Result of the testcases, #GNUNET_OK on success
    */
   int result;
-
-  /**
-   * Handle to the auditor.  NULL unless specifically initialized
-   * as part of #GNUNET_TESTING_auditor_setup().
-   */
-  struct AUDITOR_Handle *auditor;
-
-  /**
-   * Handle to exchange process; some commands need it
-   * to send signals.  E.g. to trigger the key state reload.
-   */
-  struct GNUNET_OS_Process *exchanged;
-
-  /**
-   * URL of the auditor (as per configuration).
-   */
-  char *auditor_url;
-
-  /**
-   * URL of the exchange (as per configuration).
-   */
-  char *exchange_url;
-
-  /**
-   * Is the interpreter running (#GNUNET_YES) or waiting
-   * for /keys (#GNUNET_NO)?
-   */
-  int working;
-
-  /**
-   * Is the auditor running (#GNUNET_YES) or waiting
-   * for /version (#GNUNET_NO)?
-   */
-  int auditor_working;
-
-  /**
-   * How often have we gotten a /keys response so far?
-   */
-  unsigned int key_generation;
-
-  /**
-   * Exchange keys from last download.
-   */
-  const struct EXCHANGE_Keys *keys;
 
 };
 
@@ -266,9 +185,9 @@ struct GNUNET_TESTING_Command
  * @return the command, if it is found, or NULL.
  */
 const struct GNUNET_TESTING_Command *
-GNUNET_TESTING_interpreter_lookup_command (struct
-                                           GNUNET_TESTING_Interpreter *is,
-                                           const char *label);
+GNUNET_TESTING_interpreter_lookup_command (
+  struct GNUNET_TESTING_Interpreter *is,
+  const char *label);
 
 
 /**
@@ -281,6 +200,7 @@ const char *
 GNUNET_TESTING_interpreter_get_current_label (
   struct GNUNET_TESTING_Interpreter *is);
 
+
 /**
  * Current command is done, run the next one.
  *
@@ -289,6 +209,7 @@ GNUNET_TESTING_interpreter_get_current_label (
 void
 GNUNET_TESTING_interpreter_next (struct GNUNET_TESTING_Interpreter *is);
 
+
 /**
  * Current command failed, clean up and fail the test case.
  *
@@ -296,6 +217,7 @@ GNUNET_TESTING_interpreter_next (struct GNUNET_TESTING_Interpreter *is);
  */
 void
 GNUNET_TESTING_interpreter_fail (struct GNUNET_TESTING_Interpreter *is);
+
 
 /**
  * Create command array terminator.
@@ -322,194 +244,32 @@ GNUNET_TESTING_cmd_rewind_ip (const char *label,
 
 
 /**
- * Wait until we receive SIGCHLD signal.
- * Then obtain the process trait of the current
- * command, wait on the the zombie and continue
- * with the next command.
+ * Wait until we receive SIGCHLD signal.  Then obtain the process trait of the
+ * current command, wait on the the zombie and continue with the next command.
  *
  * @param is interpreter state.
  */
-void
-GNUNET_TESTING_wait_for_sigchld (struct GNUNET_TESTING_Interpreter *is);
+// void
+// GNUNET_TESTING_wait_for_sigchld (struct GNUNET_TESTING_Interpreter *is);
+// => replace with child_management.c
 
 
 /**
- * Schedule the first CMD in the CMDs array.
+ * Start scheduling loop with signal handlers and run the
+ * test suite with the @a commands.
  *
- * @param is interpreter state.
- * @param commands array of all the commands to execute.
- */
-void
-GNUNET_TESTING_run (struct GNUNET_TESTING_Interpreter *is,
-                    struct GNUNET_TESTING_Command *commands);
-
-
-/**
- * Run the testsuite.  Note, CMDs are copied into
- * the interpreter state because they are _usually_
- * defined into the "run" method that returns after
- * having scheduled the test interpreter.
- *
- * @param is the interpreter state
+ * @param cfg_name name of configuration file to use
  * @param commands the list of command to execute
- * @param timeout how long to wait
- */
-void
-GNUNET_TESTING_run2 (struct GNUNET_TESTING_Interpreter *is,
-                     struct GNUNET_TESTING_Command *commands,
-                     struct GNUNET_TIME_Relative timeout);
-
-/**
- * The function that contains the array of all the CMDs to run,
- * which is then on charge to call some fashion of
- * GNUNET_TESTING_run*.  In all the test cases, this function is
- * always the GNUnet-ish "run" method.
- *
- * @param cls closure.
- * @param is interpreter state.
- */
-typedef void
-(*GNUNET_TESTING_Main)(void *cls,
-                       struct GNUNET_TESTING_Interpreter *is);
-
-
-/**
- * Install signal handlers plus schedules the main wrapper
- * around the "run" method.
- *
- * @param main_cb the "run" method which coontains all the
- *        commands.
- * @param main_cb_cls a closure for "run", typically NULL.
- * @param cfg configuration to use
- * @param exchanged exchange process handle: will be put in the
- *        state as some commands - e.g. revoke - need to send
- *        signal to it, for example to let it know to reload the
- *        key state.. if NULL, the interpreter will run without
- *        trying to connect to the exchange first.
- * @param exchange_connect GNUNET_YES if the test should connect
- *        to the exchange, GNUNET_NO otherwise
+ * @param timeout how long to wait for each command to execute
  * @return #GNUNET_OK if all is okay, != #GNUNET_OK otherwise.
  *         non-GNUNET_OK codes are #GNUNET_SYSERR most of the
  *         times.
  */
 int
-GNUNET_TESTING_setup (GNUNET_TESTING_Main main_cb,
-                      void *main_cb_cls,
-                      const struct GNUNET_CONFIGURATION_Handle *cfg,
-                      struct GNUNET_OS_Process *exchanged,
-                      int exchange_connect);
+GNUNET_TESTING_run (const char *cfg_filename,
+                    struct GNUNET_TESTING_Command *commands,
+                    struct GNUNET_TIME_Relative timeout);
 
-
-/**
- * Install signal handlers plus schedules the main wrapper
- * around the "run" method.
- *
- * @param main_cb the "run" method which contains all the
- *        commands.
- * @param main_cb_cls a closure for "run", typically NULL.
- * @param config_filename configuration filename.
- * @return #GNUNET_OK if all is okay, != #GNUNET_OK otherwise.
- *         non-GNUNET_OK codes are #GNUNET_SYSERR most of the
- *         times.
- */
-int
-GNUNET_TESTING_auditor_setup (GNUNET_TESTING_Main main_cb,
-                              void *main_cb_cls,
-                              const char *config_filename);
-
-
-/**
- * Closure for #GNUNET_TESTING_setup_with_exchange_cfg().
- */
-struct GNUNET_TESTING_SetupContext
-{
-  /**
-   * Main function of the test to run.
-   */
-  GNUNET_TESTING_Main main_cb;
-
-  /**
-   * Closure for @e main_cb.
-   */
-  void *main_cb_cls;
-
-  /**
-   * Name of the configuration file.
-   */
-  const char *config_filename;
-};
-
-
-/**
- * Initialize scheduler loop and curl context for the test case
- * including starting and stopping the exchange using the given
- * configuration file.
- *
- * @param cls must be a `struct GNUNET_TESTING_SetupContext *`
- * @param cfg configuration to use.
- * @return #GNUNET_OK if no errors occurred.
- */
-int
-GNUNET_TESTING_setup_with_exchange_cfg (
-  void *cls,
-  const struct GNUNET_CONFIGURATION_Handle *cfg);
-
-
-/**
- * Initialize scheduler loop and curl context for the test case
- * including starting and stopping the exchange using the given
- * configuration file.
- *
- * @param main_cb main method.
- * @param main_cb_cls main method closure.
- * @param config_file configuration file name.  Is is used
- *        by both this function and the exchange itself.  In the
- *        first case it gives out the exchange port number and
- *        the exchange base URL so as to check whether the port
- *        is available and the exchange responds when requested
- *        at its base URL.
- * @return #GNUNET_OK if no errors occurred.
- */
-int
-GNUNET_TESTING_setup_with_exchange (GNUNET_TESTING_Main main_cb,
-                                    void *main_cb_cls,
-                                    const char *config_file);
-
-
-/**
- * Initialize scheduler loop and curl context for the test case
- * including starting and stopping the auditor and exchange using
- * the given configuration file.
- *
- * @param cls must be a `struct GNUNET_TESTING_SetupContext *`
- * @param cfg configuration to use.
- * @return #GNUNET_OK if no errors occurred.
- */
-int
-GNUNET_TESTING_setup_with_auditor_and_exchange_cfg (
-  void *cls,
-  const struct GNUNET_CONFIGURATION_Handle *cfg);
-
-
-/**
- * Initialize scheduler loop and curl context for the test case
- * including starting and stopping the auditor and exchange using
- * the given configuration file.
- *
- * @param main_cb main method.
- * @param main_cb_cls main method closure.
- * @param config_file configuration file name.  Is is used
- *        by both this function and the exchange itself.  In the
- *        first case it gives out the exchange port number and
- *        the exchange base URL so as to check whether the port
- *        is available and the exchange responds when requested
- *        at its base URL.
- * @return #GNUNET_OK if no errors occurred.
- */
-int
-GNUNET_TESTING_setup_with_auditor_and_exchange (GNUNET_TESTING_Main main_cb,
-                                                void *main_cb_cls,
-                                                const char *config_file);
 
 /**
  * Look for substring in a programs' name.
@@ -525,175 +285,41 @@ GNUNET_TESTING_has_in_name (const char *prog,
 /* ************** Specific interpreter commands ************ */
 
 /**
- * Make the "exec-auditor" CMD.
- *
- * @param label command label.
- * @param config_filename configuration filename.
- * @return the command.
- */
-struct GNUNET_TESTING_Command
-GNUNET_TESTING_cmd_exec_auditor (const char *label,
-                                 const char *config_filename);
-
-
-/**
- * Make a "wirewatch" CMD.
- *
- * @param label command label.
- * @param config_filename configuration filename.
- *
- * @return the command.
- */
-struct GNUNET_TESTING_Command
-GNUNET_TESTING_cmd_exec_wirewatch (const char *label,
-                                   const char *config_filename);
-
-/**
- * Make a "aggregator" CMD.
- *
- * @param label command label.
- * @param config_filename configuration file for the
- *                        aggregator to use.
- * @return the command.
- */
-struct GNUNET_TESTING_Command
-GNUNET_TESTING_cmd_exec_aggregator (const char *label,
-                                    const char *config_filename);
-
-
-/**
- * Make a "closer" CMD.  Note that it is right now not supported to run the
- * closer to close multiple reserves in combination with a subsequent reserve
- * status call, as we cannot generate the traits necessary for multiple closed
- * reserves.  You can work around this by using multiple closer commands, one
- * per reserve that is being closed.
- *
- * @param label command label.
- * @param config_filename configuration file for the
- *                        closer to use.
- * @param expected_amount amount we expect to see wired from a @a expected_reserve_ref
- * @param expected_fee closing fee we expect to see
- * @param expected_reserve_ref reference to a reserve we expect the closer to drain;
- *          NULL if we do not expect the closer to do anything
- * @return the command.
- */
-struct GNUNET_TESTING_Command
-GNUNET_TESTING_cmd_exec_closer (const char *label,
-                                const char *config_filename,
-                                const char *expected_amount,
-                                const char *expected_fee,
-                                const char *expected_reserve_ref);
-
-
-/**
- * Make a "transfer" CMD.
- *
- * @param label command label.
- * @param config_filename configuration file for the
- *                        transfer to use.
- * @return the command.
- */
-struct GNUNET_TESTING_Command
-GNUNET_TESTING_cmd_exec_transfer (const char *label,
-                                  const char *config_filename);
-
-
-/**
- * Create a withdraw command, letting the caller specify
- * the desired amount as string.
- *
- * @param label command label.
- * @param reserve_reference command providing us with a reserve to withdraw from
- * @param amount how much we withdraw.
- * @param expected_response_code which HTTP response code
- *        we expect from the exchange.
- * @return the withdraw command to be executed by the interpreter.
- */
-struct GNUNET_TESTING_Command
-GNUNET_TESTING_cmd_withdraw_amount (const char *label,
-                                    const char *reserve_reference,
-                                    const char *amount,
-                                    unsigned int expected_response_code);
-
-/**
- * Create a "wire" command.
- *
- * @param label the command label.
- * @param expected_method which wire-transfer method is expected
- *        to be offered by the exchange.
- * @param expected_fee the fee the exchange should charge.
- * @param expected_response_code the HTTP response the exchange
- *        should return.
- * @return the command.
- */
-struct GNUNET_TESTING_Command
-GNUNET_TESTING_cmd_wire (const char *label,
-                         const char *expected_method,
-                         const char *expected_fee,
-                         unsigned int expected_response_code);
-
-
-/**
- * Create a GET "reserves" command.
- *
- * @param label the command label.
- * @param reserve_reference reference to the reserve to check.
- * @param expected_balance expected balance for the reserve.
- * @param expected_response_code expected HTTP response code.
- * @return the command.
- */
-struct GNUNET_TESTING_Command
-GNUNET_TESTING_cmd_status (const char *label,
-                           const char *reserve_reference,
-                           const char *expected_balance,
-                           unsigned int expected_response_code);
-
-/**
- * Index of the deposit value trait of a deposit command.
- */
-#define GNUNET_TESTING_CMD_DEPOSIT_TRAIT_IDX_DEPOSIT_VALUE 0
-
-/**
- * Index of the deposit fee trait of a deposit command.
- */
-#define GNUNET_TESTING_CMD_DEPOSIT_TRAIT_IDX_DEPOSIT_FEE 1
-
-/**
  * Create a "signal" CMD.
  *
  * @param label command label.
- * @param process handle to the process to signal.
- * @param signal signal to send.
- *
+ * @param process_label label of a command that has a process trait
+ * @param process_index index of the process trait at @a process_label
+ * @param signal signal to send to @a process.
  * @return the command.
  */
 struct GNUNET_TESTING_Command
 GNUNET_TESTING_cmd_signal (const char *label,
-                           struct GNUNET_OS_Process *process,
+                           const char *process_label,
+                           unsigned int process_index,
                            int signal);
 
 
 /**
- * Sleep for @a duration_s seconds.
+ * Sleep for @a duration.
  *
  * @param label command label.
- * @param duration_s number of seconds to sleep
+ * @param duration time to sleep
  * @return the command.
  */
 struct GNUNET_TESTING_Command
 GNUNET_TESTING_cmd_sleep (const char *label,
-                          unsigned int duration_s);
+                          struct GNUNET_TIME_Relative duration);
+
 
 /**
- * Create a "batch" command.  Such command takes a
- * end_CMD-terminated array of CMDs and executed them.
- * Once it hits the end CMD, it passes the control
- * to the next top-level CMD, regardless of it being
- * another batch or ordinary CMD.
+ * Create a "batch" command.  Such command takes a end_CMD-terminated array of
+ * CMDs and executed them.  Once it hits the end CMD, it passes the control to
+ * the next top-level CMD, regardless of it being another batch or ordinary
+ * CMD.
  *
  * @param label the command label.
  * @param batch array of CMDs to execute.
- *
  * @return the command.
  */
 struct GNUNET_TESTING_Command
@@ -708,6 +334,7 @@ GNUNET_TESTING_cmd_batch (const char *label,
  */
 int
 GNUNET_TESTING_cmd_is_batch (const struct GNUNET_TESTING_Command *cmd);
+
 
 /**
  * Advance internal pointer to next command.
@@ -860,6 +487,7 @@ GNUNET_TESTING_get_trait_process (const struct GNUNET_TESTING_Command *cmd,
 struct GNUNET_TESTING_Trait
 GNUNET_TESTING_make_trait_process (unsigned int index,
                                    struct GNUNET_OS_Process **processp);
+
 
 /**
  * Offer number trait, 32-bit version.
@@ -1051,6 +679,7 @@ struct GNUNET_TESTING_Trait
 GNUNET_TESTING_make_trait_uuid (unsigned int index,
                                 const struct GNUNET_Uuid *uuid);
 
+
 /**
  * Obtain a absolute time from @a cmd.
  *
@@ -1108,19 +737,7 @@ GNUNET_TESTING_make_trait_relative_time (
   unsigned int index,
   const struct GNUNET_TIME_Relative *time);
 
-/**
- * Offer data from trait
- *
- * @param cmd command to extract the url from.
- * @param pt which url is to be picked, in case
- *        multiple are offered.
- * @param[out] url where to write the url.
- * @return #GNUNET_OK on success.
- */
-int
-GNUNET_TESTING_get_trait_what_am_i (const struct
-                                    GNUNET_TESTING_Command *cmd,
-                                    char *what_am_i);
+
 /**
  * Create command.
  *
