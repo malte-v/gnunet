@@ -27,6 +27,7 @@
 #ifndef GNUNET_TESTING_NG_LIB_H
 #define GNUNET_TESTING_NG_LIB_H
 
+#include "gnunet_util_lib.h"
 #include "gnunet_scheduler_lib.h"
 
 
@@ -759,5 +760,19 @@ GNUNET_TESTING_cmd_hello_world_birth (const char *label,
 struct GNUNET_TESTING_Command
 GNUNET_TESTING_cmd_hello_world (const char *label,
                                 char *message);
+
+/**
+ * Offer data from trait
+ *
+ * @param cmd command to extract the url from.
+ * @param pt which url is to be picked, in case
+ *        multiple are offered.
+ * @param[out] url where to write the url.
+ * @return #GNUNET_OK on success.
+ */
+int
+GNUNET_TESTING_get_trait_what_am_i (const struct
+                                    GNUNET_TESTING_Command *cmd,
+                                    char *what_am_i);
 
 #endif
