@@ -476,6 +476,10 @@ GNUNET_CRYPTO_ecdsa_key_get_anonymous ()
   GNUNET_CRYPTO_mpi_print_unsigned (anonymous.d,
                                     sizeof(anonymous.d),
                                     GCRYMPI_CONST_ONE);
+  anonymous.d[0] &= 248;
+  anonymous.d[31] &= 127;
+  anonymous.d[31] |= 64;
+
   once = 1;
   return &anonymous;
 }
