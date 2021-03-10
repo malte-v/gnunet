@@ -33,6 +33,22 @@
 
 #define EXTRA_CHECKS 0
 
+/**
+ * IMPLEMENTATION NOTICE:
+ *
+ * ECDSA: We use a non-standard curve for ECDSA: Ed25519.
+ * For performance reasons, we use cryptographic operations from
+ * libsodium wherever we can get away with it, even though libsodium
+ * itself does not support ECDSA.
+ * This is why the sign and verifiy functionality from libgcrypt is
+ * required and used.
+ *
+ * EdDSA: We use a standard EdDSA construction.
+ * (We still use libgcrypt for hashing and RNG, but not EC)
+ *
+ * ECDHE: For both EdDSA and ECDSA keys, we use libsodium for
+ * ECDHE due to performance benefits over libgcrypt.
+ */
 
 /**
  * Name of the curve we are using.  Note that we have hard-coded
