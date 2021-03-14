@@ -580,6 +580,13 @@ Further Reading
   * Using the webbrowser:
     https://bib.gnunet.org/
 
+Notes on Packaging
+==================
+
+* GNUnet installs binaries which should not be called by the user into
+  $PREFIX/lib/gnunet/libexec. This folder must not be confused with the
+  $PREFIX/libexec. GNUnet does not install anything into the libexec dir
+  to compliant with https://refspecs.linuxfoundation.org/FHS_3.0/fhs/ch04s07.html
 
 Stay tuned
 ==========
