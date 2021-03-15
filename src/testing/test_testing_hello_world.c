@@ -25,39 +25,44 @@
  */
 #include "platform.h"
 #include "gnunet_testing_ng_lib.h"
+#include "gnunet_util_lib.h"
 
 /**
- * Main function that will tell the interpreter what commands to
- * run.
+ * Main function to run the test cases.
  *
- * @param cls closure
+ * @param cls not used.
+ *
  */
 static void
-run (void *cls,
-     struct GNUNET_TESTING_Interpreter *is)
+run (void *cls)
 {
+  (void *) cls;
   struct GNUNET_TIME_Absolute now = GNUNET_TIME_absolute_get ();
 
   struct GNUNET_TESTING_Command commands[] = {
     GNUNET_TESTING_cmd_hello_world_birth ("hello-world-birth-0",
                                           &now),
-    GNUNET_TESTING_cmd_hello_world ("hello-world-0",""),
+    GNUNET_TESTING_cmd_hello_world ("hello-world-0","hello-world-birth-0",""),
     GNUNET_TESTING_cmd_end ()
   };
 
-  GNUNET_TESTING_run (is,
+  GNUNET_TESTING_run (NULL,
                       commands,
                       GNUNET_TIME_UNIT_FOREVER_REL);
 }
-
 
 int
 main (int argc,
       char *const *argv)
 {
-  return GNUNET_TESTING_setup (&run,
-                               NULL,
-                               NULL,
-                               NULL,
-                               GNUNET_NO);
+  int rv = 0;
+
+  GNUNET_log_setup ("test-hello-world",
+                    "DEBUG",
+                    NULL);
+
+  GNUNET_SCHEDULER_run (&run,
+                        NULL);
+
+  return rv;
 }

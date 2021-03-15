@@ -45,7 +45,7 @@ hello_world_birth_cleanup (void *cls,
 {
   struct HelloWorldBirthState *hbs = cls;
   GNUNET_log (GNUNET_ERROR_TYPE_INFO,
-              "Finished birth of %s",
+              "Finished birth of %s\n",
               hbs->what_am_i);
 }
 
@@ -65,11 +65,13 @@ hello_world_birth_traits (void *cls,
                           unsigned int index)
 {
   struct HelloWorldBirthState *hbs = cls;
+  const char *what_am_i = hbs->what_am_i;
+
   struct GNUNET_TESTING_Trait traits[] = {
     {
       .index = 0,
       .trait_name = "what_am_i",
-      .ptr = (const void *) hbs->what_am_i,
+      .ptr = (const void *) what_am_i,
     },
     GNUNET_TESTING_trait_end ()
   };
@@ -100,16 +102,17 @@ hello_world_birth_run (void *cls,
 
   if (0 == relativ.rel_value_us % 10)
   {
-    hbs->what_am_i = "Hello World, I am a creature!";
+    hbs->what_am_i = "creature!";
   }
   else if (0 == relativ.rel_value_us % 2)
   {
-    hbs->what_am_i = "Hello World, I am  a girl!";
+    hbs->what_am_i = "girl!";
   }
   else
   {
-    hbs->what_am_i = "Hello World, I am  a boy!";
+    hbs->what_am_i = "boy!";
   }
+  GNUNET_TESTING_interpreter_next (is);
 }
 
 /**
@@ -122,9 +125,8 @@ hello_world_birth_run (void *cls,
  * @return #GNUNET_OK on success.
  */
 int
-GNUNET_TESTING_get_trait_what_am_i (const struct
-                                    GNUNET_TESTING_Command *cmd,
-                                    char *what_am_i)
+GNUNET_TESTING_get_trait_what_am_i (const struct GNUNET_TESTING_Command *cmd,
+                                    char **what_am_i)
 {
   return cmd->traits (cmd->cls,
                       (const void **) what_am_i,

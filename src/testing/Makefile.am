@@ -74,9 +74,9 @@ TESTS = \
  test_testing_servicestartup
 endif
 
-test_testing_helloworld_SOURCES = \
- test_testing_hello_world
-test_testing_portreservation_LDADD = \
+test_testing_hello_world_SOURCES = \
+ test_testing_hello_world.c
+test_testing_hello_world_LDADD = \
  libgnunettesting.la \
  $(top_builddir)/src/util/libgnunetutil.la
 

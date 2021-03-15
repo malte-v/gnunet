@@ -29,17 +29,16 @@
 #include "gnunet_util_lib.h"
 #include "gnunet_testing_ng_lib.h"
 
+struct GNUNET_TESTING_Interpreter *is;
+
 /**
  * Lookup command by label.
  *
- * @param is interpreter state to search
  * @param label label to look for
  * @return NULL if command was not found
  */
 const struct GNUNET_TESTING_Command *
-GNUNET_TESTING_interpreter_lookup_command (struct
-                                           GNUNET_TESTING_Interpreter *is,
-                                           const char *label)
+GNUNET_TESTING_interpreter_lookup_command (const char *label)
 {
   if (NULL == label)
   {
@@ -203,7 +202,7 @@ GNUNET_TESTING_interpreter_get_current_label (struct
 static void
 interpreter_run (void *cls)
 {
-  struct GNUNET_TESTING_Interpreter *is = cls;
+  (void) cls;
   struct GNUNET_TESTING_Command *cmd = &is->commands[is->ip];
 
   is->task = NULL;
@@ -237,10 +236,10 @@ interpreter_run (void *cls)
  *
  * @param cls the interpreter state.
  */
-/*static void
+static void
 do_shutdown (void *cls)
 {
-  struct GNUNET_TESTING_Interpreter *is = cls;
+  (void) cls;
   struct GNUNET_TESTING_Command *cmd;
   const char *label;
 
@@ -269,7 +268,24 @@ do_shutdown (void *cls)
     is->timeout_task = NULL;
   }
   GNUNET_free (is->commands);
-}*/
+}
+
+
+/**
+ * Function run when the test terminates (good or bad) with timeout.
+ *
+ * @param cls NULL
+ */
+static void
+do_timeout (void *cls)
+{
+  (void) cls;
+
+  is->timeout_task = NULL;
+  GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+              "Terminating test due to timeout\n");
+  GNUNET_SCHEDULER_shutdown ();
+}
 
 
 /**
@@ -289,17 +305,28 @@ GNUNET_TESTING_run (const char *cfg_filename,
 {
   unsigned int i;
 
+  is = GNUNET_new (struct GNUNET_TESTING_Interpreter);
+
+  if (NULL != is->timeout_task)
+  {
+    GNUNET_SCHEDULER_cancel (is->timeout_task);
+    is->timeout_task = NULL;
+  }
   /* get the number of commands */
   for (i = 0; NULL != commands[i].label; i++)
     ;
+  is->commands = GNUNET_new_array (i + 1,
+                                   struct GNUNET_TESTING_Command);
+  memcpy (is->commands,
+          commands,
+          sizeof (struct GNUNET_TESTING_Command) * i);
 
-
-  /*is->timeout_task = GNUNET_SCHEDULER_add_delayed
+  is->timeout_task = GNUNET_SCHEDULER_add_delayed
                        (timeout,
                        &do_timeout,
                        is);
   GNUNET_SCHEDULER_add_shutdown (&do_shutdown, is);
-  is->task = GNUNET_SCHEDULER_add_now (&interpreter_run, is);*/
+  is->task = GNUNET_SCHEDULER_add_now (&interpreter_run, is);
   return GNUNET_OK;
 }
 

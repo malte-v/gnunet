@@ -29,6 +29,7 @@
 struct HelloWorldState
 {
   char *message;
+  const char *birthLabel;
 };
 
 /**
@@ -43,7 +44,7 @@ hello_world_cleanup (void *cls,
 {
   struct HelloWorldState *hs = cls;
   GNUNET_log (GNUNET_ERROR_TYPE_INFO,
-              "Cleaning up message %s",
+              "Cleaning up message %s\n",
               hs->message);
 }
 
@@ -78,11 +79,17 @@ hello_world_run (void *cls,
                  struct GNUNET_TESTING_Interpreter *is)
 {
   struct HelloWorldState *hs = cls;
+  const struct GNUNET_TESTING_Command *birth_cmd;
+
   GNUNET_log (GNUNET_ERROR_TYPE_INFO,
-              "%s",
+              "%s\n",
               hs->message);
-  GNUNET_TESTING_get_trait_what_am_i (cmd,
-                                      hs->message);
+  birth_cmd = GNUNET_TESTING_interpreter_lookup_command (hs->birthLabel);
+  GNUNET_TESTING_get_trait_what_am_i (birth_cmd, &hs->message);
+  GNUNET_log (GNUNET_ERROR_TYPE_INFO,
+              "Now I am a %s\n",
+              hs->message);
+  GNUNET_TESTING_interpreter_next (is);
 }
 
 /**
@@ -94,12 +101,14 @@ hello_world_run (void *cls,
  */
 struct GNUNET_TESTING_Command
 GNUNET_TESTING_cmd_hello_world (const char *label,
+                                const char *birthLabel,
                                 char *message)
 {
   struct HelloWorldState *hs;
 
   hs = GNUNET_new (struct HelloWorldState);
-  hs->message = "Hello World, I am nobody!";
+  hs->message = "Hello World, I was nobody!";
+  hs->birthLabel = birthLabel;
 
   struct GNUNET_TESTING_Command cmd = {
     .cls = hs,
