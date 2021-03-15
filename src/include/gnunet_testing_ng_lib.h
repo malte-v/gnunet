@@ -181,13 +181,11 @@ struct GNUNET_TESTING_Command
 /**
  * Lookup command by label.
  *
- * @param is interpreter state.
  * @param label label of the command to lookup.
  * @return the command, if it is found, or NULL.
  */
 const struct GNUNET_TESTING_Command *
 GNUNET_TESTING_interpreter_lookup_command (
-  struct GNUNET_TESTING_Interpreter *is,
   const char *label);
 
 
@@ -759,6 +757,7 @@ GNUNET_TESTING_cmd_hello_world_birth (const char *label,
  */
 struct GNUNET_TESTING_Command
 GNUNET_TESTING_cmd_hello_world (const char *label,
+                                const char *birthLabel,
                                 char *message);
 
 /**
@@ -771,8 +770,7 @@ GNUNET_TESTING_cmd_hello_world (const char *label,
  * @return #GNUNET_OK on success.
  */
 int
-GNUNET_TESTING_get_trait_what_am_i (const struct
-                                    GNUNET_TESTING_Command *cmd,
-                                    char *what_am_i);
+GNUNET_TESTING_get_trait_what_am_i (const struct GNUNET_TESTING_Command *cmd,
+                                    char **what_am_i);
 
 #endif
