@@ -1192,8 +1192,8 @@ send_ibf (struct Operation *op,
        1 << ibf_order);
 
   {
-    char name[64] = { 0 };
-    snprintf (name, sizeof(name), "# sent IBF (order %u)", ibf_order);
+    char name[64];
+    GNUNET_snprintf (name, sizeof(name), "# sent IBF (order %u)", ibf_order);
     GNUNET_STATISTICS_update (_GSS_statistics, name, 1, GNUNET_NO);
   }
 
