@@ -58,7 +58,6 @@ check_PROGRAMS = \
  test_testing_hello_world \
  test_testing_portreservation \
  test_testing_servicestartup \
- test_testing_ng_peerstartup \
  test_testing_peerstartup \
  test_testing_peerstartup2 \
  test_testing_sharedservices
@@ -68,7 +67,6 @@ AM_TESTS_ENVIRONMENT=export GNUNET_PREFIX=$${GNUNET_PREFIX:-@libdir@};export PAT
 TESTS = \
  test_testing_hello_world \
  test_testing_portreservation \
- test_testing_ng_peerstartup \
  test_testing_peerstartup \
  test_testing_peerstartup2 \
  test_testing_servicestartup
@@ -83,12 +81,6 @@ test_testing_hello_world_LDADD = \
 test_testing_portreservation_SOURCES = \
  test_testing_portreservation.c
 test_testing_portreservation_LDADD = \
- libgnunettesting.la \
- $(top_builddir)/src/util/libgnunetutil.la
-
-test_testing_ng_peerstartup_SOURCES = \
- test_testing_ng_peerstartup.c
-test_testing_ng_peerstartup_LDADD = \
  libgnunettesting.la \
  $(top_builddir)/src/util/libgnunetutil.la
 
