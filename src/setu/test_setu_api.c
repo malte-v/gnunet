@@ -210,12 +210,8 @@ init_set2 (void *cls)
 
 unsigned char *gen_rdm_bytestream (size_t num_bytes)
 {
-    unsigned char *stream = malloc (num_bytes);
-    size_t i;
-    for (i = 0; i < num_bytes; i++)
-    {
-        stream[i] = rand ();
-    }
+    unsigned char *stream = GNUNET_malloc (num_bytes);
+    GNUNET_CRYPTO_random_block(GNUNET_CRYPTO_QUALITY_WEAK, stream, sizeof(stream));
     return stream;
 }
 
@@ -253,12 +249,15 @@ initRandomSets(int overlap, int set1_size, int set2_size, int element_size_in_by
     while(set2_size > 0) {
         element.data = gen_rdm_bytestream(element_size_in_bytes);
         element.size = strlen (element.data);
-        GNUNET_SETU_add_element (set2, &element,NULL, NULL);
+
+        if(set2_size != 1) {
+            GNUNET_SETU_add_element (set2, &element,NULL, NULL);
+        } else {
+            GNUNET_SETU_add_element (set2, &element,&start, NULL);
+        }
+
         set2_size--;
     }
-    element.data = gen_rdm_bytestream(element_size_in_bytes);
-    element.size = strlen (element.data);
-    GNUNET_SETU_add_element (set2, &element,&start, NULL);
     GNUNET_log (GNUNET_ERROR_TYPE_INFO, "initialized elements in set2\n");
 }
 
