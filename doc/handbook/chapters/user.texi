@@ -28,6 +28,7 @@ always welcome.
 * The GNU Name System::
 * reclaimID Identity Provider::
 * Using the Virtual Public Network::
+* Using the GNUnet Messenger::
 @end menu
 
 @node Start and stop GNUnet
@@ -2323,3 +2324,149 @@ service offered by that peer, you can create an IP tunnel to
 that peer by specifying the peer's identity, service name and
 protocol (--tcp or --udp) and you will again receive an IP address
 that will terminate at the respective peer's service.
+
+@node Using the GNUnet Messenger
+@section Using the GNUnet Messenger
+
+The GNUnet Messenger subsystem allows decentralized message-based 
+communication inside of so called rooms. Each room can be hosted by
+a variable amount of peers. Every member of a room has the possibility
+to host the room on its own peer. A peer allows any amount of members 
+to join a room. The amount of members in a room is not restricted.
+
+Messages in a room will be distributed between all peers hosting the 
+room or being internally (in context of the messenger service) connected 
+to a hosting peer. All received or sent messages will be stored on any 
+peer locally which is hosting the respective room or is internally
+connected to such a hosting peer.
+
+The Messenger service is built on the CADET subsystem to make internal 
+connections between peers using a reliable and encrypted transmission. 
+Additionally the service uses a discrete padding to few different sizes. 
+So kinds of messages and potential content can't be identified by the 
+size of traffic from any attacker being unable to break the encryption 
+of the transmission layer.
+
+Another feature is additional end-to-end encryption for selected messages
+which uses the public key of another member (the receiver) to encrypt 
+the message. Therefore it is ensured that only the selected member can
+read its content. This will also use additional padding.
+
+@menu
+* Current state::
+* Entering a room::
+* Opening a room::
+* Messaging in a room::
+* Private messaging::
+@end menu
+
+@node Current state
+@subsection Current state
+
+Currently there is only a simplistic CLI application available to use the
+messenger service. You can use this application with the 
+@command{gnunet-messenger} command.
+
+This application was designed for testing purposes and it does not provide
+full functionality in the current state. It is planned to replace this CLI
+application in later stages with a fully featured one using a client-side
+library designed for messenger applications.
+
+@node Entering a room
+@subsection Entering a room
+
+You can enter any room by its ROOMKEY and any PEERIDENTITY of a hosting peer.
+Optionally you can provide any IDENTITY which can represent a local ego by
+its name.
+
+@example
+$ gnunet-messenger [-e IDENTITY] -d PEERIDENTITY -r ROOMKEY
+@end example
+
+A PEERIDENTITY gets entered in encoded form. You can get your own peer ID by
+using the @command{gnunet-peerinfo} command:
+
+@example
+$ gnunet-peerinfo -s
+@end example
+
+A ROOMKEY gets entered in readable text form. The service will then hash the 
+entered ROOMKEY and use the result as shared secret for transmission through 
+the CADET submodule. You can also optionally leave out the '-r' paramter and 
+the ROOMKEY to use the zeroed hash instead.
+
+If no IDENTITY is provided you will not send any name to others, you will be 
+referred as "anonymous" instead and use the anonymous ego. If you provide any 
+IDENTITY a matching ego will be used to sign your messages. If there is no 
+matching ego you will use the anonymous ego instead. The provided IDENTITY will
+be distributed as your name for the service in any case.
+
+@node Opening a room
+@subsection Opening a room
+
+You can open any room in a similar way to entering it. You just have to leave
+out the '-d' parameter and the PEERIDENTITY of the hosting peer.
+
+@example
+$ gnunet-messenger [-e IDENTITY] -r ROOMKEY
+@end example
+
+Providing ROOMKEY and IDENTITY is identical to entering a room. Opening a room
+will also make your peer to a host of this room. So others can enter the room
+through your peer if they have the required ROOMKEY and your peer ID.
+
+If you want to use the zeroed hash as shared secret key for the room you can
+also leave it out as well:
+
+@example
+$ gnunet-messenger
+@end example
+
+@node Messaging in a room
+@subsection Messaging in a room
+
+Once joined a room by entering it or opening it you can write text-based 
+messages which will be distributed between all internally conntected peers. All 
+sent messages will be displayed in the same way as received messages.
+
+This relates to the internal handling of sent and received messages being mostly
+identical on application layer. Every handled message will be represented
+visually depending on its kind, content and sender. A sender can usually be 
+identified by the encoded member ID or their name.
+
+@example
+[17X37K] * 'anonymous' says: "hey"
+@end example
+
+@node Private messaging
+@subsection Private messaging
+
+As referred in the introduction the service allows sending private messages with
+additional end-to-end encryption. These messages will be visually represented
+by messages of the kind 'PRIVATE' in case they can't be decrypted with your used
+ego. Members who can't decrypt the message can potentially only identify its 
+sender but they can't identify its receiver.
+
+@example
+[17X37K] ~ message: PRIVATE
+@end example
+
+If they can be decrypted they will appear as their secret message instead
+but marked visually.
+
+@example
+[17X37K] ** 'anonymous' says: "hey"
+@end example
+
+Currently you can only activate sending such encrypted text messages instead of 
+usual text messages by adding the '-p' parameter:
+
+@example
+$ gnunet-messenger [-e IDENTITY] -d PEERIDENTITY -r ROOMKEY -p
+@end example
+
+Notice that you can only send such encrypted messages to members who use an ego
+which is not publically known as the anonymous ego to ensure transparency. If 
+any user could decrypt these messages they would not be private. So as receiver
+of such messages the IDENTITY is required and it has to match a local ego.
+

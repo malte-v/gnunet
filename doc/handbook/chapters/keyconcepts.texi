@@ -152,6 +152,7 @@ and @pxref{Deniability}.
 
 @menu
 * How file-sharing achieves Anonymity::
+* How messaging provides Anonymity::
 @end menu
 
 Providing anonymity for users is the central goal for the anonymous
@@ -230,6 +231,30 @@ Krista Bennett and Christian Grothoff.
 GAP --- practical anonymous networking. In Proceedings of
 Designing Privacy Enhancing Technologies, 2003.
 (@uref{https://git.gnunet.org/bibliography.git/plain/docs/aff.pdf, https://git.gnunet.org/bibliography.git/plain/docs/aff.pdf})
+
+@cindex How messaging provides Anonymity
+@node How messaging provides Anonymity
+@subsection How messaging provides Anonymity
+
+While the file-sharing tries to achieve anonymity through hiding actions in 
+other traffic, the messaging service provides a weaker form of protection 
+against identification.
+
+The messaging service allows the use of an anonymous ego for the signing and
+verification process of messages instead of a unique ego. This anonymous ego is
+a publically known key pair which is shared between all peers in GNUnet.
+
+Using this ego only ensures that individual messages alone can't identify its 
+sender inside of a messenger room. It should be clarified that the route of 
+the traffic for each message can still be tracked to identify the senders peer 
+inside of a messenger room if the threat agent controls certain peers hosting
+the room.
+
+Also opening a room in the messenger service will potentially match your peer 
+identity with the internal member identity from the messenger service. So
+despite using the anonymous ego you can reveal your peer identity. This means
+to decrease the chance of being identified, it is recommended to enter rooms but 
+you should not open them for others.
 
 @cindex Deniability
 @node Deniability
