@@ -392,9 +392,9 @@ run (void *cls,
   /* test the real set reconciliation */
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Running real set-reconciliation\n");
-  //init_set1 ();
+  init_set1 ();
   // limit ~23800 element total
-  initRandomSets(9990,9997,9997,32);
+  //initRandomSets(9990,9997,9997,32);
 }
 
 

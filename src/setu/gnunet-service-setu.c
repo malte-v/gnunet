@@ -2302,7 +2302,7 @@ handle_union_p2p_full_done (void *cls,
 
   switch (op->phase)
   {
-  case PHASE_EXPECT_IBF:
+  case PHASE_FULL_RECEIVING:
     {
       struct GNUNET_MQ_Envelope *ev;
 
@@ -2332,10 +2332,9 @@ handle_union_p2p_full_done (void *cls,
       _GSS_operation_destroy2 (op);
       return;
     }
-    break;
 
   default:
-    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                 "Handle full done phase is %u\n",
                 (unsigned) op->phase);
     GNUNET_break_op (0);
