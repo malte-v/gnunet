@@ -193,7 +193,7 @@ init_set2 (void *cls)
   GNUNET_log (GNUNET_ERROR_TYPE_INFO, "initializing set 2\n");
 
   element.element_type = 0;
-  element.data = "hello";
+  element.data = "hello1";
   element.size = strlen (element.data);
   GNUNET_SETU_add_element (set2, &element, NULL, NULL);
   element.data = "quux";
@@ -238,6 +238,7 @@ initRandomSets(int overlap, int set1_size, int set2_size, int element_size_in_by
         set1_size--;
         set2_size--;
     }
+    GNUNET_log (GNUNET_ERROR_TYPE_INFO, "initialized elements in both sets\n");
 
     // Add other elements to set 1
     while(set1_size>0) {
@@ -246,14 +247,19 @@ initRandomSets(int overlap, int set1_size, int set2_size, int element_size_in_by
         GNUNET_SETU_add_element (set1, &element, NULL, NULL);
         set1_size--;
     }
+    GNUNET_log (GNUNET_ERROR_TYPE_INFO, "initialized elements in set1\n");
 
     // Add other elements to set 2
     while(set2_size > 0) {
         element.data = gen_rdm_bytestream(element_size_in_bytes);
         element.size = strlen (element.data);
-        GNUNET_SETU_add_element (set1, &element, NULL, NULL);
+        GNUNET_SETU_add_element (set2, &element,NULL, NULL);
         set2_size--;
     }
+    element.data = gen_rdm_bytestream(element_size_in_bytes);
+    element.size = strlen (element.data);
+    GNUNET_SETU_add_element (set2, &element,&start, NULL);
+    GNUNET_log (GNUNET_ERROR_TYPE_INFO, "initialized elements in set2\n");
 }
 
 /**
@@ -387,8 +393,9 @@ run (void *cls,
   /* test the real set reconciliation */
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Running real set-reconciliation\n");
-  init_set1 ();
-  //initRandomSets(3,10,10,10);
+  //init_set1 ();
+  // limit ~23800 element total
+  initRandomSets(9990,9997,9997,32);
 }
 
 

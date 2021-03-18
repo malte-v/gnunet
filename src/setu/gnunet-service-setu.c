@@ -2770,7 +2770,7 @@ check_incoming_msg (void *cls,
   struct Listener *listener = op->listener;
   const struct GNUNET_MessageHeader *nested_context;
 
-  /* double operation request */
+    /* double operation request */
   if (0 != op->suggest_id)
   {
     GNUNET_break_op (0);
