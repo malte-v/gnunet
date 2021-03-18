@@ -9791,7 +9791,7 @@ channel can represent an outgoing connection opened by entering a room with
 @code{GNUNET_MESSENGER_enter_room} or an incoming connection if the room was 
 opened before via @code{GNUNET_MESSENGER_open_room}.
 
-@image{images/messenger_room.png}
+@image{images/messenger_room,6in,,Room structure}
 
 To enter a room you have to specify the "door" (peer's identity of a peer which 
 has opened the room) and the key of the room (which is identical to a CADET 
