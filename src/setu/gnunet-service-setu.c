@@ -2080,16 +2080,25 @@ handle_union_p2p_full_element (void *cls,
   uint16_t element_size;
 
 
-    /* Allow only receiving of full element message if in expect IBF or in PHASE_FULL_RECEIVING state */
-    if ( (PHASE_EXPECT_IBF != op->phase) &&
-         (PHASE_FULL_RECEIVING != op->phase) )
-    {
-        GNUNET_break_op (0);
-        fail_union_operation (op);
-        return;
-    }
+  if(PHASE_EXPECT_IBF == op->phase) {
+      op->phase = PHASE_FULL_RECEIVING;
+  }
 
-  op->phase = PHASE_FULL_RECEIVING;
+
+
+    /* Allow only receiving of full element message if in expect IBF or in PHASE_FULL_RECEIVING state */
+  if ((PHASE_FULL_RECEIVING != op->phase) &&
+       (PHASE_FULL_SENDING != op->phase))
+  {
+      GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+               "Handle full element phase is %u\n",
+               (unsigned) op->phase);
+      GNUNET_break_op (0);
+      fail_union_operation (op);
+      return;
+  }
+
+
 
   element_size = ntohs (emsg->header.size)
                  - sizeof(struct GNUNET_SETU_ElementMessage);
