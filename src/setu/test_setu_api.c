@@ -204,6 +204,57 @@ init_set2 (void *cls)
   GNUNET_SETU_add_element (set2, &element, &start, NULL);
 }
 
+/**
+ * Generate random byte stream
+ */
+
+unsigned char *gen_rdm_bytestream (size_t num_bytes)
+{
+    unsigned char *stream = malloc (num_bytes);
+    size_t i;
+    for (i = 0; i < num_bytes; i++)
+    {
+        stream[i] = rand ();
+    }
+    return stream;
+}
+
+/**
+ * Generate random sets
+ */
+
+static void
+initRandomSets(int overlap, int set1_size, int set2_size, int element_size_in_bytes)
+{
+    struct GNUNET_SETU_Element element;
+    element.element_type = 0;
+
+    // Add elements to both sets
+    for (int i = 0; i < overlap; i++) {
+        element.data = gen_rdm_bytestream(element_size_in_bytes);
+        element.size = strlen (element.data);
+        GNUNET_SETU_add_element (set1, &element, NULL, NULL);
+        GNUNET_SETU_add_element (set2, &element, NULL, NULL);
+        set1_size--;
+        set2_size--;
+    }
+
+    // Add other elements to set 1
+    while(set1_size>0) {
+        element.data = gen_rdm_bytestream(element_size_in_bytes);
+        element.size = strlen (element.data);
+        GNUNET_SETU_add_element (set1, &element, NULL, NULL);
+        set1_size--;
+    }
+
+    // Add other elements to set 2
+    while(set2_size > 0) {
+        element.data = gen_rdm_bytestream(element_size_in_bytes);
+        element.size = strlen (element.data);
+        GNUNET_SETU_add_element (set1, &element, NULL, NULL);
+        set2_size--;
+    }
+}
 
 /**
  * Initialize the first set, continue.
@@ -337,6 +388,7 @@ run (void *cls,
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Running real set-reconciliation\n");
   init_set1 ();
+  //initRandomSets(3,10,10,10);
 }
 
 
