@@ -32,6 +32,7 @@
 #include "gnunet_crypto_lib.h"
 
 #include "gnunet-service-messenger_room.h"
+#include "gnunet-service-messenger_message_state.h"
 
 struct GNUNET_MESSENGER_SrvTunnel
 {
@@ -43,7 +44,7 @@ struct GNUNET_MESSENGER_SrvTunnel
   uint32_t messenger_version;
 
   struct GNUNET_HashCode *peer_message;
-  struct GNUNET_HashCode *last_message;
+  struct GNUNET_MESSENGER_MessageState state;
 };
 
 /**

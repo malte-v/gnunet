@@ -61,6 +61,19 @@ send_message_peer (struct GNUNET_MESSENGER_SrvRoom *room, struct GNUNET_MESSENGE
                    const struct GNUNET_MESSENGER_Message *message, const struct GNUNET_HashCode *hash);
 
 /**
+ * Handles a sent id message to update the handles member id in the room.
+ * (changing member id is useful to prevent collisions)
+ *
+ * @param[in/out] room Room of the message
+ * @param[in/out] handle Sending handle
+ * @param[in] message ID-Message
+ * @param[in] hash Hash of the message
+ */
+void
+send_message_id (struct GNUNET_MESSENGER_SrvRoom *room, struct GNUNET_MESSENGER_SrvHandle *handle,
+                 const struct GNUNET_MESSENGER_Message *message, const struct GNUNET_HashCode *hash);
+
+/**
  * Handles a sent request message to trigger the request operation for this service.
  * (the request operation will deactivate the possibility of spamming requests)
  *

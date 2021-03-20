@@ -71,6 +71,8 @@ create_member_session (struct GNUNET_MESSENGER_Member *member,
   session->prev = NULL;
   session->next = NULL;
 
+  session->start = GNUNET_TIME_absolute_get();
+
   session->closed = GNUNET_NO;
   session->completed = GNUNET_NO;
 
@@ -226,6 +228,8 @@ switch_member_session (struct GNUNET_MESSENGER_MemberSession *session,
   next->prev = session;
   next->next = NULL;
 
+  next->start = GNUNET_TIME_absolute_get();
+
   session->closed = GNUNET_YES;
   next->closed = GNUNET_NO;
   next->completed = GNUNET_NO;
@@ -312,6 +316,17 @@ is_member_session_completed (const struct GNUNET_MESSENGER_MemberSession* sessio
   GNUNET_assert(session);
 
   return session->completed;
+}
+
+struct GNUNET_TIME_Absolute
+get_member_session_start (const struct GNUNET_MESSENGER_MemberSession* session)
+{
+  GNUNET_assert(session);
+
+  if (session->prev)
+    return get_member_session_start(session->prev);
+
+  return session->start;
 }
 
 const struct GNUNET_HashCode*
@@ -521,6 +536,9 @@ load_member_session (struct GNUNET_MESSENGER_Member *member, const char *directo
 
     unsigned long long numeric_value;
 
+    if (GNUNET_OK == GNUNET_CONFIGURATION_get_value_number(cfg, "session", "start", &numeric_value))
+      session->start.abs_value_us = numeric_value;
+
     if (GNUNET_OK == GNUNET_CONFIGURATION_get_value_number(cfg, "session", "closed", &numeric_value))
       session->closed = (GNUNET_YES == numeric_value? GNUNET_YES : GNUNET_NO);
 
@@ -700,6 +718,8 @@ save_member_session (struct GNUNET_MESSENGER_MemberSession *session, const char 
       GNUNET_free(key_data);
     }
   }
+
+  GNUNET_CONFIGURATION_set_value_number(cfg, "session", "start", session->start.abs_value_us);
 
   GNUNET_CONFIGURATION_set_value_number (cfg, "session", "closed", session->closed);
   GNUNET_CONFIGURATION_set_value_number (cfg, "session", "completed", session->completed);

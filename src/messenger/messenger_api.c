@@ -199,7 +199,7 @@ check_recv_message (void *cls, const struct GNUNET_MESSENGER_RecvMessage *msg)
 
   struct GNUNET_MESSENGER_Message message;
 
-  if (length < sizeof(message.header))
+  if (length < get_message_kind_size(GNUNET_MESSENGER_KIND_UNKNOWN))
     return GNUNET_NO;
 
   if (GNUNET_YES != decode_message (&message, length, buffer, GNUNET_YES, NULL))

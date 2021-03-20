@@ -47,6 +47,13 @@ send_message_peer (struct GNUNET_MESSENGER_SrvRoom *room, struct GNUNET_MESSENGE
 }
 
 void
+send_message_id (struct GNUNET_MESSENGER_SrvRoom *room, struct GNUNET_MESSENGER_SrvHandle *handle,
+                 const struct GNUNET_MESSENGER_Message *message, const struct GNUNET_HashCode *hash)
+{
+  change_handle_member_id (handle, get_room_key(room), &(message->body.id.id));
+}
+
+void
 send_message_request (struct GNUNET_MESSENGER_SrvRoom *room, struct GNUNET_MESSENGER_SrvHandle *handle,
                       const struct GNUNET_MESSENGER_Message *message, const struct GNUNET_HashCode *hash)
 {

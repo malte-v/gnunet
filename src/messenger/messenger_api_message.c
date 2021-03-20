@@ -590,7 +590,7 @@ int
 decode_message (struct GNUNET_MESSENGER_Message *message, uint16_t length, const char *buffer,
                 int include_signature, uint16_t *padding)
 {
-  GNUNET_assert((message) && (buffer) && (length >= sizeof(message->header)));
+  GNUNET_assert((message) && (buffer) && (length >= get_message_kind_size(GNUNET_MESSENGER_KIND_UNKNOWN)));
 
   uint16_t offset = 0;
 

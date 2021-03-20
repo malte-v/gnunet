@@ -44,6 +44,13 @@ handle_message_join (struct GNUNET_MESSENGER_SrvRoom *room, struct GNUNET_MESSEN
 
   if (GNUNET_OK != reset_member_session(session, hash))
     GNUNET_log(GNUNET_ERROR_TYPE_ERROR, "Resetting member session failed!\n");
+
+  solve_room_member_collisions (
+      room,
+      &(message->body.join.key),
+      &(message->header.sender_id),
+      GNUNET_TIME_absolute_ntoh(message->header.timestamp)
+  );
 }
 
 void
@@ -91,6 +98,13 @@ handle_message_id (struct GNUNET_MESSENGER_SrvRoom *room, struct GNUNET_MESSENGE
                    const struct GNUNET_MESSENGER_Message *message, const struct GNUNET_HashCode *hash)
 {
   handle_session_switch (session, message, hash);
+
+  solve_room_member_collisions (
+      room,
+      get_member_session_public_key(session),
+      &(message->body.id.id),
+      GNUNET_TIME_absolute_ntoh(message->header.timestamp)
+  );
 }
 
 void

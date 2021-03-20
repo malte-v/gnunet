@@ -68,6 +68,7 @@ gnunet_service_messenger_SOURCES = \
   gnunet-service-messenger_message_kind.c gnunet-service-messenger_message_kind.h \
   gnunet-service-messenger_message_recv.c gnunet-service-messenger_message_recv.h \
   gnunet-service-messenger_message_send.c gnunet-service-messenger_message_send.h \
+  gnunet-service-messenger_message_state.c gnunet-service-messenger_message_state.h \
   gnunet-service-messenger_message_store.c gnunet-service-messenger_message_store.h \
   gnunet-service-messenger_operation_store.c gnunet-service-messenger_operation_store.h \
   gnunet-service-messenger_operation.c gnunet-service-messenger_operation.h \

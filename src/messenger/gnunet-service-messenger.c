@@ -25,6 +25,8 @@
 
 #include "gnunet-service-messenger.h"
 
+#include "gnunet-service-messenger_handle.h"
+#include "gnunet-service-messenger_message_kind.h"
 #include "gnunet-service-messenger_service.h"
 #include "messenger_api_message.h"
 
@@ -209,6 +211,9 @@ check_for_message:
 
   struct GNUNET_MESSENGER_Message message;
 
+  if (length < get_message_kind_size(GNUNET_MESSENGER_KIND_UNKNOWN))
+    return GNUNET_NO;
+
   if (GNUNET_YES != decode_message (&message, msg_length, msg_buffer, GNUNET_NO, NULL))
     return GNUNET_NO;
 
@@ -266,6 +271,35 @@ end_handling:
 }
 
 static void
+callback_found_message (void *cls, struct GNUNET_MESSENGER_SrvRoom *room,
+                        const struct GNUNET_MESSENGER_Message *message,
+                        const struct GNUNET_HashCode *hash)
+{
+  struct GNUNET_MESSENGER_Client *msg_client = cls;
+
+  if (!message)
+  {
+    send_room_message(room, msg_client->handle, create_message_request(hash));
+    return;
+  }
+
+  struct GNUNET_MESSENGER_MemberStore *store = get_room_member_store(room);
+
+  struct GNUNET_MESSENGER_Member *member = get_store_member_of(store, message);
+
+  if (!member)
+  {
+    GNUNET_log(GNUNET_ERROR_TYPE_ERROR, "Sender of message (%s) unknown!\n", GNUNET_h2s (hash));
+    return;
+  }
+
+  struct GNUNET_MESSENGER_MemberSession *session = get_member_session_of(member, message, hash);
+
+  if (session)
+    notify_handle_message (msg_client->handle, get_room_key(room), session, message, hash);
+}
+
+static void
 handle_get_message (void *cls, const struct GNUNET_MESSENGER_GetMessage *msg)
 {
   struct GNUNET_MESSENGER_Client *msg_client = cls;
@@ -280,26 +314,27 @@ handle_get_message (void *cls, const struct GNUNET_MESSENGER_GetMessage *msg)
     goto end_handling;
   }
 
-  const struct GNUNET_MESSENGER_Message *message = get_room_message (room, msg_client->handle, &(msg->hash),
-                                                                     GNUNET_YES);
+  struct GNUNET_MESSENGER_MemberStore *member_store = get_room_member_store(room);
 
-  if (!message)
-    goto end_handling;
-
-  struct GNUNET_MESSENGER_MemberStore *store = get_room_member_store(room);
-
-  struct GNUNET_MESSENGER_Member *member = get_store_member_of(store, message);
+  struct GNUNET_MESSENGER_Member *member = get_store_member(member_store, get_handle_member_id(
+      msg_client->handle, &(msg->key)
+  ));
 
   if (!member)
   {
-    GNUNET_log(GNUNET_ERROR_TYPE_ERROR, "Sender of message (%s) unknown!\n", GNUNET_h2s (&(msg->hash)));
+    GNUNET_log(GNUNET_ERROR_TYPE_ERROR, "Member not valid to request a message!\n");
     goto end_handling;
   }
 
-  struct GNUNET_MESSENGER_MemberSession *session = get_member_session_of(member, message, &(msg->hash));
+  struct GNUNET_MESSENGER_MemberSession *session = get_member_session(member, &(get_handle_ego(msg_client->handle)->pub));
 
-  if (session)
-    notify_handle_message (msg_client->handle, get_room_key(room), session, message, &(msg->hash));
+  if (!session)
+  {
+    GNUNET_log(GNUNET_ERROR_TYPE_ERROR, "Session not valid to request a message!\n");
+    goto end_handling;
+  }
+
+  request_room_message (room, &(msg->hash), session, callback_found_message, msg_client);
 
 end_handling:
   GNUNET_SERVICE_client_continue (msg_client->client);

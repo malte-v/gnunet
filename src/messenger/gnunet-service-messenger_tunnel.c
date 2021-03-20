@@ -27,6 +27,9 @@
 
 #include "gnunet-service-messenger_handle.h"
 #include "gnunet-service-messenger_message_recv.h"
+#include "gnunet-service-messenger_message_store.h"
+#include "gnunet-service-messenger_operation_store.h"
+#include "gnunet-service-messenger_operation.h"
 #include "messenger_api_util.h"
 
 struct GNUNET_MESSENGER_SrvTunnel*
@@ -44,7 +47,8 @@ create_tunnel (struct GNUNET_MESSENGER_SrvRoom *room, const struct GNUNET_PeerId
   tunnel->messenger_version = 0;
 
   tunnel->peer_message = NULL;
-  tunnel->last_message = NULL;
+
+  init_message_state(&(tunnel->state));
 
   return tunnel;
 }
@@ -62,8 +66,7 @@ destroy_tunnel (struct GNUNET_MESSENGER_SrvTunnel *tunnel)
   if (tunnel->peer_message)
     GNUNET_free(tunnel->peer_message);
 
-  if (tunnel->last_message)
-    GNUNET_free(tunnel->last_message);
+  clear_message_state(&(tunnel->state));
 
   GNUNET_free(tunnel);
 }
@@ -143,10 +146,18 @@ callback_room_handle_message (struct GNUNET_MESSENGER_SrvRoom *room, struct GNUN
 static void
 update_tunnel_last_message (struct GNUNET_MESSENGER_SrvTunnel *tunnel, const struct GNUNET_HashCode *hash)
 {
-  if (!tunnel->last_message)
-    tunnel->last_message = GNUNET_new(struct GNUNET_HashCode);
+  struct GNUNET_MESSENGER_OperationStore *operation_store = get_room_operation_store(tunnel->room);
 
-  GNUNET_memcpy(tunnel->last_message, hash, sizeof(*hash));
+  const int requested = (GNUNET_MESSENGER_OP_REQUEST == get_store_operation_type(operation_store, hash)?
+      GNUNET_YES : GNUNET_NO
+  );
+
+  struct GNUNET_MESSENGER_MessageStore *message_store = get_room_message_store(tunnel->room);
+
+  const struct GNUNET_MESSENGER_Message *message = get_store_message(message_store, hash);
+
+  if (message)
+    update_message_state(&(tunnel->state), requested, message, hash);
 }
 
 void
@@ -171,7 +182,9 @@ handle_tunnel_message (void *cls, const struct GNUNET_MessageHeader *header)
   if (!tunnel)
     return;
 
-  const int new_message = update_room_message (tunnel->room, copy_message (&message), &hash);
+  const int new_message = update_room_message (
+      tunnel->room, copy_message (&message), &hash
+  );
 
   if (GNUNET_YES != new_message)
     goto receive_done;
@@ -313,9 +326,6 @@ void
 forward_tunnel_message (struct GNUNET_MESSENGER_SrvTunnel *tunnel, const struct GNUNET_MESSENGER_Message *message,
                         const struct GNUNET_HashCode *hash)
 {
-  if (!message)
-    return;
-
   GNUNET_assert((tunnel) && (message) && (hash));
 
   struct GNUNET_MESSENGER_Message *copy = copy_message(message);

@@ -36,6 +36,7 @@
 #include "gnunet_messenger_service.h"
 #include "gnunet-service-messenger_basement.h"
 #include "gnunet-service-messenger_handle.h"
+#include "gnunet-service-messenger_message_state.h"
 #include "gnunet-service-messenger_list_messages.h"
 
 #include "messenger_api_list_tunnels.h"
@@ -72,7 +73,7 @@ struct GNUNET_MESSENGER_SrvRoom
   struct GNUNET_MESSENGER_OperationStore operation_store;
 
   struct GNUNET_MESSENGER_ListTunnels basement;
-  struct GNUNET_MESSENGER_ListMessages last_messages;
+  struct GNUNET_MESSENGER_MessageState state;
 
   struct GNUNET_HashCode *peer_message;
 
@@ -124,24 +125,6 @@ get_room_message_store (struct GNUNET_MESSENGER_SrvRoom *room);
  */
 struct GNUNET_MESSENGER_OperationStore*
 get_room_operation_store (struct GNUNET_MESSENGER_SrvRoom *room);
-
-/**
- * Returns the member id of the member representing the handle currently hosting this <i>room</i>.
- *
- * @param[in] room Room
- * @return Host member id or NULL
- */
-const struct GNUNET_ShortHashCode*
-get_room_host_id (const struct GNUNET_MESSENGER_SrvRoom *room);
-
-/**
- * Changes the member id of the member representing the handle currently hosting this <i>room</i>.
- *
- * @param[in/out] room Room
- * @param[in] unique_id Unique member id
- */
-void
-change_room_host_id (struct GNUNET_MESSENGER_SrvRoom *room, const struct GNUNET_ShortHashCode *unique_id);
 
 /**
  * Tries to open a <i>room</i> for a given <i>handle</i>. If the room has already been opened, the handle
@@ -289,25 +272,51 @@ const struct GNUNET_MESSENGER_SrvTunnel*
 get_room_tunnel (const struct GNUNET_MESSENGER_SrvRoom *room, const struct GNUNET_PeerIdentity *peer);
 
 /**
- * Returns a message from a <i>room</i> identified by a given <i>hash</i>. If no matching message is
- * found and <i>request</i> is set to #GNUNET_YES, the <i>handle</i> will request the missing message
- * automatically.
+ * Method called whenever a <i>message</i> is found during a request in a <i>room</i>.
  *
- * The function uses the optimized check for a message via its hash from the message store.
- * @see contains_store_message()
+ * @param[in/out] cls Closure from #request_room_message
+ * @param[in/out] room Room
+ * @param[in] message Message or NULL
+ * @param[in] hash Hash of message
+ */
+typedef void (GNUNET_MESSENGER_MessageRequestCallback) (
+    void *cls, struct GNUNET_MESSENGER_SrvRoom *room,
+    const struct GNUNET_MESSENGER_Message *message,
+    const struct GNUNET_HashCode *hash
+);
+
+/**
+ * Requests a message from a <i>room</i> identified by a given <i>hash</i>. If the message is found,
+ * the selected <i>callback</i> will be called with it and the provided closure. If no matching message
+ * is found but it wasn't deleted the selected callback will be called with #NULL as message instead.
+ * In case of deletion the next available previous message will be used to call the callback.
  *
- * If a message is missing independent of the following request, NULL gets returned instead of the
- * matching message.
+ * It is also possible that the given callback will not be called if the requesting session is not
+ * permitted!
  *
  * @param[in/out] room Room
- * @param[in/out] handle Handle
  * @param[in] hash Hash of message
- * @param[in] request Flag to request a message
- * @return Message or NULL
+ * @param[in] callback Callback to process result
+ * @param[in] cls Closure for the <i>callback</i>
+ * @return #GNUNET_YES if the request could be processed, otherwise #GNUNET_NO
  */
-const struct GNUNET_MESSENGER_Message*
-get_room_message (struct GNUNET_MESSENGER_SrvRoom *room, struct GNUNET_MESSENGER_SrvHandle *handle,
-                  const struct GNUNET_HashCode *hash, int request);
+int
+request_room_message (struct GNUNET_MESSENGER_SrvRoom *room, const struct GNUNET_HashCode *hash,
+                      const struct GNUNET_MESSENGER_MemberSession *session,
+                      GNUNET_MESSENGER_MessageRequestCallback callback, void* cls);
+
+/**
+ * Checks for potential collisions with member ids and solves them changing active handles ids if they
+ * use an already used member id (comparing public key and timestamp).
+ *
+ * @param[in/out] room Room
+ * @param[in] public_key Public key of EGO
+ * @param[in] member_id Member ID
+ * @param[in] timestamp Timestamp
+ */
+void
+solve_room_member_collisions (struct GNUNET_MESSENGER_SrvRoom *room, const struct GNUNET_IDENTITY_PublicKey *public_key,
+                              const struct GNUNET_ShortHashCode *member_id, struct GNUNET_TIME_Absolute timestamp);
 
 /**
  * Rebuilds the decentralized structure for a <i>room</i> by ensuring all required connections are made

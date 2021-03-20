@@ -27,18 +27,46 @@
 
 #include "gnunet-service-messenger_operation.h"
 
-static int
-iterate_forward_members (void *cls, const struct GNUNET_IDENTITY_PublicKey *public_key,
-                         struct GNUNET_MESSENGER_MemberSession *session)
+static void
+forward_about_members (struct GNUNET_MESSENGER_SrvRoom *room, struct GNUNET_MESSENGER_SrvTunnel *tunnel,
+                       struct GNUNET_MESSENGER_MemberSession *session, struct GNUNET_CONTAINER_MultiHashMap *map)
 {
-  struct GNUNET_MESSENGER_SrvTunnel *tunnel = cls;
-  struct GNUNET_MESSENGER_SrvRoom *room = tunnel->room;
+  if (session->prev)
+    forward_about_members (room, tunnel, session->prev, map);
 
+  struct GNUNET_MESSENGER_MessageStore *message_store = get_room_message_store(room);
   struct GNUNET_MESSENGER_ListMessage *element;
 
   for (element = session->messages.head; element; element = element->next)
-    forward_tunnel_message(tunnel, get_room_message(room, NULL, &(element->hash), GNUNET_NO), &(element->hash));
+  {
+    if (GNUNET_YES == GNUNET_CONTAINER_multihashmap_contains(map, &(element->hash)))
+      continue;
 
+    if (GNUNET_OK != GNUNET_CONTAINER_multihashmap_put(map, &(element->hash), NULL,
+                                                       GNUNET_CONTAINER_MULTIHASHMAPOPTION_UNIQUE_FAST))
+      GNUNET_log(GNUNET_ERROR_TYPE_WARNING, "Forwarding of session message could be duplicated!\n");
+
+    const struct GNUNET_MESSENGER_Message *message = get_store_message(message_store, &(element->hash));
+
+    if (message)
+      forward_tunnel_message(tunnel, message, &(element->hash));
+  }
+}
+
+static int
+iterate_forward_members (void *cls, const struct GNUNET_IDENTITY_PublicKey *public_key,
+                              struct GNUNET_MESSENGER_MemberSession *session)
+{
+  struct GNUNET_MESSENGER_SrvTunnel *tunnel = cls;
+
+  if (GNUNET_YES == is_member_session_completed(session))
+    return GNUNET_YES;
+
+  struct GNUNET_CONTAINER_MultiHashMap *map = GNUNET_CONTAINER_multihashmap_create(4, GNUNET_NO);
+
+  forward_about_members (tunnel->room, tunnel, session, map);
+
+  GNUNET_CONTAINER_multihashmap_destroy(map);
   return GNUNET_YES;
 }
 
@@ -97,32 +125,40 @@ recv_message_peer (struct GNUNET_MESSENGER_SrvRoom *room, struct GNUNET_MESSENGE
   return GNUNET_YES;
 }
 
-int
-recv_message_request (struct GNUNET_MESSENGER_SrvRoom *room, struct GNUNET_MESSENGER_SrvTunnel *tunnel,
-                      const struct GNUNET_MESSENGER_Message *message, const struct GNUNET_HashCode *hash)
+static void
+callback_found_message (void *cls, struct GNUNET_MESSENGER_SrvRoom *room,
+                        const struct GNUNET_MESSENGER_Message *message,
+                        const struct GNUNET_HashCode *hash)
 {
-  const struct GNUNET_MESSENGER_Message *msg = get_room_message (
-      room, NULL, &(message->body.request.hash), GNUNET_NO
-  );
+  struct GNUNET_MESSENGER_SrvTunnel *tunnel = tunnel;
 
-  if (!msg)
+  if (!message)
   {
     struct GNUNET_MESSENGER_OperationStore *operation_store = get_room_operation_store(room);
 
     use_store_operation(
         operation_store,
-        &(message->body.request.hash),
+        hash,
         GNUNET_MESSENGER_OP_REQUEST,
         GNUNET_MESSENGER_REQUEST_DELAY
     );
-
-    return GNUNET_YES;
   }
+  else
+    forward_tunnel_message (tunnel, message, hash);
+}
 
+/*
+ * Function returns GNUNET_NO to drop forwarding the request.
+ * It will only be forwarded if it can't be answered!
+ */
+int
+recv_message_request (struct GNUNET_MESSENGER_SrvRoom *room, struct GNUNET_MESSENGER_SrvTunnel *tunnel,
+                      const struct GNUNET_MESSENGER_Message *message, const struct GNUNET_HashCode *hash)
+{
   struct GNUNET_MESSENGER_MemberStore *member_store = get_room_member_store(room);
   struct GNUNET_MESSENGER_Member *member = get_store_member_of(member_store, message);
 
-  GNUNET_log(GNUNET_ERROR_TYPE_DEBUG, "Callback for message (%s)\n", GNUNET_h2s (hash));
+  GNUNET_log(GNUNET_ERROR_TYPE_DEBUG, "Request for message (%s)\n", GNUNET_h2s (hash));
 
   if (!member)
     return GNUNET_NO;
@@ -132,7 +168,8 @@ recv_message_request (struct GNUNET_MESSENGER_SrvRoom *room, struct GNUNET_MESSE
   if ((!session) || (GNUNET_YES != check_member_session_history(session, hash, GNUNET_NO)))
     return GNUNET_NO;
 
-  forward_tunnel_message (tunnel, msg, &(message->body.request.hash));
+  if (GNUNET_NO == request_room_message(room, &(message->body.request.hash), session, callback_found_message, tunnel))
+    return GNUNET_YES;
 
   return GNUNET_NO;
 }

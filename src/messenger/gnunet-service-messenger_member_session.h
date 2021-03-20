@@ -30,6 +30,7 @@
 #include "gnunet_crypto_lib.h"
 #include "gnunet_container_lib.h"
 #include "gnunet_identity_service.h"
+#include "gnunet_time_lib.h"
 
 #include "gnunet-service-messenger_member.h"
 
@@ -48,6 +49,8 @@ struct GNUNET_MESSENGER_MemberSession {
 
   struct GNUNET_MESSENGER_MemberSession* prev;
   struct GNUNET_MESSENGER_MemberSession* next;
+
+  struct GNUNET_TIME_Absolute start;
 
   int closed;
   int completed;
@@ -138,6 +141,15 @@ is_member_session_closed (const struct GNUNET_MESSENGER_MemberSession* session);
  */
 int
 is_member_session_completed (const struct GNUNET_MESSENGER_MemberSession* session);
+
+/**
+ * Returns the timestamp of the member <i>session</i>'s start.
+ *
+ * @param[in] session Member session
+ * @return Absolute timestamp
+ */
+struct GNUNET_TIME_Absolute
+get_member_session_start (const struct GNUNET_MESSENGER_MemberSession* session);
 
 /**
  * Returns the key of the room a given member <i>session</i> belongs to.

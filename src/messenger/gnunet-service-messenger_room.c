@@ -62,7 +62,7 @@ create_room (struct GNUNET_MESSENGER_SrvHandle *handle, const struct GNUNET_Hash
   init_operation_store(get_room_operation_store(room), room);
 
   init_list_tunnels (&(room->basement));
-  init_list_messages (&(room->last_messages));
+  init_message_state(&(room->state));
 
   room->peer_message = NULL;
 
@@ -117,7 +117,7 @@ destroy_room (struct GNUNET_MESSENGER_SrvRoom *room)
   GNUNET_CONTAINER_multipeermap_destroy (room->tunnels);
 
   clear_list_tunnels (&(room->basement));
-  clear_list_messages (&(room->last_messages));
+  clear_message_state(&(room->state));
 
   if (room->peer_message)
     GNUNET_free(room->peer_message);
@@ -147,22 +147,6 @@ get_room_operation_store (struct GNUNET_MESSENGER_SrvRoom *room)
   GNUNET_assert(room);
 
   return &(room->operation_store);
-}
-
-const struct GNUNET_ShortHashCode*
-get_room_host_id (const struct GNUNET_MESSENGER_SrvRoom *room)
-{
-  GNUNET_assert(room);
-
-  return get_handle_member_id (room->host, get_room_key(room));
-}
-
-void
-change_room_host_id (struct GNUNET_MESSENGER_SrvRoom *room, const struct GNUNET_ShortHashCode *unique_id)
-{
-  GNUNET_assert(room);
-
-  change_handle_member_id (room->host, get_room_key(room), unique_id);
 }
 
 static int
@@ -243,27 +227,50 @@ struct GNUNET_MESSENGER_MemberNotify
   struct GNUNET_MESSENGER_MemberSession *session;
 };
 
+static void
+notify_about_members (struct GNUNET_MESSENGER_MemberNotify *notify, struct GNUNET_MESSENGER_MemberSession *session,
+                      struct GNUNET_CONTAINER_MultiHashMap *map, int check_permission)
+{
+  if (session->prev)
+    notify_about_members (notify, session->prev, map, GNUNET_YES);
+
+  struct GNUNET_MESSENGER_MessageStore *message_store = get_room_message_store(notify->room);
+  struct GNUNET_MESSENGER_ListMessage *element;
+
+  for (element = session->messages.head; element; element = element->next)
+  {
+    if (GNUNET_YES == GNUNET_CONTAINER_multihashmap_contains(map, &(element->hash)))
+      continue;
+
+    if ((GNUNET_YES == check_permission) &&
+        (GNUNET_YES != check_member_session_history(notify->session, &(element->hash), GNUNET_NO)))
+      continue;
+
+    if (GNUNET_OK != GNUNET_CONTAINER_multihashmap_put(map, &(element->hash), NULL,
+                                                       GNUNET_CONTAINER_MULTIHASHMAPOPTION_UNIQUE_FAST))
+      GNUNET_log(GNUNET_ERROR_TYPE_WARNING, "Notification of session message could be duplicated!\n");
+
+    const struct GNUNET_MESSENGER_Message *message = get_store_message(message_store, &(element->hash));
+
+    if (message)
+      notify_handle_message (notify->handle, get_room_key(notify->room), session, message, &(element->hash));
+  }
+}
+
 static int
 iterate_notify_about_members (void *cls, const struct GNUNET_IDENTITY_PublicKey *public_key,
                               struct GNUNET_MESSENGER_MemberSession *session)
 {
   struct GNUNET_MESSENGER_MemberNotify *notify = cls;
 
-  if (notify->session == session)
+  if ((notify->session == session) || (GNUNET_YES == is_member_session_completed(session)))
     return GNUNET_YES;
 
-  struct GNUNET_MESSENGER_ListMessage *element;
+  struct GNUNET_CONTAINER_MultiHashMap *map = GNUNET_CONTAINER_multihashmap_create(4, GNUNET_NO);
 
-  for (element = session->messages.head; element; element = element->next)
-  {
-    const struct GNUNET_MESSENGER_Message *message = get_room_message (
-        notify->room, notify->handle, &(element->hash), GNUNET_NO
-    );
+  notify_about_members (notify, session, map, GNUNET_NO);
 
-    if (message)
-      notify_handle_message (notify->handle, get_room_key(notify->room), session, message, &(element->hash));
-  }
-
+  GNUNET_CONTAINER_multihashmap_destroy(map);
   return GNUNET_YES;
 }
 
@@ -407,11 +414,7 @@ pack_room_message (const struct GNUNET_MESSENGER_SrvRoom *room, const struct GNU
   GNUNET_assert(id);
 
   GNUNET_memcpy(&(message->header.sender_id), id, sizeof(struct GNUNET_ShortHashCode));
-
-  if (room->last_messages.head)
-    GNUNET_memcpy(&(message->header.previous), &(room->last_messages.head->hash), sizeof(struct GNUNET_HashCode));
-  else
-    memset (&(message->header.previous), 0, sizeof(struct GNUNET_HashCode));
+  get_message_state_chain_hash (&(room->state), &(message->header.previous));
 
   return pack_message (message, hash, get_handle_ego (handle), mode);
 }
@@ -510,6 +513,9 @@ send_room_message (struct GNUNET_MESSENGER_SrvRoom *room, struct GNUNET_MESSENGE
   case GNUNET_MESSENGER_KIND_PEER:
     send_message_peer (room, handle, message, &hash);
     break;
+  case GNUNET_MESSENGER_KIND_ID:
+    send_message_id (room, handle, message, &hash);
+    break;
   case GNUNET_MESSENGER_KIND_REQUEST:
     send_message_request (room, handle, message, &hash);
     break;
@@ -551,7 +557,9 @@ check_room_peer_status (struct GNUNET_MESSENGER_SrvRoom *room, struct GNUNET_MES
   if (!room->peer_message)
     return;
 
-  const struct GNUNET_MESSENGER_Message *message = get_room_message(room, NULL, room->peer_message, GNUNET_NO);
+  struct GNUNET_MESSENGER_MessageStore *message_store = get_room_message_store(room);
+
+  const struct GNUNET_MESSENGER_Message *message = get_store_message(message_store, room->peer_message);
 
   if (!message)
   {
@@ -581,15 +589,6 @@ resend_peer_message:
     send_room_message (room, room->host, create_message_peer (room->service));
 }
 
-static void
-merge_room_message (struct GNUNET_MESSENGER_SrvRoom *room, struct GNUNET_MESSENGER_SrvHandle *handle,
-                    const struct GNUNET_HashCode *hash)
-{
-  GNUNET_assert((room) && (handle) && (hash));
-
-  send_room_message (room, handle, create_message_merge (hash));
-}
-
 void
 merge_room_last_messages (struct GNUNET_MESSENGER_SrvRoom *room, struct GNUNET_MESSENGER_SrvHandle *handle)
 {
@@ -598,21 +597,21 @@ merge_room_last_messages (struct GNUNET_MESSENGER_SrvRoom *room, struct GNUNET_M
   if (!handle)
     return;
 
-  if (!room->last_messages.head)
+  const struct GNUNET_HashCode *hash;
+
+merge_next:
+  hash = get_message_state_merge_hash (&(room->state));
+
+  if (!hash)
     return;
 
-  while (room->last_messages.head != room->last_messages.tail)
-    merge_room_message (room, handle, &(room->last_messages.tail->hash));
+  send_room_message (room, handle, create_message_merge (hash));
+  goto merge_next;
 }
 
 void
 callback_room_deletion (struct GNUNET_MESSENGER_SrvRoom *room, const struct GNUNET_HashCode *hash)
 {
-  const struct GNUNET_MESSENGER_Message *message = get_room_message(room, NULL, hash, GNUNET_NO);
-
-  if (message)
-    add_to_list_messages(&(room->last_messages), &(message->header.previous));
-
   if (GNUNET_OK != delete_store_message (get_room_message_store(room), hash))
   {
     GNUNET_log(GNUNET_ERROR_TYPE_WARNING, "Deletion of message failed! (%s)\n", GNUNET_h2s(hash));
@@ -626,7 +625,7 @@ callback_room_merge (struct GNUNET_MESSENGER_SrvRoom *room, const struct GNUNET_
   if (!room->host)
     return;
 
-  merge_room_message (room, room->host, hash);
+  send_room_message (room, room->host, create_message_merge (hash));
 }
 
 int
@@ -643,7 +642,9 @@ delete_room_message (struct GNUNET_MESSENGER_SrvRoom *room, struct GNUNET_MESSEN
     return GNUNET_SYSERR;
   }
 
-  const struct GNUNET_MESSENGER_Message *message = get_room_message(room, NULL, hash, GNUNET_NO);
+  struct GNUNET_MESSENGER_MessageStore *message_store = get_room_message_store(room);
+
+  const struct GNUNET_MESSENGER_Message *message = get_store_message(message_store, hash);
 
   if (!message)
     return GNUNET_YES;
@@ -691,23 +692,56 @@ get_room_tunnel (const struct GNUNET_MESSENGER_SrvRoom *room, const struct GNUNE
   return GNUNET_CONTAINER_multipeermap_get (room->tunnels, peer);
 }
 
-const struct GNUNET_MESSENGER_Message*
-get_room_message (struct GNUNET_MESSENGER_SrvRoom *room, struct GNUNET_MESSENGER_SrvHandle *handle,
-                  const struct GNUNET_HashCode *hash, int request)
+static int
+request_room_message_step (struct GNUNET_MESSENGER_SrvRoom *room, const struct GNUNET_HashCode *hash,
+                           const struct GNUNET_MESSENGER_MemberSession *session,
+                           GNUNET_MESSENGER_MessageRequestCallback callback, void* cls)
+{
+  struct GNUNET_MESSENGER_MessageStore *message_store = get_room_message_store(room);
+
+  const struct GNUNET_MESSENGER_MessageLink *link = get_store_message_link(
+      message_store, hash, GNUNET_YES
+  );
+
+  if (!link)
+    goto forward;
+
+  int result = request_room_message_step(room, &(link->first), session, callback, cls);
+
+  if ((GNUNET_YES == link->multiple) &&
+      (GNUNET_YES == request_room_message_step(room, &(link->second), session, callback, cls)))
+    return GNUNET_YES;
+  else
+    return result;
+
+forward:
+  if (GNUNET_YES != check_member_session_history(session, hash, GNUNET_NO))
+    return GNUNET_YES;
+
+  const struct GNUNET_MESSENGER_Message *message = get_store_message(message_store, hash);
+
+  if (!message)
+    return GNUNET_NO;
+
+  if (callback)
+    callback (cls, room, message, hash);
+
+  return GNUNET_YES;
+}
+
+int
+request_room_message (struct GNUNET_MESSENGER_SrvRoom *room, const struct GNUNET_HashCode *hash,
+                      const struct GNUNET_MESSENGER_MemberSession *session,
+                      GNUNET_MESSENGER_MessageRequestCallback callback, void* cls)
 {
   GNUNET_assert((room) && (hash));
 
-  const struct GNUNET_MESSENGER_Message *message = get_store_message (get_room_message_store(room), hash);
+  int result = request_room_message_step (room, hash, session, callback, cls);
 
-  if ((message) || (!handle) || (GNUNET_YES != request))
-    return message;
+  if ((GNUNET_NO == result) && (callback))
+    callback (cls, room, NULL, hash);
 
-  struct GNUNET_MESSENGER_OperationStore* operation_store = get_room_operation_store(room);
-
-  if (GNUNET_OK == use_store_operation(operation_store, hash, GNUNET_MESSENGER_OP_REQUEST, GNUNET_MESSENGER_REQUEST_DELAY))
-    send_room_message (room, handle, create_message_request (hash));
-
-  return NULL;
+  return result;
 }
 
 void
@@ -739,6 +773,23 @@ callback_verify_room_message (struct GNUNET_MESSENGER_SrvRoom *room, void *cls,
     return GNUNET_SYSERR;
   }
 
+  struct GNUNET_MESSENGER_MessageStore *message_store = get_room_message_store(room);
+
+  const struct GNUNET_MESSENGER_Message *previous = get_store_message(message_store, &(message->header.previous));
+
+  if (!previous)
+    goto skip_time_comparison;
+
+  struct GNUNET_TIME_Absolute timestamp = GNUNET_TIME_absolute_ntoh(message->header.timestamp);
+  struct GNUNET_TIME_Absolute last = GNUNET_TIME_absolute_ntoh(previous->header.timestamp);
+
+  if (GNUNET_TIME_relative_get_zero_().rel_value_us != GNUNET_TIME_absolute_get_difference(timestamp, last).rel_value_us)
+  {
+    GNUNET_log(GNUNET_ERROR_TYPE_ERROR, "Message error: Timestamp does not check out!\n");
+    return GNUNET_SYSERR;
+  }
+
+skip_time_comparison:
   GNUNET_log(GNUNET_ERROR_TYPE_DEBUG, "Receiving message of kind: %s!\n",
              GNUNET_MESSENGER_name_of_kind(message->header.kind));
 
@@ -753,12 +804,13 @@ idle_request_room_messages (void *cls)
   room->idle = NULL;
 
   struct GNUNET_MESSENGER_OperationStore *operation_store = get_room_operation_store(room);
+  const struct GNUNET_HashCode *hash = get_message_state_merge_hash(&(room->state));
 
-  if ((room->last_messages.head != room->last_messages.tail) &&
-      (GNUNET_MESSENGER_OP_UNKNOWN == get_store_operation_type(operation_store, &(room->last_messages.tail->hash))))
+  if ((hash) &&
+      (GNUNET_MESSENGER_OP_UNKNOWN == get_store_operation_type(operation_store, hash)))
     use_store_operation(
         operation_store,
-        &(room->last_messages.tail->hash),
+        hash,
         GNUNET_MESSENGER_OP_MERGE,
         GNUNET_MESSENGER_MERGE_DELAY
     );
@@ -769,6 +821,46 @@ idle_request_room_messages (void *cls)
       idle_request_room_messages,
       cls
   );
+}
+
+void
+solve_room_member_collisions (struct GNUNET_MESSENGER_SrvRoom *room, const struct GNUNET_IDENTITY_PublicKey *public_key,
+                              const struct GNUNET_ShortHashCode *member_id, struct GNUNET_TIME_Absolute timestamp)
+{
+  GNUNET_assert ((room) && (public_key) && (member_id));
+
+  struct GNUNET_MESSENGER_MemberStore *member_store = get_room_member_store(room);
+  struct GNUNET_MESSENGER_Member *member = get_store_member(member_store, member_id);
+
+  if ((!member) || (1 >= GNUNET_CONTAINER_multihashmap_size(member->sessions)))
+    return;
+
+  struct GNUNET_MESSENGER_ListHandles *handles = &(room->service->handles);
+  struct GNUNET_MESSENGER_ListHandle* element;
+
+  for (element = handles->head; element; element = element->next)
+  {
+    if (0 != GNUNET_memcmp(member_id, get_handle_member_id(element->handle, get_room_key(room))))
+      continue;
+
+    if (0 == GNUNET_memcmp(public_key, &(get_handle_ego(element->handle)->pub)))
+      continue;
+
+    struct GNUNET_MESSENGER_MemberSession *session = get_member_session(member, &(get_handle_ego(element->handle)->pub));
+
+    if (!session)
+      continue;
+
+    struct GNUNET_TIME_Absolute start = get_member_session_start(session);
+
+    if (GNUNET_TIME_relative_get_zero_().rel_value_us != GNUNET_TIME_absolute_get_difference(start, timestamp).rel_value_us)
+      continue;
+
+    struct GNUNET_ShortHashCode random_id;
+    generate_free_member_id (&random_id, member_store->members);
+
+    send_room_message(room, element->handle, create_message_id(&random_id));
+  }
 }
 
 void
@@ -821,41 +913,32 @@ rebuild_room_basement_structure (struct GNUNET_MESSENGER_SrvRoom *room)
 static void
 handle_room_messages (struct GNUNET_MESSENGER_SrvRoom *room)
 {
+  struct GNUNET_MESSENGER_MessageStore *message_store = get_room_message_store(room);
+  struct GNUNET_MESSENGER_MemberStore *member_store = get_room_member_store(room);
+
   while (room->handling.head)
   {
     struct GNUNET_MESSENGER_ListMessage *element = room->handling.head;
 
-    const struct GNUNET_MESSENGER_Message *msg = get_room_message (room, room->host, &(element->hash), GNUNET_NO);
+    const struct GNUNET_MESSENGER_Message *message = get_store_message (message_store, &(element->hash));
 
-    if (!msg)
+    if (!message)
       goto finish_handling;
 
-    struct GNUNET_MESSENGER_MemberStore *member_store = get_room_member_store(room);
-    struct GNUNET_MESSENGER_Member *member = get_store_member_of(member_store, msg);
+    struct GNUNET_MESSENGER_Member *member = get_store_member_of(member_store, message);
 
     if (!member)
       goto finish_handling;
 
-    struct GNUNET_MESSENGER_MemberSession *session = get_member_session_of(member, msg, &(element->hash));
+    struct GNUNET_MESSENGER_MemberSession *session = get_member_session_of(member, message, &(element->hash));
 
     if (session)
-      handle_service_message (room->service, room, session, msg, &(element->hash));
+      handle_service_message (room->service, room, session, message, &(element->hash));
 
 finish_handling:
     GNUNET_CONTAINER_DLL_remove(room->handling.head, room->handling.tail, element);
     GNUNET_free(element);
   }
-}
-
-static void
-remove_room_last_message (struct GNUNET_MESSENGER_SrvRoom *room, const struct GNUNET_HashCode *hash)
-{
-  remove_from_list_messages(&(room->last_messages), hash);
-
-  struct GNUNET_MESSENGER_OperationStore *operation_store = get_room_operation_store(room);
-
-  if (GNUNET_MESSENGER_OP_MERGE == get_store_operation_type(operation_store, hash))
-    cancel_store_operation(operation_store, hash);
 }
 
 int
@@ -873,11 +956,13 @@ update_room_message (struct GNUNET_MESSENGER_SrvRoom *room,
   if (GNUNET_YES == requested)
     cancel_store_operation(operation_store, hash);
 
-  const struct GNUNET_MESSENGER_Message *old_message = get_room_message (room, NULL, hash, GNUNET_NO);
+  struct GNUNET_MESSENGER_MessageStore *message_store = get_room_message_store(room);
+
+  const struct GNUNET_MESSENGER_Message *old_message = get_store_message (message_store, hash);
 
   GNUNET_log(GNUNET_ERROR_TYPE_DEBUG, "Handle a message in room (%s).\n", GNUNET_h2s (get_room_key(room)));
 
-  if ((old_message) || (GNUNET_OK != put_store_message (get_room_message_store(room), hash, message)))
+  if ((old_message) || (GNUNET_OK != put_store_message (message_store, hash, message)))
   {
     if (old_message != message)
       destroy_message(message);
@@ -886,16 +971,19 @@ update_room_message (struct GNUNET_MESSENGER_SrvRoom *room,
     return GNUNET_NO;
   }
 
+  update_message_state(&(room->state), requested, message, hash);
+
   if ((GNUNET_YES == requested) ||
       (GNUNET_MESSENGER_KIND_INFO == message->header.kind) ||
       (GNUNET_MESSENGER_KIND_REQUEST == message->header.kind))
     return GNUNET_YES;
 
-  if (GNUNET_MESSENGER_KIND_MERGE == message->header.kind)
-    remove_room_last_message(room, &(message->body.merge.previous));
-  remove_room_last_message(room, &(message->header.previous));
+  if ((GNUNET_MESSENGER_KIND_MERGE == message->header.kind) &&
+      (GNUNET_MESSENGER_OP_MERGE == get_store_operation_type(operation_store, &(message->body.merge.previous))))
+    cancel_store_operation(operation_store, &(message->body.merge.previous));
 
-  add_to_list_messages (&(room->last_messages), hash);
+  if (GNUNET_MESSENGER_OP_MERGE == get_store_operation_type(operation_store, &(message->header.previous)))
+    cancel_store_operation(operation_store, &(message->header.previous));
 
   return GNUNET_YES;
 }
@@ -1053,8 +1141,7 @@ load_room (struct GNUNET_MESSENGER_SrvRoom *room)
     char *last_messages_file;
     GNUNET_asprintf (&last_messages_file, "%s%s", room_dir, "last_messages.list");
 
-    load_list_messages(&(room->last_messages), last_messages_file);
-    GNUNET_free(last_messages_file);
+    load_message_state(&(room->state), room_dir);
   }
 
   GNUNET_free(room_dir);
@@ -1081,11 +1168,7 @@ save_room (struct GNUNET_MESSENGER_SrvRoom *room)
     save_list_tunnels(&(room->basement), basement_file);
     GNUNET_free(basement_file);
 
-    char *last_messages_file;
-    GNUNET_asprintf (&last_messages_file, "%s%s", room_dir, "last_messages.list");
-
-    save_list_messages(&(room->last_messages), last_messages_file);
-    GNUNET_free(last_messages_file);
+    save_message_state(&(room->state), room_dir);
   }
 
   GNUNET_free(room_dir);
