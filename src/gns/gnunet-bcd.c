@@ -27,6 +27,7 @@
 #include "platform.h"
 #include <microhttpd.h>
 #include "gnunet_util_lib.h"
+#include "gnunet_identity_service.h"
 #include "gnunet_mhd_compat.h"
 
 /**
@@ -148,7 +149,7 @@ access_handler_callback (void *cls,
     char *p;
     char *tmp;
     char *deffile;
-    struct GNUNET_CRYPTO_EcdsaPublicKey pub;
+    struct GNUNET_IDENTITY_PublicKey pub;
     size_t slen;
     FILE *f;
     struct stat st;
@@ -166,9 +167,8 @@ access_handler_callback (void *cls,
       MHD_lookup_connection_value (connection, MHD_GET_ARGUMENT_KIND, "gnskey");
     if ((NULL == gnskey) ||
         (GNUNET_OK !=
-         GNUNET_CRYPTO_ecdsa_public_key_from_string (gnskey,
-                                                     strlen (gnskey),
-                                                     &pub)))
+         GNUNET_IDENTITY_public_key_from_string (gnskey,
+                                                 &pub)))
     {
       return MHD_queue_response (connection,
                                  MHD_HTTP_OK,
@@ -218,10 +218,10 @@ access_handler_callback (void *cls,
              (NULL == gns_nick) ? "" : gns_nick);
     fclose (f);
     GNUNET_asprintf (
-      &p,
-      "cd %s; cp %s gns-bcd.tex | pdflatex --enable-write18 gns-bcd.tex > /dev/null 2> /dev/null",
-      tmp,
-      resfile);
+                     &p,
+                     "cd %s; cp %s gns-bcd.tex | pdflatex --enable-write18 gns-bcd.tex > /dev/null 2> /dev/null",
+                     tmp,
+                     resfile);
     GNUNET_free (deffile);
     ret = system (p);
     if (WIFSIGNALED (ret) || (0 != WEXITSTATUS (ret)))
@@ -506,7 +506,7 @@ main (int argc, char *const *argv)
                                  "port",
                                  "PORT",
                                  gettext_noop (
-                                   "Run HTTP serve on port PORT (default is 8888)"),
+                                               "Run HTTP serve on port PORT (default is 8888)"),
                                  &port),
     GNUNET_GETOPT_OPTION_END
   };
@@ -523,8 +523,8 @@ main (int argc, char *const *argv)
                              options,
                              &run,
                              NULL))
-        ? 0
-        : 1;
+    ? 0
+    : 1;
   GNUNET_free_nz ((void *) argv);
   return ret;
 }

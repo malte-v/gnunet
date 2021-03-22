@@ -254,7 +254,6 @@ and development.
 @subsection Creating a Business Card
 @c FIXME: Which parts of texlive are needed? Some systems offer a modular
 @c texlive (smaller size).
-
 Before we can really use GNS, you should create a business card.
 Note that this requires having @command{LaTeX} installed on your system.
 If you are using a Debian GNU/Linux based operating system, the
@@ -262,6 +261,19 @@ following command should install the required components.
 Keep in mind that this @b{requires 3GB} of downloaded data and possibly
 @b{even more} when unpacked. On a GNU Guix based system texlive 2017 has
 returns a DAG size of 5032.4 MiB.
+The packages which are confirmed to be required are:
+
+@itemize @bullet
+@item texlive-units
+@item texlive-labels
+@item texlive-pst-barcode
+@item texlive-luatex85
+@item texlive-preview
+@item texlive-pdfcrop
+@item texlive-koma-script
+@end itemize
+
+
 @b{We welcome any help in identifying the required components of the
 TexLive Distribution. This way we could just state the required components
 without pulling in the full distribution of TexLive.}

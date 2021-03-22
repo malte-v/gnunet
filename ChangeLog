@@ -34,9 +34,6 @@ HELLO: Fix netdb.h nonsense with h_addr - Martin Schanzenbach
 Tue, 23 Feb 2021 10:42:57 +0100 (74a234f0b)
 HANDBOOK: Add some info on TNG - Martin Schanzenbach
 
-Sun, 21 Feb 2021 21:02:57 +0100 (03b5746e4)
-TNG: Add a the api test; WIP - Martin Schanzenbach
-
 Sun, 21 Feb 2021 20:56:47 +0100 (05040a491)
 HELLO: Add test for NG API; fix extraction more - Martin Schanzenbach
 

@@ -156,6 +156,7 @@ gnunet_bcd_SOURCES = \
  gnunet-bcd.c
 gnunet_bcd_LDADD = \
   $(top_builddir)/src/util/libgnunetutil.la \
+  $(top_builddir)/src/identity/libgnunetidentity.la \
   $(GN_LIBINTL) $(MHD_LIBS)
 gnunet_bcd_CFLAGS = $(MHD_CFLAGS) $(AM_CFLAGS)
 
