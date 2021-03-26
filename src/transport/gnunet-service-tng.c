@@ -6976,7 +6976,6 @@ handle_dv_learn (void *cls, const struct TransportDVLearnMessage *dvl)
   if (MAX_DV_HOPS_ALLOWED == nhops)
   {
     /* At limit, we're out of here! */
-    finish_cmc_handling (cmc);
     return;
   }
 
