@@ -384,7 +384,8 @@ check_revoke_message (void *cls,
   uint16_t size;
 
   size = ntohs (rm->header.size);
-  if (size <= sizeof(struct RevokeMessage))
+  if (size <= sizeof(struct RevokeMessage) ||
+      (size > UINT16_MAX))
   {
     GNUNET_break (0);
     return GNUNET_SYSERR;

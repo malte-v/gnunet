@@ -690,6 +690,12 @@ handle_zone_to_name_response (void *cls,
 
   LOG (GNUNET_ERROR_TYPE_DEBUG, "Received ZONE_TO_NAME_RESPONSE\n");
   qe = find_qe (h, ntohl (msg->gns_header.r_id));
+  if (NULL == qe)
+  {
+    LOG (GNUNET_ERROR_TYPE_WARNING,
+         "Response queue already gone...\n");
+    return;
+  }
   res = ntohs (msg->res);
   switch (res)
   {
