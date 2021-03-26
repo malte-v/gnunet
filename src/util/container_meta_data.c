@@ -964,6 +964,9 @@ GNUNET_CONTAINER_meta_data_serialize (const struct GNUNET_CONTAINER_MetaData
     {
       /* does not fit! */
       GNUNET_free (ent);
+      if (NULL != cdata)
+        GNUNET_free (cdata);
+      cdata = NULL;
       return GNUNET_SYSERR;
     }
 
@@ -976,9 +979,9 @@ GNUNET_CONTAINER_meta_data_serialize (const struct GNUNET_CONTAINER_MetaData
     if (NULL != pos->mime_type)
       left -= strlen (pos->mime_type) + 1;
 
-    GNUNET_free (cdata);
+    if (NULL != cdata)
+      GNUNET_free (cdata);
     cdata = NULL;
-
     i++;
   }
   GNUNET_free (ent);

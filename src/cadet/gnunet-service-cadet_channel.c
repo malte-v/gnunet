@@ -1858,6 +1858,7 @@ GCCH_handle_local_data (struct CadetChannel *ch,
     }
     else
     {
+      GNUNET_free (env);
       GNUNET_break (0);
       return GNUNET_SYSERR;
     }

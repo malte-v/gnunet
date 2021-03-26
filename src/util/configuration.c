@@ -606,6 +606,7 @@ GNUNET_CONFIGURATION_write (struct GNUNET_CONFIGURATION_Handle *cfg,
     if (NULL == h)
     {
       GNUNET_free (fn);
+      GNUNET_free (cfg_buf);
       return GNUNET_SYSERR;
     }
     if (((ssize_t) size) !=

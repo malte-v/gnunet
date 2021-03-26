@@ -375,6 +375,8 @@ get_egoentry_namestore (struct RequestHandle *handle, char *name)
   if (NULL == name)
     return NULL;
   tmp = strtok (copy, "/");
+  if (NULL == tmp)
+    return NULL;
   for (ego_entry = ego_head; NULL != ego_entry;
        ego_entry = ego_entry->next)
   {
