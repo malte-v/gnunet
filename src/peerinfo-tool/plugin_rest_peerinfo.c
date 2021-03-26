@@ -379,7 +379,9 @@ peerinfo_list_finished (void *cls)
   result_str = json_dumps (handle->response, 0);
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Result %s\n", result_str);
   resp = GNUNET_REST_create_response (result_str);
-  MHD_add_response_header (resp, "Content-Type", "application/json");
+  GNUNET_assert (MHD_NO != MHD_add_response_header (resp,
+                                                    "Content-Type",
+                                                    "application/json"));
   handle->proc (handle->proc_cls, resp, MHD_HTTP_OK);
   GNUNET_free (result_str);
   GNUNET_SCHEDULER_add_now (&cleanup_handle, handle);

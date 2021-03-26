@@ -306,12 +306,19 @@ publicize_rm (const struct RevokeMessage *rm)
   struct RevokeMessage *cp;
   struct GNUNET_HashCode hc;
   struct GNUNET_SETU_Element e;
+  ssize_t pklen;
   const struct GNUNET_IDENTITY_PublicKey *pk;
 
   struct GNUNET_REVOCATION_PowP *pow = (struct GNUNET_REVOCATION_PowP *) &rm[1];
   pk = (const struct GNUNET_IDENTITY_PublicKey *) &pow[1];
+  pklen = GNUNET_IDENTITY_key_get_length (pk);
+  if (0 > pklen)
+  {
+    GNUNET_break_op (0);
+    return GNUNET_SYSERR;
+  }
   GNUNET_CRYPTO_hash (pk,
-                      GNUNET_IDENTITY_key_get_length (pk),
+                      pklen,
                       &hc);
   if (GNUNET_YES ==
       GNUNET_CONTAINER_multihashmap_contains (revocation_map,

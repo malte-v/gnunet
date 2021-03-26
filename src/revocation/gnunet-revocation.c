@@ -307,17 +307,9 @@ calculate_pow (void *cls)
     return;
   }
   pow_passes++;
-  /**
-   * Otherwise CTRL-C does not work
-   */
-  if (0 == pow_passes % 128)
-    pow_task = GNUNET_SCHEDULER_add_delayed (GNUNET_TIME_UNIT_MILLISECONDS,
-                                             &calculate_pow,
-                                             ph);
-  else
-    pow_task = GNUNET_SCHEDULER_add_delayed (GNUNET_TIME_UNIT_MILLISECONDS,
-                                             &calculate_pow,
-                                             ph);
+  pow_task = GNUNET_SCHEDULER_add_delayed (GNUNET_TIME_UNIT_MILLISECONDS,
+                                           &calculate_pow,
+                                           ph);
 
 }
 

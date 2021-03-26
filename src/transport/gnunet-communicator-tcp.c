@@ -877,12 +877,14 @@ queue_destroy (struct Queue *queue)
 {
   struct ListenTask *lt = NULL;
   struct GNUNET_HashCode h_sock;
+  int sockfd;
 
-  GNUNET_CRYPTO_hash (queue->listen_sock,
-                      sizeof(queue->listen_sock),
+  sockfd = GNUNET_NETWORK_get_fd (queue->listen_sock);
+  GNUNET_CRYPTO_hash (&sockfd,
+                      sizeof(int),
                       &h_sock);
 
-  lt =   GNUNET_CONTAINER_multihashmap_get (lt_map, &h_sock);
+  lt = GNUNET_CONTAINER_multihashmap_get (lt_map, &h_sock);
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Disconnecting queue for peer `%s'\n",
@@ -1263,7 +1265,8 @@ rekey_monotime_cb (void *cls,
                                                      pid,
                                                      GNUNET_PEERSTORE_TRANSPORT_TCP_COMMUNICATOR_REKEY,
                                                      rekey_monotonic_time,
-                                                     sizeof(rekey_monotonic_time),
+                                                     sizeof(*
+                                                            rekey_monotonic_time),
                                                      GNUNET_TIME_UNIT_FOREVER_ABS,
                                                      GNUNET_PEERSTORE_STOREOPTION_REPLACE,
                                                      &rekey_monotime_store_cb,
@@ -1413,18 +1416,18 @@ handshake_ack_monotime_cb (void *cls,
     queue_finish (queue);
     return;
   }
-  queue->handshake_ack_monotime_sc = GNUNET_PEERSTORE_store (peerstore,
-                                                             "transport_tcp_communicator",
-                                                             pid,
-                                                             GNUNET_PEERSTORE_TRANSPORT_TCP_COMMUNICATOR_HANDSHAKE_ACK,
-                                                             handshake_ack_monotonic_time,
-                                                             sizeof(
-                                                               handshake_ack_monotonic_time),
-                                                             GNUNET_TIME_UNIT_FOREVER_ABS,
-                                                             GNUNET_PEERSTORE_STOREOPTION_REPLACE,
-                                                             &
-                                                             handshake_ack_monotime_store_cb,
-                                                             queue);
+  queue->handshake_ack_monotime_sc =
+    GNUNET_PEERSTORE_store (peerstore,
+                            "transport_tcp_communicator",
+                            pid,
+                            GNUNET_PEERSTORE_TRANSPORT_TCP_COMMUNICATOR_HANDSHAKE_ACK,
+                            handshake_ack_monotonic_time,
+                            sizeof(*handshake_ack_monotonic_time),
+                            GNUNET_TIME_UNIT_FOREVER_ABS,
+                            GNUNET_PEERSTORE_STOREOPTION_REPLACE,
+                            &
+                            handshake_ack_monotime_store_cb,
+                            queue);
 }
 
 
@@ -3255,6 +3258,7 @@ init_socket (struct sockaddr *addr,
   socklen_t sto_len;
   struct GNUNET_NETWORK_Handle *listen_sock;
   struct ListenTask *lt;
+  int sockfd;
   struct GNUNET_HashCode h_sock;
 
   if (NULL == addr)
@@ -3343,8 +3347,9 @@ init_socket (struct sockaddr *addr,
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "creating hash\n");
-  GNUNET_CRYPTO_hash (lt->listen_sock,
-                      sizeof(lt->listen_sock),
+  sockfd = GNUNET_NETWORK_get_fd (lt->listen_sock);
+  GNUNET_CRYPTO_hash (&sockfd,
+                      sizeof(int),
                       &h_sock);
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
@@ -3564,6 +3569,7 @@ run (void *cls,
   peerstore = GNUNET_PEERSTORE_connect (cfg);
   if (NULL == peerstore)
   {
+    GNUNET_free (bindto);
     GNUNET_break (0);
     GNUNET_SCHEDULER_shutdown ();
     return;
@@ -3596,7 +3602,6 @@ run (void *cls,
     GNUNET_free (po);
     nat_register ();
     GNUNET_free (bindto);
-
     return;
   }
 
@@ -3609,8 +3614,8 @@ run (void *cls,
     in = tcp_address_to_sockaddr_numeric_v4 (&in_len, v4, bind_port);
     init_socket (in, in_len);
     nat_register ();
+    GNUNET_free (start);
     GNUNET_free (bindto);
-
     return;
   }
 
@@ -3620,8 +3625,8 @@ run (void *cls,
     in = tcp_address_to_sockaddr_numeric_v6 (&in_len, v6, bind_port);
     init_socket (in, in_len);
     nat_register ();
+    GNUNET_free (start);
     GNUNET_free (bindto);
-
     return;
   }
 
@@ -3635,6 +3640,7 @@ run (void *cls,
                                                    &init_socket_resolv,
                                                    &port);
   GNUNET_free (bindto);
+  GNUNET_free (start);
 }
 
 

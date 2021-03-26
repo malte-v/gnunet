@@ -9639,11 +9639,13 @@ handle_add_queue_message (void *cls,
   {
     if (queue->qid != aqm->qid)
       continue;
-    neighbour = queue->neighbour;
     break;
   }
-  if (NULL == queue)
+
+  if (NULL != queue)
   {
+    neighbour = queue->neighbour;
+  } else {
     neighbour = lookup_neighbour (&aqm->receiver);
     if (NULL == neighbour)
     {

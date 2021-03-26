@@ -128,6 +128,7 @@ d2j (json_t *vec,
   json_object_set_new (vec, label, json);
 }
 
+
 /**
  * Add a number to a test vector.
  *
@@ -138,8 +139,8 @@ d2j (json_t *vec,
  */
 static void
 uint2j (json_t *vec,
-     const char *label,
-     unsigned int num)
+        const char *label,
+        unsigned int num)
 {
   json_t *json = json_integer (num);
 
@@ -154,7 +155,7 @@ expect_data_fixed (json_t *vec,
                    size_t expect_len)
 {
   const char *s = json_string_value (json_object_get (vec, name));
-  
+
   if (NULL == s)
     return GNUNET_NO;
 
@@ -166,6 +167,7 @@ expect_data_fixed (json_t *vec,
   return GNUNET_OK;
 }
 
+
 static int
 expect_data_dynamic (json_t *vec,
                      const char *name,
@@ -173,6 +175,7 @@ expect_data_dynamic (json_t *vec,
                      size_t *ret_len)
 {
   const char *s = json_string_value (json_object_get (vec, name));
+  char *tmp;
   size_t len;
 
   if (NULL == s)
@@ -181,10 +184,14 @@ expect_data_dynamic (json_t *vec,
   len = (strlen (s) * 5) / 8;
   if (NULL != ret_len)
     *ret_len = len;
-  *data = GNUNET_malloc (len);
+  tmp = GNUNET_malloc (len);
 
-  if (GNUNET_OK != GNUNET_STRINGS_string_to_data (s, strlen (s), *data, len))
+  if (GNUNET_OK != GNUNET_STRINGS_string_to_data (s, strlen (s), tmp, len))
+  {
+    GNUNET_free (tmp);
     return GNUNET_NO;
+  }
+  *data = tmp;
   return GNUNET_OK;
 }
 
@@ -197,7 +204,7 @@ expect_data_dynamic (json_t *vec,
  *
  * @returns GNUNET_OK if the vector is okay
  */
-static int 
+static int
 checkvec (const char *operation,
           json_t *vec)
 {
@@ -220,10 +227,11 @@ checkvec (const char *operation,
       return GNUNET_SYSERR;
     }
     if (GNUNET_OK != expect_data_fixed (vec,
-                                 "output",
-                                 &hash_out,
-                                 sizeof (hash_out)))
+                                        "output",
+                                        &hash_out,
+                                        sizeof (hash_out)))
     {
+      GNUNET_free (data);
       GNUNET_break (0);
       return GNUNET_NO;
     }
@@ -232,9 +240,11 @@ checkvec (const char *operation,
 
     if (0 != GNUNET_memcmp (&hc, &hash_out))
     {
+      GNUNET_free (data);
       GNUNET_break (0);
       return GNUNET_NO;
     }
+    GNUNET_free (data);
   }
   else if (0 == strcmp (operation, "ecc_ecdh"))
   {
@@ -245,33 +255,33 @@ checkvec (const char *operation,
     struct GNUNET_HashCode skm_comp;
 
     if (GNUNET_OK != expect_data_fixed (vec,
-                                 "priv1",
-                                 &priv1,
-                                 sizeof (priv1)))
+                                        "priv1",
+                                        &priv1,
+                                        sizeof (priv1)))
     {
       GNUNET_break (0);
       return GNUNET_NO;
     }
     if (GNUNET_OK != expect_data_fixed (vec,
-                                 "priv2",
-                                 &priv2,
-                                 sizeof (priv2)))
+                                        "priv2",
+                                        &priv2,
+                                        sizeof (priv2)))
     {
       GNUNET_break (0);
       return GNUNET_NO;
     }
     if (GNUNET_OK != expect_data_fixed (vec,
-                                 "pub1",
-                                 &pub1,
-                                 sizeof (pub1)))
+                                        "pub1",
+                                        &pub1,
+                                        sizeof (pub1)))
     {
       GNUNET_break (0);
       return GNUNET_NO;
     }
     if (GNUNET_OK != expect_data_fixed (vec,
-                                 "skm",
-                                 &skm,
-                                 sizeof (skm)))
+                                        "skm",
+                                        &skm,
+                                        sizeof (skm)))
     {
       GNUNET_break (0);
       return GNUNET_NO;
@@ -407,6 +417,8 @@ checkvec (const char *operation,
                                           &ikm,
                                           &ikm_len))
     {
+      GNUNET_free (out);
+      GNUNET_free (out_comp);
       GNUNET_break (0);
       return GNUNET_SYSERR;
     }
@@ -416,6 +428,9 @@ checkvec (const char *operation,
                                           &salt,
                                           &salt_len))
     {
+      GNUNET_free (out);
+      GNUNET_free (out_comp);
+      GNUNET_free (ikm);
       GNUNET_break (0);
       return GNUNET_SYSERR;
     }
@@ -425,6 +440,10 @@ checkvec (const char *operation,
                                           &ctx,
                                           &ctx_len))
     {
+      GNUNET_free (out);
+      GNUNET_free (out_comp);
+      GNUNET_free (ikm);
+      GNUNET_free (salt);
       GNUNET_break (0);
       return GNUNET_SYSERR;
     }
@@ -442,10 +461,19 @@ checkvec (const char *operation,
 
     if (0 != memcmp (out, out_comp, out_len))
     {
+      GNUNET_free (out);
+      GNUNET_free (out_comp);
+      GNUNET_free (ikm);
+      GNUNET_free (salt);
+      GNUNET_free (ctx);
       GNUNET_break (0);
       return GNUNET_NO;
     }
-
+    GNUNET_free (out);
+    GNUNET_free (out_comp);
+    GNUNET_free (ikm);
+    GNUNET_free (salt);
+    GNUNET_free (ctx);
   }
   else if (0 == strcmp (operation, "eddsa_ecdh"))
   {
@@ -562,6 +590,7 @@ checkvec (const char *operation,
                                           &public_enc_data,
                                           &public_enc_len))
     {
+      GNUNET_free (blinded_data);
       GNUNET_break (0);
       return GNUNET_SYSERR;
     }
@@ -571,6 +600,8 @@ checkvec (const char *operation,
                                           &secret_enc_data,
                                           &secret_enc_len))
     {
+      GNUNET_free (blinded_data);
+      GNUNET_free (public_enc_data);
       GNUNET_break (0);
       return GNUNET_SYSERR;
     }
@@ -580,6 +611,9 @@ checkvec (const char *operation,
                                           &sig_enc_data,
                                           &sig_enc_length))
     {
+      GNUNET_free (blinded_data);
+      GNUNET_free (public_enc_data);
+      GNUNET_free (secret_enc_data);
       GNUNET_break (0);
       return GNUNET_SYSERR;
     }
@@ -601,6 +635,11 @@ checkvec (const char *operation,
                                                             blinded_data_comp,
                                                             blinded_len)) )
     {
+      GNUNET_free (blinded_data);
+      GNUNET_free (public_enc_data);
+      GNUNET_free (secret_enc_data);
+      GNUNET_free (sig_enc_data);
+      GNUNET_free (skey);
       GNUNET_break (0);
       return GNUNET_NO;
     }
@@ -611,14 +650,27 @@ checkvec (const char *operation,
                                                            pkey));
     public_enc_len = GNUNET_CRYPTO_rsa_public_key_encode (pkey,
                                                           &public_enc_data);
-    sig_enc_length_comp = GNUNET_CRYPTO_rsa_signature_encode (sig, &sig_enc_data_comp);
+    sig_enc_length_comp = GNUNET_CRYPTO_rsa_signature_encode (sig,
+                                                              &sig_enc_data_comp);
 
     if ( (sig_enc_length != sig_enc_length_comp) ||
          (0 != memcmp (sig_enc_data, sig_enc_data_comp, sig_enc_length) ))
     {
+      GNUNET_free (blinded_sig);
+      GNUNET_free (blinded_data);
+      GNUNET_free (public_enc_data);
+      GNUNET_free (secret_enc_data);
+      GNUNET_free (sig_enc_data);
+      GNUNET_free (skey);
       GNUNET_break (0);
       return GNUNET_NO;
     }
+    GNUNET_free (blinded_sig);
+    GNUNET_free (blinded_data);
+    GNUNET_free (public_enc_data);
+    GNUNET_free (secret_enc_data);
+    GNUNET_free (sig_enc_data);
+    GNUNET_free (skey);
   }
   else
   {
@@ -628,6 +680,7 @@ checkvec (const char *operation,
 
   return GNUNET_OK;
 }
+
 
 /**
  * Check test vectors from stdin.
@@ -656,7 +709,7 @@ check_vectors ()
     return 1;
   }
   vectors = json_object_get (vecfile, "vectors");
-  if (!json_is_array (vectors))
+  if (! json_is_array (vectors))
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR, "bad vectors\n");
     json_decref (vecfile);
@@ -691,6 +744,7 @@ check_vectors ()
     return (ret == GNUNET_OK) ? 0 : 1;
   }
 }
+
 
 /**
  * Output test vectors.
@@ -868,20 +922,20 @@ output_vectors ()
     GNUNET_CRYPTO_ecdh_eddsa (&priv_ecdhe, &pub_eddsa, &key_material);
 
     d2j (vec, "priv_ecdhe",
-                  &priv_ecdhe,
-                  sizeof (struct GNUNET_CRYPTO_EcdhePrivateKey));
+         &priv_ecdhe,
+         sizeof (struct GNUNET_CRYPTO_EcdhePrivateKey));
     d2j (vec, "pub_ecdhe",
-                  &pub_ecdhe,
-                  sizeof (struct GNUNET_CRYPTO_EcdhePublicKey));
+         &pub_ecdhe,
+         sizeof (struct GNUNET_CRYPTO_EcdhePublicKey));
     d2j (vec, "priv_eddsa",
-                  &priv_eddsa,
-                  sizeof (struct GNUNET_CRYPTO_EddsaPrivateKey));
+         &priv_eddsa,
+         sizeof (struct GNUNET_CRYPTO_EddsaPrivateKey));
     d2j (vec, "pub_eddsa",
-                  &pub_eddsa,
-                  sizeof (struct GNUNET_CRYPTO_EddsaPublicKey));
+         &pub_eddsa,
+         sizeof (struct GNUNET_CRYPTO_EddsaPublicKey));
     d2j (vec, "key_material",
-                  &key_material,
-                  sizeof (struct GNUNET_HashCode));
+         &key_material,
+         sizeof (struct GNUNET_HashCode));
   }
 
   {
@@ -968,6 +1022,7 @@ output_vectors ()
     GNUNET_free (blinded_data);
     GNUNET_free (sig_enc_data);
     GNUNET_free (blinded_sig_enc_data);
+    GNUNET_free (secret_enc_data);
   }
 
   json_dumpf (vecfile, stdout, JSON_INDENT (2));
@@ -976,6 +1031,7 @@ output_vectors ()
 
   return 0;
 }
+
 
 /**
  * Main function that will be run.

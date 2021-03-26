@@ -134,6 +134,7 @@ block_plugin_revocation_evaluate (void *cls,
 {
   struct InternalContext *ic = cls;
   struct GNUNET_HashCode chash;
+  ssize_t pklen;
   const struct RevokeMessage *rm = reply_block;
 
   if (NULL == reply_block)
@@ -153,8 +154,14 @@ block_plugin_revocation_evaluate (void *cls,
     GNUNET_break_op (0);
     return GNUNET_BLOCK_EVALUATION_RESULT_INVALID;
   }
+  pklen = GNUNET_IDENTITY_key_get_length (pk);
+  if (0 > pklen)
+  {
+    GNUNET_break_op (0);
+    return GNUNET_BLOCK_EVALUATION_RESULT_INVALID;
+  }
   GNUNET_CRYPTO_hash (pk,
-                      GNUNET_IDENTITY_key_get_length (pk),
+                      pklen,
                       &chash);
   if (GNUNET_YES ==
       GNUNET_BLOCK_GROUP_bf_test_and_set (group,
