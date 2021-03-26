@@ -651,18 +651,15 @@ handle_consume_ticket_result (void *cls,
                         le->attribute, NULL);
           }
         }
-        if (NULL != attrs)
-          GNUNET_RECLAIM_attribute_list_destroy (attrs);
-        if (NULL != pl)
-          GNUNET_RECLAIM_presentation_list_destroy (pl);
-        attrs = NULL;
-        pl = NULL;
       }
       op->atr_cb (op->cls, NULL, NULL, NULL);
     }
+    if (NULL != attrs)
+      GNUNET_RECLAIM_attribute_list_destroy (attrs);
+    if (NULL != pl)
+      GNUNET_RECLAIM_presentation_list_destroy (pl);
     GNUNET_CONTAINER_DLL_remove (h->op_head, h->op_tail, op);
     free_op (op);
-    GNUNET_free (attrs);
     return;
   }
   GNUNET_assert (0);
@@ -804,7 +801,7 @@ check_credential_result (void *cls, const struct CredentialResultMessage *msg)
  */
 static void
 handle_credential_result (void *cls, const struct
-                           CredentialResultMessage *msg)
+                          CredentialResultMessage *msg)
 {
   static struct GNUNET_IDENTITY_PrivateKey identity_dummy;
   struct GNUNET_RECLAIM_Handle *h = cls;
@@ -871,6 +868,7 @@ handle_credential_result (void *cls, const struct
   GNUNET_assert (0);
 }
 
+
 /**
    * Handle an incoming message of type
    * #GNUNET_MESSAGE_TYPE_RECLAIM_TICKET_RESULT
@@ -925,7 +923,7 @@ handle_ticket_result (void *cls, const struct TicketResultMessage *msg)
   if (NULL != op)
   {
     if (0 < pres_len)
-      pres = GNUNET_RECLAIM_presentation_list_deserialize ((char*)&msg[1],
+      pres = GNUNET_RECLAIM_presentation_list_deserialize ((char*) &msg[1],
                                                            pres_len);
     GNUNET_CONTAINER_DLL_remove (handle->op_head, handle->op_tail, op);
     if (0 ==
@@ -1485,7 +1483,7 @@ GNUNET_RECLAIM_get_credentials_start (
  */
 void
 GNUNET_RECLAIM_get_credentials_next (struct
-                                      GNUNET_RECLAIM_CredentialIterator *ait)
+                                     GNUNET_RECLAIM_CredentialIterator *ait)
 {
   struct GNUNET_RECLAIM_Handle *h = ait->h;
   struct CredentialIterationNextMessage *msg;
@@ -1507,7 +1505,7 @@ GNUNET_RECLAIM_get_credentials_next (struct
  */
 void
 GNUNET_RECLAIM_get_credentials_stop (struct
-                                      GNUNET_RECLAIM_CredentialIterator *ait)
+                                     GNUNET_RECLAIM_CredentialIterator *ait)
 {
   struct GNUNET_RECLAIM_Handle *h = ait->h;
   struct GNUNET_MQ_Envelope *env;

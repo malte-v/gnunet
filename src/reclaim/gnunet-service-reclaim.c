@@ -731,9 +731,12 @@ static int
 check_issue_ticket_message (void *cls, const struct IssueTicketMessage *im)
 {
   uint16_t size;
+  size_t attrs_len;
 
   size = ntohs (im->header.size);
-  if (size <= sizeof(struct IssueTicketMessage))
+  attrs_len = ntohs (im->attr_len);
+
+  if (attrs_len > size - sizeof(struct IssueTicketMessage))
   {
     GNUNET_break (0);
     return GNUNET_SYSERR;
