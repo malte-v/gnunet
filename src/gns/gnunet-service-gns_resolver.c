@@ -764,6 +764,7 @@ transmit_lookup_dns_result (struct GNS_ResolverHandle *rh)
       rd[i].data = pos->data;
       rd[i].data_size = pos->data_size;
       rd[i].record_type = pos->record_type;
+      rd[i].flags = GNUNET_GNSRECORD_RF_NONE;
       /**
        * If this is a LEHO, we added this before. It must be a supplemental
        * record #LSD0001
@@ -772,12 +773,11 @@ transmit_lookup_dns_result (struct GNS_ResolverHandle *rh)
         rd[i].flags |= GNUNET_GNSRECORD_RF_SUPPLEMENTAL;
       if (0 == pos->expiration_time)
       {
-        rd[i].flags = GNUNET_GNSRECORD_RF_RELATIVE_EXPIRATION;
+        rd[i].flags |= GNUNET_GNSRECORD_RF_RELATIVE_EXPIRATION;
         rd[i].expiration_time = 0;
       }
       else
       {
-        rd[i].flags = GNUNET_GNSRECORD_RF_NONE;
         rd[i].expiration_time = pos->expiration_time;
       }
       i++;
@@ -1764,6 +1764,8 @@ recursive_gns2dns_resolution (struct GNS_ResolverHandle *rh,
       /**
        * Records other than GNS2DNS not allowed
        */
+      if (NULL != ns)
+        GNUNET_free (ns);
       return GNUNET_SYSERR;
     }
     off = 0;
@@ -1771,15 +1773,22 @@ recursive_gns2dns_resolution (struct GNS_ResolverHandle *rh,
                                      rd[i].data_size,
                                      &off);
     ip = GNUNET_strdup (&((const char *) rd[i].data)[off]);
-    off += strlen (ip) + 1;
-
     if ((NULL == n) ||
-        (NULL == ip) ||
-        (off != rd[i].data_size))
+        (NULL == ip))
     {
       GNUNET_break_op (0);
-      GNUNET_free (n);
-      GNUNET_free (ip);
+      if (NULL != n)
+        GNUNET_free (n);
+      if (NULL != ip)
+        GNUNET_free (ip);
+      continue;
+    }
+
+    off += strlen (ip) + 1;
+
+    if (off != rd[i].data_size)
+    {
+      GNUNET_break_op (0);
       continue;
     }
     /* resolve 'ip' to determine the IP(s) of the DNS
@@ -1909,6 +1918,8 @@ recursive_gns2dns_resolution (struct GNS_ResolverHandle *rh,
       GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
                   _ ("Name `%s' cannot be converted to IDNA."),
                   tmp);
+      GNUNET_free (tmp);
+      GNUNET_free (ac);
       return GNUNET_SYSERR;
     }
     GNUNET_free (tmp);
@@ -1922,6 +1933,8 @@ recursive_gns2dns_resolution (struct GNS_ResolverHandle *rh,
     GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
                 _ ("GNS lookup resulted in DNS name that is too long (`%s')\n"),
                 ac->label);
+    GNUNET_free (ac->label);
+    GNUNET_free (ac);
     return GNUNET_SYSERR;
   }
   continue_with_gns2dns (ac);

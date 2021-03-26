@@ -350,7 +350,7 @@ GNUNET_GNSRECORD_block_get_expiration (const struct
   case GNUNET_GNSRECORD_TYPE_PKEY:
     return GNUNET_TIME_absolute_ntoh (block->ecdsa_block.expiration_time);
   default:
-    return GNUNET_TIME_absolute_get_zero_ ();
+    GNUNET_break (0); /* Hopefully we never get here, but we might */
   }
   return GNUNET_TIME_absolute_get_zero_ ();
 

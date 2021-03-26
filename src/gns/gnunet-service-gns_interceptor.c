@@ -323,7 +323,6 @@ handle_dns_request (void *cls,
     GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
                 "Received malformed DNS packet, leaving it untouched.\n");
     GNUNET_DNS_request_forward (rh);
-    GNUNET_DNSPARSER_free_packet (p);
     return;
   }
 

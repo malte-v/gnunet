@@ -1841,6 +1841,7 @@ create_response (void *cls,
   char *curlurl;
   char ipstring[INET6_ADDRSTRLEN];
   char ipaddr[INET6_ADDRSTRLEN + 2];
+  char *curl_hosts;
   const struct sockaddr *sa;
   const struct sockaddr_in *s4;
   const struct sockaddr_in6 *s6;
@@ -1900,6 +1901,14 @@ create_response (void *cls,
         GNUNET_break (0);
         return MHD_NO;
       }
+      GNUNET_asprintf (&curl_hosts,
+                       "%s:%d:%s",
+                       s5r->leho,
+                       port,
+                       ipaddr);
+      s5r->hosts = curl_slist_append (NULL,
+                                      curl_hosts);
+      GNUNET_free (curl_hosts);
     }
     else
     {
@@ -1949,21 +1958,13 @@ create_response (void *cls,
      * Pre-populate cache to resolve Hostname.
      * This is necessary as the DNS name in the CURLOPT_URL is used
      * for SNI http://de.wikipedia.org/wiki/Server_Name_Indication
-     */if (NULL != s5r->leho)
+     */
+    if ((NULL != s5r->leho) &&
+        (NULL != s5r->hosts))
     {
-      char *curl_hosts;
-
-      GNUNET_asprintf (&curl_hosts,
-                       "%s:%d:%s",
-                       s5r->leho,
-                       port,
-                       ipaddr);
-      s5r->hosts = curl_slist_append (NULL,
-                                      curl_hosts);
       curl_easy_setopt (s5r->curl,
                         CURLOPT_RESOLVE,
                         s5r->hosts);
-      GNUNET_free (curl_hosts);
     }
     if (s5r->is_gns)
     {

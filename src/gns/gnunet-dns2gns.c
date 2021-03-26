@@ -309,6 +309,14 @@ dns_result_processor (void *cls,
   }
   request->packet = GNUNET_DNSPARSER_parse ((char *) dns,
                                             r);
+  if (NULL == request->packet)
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
+                _ ("Failed to parse DNS response!\n"));
+    GNUNET_SCHEDULER_cancel (request->timeout_task);
+    do_timeout (request);
+    return;
+  }
   GNUNET_DNSSTUB_resolve_cancel (request->dns_lookup);
   send_response (request);
 }
