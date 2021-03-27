@@ -3067,9 +3067,10 @@ run (void *cls,
     }
     else
     {
-      duration = GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_SECONDS,
-                                                (timeout.rel_value_us / 1000000)
-                                                * 0.75);
+      duration = GNUNET_TIME_relative_multiply (
+          GNUNET_TIME_UNIT_SECONDS,
+          ( (double) timeout.rel_value_us /  (double) 1000000)
+          * 0.75);
     }
   }
   else

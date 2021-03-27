@@ -2637,7 +2637,7 @@ insert_in_sampler (void *cls,
   }
 #ifdef TO_FILE
   sub->num_observed_peers++;
-  GNUNET_CONTAINER_multipeermap_put
+  (void) GNUNET_CONTAINER_multipeermap_put
     (sub->observed_unique_peers,
     peer,
     NULL,
@@ -2836,12 +2836,19 @@ cleanup_destroyed_channel (void *cls,
   (void) channel;
 
   channel_ctx->channel = NULL;
-  remove_channel_ctx (channel_ctx);
   if ((NULL != peer_ctx) &&
       (peer_ctx->send_channel_ctx == channel_ctx) &&
-      (GNUNET_YES == check_sending_channel_needed (channel_ctx->peer_ctx)) )
+      (GNUNET_YES == check_sending_channel_needed (peer_ctx)) )
   {
+    remove_channel_ctx (channel_ctx);
     remove_peer (peer_ctx->sub, &peer_ctx->peer_id);
+  }
+  else
+  {
+    /* We need this if-else construct because we need to make sure the channel
+     * (context) is cleaned up before removing the peer, but still neet to
+     * compare it while checking the condition */
+    remove_channel_ctx (channel_ctx);
   }
 }
 
