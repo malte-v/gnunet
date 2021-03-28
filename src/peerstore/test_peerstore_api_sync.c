@@ -67,6 +67,24 @@ static const char *val = "test_peerstore_api_store_val";
 
 
 /**
+ * Timeout
+ */
+#define TIMEOUT GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_SECONDS, 10)
+
+/**
+ * Timeout task
+ */
+static struct GNUNET_SCHEDULER_Task *to;
+
+/**
+ * Iterate handle
+ */
+static struct GNUNET_PEERSTORE_IterateContext *it;
+
+static void
+test_cont (void *cls);
+
+/**
  * Function that should be called with the result of the
  * lookup, and finally once with NULL to signal the end
  * of the iteration.
@@ -89,14 +107,45 @@ iterate_cb (void *cls,
   GNUNET_break (NULL == emsg);
   if (NULL == record)
   {
-    GNUNET_PEERSTORE_disconnect (h,
-                                 GNUNET_NO);
-    GNUNET_SCHEDULER_shutdown ();
+    it = NULL;
+    if (0 == ok)
+    {
+      GNUNET_PEERSTORE_disconnect (h,
+                                   GNUNET_NO);
+      if (NULL != to)
+      {
+        GNUNET_SCHEDULER_cancel (to);
+        to = NULL;
+      }
+      GNUNET_SCHEDULER_shutdown ();
+      return;
+    }
+    /**
+     * Try again
+     */
+    GNUNET_SCHEDULER_add_now (&test_cont,
+                              NULL);
     return;
   }
   rec_val = record->value;
   GNUNET_break (0 == strcmp (rec_val, val));
   ok = 0;
+}
+
+
+static void
+timeout_task (void *cls)
+{
+  to = NULL;
+  GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+              "Timeout reached\n");
+  if (NULL != it)
+    GNUNET_PEERSTORE_iterate_cancel (it);
+  it = NULL;
+  GNUNET_PEERSTORE_disconnect (h,
+                               GNUNET_NO);
+  GNUNET_SCHEDULER_shutdown ();
+  return;
 }
 
 
@@ -109,12 +158,11 @@ iterate_cb (void *cls,
 static void
 test_cont (void *cls)
 {
-  h = GNUNET_PEERSTORE_connect (cfg);
-  GNUNET_PEERSTORE_iterate (h,
-                            subsystem,
-                            &pid, key,
-                            &iterate_cb,
-                            NULL);
+  it = GNUNET_PEERSTORE_iterate (h,
+                                 subsystem,
+                                 &pid, key,
+                                 &iterate_cb,
+                                 NULL);
 }
 
 
@@ -122,10 +170,9 @@ static void
 disc_cont (void *cls)
 {
   GNUNET_PEERSTORE_disconnect (h, GNUNET_YES);
-  h = NULL;
-  GNUNET_SCHEDULER_add_delayed (GNUNET_TIME_UNIT_SECONDS,
-                                &test_cont,
-                                NULL);
+  h = GNUNET_PEERSTORE_connect (cfg);
+  GNUNET_SCHEDULER_add_now (&test_cont,
+                            NULL);
 }
 
 
@@ -133,12 +180,17 @@ static void
 store_cont (void *cls, int success)
 {
   ok = success;
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "Success: %s\n",
+              (GNUNET_SYSERR == ok) ? "no" : "yes");
   /* We need to wait a little bit to give the disconnect
      a chance to actually finish the operation; otherwise,
      the test may fail non-deterministically if the new
      connection is faster than the cleanup routine of the
-     old one. */GNUNET_SCHEDULER_add_now (&disc_cont,
-                            NULL);
+     old one. */
+  GNUNET_SCHEDULER_add_delayed (GNUNET_TIME_UNIT_SECONDS,
+                                &disc_cont,
+                                NULL);
 }
 
 
@@ -174,7 +226,10 @@ run (void *cls,
 {
   cfg = c;
   memset (&pid, 1, sizeof(pid));
-  test1 ();
+  to = GNUNET_SCHEDULER_add_delayed (TIMEOUT,
+                                     &timeout_task,
+                                     NULL);
+  GNUNET_SCHEDULER_add_now (&test1, NULL);
 }
 
 
