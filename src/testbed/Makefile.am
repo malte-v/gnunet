@@ -94,6 +94,9 @@ lib_LTLIBRARIES = \
 libgnunettestbed_la_SOURCES = \
   testbed_api.c testbed_api.h testbed.h \
   testbed_api_hosts.c testbed_api_hosts.h testbed_helper.h \
+  testbed_api_cmd_controller.c \
+  testbed_api_cmd_peer.c \
+  #testbed_api_cmd_service.c \
   testbed_api_operations.c testbed_api_operations.h \
   testbed_api_peers.c testbed_api_peers.h \
   testbed_api_services.c \

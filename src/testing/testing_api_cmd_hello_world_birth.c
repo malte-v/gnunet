@@ -118,10 +118,8 @@ hello_world_birth_run (void *cls,
 /**
  * Offer data from trait
  *
- * @param cmd command to extract the url from.
- * @param pt which url is to be picked, in case
- *        multiple are offered.
- * @param[out] url where to write the url.
+ * @param cmd command to extract the message from.
+ * @param pt pointer to message.
  * @return #GNUNET_OK on success.
  */
 int
