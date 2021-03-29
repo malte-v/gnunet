@@ -965,8 +965,6 @@ remove_channel_ctx (struct ChannelCtx *channel_ctx)
     channel_ctx->destruction_task = NULL;
   }
 
-  GNUNET_free (channel_ctx);
-
   if (NULL == peer_ctx)
     return;
   if (channel_ctx == peer_ctx->send_channel_ctx)
@@ -978,6 +976,7 @@ remove_channel_ctx (struct ChannelCtx *channel_ctx)
   {
     peer_ctx->recv_channel_ctx = NULL;
   }
+  GNUNET_free (channel_ctx);
 }
 
 
@@ -2802,7 +2801,7 @@ clean_peer (struct Sub *sub,
                                                              peer))) &&
       (GNUNET_NO == View_contains_peer (sub->view, peer)) &&
       (GNUNET_NO == CustomPeerMap_contains_peer (sub->push_map, peer)) &&
-      (GNUNET_NO == CustomPeerMap_contains_peer (sub->push_map, peer)) &&
+      (GNUNET_NO == CustomPeerMap_contains_peer (sub->pull_map, peer)) &&
       (0 == RPS_sampler_count_id (sub->sampler, peer)) &&
       (GNUNET_YES == check_removable (get_peer_ctx (sub->peer_map, peer))))
   {   /* We can safely remove this peer */

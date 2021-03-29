@@ -152,12 +152,16 @@ close_all_files ()
 {
   int ret;
 
-  ret = GNUNET_CONTAINER_multihashmap_iterate (open_files,
-                                               close_files_iter,
-                                               NULL);
-  GNUNET_CONTAINER_multihashmap_destroy (open_files);
-  open_files = NULL;
-  return ret;
+  if (NULL != open_files)
+  {
+    ret = GNUNET_CONTAINER_multihashmap_iterate (open_files,
+                                                 close_files_iter,
+                                                 NULL);
+    GNUNET_CONTAINER_multihashmap_destroy (open_files);
+    open_files = NULL;
+    return ret;
+  }
+  return GNUNET_YES;
 }
 
 
