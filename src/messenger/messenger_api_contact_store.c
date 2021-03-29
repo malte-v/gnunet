@@ -155,8 +155,10 @@ update_store_contact (struct GNUNET_MESSENGER_ContactStore *store, struct GNUNET
         store, next_context, &hash
     );
 
-    GNUNET_CONTAINER_multihashmap_put (map, &hash, contact,
-                                       GNUNET_CONTAINER_MULTIHASHMAPOPTION_UNIQUE_FAST);
+    if (GNUNET_OK != GNUNET_CONTAINER_multihashmap_put (map, &hash, contact,
+                                                        GNUNET_CONTAINER_MULTIHASHMAPOPTION_UNIQUE_FAST))
+      GNUNET_log(GNUNET_ERROR_TYPE_WARNING, "Updating a contact failed: %s\n",
+                 GNUNET_h2s(&hash));
   }
 }
 
@@ -176,7 +178,8 @@ remove_store_contact (struct GNUNET_MESSENGER_ContactStore *store, struct GNUNET
   );
 
   if (GNUNET_YES != GNUNET_CONTAINER_multihashmap_remove (map, &hash, contact))
-    return;
+    GNUNET_log(GNUNET_ERROR_TYPE_WARNING, "Removing a contact failed: %s\n",
+               GNUNET_h2s(&hash));
 
   destroy_contact (contact);
 }

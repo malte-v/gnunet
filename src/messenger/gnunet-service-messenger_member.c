@@ -335,7 +335,11 @@ add_member_session (struct GNUNET_MESSENGER_Member *member, struct GNUNET_MESSEN
   struct GNUNET_HashCode hash;
   GNUNET_CRYPTO_hash(public_key, sizeof(*public_key), &hash);
 
-  GNUNET_CONTAINER_multihashmap_put(member->sessions, &hash, session, GNUNET_CONTAINER_MULTIHASHMAPOPTION_UNIQUE_FAST);
+  if (GNUNET_OK != GNUNET_CONTAINER_multihashmap_put(
+      member->sessions, &hash, session,
+      GNUNET_CONTAINER_MULTIHASHMAPOPTION_UNIQUE_FAST))
+    GNUNET_log(GNUNET_ERROR_TYPE_WARNING, "Adding a member session failed: %s\n",
+               GNUNET_h2s(&hash));
 }
 
 void
@@ -348,7 +352,9 @@ remove_member_session (struct GNUNET_MESSENGER_Member *member, struct GNUNET_MES
   struct GNUNET_HashCode hash;
   GNUNET_CRYPTO_hash(public_key, sizeof(*public_key), &hash);
 
-  GNUNET_CONTAINER_multihashmap_remove(member->sessions, &hash, session);
+  if (GNUNET_YES != GNUNET_CONTAINER_multihashmap_remove(member->sessions, &hash, session))
+    GNUNET_log(GNUNET_ERROR_TYPE_WARNING, "Removing a member session failed: %s\n",
+               GNUNET_h2s(&hash));
 }
 
 struct GNUNET_MESSENGER_ClosureIterateSessions {

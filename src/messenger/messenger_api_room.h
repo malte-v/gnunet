@@ -100,12 +100,16 @@ get_room_sender (const struct GNUNET_MESSENGER_Room *room, const struct GNUNET_H
  * Handles a <i>message</i> with a given <i>hash</i> in a <i>room</i> for the client API to update
  * members and its information. The function also stores the message in map locally for access afterwards.
  *
+ * The contact of the message's sender could be updated or even created. It may not be freed or destroyed though!
+ * (The contact may still be in use for old messages...)
+ *
  * @param[in/out] room Room
  * @param[in/out] sender Contact of sender
  * @param[in] message Message
  * @param[in] hash Hash of message
+ * @return Contact of sender
  */
-void
+struct GNUNET_MESSENGER_Contact*
 handle_room_message (struct GNUNET_MESSENGER_Room *room, struct GNUNET_MESSENGER_Contact *sender,
                      const struct GNUNET_MESSENGER_Message *message, const struct GNUNET_HashCode *hash);
 

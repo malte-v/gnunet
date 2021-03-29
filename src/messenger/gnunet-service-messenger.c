@@ -191,7 +191,7 @@ check_send_message (void *cls, const struct GNUNET_MESSENGER_SendMessage *msg)
   const uint16_t length = full_length - sizeof(*msg);
   const char *buffer = ((const char*) msg) + sizeof(*msg);
 
-  uint16_t key_length = 0;
+  ssize_t key_length = 0;
 
   if (!(flags & GNUNET_MESSENGER_FLAG_PRIVATE))
     goto check_for_message;
@@ -231,7 +231,7 @@ handle_send_message (void *cls, const struct GNUNET_MESSENGER_SendMessage *msg)
   const char *buffer = ((const char*) msg) + sizeof(*msg);
 
   const uint16_t length = ntohs (msg->header.size) - sizeof(*msg);
-  uint16_t key_length = 0;
+  ssize_t key_length = 0;
 
   struct GNUNET_IDENTITY_PublicKey public_key;
 

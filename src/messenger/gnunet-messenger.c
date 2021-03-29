@@ -229,18 +229,12 @@ on_identity (void *cls, struct GNUNET_MESSENGER_Handle *handle)
   if (room_key)
     GNUNET_CRYPTO_hash (room_key, strlen (room_key), &key);
 
+  struct GNUNET_PeerIdentity door_peer;
   struct GNUNET_PeerIdentity *door = NULL;
 
-  if (door_id)
-  {
-    door = GNUNET_new(struct GNUNET_PeerIdentity);
-
-    if (GNUNET_OK != GNUNET_CRYPTO_eddsa_public_key_from_string (door_id, strlen (door_id), &(door->public_key)))
-    {
-      GNUNET_free(door);
-      door = NULL;
-    }
-  }
+  if ((door_id) &&
+      (GNUNET_OK == GNUNET_CRYPTO_eddsa_public_key_from_string (door_id, strlen (door_id), &(door_peer.public_key))))
+    door = &door_peer;
 
   const char *name = GNUNET_MESSENGER_get_name (handle);
 

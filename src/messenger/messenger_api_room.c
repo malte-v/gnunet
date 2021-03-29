@@ -106,7 +106,7 @@ get_room_sender (const struct GNUNET_MESSENGER_Room *room, const struct GNUNET_H
   return (entry? entry->sender : NULL);
 }
 
-static void
+static struct GNUNET_MESSENGER_Contact*
 handle_join_message (struct GNUNET_MESSENGER_Room *room, struct GNUNET_MESSENGER_Contact *sender,
                      const struct GNUNET_MESSENGER_Message *message, const struct GNUNET_HashCode *hash)
 {
@@ -124,6 +124,8 @@ handle_join_message (struct GNUNET_MESSENGER_Room *room, struct GNUNET_MESSENGER
       (GNUNET_OK == GNUNET_CONTAINER_multishortmap_put(room->members, &(message->header.sender_id), sender,
                                                        GNUNET_CONTAINER_MULTIHASHMAPOPTION_MULTIPLE)))
     increase_contact_rc(sender);
+
+  return sender;
 }
 
 static void
@@ -140,7 +142,7 @@ handle_leave_message (struct GNUNET_MESSENGER_Room *room, struct GNUNET_MESSENGE
   struct GNUNET_MESSENGER_ContactStore *store = get_handle_contact_store(room->handle);
 
   if (GNUNET_YES == decrease_contact_rc(sender))
-    remove_store_contact(store, sender, &context);
+    GNUNET_log(GNUNET_ERROR_TYPE_DEBUG, "A contact does not share any room with you anymore!\n");
 }
 
 static void
@@ -216,17 +218,17 @@ handle_delete_message (struct GNUNET_MESSENGER_Room *room, struct GNUNET_MESSENG
   }
 }
 
-void
+struct GNUNET_MESSENGER_Contact*
 handle_room_message (struct GNUNET_MESSENGER_Room *room, struct GNUNET_MESSENGER_Contact *sender,
                      const struct GNUNET_MESSENGER_Message *message, const struct GNUNET_HashCode *hash)
 {
   if (GNUNET_NO != GNUNET_CONTAINER_multihashmap_contains (room->messages, hash))
-    return;
+    return sender;
 
   switch (message->header.kind)
   {
   case GNUNET_MESSENGER_KIND_JOIN:
-    handle_join_message (room, sender, message, hash);
+    sender = handle_join_message (room, sender, message, hash);
     break;
   case GNUNET_MESSENGER_KIND_LEAVE:
     handle_leave_message (room, sender, message, hash);
@@ -253,7 +255,7 @@ handle_room_message (struct GNUNET_MESSENGER_Room *room, struct GNUNET_MESSENGER
   struct GNUNET_MESSENGER_RoomMessageEntry *entry = GNUNET_new(struct GNUNET_MESSENGER_RoomMessageEntry);
 
   if (!entry)
-    return;
+    return sender;
 
   entry->sender = sender;
   entry->message = copy_message (message);
@@ -264,6 +266,8 @@ handle_room_message (struct GNUNET_MESSENGER_Room *room, struct GNUNET_MESSENGER
     destroy_message (entry->message);
     GNUNET_free(entry);
   }
+
+  return sender;
 }
 
 struct GNUNET_MESSENGER_MemberCall
