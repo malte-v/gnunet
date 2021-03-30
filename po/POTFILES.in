@@ -407,6 +407,9 @@ src/testbed/gnunet_mpi_test.c
 src/testbed/gnunet_testbed_mpi_spawn.c
 src/testbed/testbed_api.c
 src/testbed/testbed_api_barriers.c
+src/testbed/testbed_api_cmd_controller.c
+src/testbed/testbed_api_cmd_peer.c
+src/testbed/testbed_api_cmd_service.c
 src/testbed/testbed_api_hosts.c
 src/testbed/testbed_api_operations.c
 src/testbed/testbed_api_peers.c

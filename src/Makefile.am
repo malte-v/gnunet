@@ -45,6 +45,10 @@ if HAVE_POSTGRESQL
  POSTGRES_DIR = pq
 endif
 
+if HAVE_NOLIBGCRYPT19
+  SCALARPRODUCT_DIR = scalarproduct
+endif
+
 REST_DIR = rest
 
 
@@ -93,7 +97,7 @@ SUBDIRS = \
   seti \
   setu \
   consensus \
-  scalarproduct \
+  $(SCALARPRODUCT_DIR) \
   revocation \
   vpn \
   gns \
