@@ -69,7 +69,8 @@ libgnunetsetu_la_LDFLAGS = \
 
 if HAVE_TESTING
 check_PROGRAMS = \
- test_setu_api
+ test_setu_api \
+ perf_setu_api
 endif
 
 if ENABLE_TEST_RUN
@@ -83,6 +84,15 @@ test_setu_api_LDADD = \
   $(top_builddir)/src/util/libgnunetutil.la \
   $(top_builddir)/src/testing/libgnunettesting.la \
   libgnunetsetu.la
+
+
+perf_setu_api_SOURCES = \
+ perf_setu_api.c
+perf_setu_api_LDADD = \
+  $(top_builddir)/src/util/libgnunetutil.la \
+  $(top_builddir)/src/testing/libgnunettesting.la \
+  libgnunetsetu.la
+
 
 plugin_LTLIBRARIES = \
   libgnunet_plugin_block_setu_test.la
