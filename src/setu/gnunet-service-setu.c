@@ -1319,6 +1319,7 @@ send_ibf (struct Operation *op,
       buckets_in_message = MAX_BUCKETS_PER_MESSAGE;
 
     perf_rtt.ibf.sent += 1;
+    perf_rtt.ibf.sent_var_bytes += ( buckets_in_message * IBF_BUCKET_SIZE );
     ev = GNUNET_MQ_msg_extra (msg,
                               buckets_in_message * IBF_BUCKET_SIZE,
                               GNUNET_MESSAGE_TYPE_SETU_P2P_IBF);
@@ -1391,6 +1392,7 @@ send_full_element_iterator (void *cls,
        "Sending element %s\n",
        GNUNET_h2s (key));
   perf_rtt.element_full.received += 1;
+  perf_rtt.element_full.received_var_bytes += el->size;
   ev = GNUNET_MQ_msg_extra (emsg,
                             el->size,
                             GNUNET_MESSAGE_TYPE_SETU_P2P_FULL_ELEMENT);
@@ -1472,6 +1474,7 @@ handle_union_p2p_strata_estimator (void *cls,
                                    const struct StrataEstimatorMessage *msg)
 {
   perf_rtt.se.received += 1;
+  perf_rtt.se.received_var_bytes += ntohs (msg->header.size) - sizeof(struct StrataEstimatorMessage);
   struct Operation *op = cls;
   struct StrataEstimator *remote_se;
   unsigned int diff;
@@ -1625,6 +1628,8 @@ send_offers_iterator (void *cls,
     return GNUNET_YES;
 
   perf_rtt.offer.sent += 1;
+  perf_rtt.offer.sent_var_bytes += sizeof(struct GNUNET_HashCode);
+
   ev = GNUNET_MQ_msg_header_extra (mh,
                                    sizeof(struct GNUNET_HashCode),
                                    GNUNET_MESSAGE_TYPE_SETU_P2P_OFFER);
@@ -1805,6 +1810,7 @@ decode_and_send (struct Operation *op)
       struct InquiryMessage *msg;
 
       perf_rtt.inquery.sent += 1;
+      perf_rtt.inquery.sent_var_bytes += sizeof(struct IBF_Key);
       /* It may be nice to merge multiple requests, but with CADET's corking it is not worth
        * the effort additional complexity. */
       ev = GNUNET_MQ_msg_extra (msg,
@@ -1905,6 +1911,8 @@ handle_union_p2p_ibf (void *cls,
   unsigned int buckets_in_message;
 
   perf_rtt.ibf.received += 1;
+  perf_rtt.ibf.received_var_bytes += (ntohs (msg->header.size) - sizeof *msg);
+
   buckets_in_message = (ntohs (msg->header.size) - sizeof *msg)
                        / IBF_BUCKET_SIZE;
   if ((op->phase == PHASE_PASSIVE_DECODING) ||
@@ -2209,7 +2217,6 @@ handle_union_p2p_full_element (void *cls,
   struct KeyEntry *ke;
   uint16_t element_size;
 
-  perf_rtt.element_full.received += 1;
 
 
   if(PHASE_EXPECT_IBF == op->phase) {
@@ -2234,6 +2241,10 @@ handle_union_p2p_full_element (void *cls,
 
   element_size = ntohs (emsg->header.size)
                  - sizeof(struct GNUNET_SETU_ElementMessage);
+
+  perf_rtt.element_full.received += 1;
+  perf_rtt.element_full.received_var_bytes += element_size;
+
   ee = GNUNET_malloc (sizeof(struct ElementEntry) + element_size);
   GNUNET_memcpy (&ee[1], &emsg[1], element_size);
   ee->element.size = element_size;
@@ -2346,6 +2357,7 @@ handle_union_p2p_inquiry (void *cls,
   unsigned int num_keys;
 
   perf_rtt.inquery.received += 1;
+  perf_rtt.inquery.received_var_bytes += (ntohs (msg->header.size) - sizeof(struct InquiryMessage));
 
   LOG (GNUNET_ERROR_TYPE_DEBUG,
        "Received union inquiry\n");
@@ -2541,6 +2553,7 @@ handle_union_p2p_demand (void *cls,
   struct GNUNET_MQ_Envelope *ev;
 
   perf_rtt.demand.received += 1;
+  perf_rtt.demand.received_var_bytes += (ntohs (mh->size) - sizeof(struct GNUNET_MessageHeader));
 
   num_hashes = (ntohs (mh->size) - sizeof(struct GNUNET_MessageHeader))
                / sizeof(struct GNUNET_HashCode);
@@ -2642,6 +2655,7 @@ handle_union_p2p_offer (void *cls,
   unsigned int num_hashes;
 
   perf_rtt.offer.received += 1;
+  perf_rtt.offer.received_var_bytes += (ntohs (mh->size) - sizeof(struct GNUNET_MessageHeader));
 
   num_hashes = (ntohs (mh->size) - sizeof(struct GNUNET_MessageHeader))
                / sizeof(struct GNUNET_HashCode);
@@ -2680,6 +2694,7 @@ handle_union_p2p_offer (void *cls,
          op, GNUNET_h2s (hash));
 
     perf_rtt.demand.sent += 1;
+    perf_rtt.demand.sent_var_bytes += sizeof(struct GNUNET_HashCode);
     ev = GNUNET_MQ_msg_header_extra (demands,
                                      sizeof(struct GNUNET_HashCode),
                                      GNUNET_MESSAGE_TYPE_SETU_P2P_DEMAND);
@@ -3735,6 +3750,8 @@ handle_client_accept (void *cls,
     len = strata_estimator_write (se,
                                   buf);
     perf_rtt.se.sent += 1;
+    perf_rtt.se.sent_var_bytes += len;
+
     if (len < se->strata_count * IBF_BUCKET_SIZE * se->ibf_size)
       type = GNUNET_MESSAGE_TYPE_SETU_P2P_SEC;
     else
