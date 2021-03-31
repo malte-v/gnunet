@@ -695,7 +695,7 @@ calculate_perf_rtt() {
      *  for every active/passive switch additional 3.5 rtt's are used
      */
 
-    float iterations = perf_rtt.ibf.received;
+    int iterations = perf_rtt.ibf.received;
     if(iterations > 1)
         rtt += (iterations - 1 ) * 0.5;
     rtt += 3 * iterations;
@@ -717,6 +717,7 @@ calculate_perf_rtt() {
 
     LOG(GNUNET_ERROR_TYPE_ERROR,"Bytes Transmitted: %d\n", bytes_transmitted);
 
+    LOG(GNUNET_ERROR_TYPE_ERROR,"Reached tradeoff bandwidth/rtt: %f\n", (bytes_transmitted / rtt ));
 
     return rtt;
 }
