@@ -643,7 +643,9 @@ static uint32_t suggest_id;
 
 struct perf_num_send_resived_msg {
     int sent;
+    int sent_var_bytes;
     int received;
+    int received_var_bytes;
 };
 
 
@@ -668,7 +670,10 @@ struct perf_rtt_struct perf_rtt;
 
 static int
 sum_sent_received_bytes(int size, struct perf_num_send_resived_msg perf_rtt_struct) {
-    return (size * perf_rtt_struct.sent) + (size * perf_rtt_struct.received);
+    return  (size * perf_rtt_struct.sent) +
+            (size * perf_rtt_struct.received) +
+            perf_rtt_struct.sent_var_bytes +
+            perf_rtt_struct.received_var_bytes;
 }
 
 static float
@@ -2089,9 +2094,12 @@ handle_union_p2p_elements (void *cls,
   struct KeyEntry *ke;
   uint16_t element_size;
 
-  perf_rtt.element.received += 1;
+
   element_size = ntohs (emsg->header.size) - sizeof(struct
                                                     GNUNET_SETU_ElementMessage);
+  perf_rtt.element.received += 1;
+  perf_rtt.element.received_var_bytes += element_size;
+
   ee = GNUNET_malloc (sizeof(struct ElementEntry) + element_size);
   GNUNET_memcpy (&ee[1],
                  &emsg[1],
@@ -2557,6 +2565,7 @@ handle_union_p2p_demand (void *cls,
       return;
     }
     perf_rtt.element.sent += 1;
+    perf_rtt.element.sent_var_bytes += ee->element.size;
     ev = GNUNET_MQ_msg_extra (emsg,
                               ee->element.size,
                               GNUNET_MESSAGE_TYPE_SETU_P2P_ELEMENTS);

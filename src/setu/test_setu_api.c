@@ -210,8 +210,8 @@ init_set2 (void *cls)
 
 unsigned char *gen_rdm_bytestream (size_t num_bytes)
 {
-    unsigned char *stream = GNUNET_malloc (num_bytes + 1);
-    GNUNET_CRYPTO_random_block(GNUNET_CRYPTO_QUALITY_WEAK, stream, num_bytes - 1);
+    unsigned char *stream = GNUNET_malloc (num_bytes);
+    GNUNET_CRYPTO_random_block(GNUNET_CRYPTO_QUALITY_WEAK, stream, num_bytes);
     return stream;
 }
 
@@ -228,7 +228,7 @@ initRandomSets(int overlap, int set1_size, int set2_size, int element_size_in_by
     // Add elements to both sets
     for (int i = 0; i < overlap; i++) {
         element.data = gen_rdm_bytestream(element_size_in_bytes);
-        element.size = strlen (element.data);
+        element.size = element_size_in_bytes;
         GNUNET_SETU_add_element (set1, &element, NULL, NULL);
         GNUNET_SETU_add_element (set2, &element, NULL, NULL);
         set1_size--;
@@ -239,7 +239,7 @@ initRandomSets(int overlap, int set1_size, int set2_size, int element_size_in_by
     // Add other elements to set 1
     while(set1_size>0) {
         element.data = gen_rdm_bytestream(element_size_in_bytes);
-        element.size = strlen (element.data);
+        element.size = element_size_in_bytes;
         GNUNET_SETU_add_element (set1, &element, NULL, NULL);
         set1_size--;
     }
@@ -248,7 +248,7 @@ initRandomSets(int overlap, int set1_size, int set2_size, int element_size_in_by
     // Add other elements to set 2
     while(set2_size > 0) {
         element.data = gen_rdm_bytestream(element_size_in_bytes);
-        element.size = strlen (element.data);
+        element.size = element_size_in_bytes;
 
         if(set2_size != 1) {
             GNUNET_SETU_add_element (set2, &element,NULL, NULL);
