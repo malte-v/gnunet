@@ -395,12 +395,12 @@ run (void *cls,
                 "Running real set-reconciliation\n");
     //init_set1 ();
     // limit ~23800 element total
-    initRandomSets(95,100,100,32);
+    initRandomSets(88,100,90,32);
 }
 
 static void execute_perf()
 {
-    for( int repeat_ctr = 0; repeat_ctr<100; repeat_ctr++ ) {
+    for( int repeat_ctr = 0; repeat_ctr<1; repeat_ctr++ ) {
 
         GNUNET_log (GNUNET_ERROR_TYPE_INFO,
                     "Executing perf round %d\n", repeat_ctr);
