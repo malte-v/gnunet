@@ -210,8 +210,8 @@ init_set2 (void *cls)
 
 unsigned char *gen_rdm_bytestream (size_t num_bytes)
 {
-    unsigned char *stream = GNUNET_malloc (num_bytes);
-    GNUNET_CRYPTO_random_block(GNUNET_CRYPTO_QUALITY_WEAK, stream, sizeof(stream));
+    unsigned char *stream = GNUNET_malloc (num_bytes + 1);
+    GNUNET_CRYPTO_random_block(GNUNET_CRYPTO_QUALITY_WEAK, stream, num_bytes - 1);
     return stream;
 }
 
@@ -392,9 +392,9 @@ run (void *cls,
   /* test the real set reconciliation */
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Running real set-reconciliation\n");
-  init_set1 ();
-  // limit ~23800 element total
-  //initRandomSets(9990,9997,9997,32);
+  //init_set1 ();
+  initRandomSets(19500,20000,20000,4096);
+  //initRandomSets(19500,20000,20000,32);
 }
 
 
