@@ -50,6 +50,7 @@ static int ret;
 static struct GNUNET_SCHEDULER_Task *tt;
 
 
+
 static void
 result_cb_set1 (void *cls,
                 const struct GNUNET_SETU_Element *element,
@@ -394,25 +395,34 @@ run (void *cls,
                 "Running real set-reconciliation\n");
     //init_set1 ();
     // limit ~23800 element total
-    initRandomSets(19500,20000,20000,32);
+    initRandomSets(95,100,100,32);
 }
+
+static void execute_perf()
+{
+    for( int repeat_ctr = 0; repeat_ctr<100; repeat_ctr++ ) {
+
+        GNUNET_log (GNUNET_ERROR_TYPE_INFO,
+                    "Executing perf round %d\n", repeat_ctr);
+
+        GNUNET_TESTING_service_run ("perf_setu_api",
+                                 "arm",
+                                 "test_setu.conf",
+                                 &run,
+                                 NULL);
+    }
+    return 0;
+}
+
 
 
 int
 main (int argc, char **argv)
 {
-    GNUNET_log_setup ("test_setu_api",
+    GNUNET_log_setup ("perf_setu_api",
                       "WARNING",
                       NULL);
-    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                "Launching peer\n");
-    if (0 !=
-        GNUNET_TESTING_peer_run ("test_setu_api",
-                                 "test_setu.conf",
-                                 &run,
-                                 NULL))
-    {
-        return 1;
-    }
-    return ret;
+
+    execute_perf();
+    return 0;
 }

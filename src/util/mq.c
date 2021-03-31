@@ -363,7 +363,7 @@ GNUNET_MQ_send (struct GNUNET_MQ_Handle *mq,
   GNUNET_assert (NULL == ev->parent_queue);
 
   mq->queue_length++;
-  if (mq->queue_length >= 10000)
+  if (mq->queue_length >= 10000000)
   {
     /* This would seem like a bug... */
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
