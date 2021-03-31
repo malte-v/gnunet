@@ -121,6 +121,7 @@ struct GNUNET_SETU_AcceptMessage
    * byzantine mode is enabled.
    */
   uint32_t byzantine_lower_bound;
+
 };
 
 

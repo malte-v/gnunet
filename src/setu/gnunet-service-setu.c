@@ -666,15 +666,21 @@ struct perf_rtt_struct
 struct perf_rtt_struct perf_rtt;
 
 
+static int
+sum_sent_received_bytes(int size, struct perf_num_send_resived_msg perf_rtt_struct) {
+    return (size * perf_rtt_struct.sent) + (size * perf_rtt_struct.received);
+}
+
 static float
 calculate_perf_rtt() {
     /**
      *  Calculate RTT of init phase normally always 1
      */
     float rtt = 1;
+    int bytes_transmitted = 0;
 
     /**
-     *  Calculate RRT of Fullsync normaly 1 or 1.5 depending
+     *  Calculate RGNUNET_SETU_AcceptMessageRT of Fullsync normaly 1 or 1.5 depending
      */
      if (( perf_rtt.element_full.received != 0 ) ||
          ( perf_rtt.element_full.sent != 0)
@@ -693,6 +699,24 @@ calculate_perf_rtt() {
     if(iterations > 1)
         rtt += (iterations - 1 ) * 0.5;
     rtt += 3 * iterations;
+
+    /**
+     * Calculate data sended size
+     */
+    bytes_transmitted += sum_sent_received_bytes(sizeof(GNUNET_MESSAGE_TYPE_SETU_P2P_REQUEST_FULL), perf_rtt.request_full);
+    bytes_transmitted += sum_sent_received_bytes(sizeof(GNUNET_MESSAGE_TYPE_SETU_P2P_FULL_ELEMENT), perf_rtt.element_full);
+    bytes_transmitted += sum_sent_received_bytes(sizeof(GNUNET_MESSAGE_TYPE_SETU_P2P_ELEMENTS), perf_rtt.element);
+    bytes_transmitted += sum_sent_received_bytes(sizeof(GNUNET_MESSAGE_TYPE_SETU_P2P_OPERATION_REQUEST), perf_rtt.operation_request);
+    bytes_transmitted += sum_sent_received_bytes(sizeof(GNUNET_MESSAGE_TYPE_SETU_P2P_SE), perf_rtt.se);
+    bytes_transmitted += sum_sent_received_bytes(sizeof(GNUNET_MESSAGE_TYPE_SETU_P2P_FULL_DONE), perf_rtt.full_done);
+    bytes_transmitted += sum_sent_received_bytes(sizeof(GNUNET_MESSAGE_TYPE_SETU_P2P_IBF), perf_rtt.ibf);
+    bytes_transmitted += sum_sent_received_bytes(sizeof(GNUNET_MESSAGE_TYPE_SETU_P2P_INQUIRY), perf_rtt.inquery);
+    bytes_transmitted += sum_sent_received_bytes(sizeof(GNUNET_MESSAGE_TYPE_SETU_P2P_DEMAND), perf_rtt.demand);
+    bytes_transmitted += sum_sent_received_bytes(sizeof(GNUNET_MESSAGE_TYPE_SETU_P2P_OFFER), perf_rtt.offer);
+    bytes_transmitted += sum_sent_received_bytes(sizeof(GNUNET_MESSAGE_TYPE_SETU_P2P_DONE), perf_rtt.done);
+
+    LOG(GNUNET_ERROR_TYPE_ERROR,"Bytes Transmitted: %d\n", bytes_transmitted);
+
 
     return rtt;
 }
@@ -1512,6 +1536,10 @@ handle_union_p2p_strata_estimator (void *cls,
     fail_union_operation (op);
     return;
   }
+
+    LOG (GNUNET_ERROR_TYPE_ERROR,
+         "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx: %f\n", op->rtt_bandwidth_tradeoff);
+
 
   /**
    * Added rtt_bandwidth_tradeoff directly need future improvements
