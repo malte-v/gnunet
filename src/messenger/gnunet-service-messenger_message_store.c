@@ -158,6 +158,8 @@ load_message_store_links (struct GNUNET_MESSENGER_MessageStore *store, const cha
   struct GNUNET_MESSENGER_MessageLinkStorage storage;
   struct GNUNET_MESSENGER_MessageLink *link = NULL;
 
+  memset(&storage, 0, sizeof(storage));
+
   do
   {
     if ((sizeof(storage.hash) != GNUNET_DISK_file_read (entries, &(storage.hash), sizeof(storage.hash))) ||
@@ -311,6 +313,8 @@ save_message_store (struct GNUNET_MESSENGER_MessageStore *store, const char *dir
   save.store = store;
   save.storage = GNUNET_DISK_file_open (filename, GNUNET_DISK_OPEN_WRITE | GNUNET_DISK_OPEN_CREATE, permission);
 
+  GNUNET_free(filename);
+
   if (!save.storage)
     goto save_entries;
 
@@ -324,7 +328,6 @@ close_links:
   GNUNET_DISK_file_close (save.storage);
 
 save_entries:
-  GNUNET_free(filename);
   GNUNET_asprintf (&filename, "%s%s", directory, "entries.store");
 
   save.store = store;
@@ -417,7 +420,10 @@ get_store_message (struct GNUNET_MESSENGER_MessageStore *store, const struct GNU
 
   if ((GNUNET_YES != decoding) || (GNUNET_CRYPTO_hash_cmp (hash, &check) != 0))
   {
-    GNUNET_CONTAINER_multihashmap_remove (store->entries, hash, entry);
+    if (GNUNET_YES != GNUNET_CONTAINER_multihashmap_remove (store->entries, hash, entry))
+      GNUNET_log(GNUNET_ERROR_TYPE_WARNING, "Corrupted entry could not be removed from store: %s\n",
+                 GNUNET_h2s(hash));
+
     store->rewrite_entries = GNUNET_YES;
 
     goto free_message;

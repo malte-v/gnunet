@@ -80,9 +80,7 @@ bin_PROGRAMS = \
 noinst_PROGRAMS = \
   gnunet-gns-benchmark
 
-if LINUX
 bin_PROGRAMS += gnunet-bcd
-endif
 
 REST_PLUGIN = libgnunet_plugin_rest_gns.la
 
@@ -156,6 +154,7 @@ gnunet_bcd_SOURCES = \
  gnunet-bcd.c
 gnunet_bcd_LDADD = \
   $(top_builddir)/src/util/libgnunetutil.la \
+  $(top_builddir)/src/identity/libgnunetidentity.la \
   $(GN_LIBINTL) $(MHD_LIBS)
 gnunet_bcd_CFLAGS = $(MHD_CFLAGS) $(AM_CFLAGS)
 

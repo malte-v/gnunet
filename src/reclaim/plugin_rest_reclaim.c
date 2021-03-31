@@ -353,14 +353,18 @@ finished_cont (void *cls, int32_t success, const char *emsg)
   struct MHD_Response *resp;
 
   handle->idp_op = NULL;
-  resp = GNUNET_REST_create_response (emsg);
-  MHD_add_response_header (resp, "Content-Type", "application/json");
-  MHD_add_response_header (resp, "Access-Control-Allow-Methods", allow_methods);
   if (GNUNET_OK != success)
   {
     GNUNET_SCHEDULER_add_now (&do_error, handle);
     return;
   }
+  resp = GNUNET_REST_create_response (emsg);
+  GNUNET_assert (MHD_NO != MHD_add_response_header (resp,
+                                                    "Content-Type",
+                                                    "application/json"));
+  GNUNET_assert (MHD_NO != MHD_add_response_header (resp,
+                                                    "Access-Control-Allow-Methods",
+                                                    allow_methods));
   handle->proc (handle->proc_cls, resp, MHD_HTTP_OK);
   GNUNET_SCHEDULER_add_now (&cleanup_handle, handle);
 }
@@ -372,13 +376,15 @@ delete_finished_cb (void *cls, int32_t success, const char *emsg)
   struct RequestHandle *handle = cls;
   struct MHD_Response *resp;
 
-  resp = GNUNET_REST_create_response (emsg);
-  MHD_add_response_header (resp, "Access-Control-Allow-Methods", allow_methods);
   if (GNUNET_OK != success)
   {
     GNUNET_SCHEDULER_add_now (&do_error, handle);
     return;
   }
+  resp = GNUNET_REST_create_response (emsg);
+  GNUNET_assert (MHD_NO != MHD_add_response_header (resp,
+                                                    "Access-Control-Allow-Methods",
+                                                    allow_methods));
   handle->proc (handle->proc_cls, resp, MHD_HTTP_OK);
   GNUNET_SCHEDULER_add_now (&cleanup_handle, handle);
 }
@@ -399,7 +405,10 @@ return_response (void *cls)
   result_str = json_dumps (handle->resp_object, 0);
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Result %s\n", result_str);
   resp = GNUNET_REST_create_response (result_str);
-  MHD_add_response_header (resp, "Access-Control-Allow-Methods", allow_methods);
+  GNUNET_assert (MHD_NO !=
+                 MHD_add_response_header (resp,
+                                          "Access-Control-Allow-Methods",
+                                          allow_methods));
   handle->proc (handle->proc_cls, resp, MHD_HTTP_OK);
   GNUNET_free (result_str);
   cleanup_handle (handle);
@@ -461,8 +470,8 @@ ticket_collect (void *cls, const struct GNUNET_RECLAIM_Ticket *ticket)
 
 static void
 add_credential_cont (struct GNUNET_REST_RequestHandle *con_handle,
-                      const char *url,
-                      void *cls)
+                     const char *url,
+                     void *cls)
 {
   struct RequestHandle *handle = cls;
   const struct GNUNET_IDENTITY_PrivateKey *identity_priv;
@@ -513,7 +522,15 @@ add_credential_cont (struct GNUNET_REST_RequestHandle *con_handle,
                  handle->rest_handle->data,
                  handle->rest_handle->data_size);
   data_json = json_loads (term_data, JSON_DECODE_ANY, &err);
-  GNUNET_JSON_parse (data_json, attrspec, NULL, NULL);
+  if (GNUNET_OK != GNUNET_JSON_parse (data_json, attrspec, NULL, NULL))
+  {
+    json_decref (data_json);
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                "Unable to parse JSON from %s\n",
+                term_data);
+    GNUNET_SCHEDULER_add_now (&do_error, handle);
+    return;
+  }
   json_decref (data_json);
   if (NULL == attribute)
   {
@@ -530,11 +547,11 @@ add_credential_cont (struct GNUNET_REST_RequestHandle *con_handle,
     GNUNET_RECLAIM_id_generate (&attribute->id);
   exp = GNUNET_TIME_UNIT_HOURS;
   handle->idp_op = GNUNET_RECLAIM_credential_store (idp,
-                                                     identity_priv,
-                                                     attribute,
-                                                     &exp,
-                                                     &finished_cont,
-                                                     handle);
+                                                    identity_priv,
+                                                    attribute,
+                                                    &exp,
+                                                    &finished_cont,
+                                                    handle);
   GNUNET_JSON_parse_free (attrspec);
 }
 
@@ -545,8 +562,8 @@ add_credential_cont (struct GNUNET_REST_RequestHandle *con_handle,
  */
 static void
 cred_collect (void *cls,
-                const struct GNUNET_IDENTITY_PublicKey *identity,
-                const struct GNUNET_RECLAIM_Credential *cred)
+              const struct GNUNET_IDENTITY_PublicKey *identity,
+              const struct GNUNET_RECLAIM_Credential *cred)
 {
   struct RequestHandle *handle = cls;
   struct GNUNET_RECLAIM_AttributeList *attrs;
@@ -565,8 +582,8 @@ cred_collect (void *cls,
   attrs = GNUNET_RECLAIM_credential_get_attributes (cred);
   issuer = GNUNET_RECLAIM_credential_get_issuer (cred);
   tmp_value = GNUNET_RECLAIM_credential_value_to_string (cred->type,
-                                                          cred->data,
-                                                          cred->data_size);
+                                                         cred->data,
+                                                         cred->data_size);
   cred_obj = json_object ();
   json_object_set_new (cred_obj, "value", json_string (tmp_value));
   json_object_set_new (cred_obj, "name", json_string (cred->name));
@@ -578,7 +595,7 @@ cred_collect (void *cls,
     GNUNET_free (issuer);
   }
   if (GNUNET_OK == GNUNET_RECLAIM_credential_get_expiration (cred,
-                                                              &exp))
+                                                             &exp))
   {
     json_object_set_new (cred_obj, "expiration", json_integer (
                            exp.abs_value_us));
@@ -613,7 +630,8 @@ cred_collect (void *cls,
     json_object_set_new (cred_obj, "attributes", attr_arr);
   }
   json_array_append_new (handle->resp_object, cred_obj);
-  GNUNET_RECLAIM_attribute_list_destroy (attrs);
+  if (NULL != attrs)
+    GNUNET_RECLAIM_attribute_list_destroy (attrs);
   GNUNET_RECLAIM_get_credentials_next (handle->cred_it);
 }
 
@@ -627,8 +645,8 @@ cred_collect (void *cls,
  */
 static void
 list_credential_cont (struct GNUNET_REST_RequestHandle *con_handle,
-                       const char *url,
-                       void *cls)
+                      const char *url,
+                      void *cls)
 {
   struct RequestHandle *handle = cls;
   const struct GNUNET_IDENTITY_PrivateKey *priv_key;
@@ -664,14 +682,14 @@ list_credential_cont (struct GNUNET_REST_RequestHandle *con_handle,
   }
   priv_key = GNUNET_IDENTITY_ego_get_private_key (ego_entry->ego);
   handle->cred_it = GNUNET_RECLAIM_get_credentials_start (idp,
-                                                             priv_key,
-                                                             &collect_error_cb,
-                                                             handle,
-                                                             &cred_collect,
-                                                             handle,
-                                                             &
-                                                             collect_finished_cb,
-                                                             handle);
+                                                          priv_key,
+                                                          &collect_error_cb,
+                                                          handle,
+                                                          &cred_collect,
+                                                          handle,
+                                                          &
+                                                          collect_finished_cb,
+                                                          handle);
 }
 
 
@@ -684,8 +702,8 @@ list_credential_cont (struct GNUNET_REST_RequestHandle *con_handle,
  */
 static void
 delete_credential_cont (struct GNUNET_REST_RequestHandle *con_handle,
-                         const char *url,
-                         void *cls)
+                        const char *url,
+                        void *cls)
 {
   struct RequestHandle *handle = cls;
   const struct GNUNET_IDENTITY_PrivateKey *priv_key;
@@ -734,10 +752,10 @@ delete_credential_cont (struct GNUNET_REST_RequestHandle *con_handle,
   GNUNET_STRINGS_string_to_data (id, strlen (id), &attr.id, sizeof(attr.id));
   attr.name = "";
   handle->idp_op = GNUNET_RECLAIM_credential_delete (idp,
-                                                      priv_key,
-                                                      &attr,
-                                                      &delete_finished_cb,
-                                                      handle);
+                                                     priv_key,
+                                                     &attr,
+                                                     &delete_finished_cb,
+                                                     handle);
   GNUNET_free (identity_id_str);
 }
 
@@ -900,8 +918,8 @@ parse_jwt (const struct GNUNET_RECLAIM_Credential *cred,
   json_error_t *json_err = NULL;
 
   jwt_string = GNUNET_RECLAIM_credential_value_to_string (cred->type,
-                                                           cred->data,
-                                                           cred->data_size);
+                                                          cred->data,
+                                                          cred->data_size);
   char *jwt_body = strtok (jwt_string, delim);
   jwt_body = strtok (NULL, delim);
   GNUNET_STRINGS_base64_decode (jwt_body, strlen (jwt_body),
@@ -1424,25 +1442,24 @@ rest_identity_process_request (struct GNUNET_REST_RequestHandle *rest_handle,
   static const struct GNUNET_REST_RequestHandler handlers[] =
   { { MHD_HTTP_METHOD_GET,
       GNUNET_REST_API_NS_RECLAIM_ATTRIBUTES, &list_attribute_cont },
-  { MHD_HTTP_METHOD_POST,
-    GNUNET_REST_API_NS_RECLAIM_ATTRIBUTES, &add_attribute_cont },
-  { MHD_HTTP_METHOD_DELETE,
-    GNUNET_REST_API_NS_RECLAIM_ATTRIBUTES, &delete_attribute_cont },
-  { MHD_HTTP_METHOD_GET,
-    GNUNET_REST_API_NS_RECLAIM_CREDENTIAL, &list_credential_cont },
-  { MHD_HTTP_METHOD_POST,
-    GNUNET_REST_API_NS_RECLAIM_CREDENTIAL, &add_credential_cont },
-  { MHD_HTTP_METHOD_DELETE,
-    GNUNET_REST_API_NS_RECLAIM_CREDENTIAL, &delete_credential_cont },
-  { MHD_HTTP_METHOD_GET,
-    GNUNET_REST_API_NS_IDENTITY_TICKETS, &list_tickets_cont },
-  { MHD_HTTP_METHOD_POST,
-    GNUNET_REST_API_NS_IDENTITY_REVOKE, &revoke_ticket_cont },
-  { MHD_HTTP_METHOD_POST,
-    GNUNET_REST_API_NS_IDENTITY_CONSUME, &consume_ticket_cont },
-  { MHD_HTTP_METHOD_OPTIONS, GNUNET_REST_API_NS_RECLAIM, &options_cont },
-  GNUNET_REST_HANDLER_END
-  };
+    { MHD_HTTP_METHOD_POST,
+      GNUNET_REST_API_NS_RECLAIM_ATTRIBUTES, &add_attribute_cont },
+    { MHD_HTTP_METHOD_DELETE,
+      GNUNET_REST_API_NS_RECLAIM_ATTRIBUTES, &delete_attribute_cont },
+    { MHD_HTTP_METHOD_GET,
+      GNUNET_REST_API_NS_RECLAIM_CREDENTIAL, &list_credential_cont },
+    { MHD_HTTP_METHOD_POST,
+      GNUNET_REST_API_NS_RECLAIM_CREDENTIAL, &add_credential_cont },
+    { MHD_HTTP_METHOD_DELETE,
+      GNUNET_REST_API_NS_RECLAIM_CREDENTIAL, &delete_credential_cont },
+    { MHD_HTTP_METHOD_GET,
+      GNUNET_REST_API_NS_IDENTITY_TICKETS, &list_tickets_cont },
+    { MHD_HTTP_METHOD_POST,
+      GNUNET_REST_API_NS_IDENTITY_REVOKE, &revoke_ticket_cont },
+    { MHD_HTTP_METHOD_POST,
+      GNUNET_REST_API_NS_IDENTITY_CONSUME, &consume_ticket_cont },
+    { MHD_HTTP_METHOD_OPTIONS, GNUNET_REST_API_NS_RECLAIM, &options_cont },
+    GNUNET_REST_HANDLER_END};
 
   handle->response_code = 0;
   handle->timeout = GNUNET_TIME_UNIT_FOREVER_REL;

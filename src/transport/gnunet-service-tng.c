@@ -6976,7 +6976,6 @@ handle_dv_learn (void *cls, const struct TransportDVLearnMessage *dvl)
   if (MAX_DV_HOPS_ALLOWED == nhops)
   {
     /* At limit, we're out of here! */
-    finish_cmc_handling (cmc);
     return;
   }
 
@@ -9640,11 +9639,13 @@ handle_add_queue_message (void *cls,
   {
     if (queue->qid != aqm->qid)
       continue;
-    neighbour = queue->neighbour;
     break;
   }
-  if (NULL == queue)
+
+  if (NULL != queue)
   {
+    neighbour = queue->neighbour;
+  } else {
     neighbour = lookup_neighbour (&aqm->receiver);
     if (NULL == neighbour)
     {

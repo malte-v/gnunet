@@ -690,7 +690,10 @@ rvk_move_attr_cb (void *cls,
     return;
   }
   GNUNET_RECLAIM_id_generate (&rvk->move_attr->new_id);
-  new_label = NULL;
+  new_label =
+    GNUNET_STRINGS_data_to_string_alloc (&rvk->move_attr->new_id,
+                                         sizeof (rvk->move_attr->new_id));
+
   attr_data = NULL;
   // new_rd = *rd;
   for (int i = 0; i < rd_count; i++)
@@ -714,9 +717,6 @@ rvk_move_attr_cb (void *cls,
       new_rd[i].record_type = rd[i].record_type;
       new_rd[i].flags = rd[i].flags;
       new_rd[i].expiration_time = rd[i].expiration_time;
-      new_label =
-        GNUNET_STRINGS_data_to_string_alloc (&rvk->move_attr->new_id,
-                                             sizeof (rvk->move_attr->new_id));
       GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Adding attribute %s\n", new_label);
       GNUNET_free (claim);
     }
@@ -738,9 +738,6 @@ rvk_move_attr_cb (void *cls,
       new_rd[i].record_type = rd[i].record_type;
       new_rd[i].flags = rd[i].flags;
       new_rd[i].expiration_time = rd[i].expiration_time;
-      new_label =
-        GNUNET_STRINGS_data_to_string_alloc (&rvk->move_attr->new_id,
-                                             sizeof (rvk->move_attr->new_id));
       GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Adding credential %s\n",
                   new_label);
       GNUNET_free (credential);
@@ -1400,7 +1397,7 @@ issue_ticket (struct TicketIssueHandle *ih)
                                               attrs_record,
                                               &store_ticket_issue_cont,
                                               ih);
-  for (j = 0; j > i; j++)
+  for (j = 0; j < i; j++)
   {
     if (attrs_record[j].record_type
         != GNUNET_GNSRECORD_TYPE_RECLAIM_PRESENTATION)
@@ -1585,7 +1582,7 @@ filter_tickets_cb (void *cls,
     cleanup_issue_handle (tih);
     return;
   }
-
+  GNUNET_RECLAIM_presentation_list_destroy (ticket_presentations);
   // ticket not found in current record, checking next record set
   GNUNET_NAMESTORE_zone_iterator_next (tih->ns_it, 1);
 }

@@ -416,8 +416,16 @@ gcrypt=0
 NEED_LIBGCRYPT_API=1
 NEED_LIBGCRYPT_VERSION=1.6.0
 
-
-AM_PATH_LIBGCRYPT("$NEED_LIBGCRYPT_API:$NEED_LIBGCRYPT_VERSION", gcrypt=1)
+# Check if we have libgcrypt >= 1.9. Some things do not work with it
+gcrypt19=0
+AM_PATH_LIBGCRYPT("$NEED_LIBGCRYPT_API:1.9.0",
+  [AC_MSG_WARN(["Some subsystems do not work with gcrypt >=1.9.0"])
+   gcrypt=1
+   gcrypt19=1],
+  [AM_PATH_LIBGCRYPT("$NEED_LIBGCRYPT_API:$NEED_LIBGCRYPT_VERSION", gcrypt=1)]
+)
+AM_CONDITIONAL(HAVE_NOLIBGCRYPT19,
+               [test "$gcrypt19" = 0])
 AC_CHECK_DECLS([gcry_mpi_set_opaque_copy], [], [], [[#include <gcrypt.h>]])
 
 AS_IF([test $gcrypt = 0],

@@ -823,7 +823,12 @@ reconnect (void *cls)
                                  &handle_client_error,
                                  h);
   if (NULL == h->mq)
+  {
+    h->reconnect_task =
+      GNUNET_SCHEDULER_add_delayed (h->reconnect_delay, &reconnect, h);
+    h->reconnect_delay = GNUNET_TIME_STD_BACKOFF (h->reconnect_delay);
     return;
+  }
   LOG (GNUNET_ERROR_TYPE_DEBUG,
        "Resending pending requests after reconnect.\n");
   if (NULL != h->watches)

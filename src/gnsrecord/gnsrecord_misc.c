@@ -296,15 +296,20 @@ GNUNET_GNSRECORD_data_from_identity (const struct
                                      size_t *data_size,
                                      uint32_t *type)
 {
+  char *tmp;
   *type = ntohl (key->type);
   *data_size = GNUNET_IDENTITY_key_get_length (key);
   if (0 == *data_size)
     return GNUNET_SYSERR;
-  *data = GNUNET_malloc (*data_size);
-  return (GNUNET_IDENTITY_write_key_to_buffer (key, *data, *data_size) ==
-          *data_size?
-          GNUNET_OK :
-          GNUNET_SYSERR);
+  tmp = GNUNET_malloc (*data_size);
+  if (GNUNET_IDENTITY_write_key_to_buffer (key, tmp, *data_size)
+      != *data_size) {
+    GNUNET_free (tmp);
+    *data_size = 0;
+    return GNUNET_SYSERR;
+  }
+  *data = tmp;
+  return GNUNET_OK;
 }
 
 
@@ -350,7 +355,7 @@ GNUNET_GNSRECORD_block_get_expiration (const struct
   case GNUNET_GNSRECORD_TYPE_PKEY:
     return GNUNET_TIME_absolute_ntoh (block->ecdsa_block.expiration_time);
   default:
-    return GNUNET_TIME_absolute_get_zero_ ();
+    GNUNET_break (0); /* Hopefully we never get here, but we might */
   }
   return GNUNET_TIME_absolute_get_zero_ ();
 

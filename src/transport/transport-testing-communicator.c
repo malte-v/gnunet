@@ -548,6 +548,11 @@ handle_update_queue_message (void *cls,
       tc_queue = tc_queue->next;
     }
   }
+  if (NULL == tc_queue)
+  {
+    GNUNET_SERVICE_client_continue (client->client);
+    return;
+  }
   GNUNET_assert (tc_queue->qid == msg->qid);
   GNUNET_assert (0 == GNUNET_memcmp (&tc_queue->peer_id, &msg->receiver));
   tc_queue->nt = msg->nt;

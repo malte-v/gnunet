@@ -184,7 +184,9 @@ cancel_store_operation (struct GNUNET_MESSENGER_OperationStore *store,
 
   stop_operation(op);
 
-  GNUNET_CONTAINER_multihashmap_remove(store->operations, hash, op);
+  if (GNUNET_YES != GNUNET_CONTAINER_multihashmap_remove(store->operations, hash, op))
+    GNUNET_log(GNUNET_ERROR_TYPE_WARNING, "Canceled operation could not be removed: %s\n",
+               GNUNET_h2s(hash));
 
   destroy_operation(op);
 }

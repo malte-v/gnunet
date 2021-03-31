@@ -270,7 +270,9 @@ handle_gns_response (void *cls,
   result = json_dumps (result_obj, 0);
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Result %s\n", result);
   resp = GNUNET_REST_create_response (result);
-  MHD_add_response_header (resp, "Content-Type", "application/json");
+  GNUNET_assert (MHD_NO != MHD_add_response_header (resp,
+                                                    "Content-Type",
+                                                    "application/json"));
   handle->proc (handle->proc_cls, resp, MHD_HTTP_OK);
   GNUNET_free (result);
   json_decref (result_obj);

@@ -951,7 +951,8 @@ GNUNET_ARM_request_service_start (struct GNUNET_ARM_Handle *h,
    * 2) We're not connected to ARM.
    *    Cancel any reconnection attempts temporarily, then perform
    *    a service test.
-   */if (GNUNET_YES == h->currently_up)
+   */
+  if (GNUNET_YES == h->currently_up)
   {
     LOG (GNUNET_ERROR_TYPE_DEBUG,
          "ARM is already running\n");
@@ -970,7 +971,8 @@ GNUNET_ARM_request_service_start (struct GNUNET_ARM_Handle *h,
      yet complete the MQ handshake.  However, given that users
      are unlikely to hammer 'gnunet-arm -s' on a busy system,
      the above check should catch 99.99% of the cases where ARM
-     is already running. */LOG (GNUNET_ERROR_TYPE_DEBUG,
+     is already running. */
+  LOG (GNUNET_ERROR_TYPE_DEBUG,
        "Starting ARM service\n");
   if (NULL == (sig = GNUNET_DISK_pipe (GNUNET_DISK_PF_NONE)))
   {
@@ -1003,13 +1005,13 @@ GNUNET_ARM_request_service_start (struct GNUNET_ARM_Handle *h,
                                                 op->rfd,
                                                 &notify_starting,
                                                 op);
+    GNUNET_DISK_pipe_close (sig);
   }
   else
   {
     op->async = GNUNET_SCHEDULER_add_now (&notify_starting,
                                           op);
   }
-  GNUNET_DISK_pipe_close (sig);
   return op;
 }
 

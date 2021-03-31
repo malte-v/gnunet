@@ -492,6 +492,7 @@ GNUNET_REVOCATION_check_pow (const struct GNUNET_REVOCATION_PowP *pow,
   unsigned int tmp_score = 0;
   unsigned int epochs;
   uint64_t pow_val;
+  ssize_t pklen;
   const struct GNUNET_IDENTITY_PublicKey *pk;
 
   pk = (const struct GNUNET_IDENTITY_PublicKey *) &pow[1];
@@ -517,9 +518,15 @@ GNUNET_REVOCATION_check_pow (const struct GNUNET_REVOCATION_PowP *pow,
   GNUNET_memcpy (&buf[sizeof(uint64_t)],
                  &pow->timestamp,
                  sizeof (uint64_t));
+  pklen = GNUNET_IDENTITY_key_get_length (pk);
+  if (0 > pklen)
+  {
+    GNUNET_break (0);
+    return GNUNET_NO;
+  }
   GNUNET_memcpy (&buf[sizeof(uint64_t) * 2],
                  pk,
-                 GNUNET_IDENTITY_key_get_length (pk));
+                 pklen);
   for (unsigned int i = 0; i < POW_COUNT; i++)
   {
     pow_val = GNUNET_ntohll (pow->pow[i]);

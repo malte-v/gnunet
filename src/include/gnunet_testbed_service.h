@@ -27,7 +27,7 @@
  * @defgroup testbed  Testbed service
  * Writing tests and creating large-scale emulation testbeds for GNUnet.
  *
- * @see [Documentation](https://gnunet.org/gnunet-testbed-subsystem)
+ * @see [Documentation](https://docs.gnunet.org/handbook/gnunet.html#TESTBED-Subsystem)
  *
  * @{
  */

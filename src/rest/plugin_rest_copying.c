@@ -138,9 +138,9 @@ options_cont (struct GNUNET_REST_RequestHandle *con_handle,
   struct RequestHandle *handle = cls;
 
   resp = GNUNET_REST_create_response (NULL);
-  MHD_add_response_header (resp,
-                           "Access-Control-Allow-Methods",
-                           MHD_HTTP_METHOD_GET);
+  GNUNET_assert (MHD_NO != MHD_add_response_header (resp,
+                                                    "Access-Control-Allow-Methods",
+                                                    MHD_HTTP_METHOD_GET));
   handle->proc (handle->proc_cls,
                 resp,
                 MHD_HTTP_OK);

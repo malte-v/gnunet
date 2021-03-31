@@ -83,6 +83,7 @@ new chapters, sections or insightful comments.
 * REST Subsystem::
 * RPS Subsystem::
 * TRANSPORT-NG Subsystem::
+* MESSENGER Subsystem::
 @end menu
 
 @node Developer Introduction
@@ -9705,3 +9706,217 @@ other peers. The semantics of the backchannel message are up to the
 communicators which use them.
 TRANSPORT may fail transmitting backchannel messages, and TRANSPORT will not
 attempt to retransmit them.
+
+@cindex MESSENGER Subsystem
+@cindex MESSENGER
+@cindex messenger
+@node MESSENGER Subsystem
+@section MESSENGER Subsystem
+
+The MESSENGER subsystem is responsible for secure end-to-end communication in 
+groups of nodes in the GNUnet overlay network. MESSENGER builds on the CADET
+subsystem which provides a reliable and secure end-to-end communication between 
+the nodes inside of these groups.
+
+Additionally to the CADET security benefits, MESSENGER provides following 
+properties designed for application level usage:
+
+@itemize @bullet
+@item MESSENGER provides integrity by signing the messages with the users 
+      provided ego
+@item MESSENGER adds (optional) forward secrecy by replacing the key pair of the 
+      used ego and signing the propagation of the new one with old one (chaining 
+      egos)
+@item MESSENGER provides verification of a original sender by checking against
+      all used egos from a member which are currently in active use (active use 
+      depends on the state of a member session)
+@item MESSENGER offsers (optional) decentralized message forwarding between all
+      nodes in a group to improve availability and prevent MITM-attacks
+@item MESSENGER handles new connections and disconnections from nodes in the 
+      group by reconnecting them preserving an efficient structure for message 
+      distribution (ensuring availability and accountablity)
+@item MESSENGER provides replay protection (messages can be uniquely identified 
+      via SHA-512, include a timestamp and the hash of the last message)
+@item MESSENGER allows detection for dropped messages by chaining them (messages 
+      refer to the last message by their hash) improving accountability
+@item MESSENGER allows requesting messages from other peers explicitly to ensure
+      availibility
+@item MESSENGER provides confidentiality by padding messages to few different
+      sizes (512 bytes, 4096 bytes, 32768 bytes and maximal message size from 
+      CADET)
+@item MESSENGER adds (optional) confidentiality with ECDHE to exchange and use
+      symmetric encryption, encrypting with both AES-256 and Twofish but 
+      allowing only selected members to decrypt (using the receivers ego for 
+      ECDHE)
+@end itemize
+
+Also MESSENGER provides multiple features with privacy in mind:
+
+@itemize @bullet
+@item MESSENGER allows deleting messages from all peers in the group by the 
+      original sender (uses the MESSENGER provided verification)
+@item MESSENGER allows using the publically known anonymous ego instead of any
+      unique identifying ego
+@item MESSENGER allows your node to decide between acting as host of the used 
+      messaging room (sharing your peer's identity with all nodes in the group) 
+      or acting as guest (sharing your peer's identity only with the nodes you
+      explicitly open a connection to)
+@item MESSENGER handles members independantly of the peer's identity making 
+      forwarded messages indistinguishable from directly received ones (
+      complicating the tracking of messages and identifying its origin)
+@item MESSENGER allows names of members being not unique (also names are 
+      optional)
+@item MESSENGER does not include information about the selected receiver of an 
+      explicitly encrypted message in its header, complicating it for other 
+      members to draw conclusions from communication partners
+@end itemize
+
+@menu
+* libgnunetmessenger::
+* Member sessions::
+@end menu
+
+@node libgnunetmessenger
+@subsection libgnunetmessenger
+
+The MESSENGER API (defined in @file{gnunet_messenger_service.h}) allows P2P 
+applications built using GNUnet to communicate with specified kinds of messages
+in a group. It provides applications the ability to send and receive encrypted
+messages to any group of peers participating in GNUnet in a decentralized way (
+without even knowing all peers's identities).
+
+MESSENGER delivers messages to other peers in "rooms". A room uses a variable 
+amount of CADET "channels" which will all be used for message distribution. Each 
+channel can represent an outgoing connection opened by entering a room with 
+@code{GNUNET_MESSENGER_enter_room} or an incoming connection if the room was 
+opened before via @code{GNUNET_MESSENGER_open_room}.
+
+@image{images/messenger_room,6in,,Room structure}
+
+To enter a room you have to specify the "door" (peer's identity of a peer which 
+has opened the room) and the key of the room (which is identical to a CADET 
+"port"). To open a room you have to specify only the key to use. When opening a 
+room you automatically distribute a PEER-message sharing your peer's identity in 
+the room.
+
+Entering or opening a room can also be combined in any order. In any case you 
+will automatically get a unique member ID and send a JOIN-message notifying 
+others about your entry and your public key from your selected ego.
+
+The ego can be selected by name with the initial @code{GNUNET_MESSENGER_connect} 
+besides setting a (identity-)callback for each change/confirmation of the used 
+ego and a (message-)callback which gets called every time a message gets sent or 
+received in the room. Once the identity-callback got called you can check your 
+used ego with @code{GNUNET_MESSENGER_get_key} providing only its public key. The 
+function returns NULL if the anonymous ego is used. If the ego should be 
+replaced with a newly generated one, you can use @code{GNUNET_MESSENGER_update} 
+to ensure proper chaining of used egos.
+
+Also once the identity-callback got called you can check your used name with 
+@code{GNUNET_MESSENGER_get_name} and potentially change or set a name via 
+@code{GNUNET_MESSENGER_set_name}. A name is for example required to create a new 
+ego with @code{GNUNET_MESSENGER_update}. Also any change in ego or name will 
+automatically be distributed in the room with a NAME- or KEY-message 
+respectively.
+
+To send a message a message inside of a room you can use 
+@code{GNUNET_MESSENGER_send_message}. If you specify a selected contact as 
+receiver, the message gets encrypted automatically and will be sent as PRIVATE- 
+message instead.
+
+To request a potentially missed message or to get a specific message after its 
+original call of the message-callback, you can use 
+@code{GNUNET_MESSENGER_get_message}. Additionally once a message was distributed 
+to application level and the message-callback got called, you can get the 
+contact respresenting a message's sender respectively with 
+@code{GNUNET_MESSENGER_get_sender}. This allows getting name and the public key 
+of any sender currently in use with @code{GNUNET_MESSENGER_contact_get_name} 
+and @code{GNUNET_MESSENGER_contact_get_key}. It is also possible to iterate 
+through all current members of a room with 
+@code{GNUNET_MESSENGER_iterate_members} using a callback.
+
+To leave a room you can use @code{GNUNET_MESSENGER_close_room} which will also 
+close the rooms connections once all applications on the same peer have left 
+the room. Leaving a room will also send a LEAVE-message closing a member session 
+on all connected peers before any connection will be closed. Leaving a room is 
+however not required for any application to keep your member session open 
+between multiple sessions of the actual application.
+
+Finally, when an application no longer wants to use CADET, it should call 
+@code{GNUNET_MESSENGER_disconnect}. You don't have to explicitly close the used 
+rooms or leave them.
+
+Here is a little summary to the kinds of messages you can send manually:
+
+@menu
+* MERGE-message::
+* INVITE-message::
+* TEXT-message::
+* FILE-message::
+* DELETE-message::
+@end menu
+
+@node MERGE-message
+@subsubsection MERGE-message
+
+MERGE-messages will generally be sent automatically to reduce the amount of 
+parallel chained messages. This is necessary to close a member session for 
+example. You can also send MERGE-messages manually if required to merge two 
+chains of messages.
+
+@node INVITE-message
+@subsubsection INVITE-message
+
+INVITE-messages can be used to invite other members in a room to a different 
+room, sharing one potential door and the required key to enter the room. This 
+kind of message is typically sent as encrypted PRIVATE-message to selected 
+members because it doesn't make much sense to invite all members from one room 
+to another considering a rooms key doesn't specify its usage.
+
+@node TEXT-message
+@subsubsection TEXT-message
+
+TEXT-messages can be used to send simple text-based messages and should be 
+considered as being in readable form without complex decoding. The text has to 
+end with a NULL-terminator character and should be in UTF-8 encoding for most 
+compatibility.
+
+@node FILE-message
+@subsubsection FILE-message
+
+FILE-messages can be used to share files inside of a room. They do not contain 
+the actual file being shared but its original hash, filename, URI to download 
+the file and a symmetric key to decrypt the downloaded file.
+
+It is recommended to use the FS subsystem and the FILE-messages in combination.
+
+@node DELETE-message
+@subsubsection DELETE-message
+
+DELETE-messages can be used to delete messages selected with its hash. You can 
+also select any custom delay relative to the time of sending the DELETE-message. 
+Deletion will only be processed on each peer in a room if the sender is 
+authorized.
+
+The only information of a deleted message which being kept will be the chained 
+hashes connecting the message graph for potential traversion. For example the
+check for completion of a member session requires this information.
+
+@node Member sessions
+@subsection Member sessions
+
+A member session is a triple of the room key, the member ID and the public key 
+of the member's ego. Member sessions allow that a member can change their ID or 
+their ego once at a time without loosing the ability to delete old messages or 
+identifying the original sender of a message. On every change of ID or EGO a 
+session will be marked as closed. So every session chain will only contain one 
+open session with the current ID and public key.
+
+If a session is marked as closed the MESSENGER service will check from the first 
+message opening a session to its last one closing the session for completion. If 
+a the service can confirm that there is no message still missing which was sent 
+from the closed member session, it will be marked as completed.
+
+A completed member session is not able to verify any incoming message to ensure 
+forward secrecy preventing others from using old stolen egos.
+

@@ -863,6 +863,7 @@ rsa_sign_mpi (const struct GNUNET_CRYPTO_RsaPrivateKey *key,
          __FILE__,
          __LINE__,
          gcry_strerror (rc));
+    gcry_sexp_release (data);
     GNUNET_break (0);
     return NULL;
   }

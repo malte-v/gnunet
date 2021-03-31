@@ -1027,7 +1027,8 @@ handle_drop_message (void *cls,
   ch = lookup_channel (c,
                        message->ccn);
 
-  GCCH_assign_type_to_drop (ch, message);
+  if (NULL != ch)
+    GCCH_assign_type_to_drop (ch, message);
 
   GNUNET_SERVICE_client_continue (c->client);
 }

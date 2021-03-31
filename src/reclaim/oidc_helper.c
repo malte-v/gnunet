@@ -839,11 +839,17 @@ int
 OIDC_access_token_parse (const char *token,
                          struct GNUNET_RECLAIM_Ticket **ticket)
 {
-  if (sizeof (struct GNUNET_RECLAIM_Ticket) !=
-      GNUNET_STRINGS_base64_decode (token,
-                                    strlen (token),
-                                    (void**) ticket))
+  size_t sret;
+  char *decoded;
+  sret = GNUNET_STRINGS_base64_decode (token,
+                                       strlen (token),
+                                       (void**) &decoded);
+  if (sizeof (struct GNUNET_RECLAIM_Ticket) != sret)
+  {
+    GNUNET_free (decoded);
     return GNUNET_SYSERR;
+  }
+  *ticket = (struct GNUNET_RECLAIM_Ticket *) decoded;
   return GNUNET_OK;
 }
 

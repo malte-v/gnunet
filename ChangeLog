@@ -1,3 +1,159 @@
+Thu, 18 Mar 2021 18:44:46 +0100 (7d85c27e9)
+Fixed setu tests and state maschine - Elias Summermatter
+
+Thu, 18 Mar 2021 17:55:24 +0100 (8cd1e1929)
+Fixed some bug in the statemaschin implementation of setu - Elias Summermatter
+
+Thu, 18 Mar 2021 16:07:40 +0100 (c4ccd7550)
+Setu tests use gnunet internal functions to generate randum elements - Elias Summermatter
+
+Thu, 18 Mar 2021 11:48:42 +0100 (f9ae0c23c)
+Added working test with randum set - Elias Summermatter
+
+Thu, 18 Mar 2021 08:45:31 +0100 (0d6237ae0)
+Added some randum elemet generation test for setu - Elias Summermatter
+
+Sun, 14 Mar 2021 14:04:00 +0100 (b47586e76)
+add packaging notice; fix #5633 - Martin Schanzenbach
+
+Tue, 9 Mar 2021 18:26:28 +0100 (0b2c0f22f)
+IDENTITY: Fix wrong key construction for anonymous ECDSA identity - Martin Schanzenbach
+
+Tue, 2 Mar 2021 17:16:18 +0100 (45ceb4fdf)
+add base32 encoder/decoder - Christian Grothoff
+
+Sun, 28 Feb 2021 13:51:25 +0100 (4cffc642c)
+build: do not redefine AM_MAKEINFOHTMLFLAGS - Martin Schanzenbach
+
+Sun, 28 Feb 2021 11:15:55 +0100 (eb8ca760c)
+GANA: Use GANA generated header for GNS record types. Update handbook - Martin Schanzenbach
+
+Tue, 23 Feb 2021 14:29:47 +0100 (d528f6cfb)
+HELLO: Fix netdb.h nonsense with h_addr - Martin Schanzenbach
+
+Tue, 23 Feb 2021 10:42:57 +0100 (74a234f0b)
+HANDBOOK: Add some info on TNG - Martin Schanzenbach
+
+Sun, 21 Feb 2021 20:56:47 +0100 (05040a491)
+HELLO: Add test for NG API; fix extraction more - Martin Schanzenbach
+
+Sun, 21 Feb 2021 16:44:51 +0100 (783a12b3c)
+HELLO-TNG: Fix parsing; sill broken - Martin Schanzenbach
+
+Sun, 21 Feb 2021 11:46:16 +0100 (f5439c229)
+TNG: Add queue update handling - Martin Schanzenbach
+
+Sun, 21 Feb 2021 10:53:34 +0100 (a3971a93c)
+Add struct names for FS events. #6743 - Martin Schanzenbach
+
+Thu, 18 Feb 2021 16:51:47 +0100 (8095b1a1b)
+SetU move check to union - Elias Summermatter
+
+Wed, 17 Feb 2021 18:00:43 +0100 (08adc88b4)
+Setu integrated new phase full receiving as described in rfc draft - Elias Summermatter
+
+Wed, 17 Feb 2021 17:32:23 +0100 (d5bf65f2b)
+Renamed Phase Expect IBF Cont -> Expect IBF Last - Elias Summermatter
+
+Wed, 17 Feb 2021 17:26:35 +0100 (d852cb5a6)
+Renamed Phase Done -> Finished - Elias Summermatter
+
+Wed, 17 Feb 2021 17:04:15 +0100 (be8897e14)
+Renamed Phase inventory passive -> passive decoding - Elias Summermatter
+
+Wed, 17 Feb 2021 15:57:46 +0100 (333459251)
+Renamed Phase inventory active -> active decoding & Added idea folder to git ignore - Elias Summermatter
+
+Sat, 30 Jan 2021 16:36:14 -0500 (5b152adc0)
+use AS_VERSION_COMPARE instead of AX_COMPARE_VERSION - Thien-Thi Nguyen
+
+Sat, 30 Jan 2021 08:37:12 -0500 (de1b87ea3)
+fix #6722: use AX_COMPARE_VERSION - Thien-Thi Nguyen
+
+Sat, 30 Jan 2021 12:41:15 +0100 (a5f200d53)
+fix #6690 - Christian Grothoff
+
+Thu, 28 Jan 2021 22:28:01 +0100 (a2169368b)
+implement #6716 - Christian Grothoff
+
+Thu, 7 Jan 2021 22:22:48 +0100 (4769344a7)
+convert to GMT, not localtime in GNUNET_TIME_year_to_time - Christian Grothoff
+
+Thu, 7 Jan 2021 10:26:54 +0100 (5b10ad755)
+properly document return value of GNUNET_PROGRAM_run - Christian Grothoff
+
+Sat, 2 Jan 2021 13:47:16 +0100 (eab08cec9)
+do not output synthetic paths - Christian Grothoff
+
+Sat, 2 Jan 2021 11:24:26 +0100 (0d4337da2)
+fix /proc/PID/maps parser format string - Christian Grothoff
+
+Thu, 31 Dec 2020 09:12:43 +0100 (ebd853c83)
+do not use atomic write for configuration file, we may not have permissions to do this, also should not be necessary - Christian Grothoff
+
+Wed, 30 Dec 2020 20:58:55 +0900 (c0465ff92)
+RECLAIM: Fix quirky OIDC address handling - Martin Schanzenbach
+
+Sat, 26 Dec 2020 14:15:58 +0900 (75a3a90fb)
+RECLAIM: automatically purge dangling references - Martin Schanzenbach
+
+Sat, 19 Dec 2020 18:43:38 +0100 (3636ea628)
+change GNUNET_DISK_fn_write() to always do atomic writes and to NOT overwrite existing files; also change the return value to not return the size of the written file but GNUNET_OK on success, and integrate creating the directory if needed; breaks API, hence bumping libgnunetutil version - Christian Grothoff
+
+Tue, 15 Dec 2020 04:54:32 -0500 (407765df1)
+include Configuration Handbook in gnunet.info - Thien-Thi Nguyen
+
+Tue, 15 Dec 2020 03:43:27 -0500 (db9d81947)
+add pxref to ‘Config file format’ - Thien-Thi Nguyen
+
+Tue, 15 Dec 2020 03:26:26 -0500 (52986bf33)
+[doc] Add section "Config file format" - Thien-Thi Nguyen
+
+Wed, 9 Dec 2020 23:00:07 +0100 (7d9592f20)
+add GNUNET_CRYPTO_hash_context_copy() function - Christian Grothoff
+
+Tue, 8 Dec 2020 16:50:27 +0900 (7ce054864)
+RECLAIM: Return userinfo claims from cache - Martin Schanzenbach
+
+Fri, 4 Dec 2020 17:36:35 +0100 (1346641a1)
+gnunet-crypto-tvg: fix bogus label - Florian Dold
+
+Fri, 4 Dec 2020 17:22:38 +0100 (4c10ff3b4)
+gnunet-crypto-tvg: add verification mode - Florian Dold
+
+Fri, 4 Dec 2020 14:52:45 +0100 (1a3070b15)
+gnunet-crypto-tvg: output JSON, fix memleaks - Florian Dold
+
+Sat, 21 Nov 2020 22:58:44 +0000 (d2e10ef67)
+rps: fix another 'format not a string literal' warning - Daniel Golle
+
+Mon, 16 Nov 2020 23:57:08 +0100 (91e8c2ff2)
+rps: deal with currently unused code - Julius Bünger
+
+Mon, 16 Nov 2020 23:36:12 +0100 (d30ec0f1f)
+rps: comment ill-defined code - Julius Bünger
+
+Mon, 16 Nov 2020 22:59:12 +0100 (0950b1df7)
+rps: properly initialise memory - Julius Bünger
+
+Mon, 16 Nov 2020 22:56:47 +0100 (266823196)
+rps: use proper signedness - Julius Bünger
+
+Mon, 16 Nov 2020 22:56:27 +0100 (89ea76819)
+rps: use correct buffer sizes - Julius Bünger
+
+Mon, 16 Nov 2020 22:55:49 +0100 (607211bb7)
+rps: use correct types in format strings - Julius Bünger
+
+Mon, 16 Nov 2020 22:53:30 +0100 (0108f132a)
+rps: get rid of warnings about harmless uninitialized variables - Julius Bünger
+
+Mon, 16 Nov 2020 04:54:21 +0100 (41000a00c)
+rps: fix sources for multiple warnings - Julius Bünger
+
+Sat, 14 Nov 2020 19:02:01 +0000 (ea18ebde8)
+rps: fix format not a string literal and no format arguments - Daniel Golle
+
 Sat, 14 Nov 2020 10:57:31 +0900 (de83cfe23)
 Updating ChangeLog for 0.14.0 - Martin Schanzenbach
 

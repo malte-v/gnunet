@@ -25,35 +25,23 @@ bin_PROGRAMS = \
  gnunet-messenger
 
 lib_LTLIBRARIES = \
-  libgnunetmessenger_common.la \
   libgnunetmessenger.la \
   $(EXP_LIB)
 
-libgnunetmessenger_common_la_SOURCES = \
+libgnunetmessenger_la_SOURCES = \
+  messenger_api.c \
   messenger_api_ego.h \
   messenger_api_contact.c messenger_api_contact.h \
   messenger_api_contact_store.c messenger_api_contact_store.h \
   messenger_api_message.c messenger_api_message.h \
   messenger_api_list_tunnels.c messenger_api_list_tunnels.h \
-  messenger_api_util.c messenger_api_util.h
-libgnunetmessenger_common_la_LIBADD = \
-  $(top_builddir)/src/util/libgnunetutil.la \
-  $(top_builddir)/src/cadet/libgnunetcadet.la \
-  $(top_builddir)/src/identity/libgnunetidentity.la \
-  $(XLIB) \
-  $(LTLIBINTL)
-libgnunetmessenger_common_la_LDFLAGS = \
-  $(GN_LIB_LDFLAGS)  \
-  -version-info 0:0:0
-
-libgnunetmessenger_la_SOURCES = \
-  messenger_api.c \
+  messenger_api_util.c messenger_api_util.h \
   messenger_api_handle.c messenger_api_handle.h \
   messenger_api_room.c messenger_api_room.h
 libgnunetmessenger_la_LIBADD = \
   $(top_builddir)/src/util/libgnunetutil.la \
+  $(top_builddir)/src/cadet/libgnunetcadet.la \
   $(top_builddir)/src/identity/libgnunetidentity.la \
-  libgnunetmessenger_common.la \
   $(XLIB) \
   $(LTLIBINTL)
 libgnunetmessenger_la_LDFLAGS = \
@@ -63,10 +51,8 @@ libgnunetmessenger_la_LDFLAGS = \
 gnunet_messenger_SOURCES = \
  gnunet-messenger.c
 gnunet_messenger_LDADD = \
- libgnunetmessenger_common.la \
  libgnunetmessenger.la \
- $(top_builddir)/src/util/libgnunetutil.la \
- $(top_builddir)/src/identity/libgnunetidentity.la
+ $(top_builddir)/src/util/libgnunetutil.la
 gnunet_messenger_LDFLAGS = \
   $(GN_LIBINTL)
 
@@ -91,11 +77,10 @@ gnunet_service_messenger_SOURCES = \
   gnunet-service-messenger_room.c gnunet-service-messenger_room.h \
   gnunet-service-messenger_tunnel.c gnunet-service-messenger_tunnel.h
 gnunet_service_messenger_LDADD = \
+  libgnunetmessenger.la \
   $(top_builddir)/src/util/libgnunetutil.la \
   $(top_builddir)/src/cadet/libgnunetcadet.la \
   $(top_builddir)/src/identity/libgnunetidentity.la \
-  libgnunetmessenger_common.la \
-  libgnunetmessenger.la \
   $(GN_LIBINTL)
 
 check_PROGRAMS = \
@@ -121,7 +106,6 @@ endif
 test_messenger_api_SOURCES = \
   test_messenger.c
 test_messenger_api_LDADD = \
-  libgnunetmessenger_common.la \
   libgnunetmessenger.la \
   $(top_builddir)/src/testing/libgnunettesting.la \
   $(top_builddir)/src/util/libgnunetutil.la
@@ -129,7 +113,6 @@ test_messenger_api_LDADD = \
 test_messenger_anonymous_SOURCES = \
   test_messenger_anonymous.c
 test_messenger_anonymous_LDADD = \
-  libgnunetmessenger_common.la \
   libgnunetmessenger.la \
   $(top_builddir)/src/testing/libgnunettesting.la \
   $(top_builddir)/src/util/libgnunetutil.la
@@ -139,7 +122,6 @@ test_messenger_sync_client_SOURCES = \
   testing_messenger_barrier.c testing_messenger_barrier.h \
   testing_messenger_setup.c testing_messenger_setup.h
 test_messenger_sync_client_LDADD = \
-  libgnunetmessenger_common.la \
   libgnunetmessenger.la \
   $(top_builddir)/src/testbed/libgnunettestbed.la \
   $(top_builddir)/src/testing/libgnunettesting.la \
@@ -150,7 +132,6 @@ test_messenger_async_client_SOURCES = \
   testing_messenger_barrier.c testing_messenger_barrier.h \
   testing_messenger_setup.c testing_messenger_setup.h
 test_messenger_async_client_LDADD = \
-  libgnunetmessenger_common.la \
   libgnunetmessenger.la \
   $(top_builddir)/src/testbed/libgnunettestbed.la \
   $(top_builddir)/src/testing/libgnunettesting.la \
@@ -161,7 +142,6 @@ test_messenger_worst_client_SOURCES = \
   testing_messenger_barrier.c testing_messenger_barrier.h \
   testing_messenger_setup.c testing_messenger_setup.h
 test_messenger_worst_client_LDADD = \
-  libgnunetmessenger_common.la \
   libgnunetmessenger.la \
   $(top_builddir)/src/testbed/libgnunettestbed.la \
   $(top_builddir)/src/testing/libgnunettesting.la \
@@ -172,7 +152,6 @@ test_messenger_sync_p2p_SOURCES = \
   testing_messenger_barrier.c testing_messenger_barrier.h \
   testing_messenger_setup.c testing_messenger_setup.h
 test_messenger_sync_p2p_LDADD = \
-  libgnunetmessenger_common.la \
   libgnunetmessenger.la \
   $(top_builddir)/src/testbed/libgnunettestbed.la \
   $(top_builddir)/src/testing/libgnunettesting.la \
@@ -183,7 +162,6 @@ test_messenger_async_p2p_SOURCES = \
   testing_messenger_barrier.c testing_messenger_barrier.h \
   testing_messenger_setup.c testing_messenger_setup.h
 test_messenger_async_p2p_LDADD = \
-  libgnunetmessenger_common.la \
   libgnunetmessenger.la \
   $(top_builddir)/src/testbed/libgnunettestbed.la \
   $(top_builddir)/src/testing/libgnunettesting.la \
@@ -194,7 +172,6 @@ test_messenger_worst_p2p_SOURCES = \
   testing_messenger_barrier.c testing_messenger_barrier.h \
   testing_messenger_setup.c testing_messenger_setup.h
 test_messenger_worst_p2p_LDADD = \
-  libgnunetmessenger_common.la \
   libgnunetmessenger.la \
   $(top_builddir)/src/testbed/libgnunettestbed.la \
   $(top_builddir)/src/testing/libgnunettesting.la \
@@ -205,7 +182,6 @@ test_messenger_server_SOURCES = \
   testing_messenger_barrier.c testing_messenger_barrier.h \
   testing_messenger_setup.c testing_messenger_setup.h
 test_messenger_server_LDADD = \
-  libgnunetmessenger_common.la \
   libgnunetmessenger.la \
   $(top_builddir)/src/testbed/libgnunettestbed.la \
   $(top_builddir)/src/testing/libgnunettesting.la \
@@ -216,7 +192,6 @@ test_messenger_growth_SOURCES = \
   testing_messenger_barrier.c testing_messenger_barrier.h \
   testing_messenger_setup.c testing_messenger_setup.h
 test_messenger_growth_LDADD = \
-  libgnunetmessenger_common.la \
   libgnunetmessenger.la \
   $(top_builddir)/src/testbed/libgnunettestbed.la \
   $(top_builddir)/src/testing/libgnunettesting.la \
@@ -227,7 +202,6 @@ test_messenger_ring_SOURCES = \
   testing_messenger_barrier.c testing_messenger_barrier.h \
   testing_messenger_setup.c testing_messenger_setup.h
 test_messenger_ring_LDADD = \
-  libgnunetmessenger_common.la \
   libgnunetmessenger.la \
   $(top_builddir)/src/testbed/libgnunettestbed.la \
   $(top_builddir)/src/testing/libgnunettesting.la \
@@ -238,7 +212,6 @@ test_messenger_adapt_SOURCES = \
   testing_messenger_barrier.c testing_messenger_barrier.h \
   testing_messenger_setup.c testing_messenger_setup.h
 test_messenger_adapt_LDADD = \
-  libgnunetmessenger_common.la \
   libgnunetmessenger.la \
   $(top_builddir)/src/testbed/libgnunettestbed.la \
   $(top_builddir)/src/testing/libgnunettesting.la \

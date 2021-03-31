@@ -1492,16 +1492,9 @@ add_acks (struct SharedSecret *ss, int acks_to_add)
 
   struct ReceiverAddress *receiver = ss->receiver;
 
-  if (NULL == ss)
-    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                "secret NULL!\n");
-
-  if (NULL == receiver)
-    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                "Receiver NULL!\n");
-  if (NULL == receiver->d_qh)
-    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                "Queue NULL!\n");
+  GNUNET_assert (NULL != ss);
+  GNUNET_assert (NULL != receiver);
+  GNUNET_assert (NULL != receiver->d_qh);
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Tell transport we have %u more acks!\n",

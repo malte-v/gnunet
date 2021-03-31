@@ -172,7 +172,7 @@ run (void *cls,
   fprintf (stdout, "RRBLOCK:\n");
   print_bytes (rrblock, block_size, 8);
   fprintf (stdout, "\n");
-
+  GNUNET_free (rdata);
 }
 
 

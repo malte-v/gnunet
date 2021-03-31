@@ -686,7 +686,10 @@ do_userinfo_error (void *cls)
                    handle->emsg,
                    (NULL != handle->edesc) ? handle->edesc : "");
   resp = GNUNET_REST_create_response ("");
-  MHD_add_response_header (resp, MHD_HTTP_HEADER_WWW_AUTHENTICATE, "Bearer");
+  GNUNET_assert (MHD_NO !=
+                 MHD_add_response_header (resp,
+                                          MHD_HTTP_HEADER_WWW_AUTHENTICATE,
+                                          "Bearer"));
   handle->proc (handle->proc_cls, resp, handle->response_code);
   cleanup_handle (handle);
   GNUNET_free (error);
@@ -713,7 +716,8 @@ do_redirect_error (void *cls)
                    (NULL != handle->oidc->state) ? "&state=" : "",
                    (NULL != handle->oidc->state) ? handle->oidc->state : "");
   resp = GNUNET_REST_create_response ("");
-  MHD_add_response_header (resp, "Location", redirect);
+  GNUNET_assert (MHD_NO != MHD_add_response_header (resp,
+                                                    "Location", redirect));
   handle->proc (handle->proc_cls, resp, MHD_HTTP_FOUND);
   cleanup_handle (handle);
   GNUNET_free (redirect);
@@ -1022,7 +1026,8 @@ oidc_ticket_issue_cb (void *cls,
                      handle->oidc->state);
   }
   resp = GNUNET_REST_create_response ("");
-  MHD_add_response_header (resp, "Location", redirect_uri);
+  GNUNET_assert (MHD_NO != MHD_add_response_header (resp,
+                                                    "Location", redirect_uri));
   handle->proc (handle->proc_cls, resp, MHD_HTTP_FOUND);
   cleanup_handle (handle);
   GNUNET_free (redirect_uri);
@@ -1381,7 +1386,8 @@ build_redirect (void *cls)
                        handle->oidc->state);
     }
     resp = GNUNET_REST_create_response ("");
-    MHD_add_response_header (resp, "Location", redirect_uri);
+    GNUNET_assert (MHD_NO != MHD_add_response_header (resp,
+                                                      "Location", redirect_uri));
     handle->proc (handle->proc_cls, resp, MHD_HTTP_FOUND);
     cleanup_handle (handle);
     GNUNET_free (redirect_uri);
@@ -1764,8 +1770,12 @@ login_cont (struct GNUNET_REST_RequestHandle *con_handle,
                    "%s;Max-Age=%d",
                    cookie,
                    OIDC_COOKIE_EXPIRATION);
-  MHD_add_response_header (resp, "Set-Cookie", header_val);
-  MHD_add_response_header (resp, "Access-Control-Allow-Methods", "POST");
+  GNUNET_assert (MHD_NO != MHD_add_response_header (resp,
+                                                    "Set-Cookie", header_val));
+  GNUNET_assert (MHD_NO !=
+                 MHD_add_response_header (resp,
+                                          "Access-Control-Allow-Methods",
+                                          "POST"));
   GNUNET_CRYPTO_hash (cookie, strlen (cookie), &cache_key);
 
   if (0 != strcmp (json_string_value (identity), "Denied"))
@@ -1880,7 +1890,8 @@ parse_credentials_post_body (struct RequestHandle *handle,
   }
   pass = GNUNET_CONTAINER_multihashmap_get (handle->rest_handle->url_param_map,
                                             &cache_key);
-  if (NULL == pass) {
+  if (NULL == pass)
+  {
     GNUNET_free (*client_id);
     *client_id = NULL;
     return GNUNET_SYSERR;
@@ -2134,6 +2145,8 @@ token_endpoint (struct GNUNET_REST_RequestHandle *con_handle,
     GNUNET_free (code);
     if (NULL != nonce)
       GNUNET_free (nonce);
+    GNUNET_RECLAIM_attribute_list_destroy (cl);
+    GNUNET_RECLAIM_presentation_list_destroy (pl);
     GNUNET_SCHEDULER_add_now (&do_error, handle);
     return;
   }
@@ -2149,6 +2162,8 @@ token_endpoint (struct GNUNET_REST_RequestHandle *con_handle,
     handle->edesc = GNUNET_strdup ("No signing secret configured!");
     handle->response_code = MHD_HTTP_INTERNAL_SERVER_ERROR;
     GNUNET_free (code);
+    GNUNET_RECLAIM_attribute_list_destroy (cl);
+    GNUNET_RECLAIM_presentation_list_destroy (pl);
     if (NULL != nonce)
       GNUNET_free (nonce);
     GNUNET_SCHEDULER_add_now (&do_error, handle);
@@ -2191,9 +2206,14 @@ token_endpoint (struct GNUNET_REST_RequestHandle *con_handle,
                              &json_response);
 
   resp = GNUNET_REST_create_response (json_response);
-  MHD_add_response_header (resp, "Cache-Control", "no-store");
-  MHD_add_response_header (resp, "Pragma", "no-cache");
-  MHD_add_response_header (resp, "Content-Type", "application/json");
+  GNUNET_assert (MHD_NO != MHD_add_response_header (resp,
+                                                    "Cache-Control",
+                                                    "no-store"));
+  GNUNET_assert (MHD_NO != MHD_add_response_header (resp,
+                                                    "Pragma", "no-cache"));
+  GNUNET_assert (MHD_NO != MHD_add_response_header (resp,
+                                                    "Content-Type",
+                                                    "application/json"));
   handle->proc (handle->proc_cls, resp, MHD_HTTP_OK);
   GNUNET_RECLAIM_attribute_list_destroy (cl);
   GNUNET_RECLAIM_presentation_list_destroy (pl);
@@ -2665,8 +2685,14 @@ oidc_config_cors (struct GNUNET_REST_RequestHandle *con_handle,
 
   // For now, independent of path return all options
   resp = GNUNET_REST_create_response (NULL);
-  MHD_add_response_header (resp, "Access-Control-Allow-Methods", allow_methods);
-  MHD_add_response_header (resp, "Access-Control-Allow-Origin", "*");
+  GNUNET_assert (MHD_NO !=
+                 MHD_add_response_header (resp,
+                                          "Access-Control-Allow-Methods",
+                                          allow_methods));
+  GNUNET_assert (MHD_NO !=
+                 MHD_add_response_header (resp,
+                                          "Access-Control-Allow-Origin",
+                                          "*"));
   handle->proc (handle->proc_cls, resp, MHD_HTTP_OK);
   cleanup_handle (handle);
   return;

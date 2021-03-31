@@ -965,8 +965,6 @@ remove_channel_ctx (struct ChannelCtx *channel_ctx)
     channel_ctx->destruction_task = NULL;
   }
 
-  GNUNET_free (channel_ctx);
-
   if (NULL == peer_ctx)
     return;
   if (channel_ctx == peer_ctx->send_channel_ctx)
@@ -978,6 +976,7 @@ remove_channel_ctx (struct ChannelCtx *channel_ctx)
   {
     peer_ctx->recv_channel_ctx = NULL;
   }
+  GNUNET_free (channel_ctx);
 }
 
 
@@ -2637,7 +2636,7 @@ insert_in_sampler (void *cls,
   }
 #ifdef TO_FILE
   sub->num_observed_peers++;
-  GNUNET_CONTAINER_multipeermap_put
+  (void) GNUNET_CONTAINER_multipeermap_put
     (sub->observed_unique_peers,
     peer,
     NULL,
@@ -2802,7 +2801,7 @@ clean_peer (struct Sub *sub,
                                                              peer))) &&
       (GNUNET_NO == View_contains_peer (sub->view, peer)) &&
       (GNUNET_NO == CustomPeerMap_contains_peer (sub->push_map, peer)) &&
-      (GNUNET_NO == CustomPeerMap_contains_peer (sub->push_map, peer)) &&
+      (GNUNET_NO == CustomPeerMap_contains_peer (sub->pull_map, peer)) &&
       (0 == RPS_sampler_count_id (sub->sampler, peer)) &&
       (GNUNET_YES == check_removable (get_peer_ctx (sub->peer_map, peer))))
   {   /* We can safely remove this peer */
@@ -2836,12 +2835,19 @@ cleanup_destroyed_channel (void *cls,
   (void) channel;
 
   channel_ctx->channel = NULL;
-  remove_channel_ctx (channel_ctx);
   if ((NULL != peer_ctx) &&
       (peer_ctx->send_channel_ctx == channel_ctx) &&
-      (GNUNET_YES == check_sending_channel_needed (channel_ctx->peer_ctx)) )
+      (GNUNET_YES == check_sending_channel_needed (peer_ctx)) )
   {
+    remove_channel_ctx (channel_ctx);
     remove_peer (peer_ctx->sub, &peer_ctx->peer_id);
+  }
+  else
+  {
+    /* We need this if-else construct because we need to make sure the channel
+     * (context) is cleaned up before removing the peer, but still neet to
+     * compare it while checking the condition */
+    remove_channel_ctx (channel_ctx);
   }
 }
 
