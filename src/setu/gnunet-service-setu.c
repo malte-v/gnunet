@@ -400,6 +400,22 @@ struct Operation
    * was created.
    */
   unsigned int generation_created;
+
+  /**
+   * User defined Bandwidth Round Trips Tradeoff
+   */
+  double rtt_bandwidth_tradeoff;
+
+  /**
+   * Number of Element per bucket
+   */
+  unsigned int number_buckets_per_element;
+
+  /**
+   * Number of buckets
+   */
+  unsigned bucket_number;
+
 };
 
 
