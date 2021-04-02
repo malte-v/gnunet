@@ -22,6 +22,7 @@
  * @brief api for the set union service
  * @author Florian Dold
  * @author Christian Grothoff
+ *  @author Elias Summermatter
  */
 #include "platform.h"
 #include "gnunet_util_lib.h"
@@ -526,6 +527,14 @@ GNUNET_SETU_prepare (const struct GNUNET_PeerIdentity *other_peer,
                                  context_msg);
   msg->app_id = *app_id;
   msg->target_peer = *other_peer;
+
+  /* Set default values */
+  msg->byzantine_upper_bond = UINT64_MAX;
+  msg->bandwidth_latency_tradeoff = 0;
+  msg->ibf_bucket_number_factor = 2;
+  msg->ibf_number_of_buckets_per_element = 3;
+
+
   for (const struct GNUNET_SETU_Option *opt = options; opt->type != 0; opt++)
   {
     switch (opt->type)
@@ -533,6 +542,18 @@ GNUNET_SETU_prepare (const struct GNUNET_PeerIdentity *other_peer,
     case GNUNET_SETU_OPTION_BYZANTINE:
       msg->byzantine = GNUNET_YES;
       msg->byzantine_lower_bound = htonl (opt->v.num);
+      break;
+    case GNUNET_SETU_OPTION_CUSTOM_BYZANTINE_UPPER_BOUND:
+      msg->byzantine_upper_bond = htonl (opt->v.num);
+      break;
+    case GNUNET_SETU_OPTION_CUSTOM_BANDWIDTH_LATENCY_TRADEOFF:
+      msg->bandwidth_latency_tradeoff = htonl (opt->v.num);
+      break;
+    case GNUNET_SETU_OPTION_CUSTOM_IBF_BUCKET_NUMBER_FACTOR:
+      msg->ibf_bucket_number_factor = htonl (opt->v.num);
+      break;
+    case GNUNET_SETU_OPTION_CUSTOM_IBF_BUCKETS_PER_ELEMENT:
+      msg->ibf_number_of_buckets_per_element = htonl (opt->v.num);
       break;
     case GNUNET_SETU_OPTION_FORCE_FULL:
       msg->force_full = GNUNET_YES;
@@ -788,6 +809,13 @@ GNUNET_SETU_accept (struct GNUNET_SETU_Request *request,
   mqm = GNUNET_MQ_msg (msg,
                        GNUNET_MESSAGE_TYPE_SETU_ACCEPT);
   msg->accept_reject_id = htonl (request->accept_id);
+
+  /* Set default values */
+  msg->byzantine_upper_bond = UINT64_MAX;
+  msg->bandwidth_latency_tradeoff = 0;
+  msg->ibf_bucket_number_factor = 2;
+  msg->ibf_number_of_buckets_per_element = 3;
+
   for (const struct GNUNET_SETU_Option *opt = options; opt->type != 0; opt++)
   {
     switch (opt->type)
@@ -795,6 +823,18 @@ GNUNET_SETU_accept (struct GNUNET_SETU_Request *request,
     case GNUNET_SETU_OPTION_BYZANTINE:
       msg->byzantine = GNUNET_YES;
       msg->byzantine_lower_bound = htonl (opt->v.num);
+      break;
+    case GNUNET_SETU_OPTION_CUSTOM_BYZANTINE_UPPER_BOUND:
+      msg->byzantine_upper_bond = htonl (opt->v.num);
+      break;
+    case GNUNET_SETU_OPTION_CUSTOM_BANDWIDTH_LATENCY_TRADEOFF:
+      msg->bandwidth_latency_tradeoff = htonl (opt->v.num);
+      break;
+    case GNUNET_SETU_OPTION_CUSTOM_IBF_BUCKET_NUMBER_FACTOR:
+      msg->ibf_bucket_number_factor = htonl (opt->v.num);
+      break;
+    case GNUNET_SETU_OPTION_CUSTOM_IBF_BUCKETS_PER_ELEMENT:
+      msg->ibf_number_of_buckets_per_element = htonl (opt->v.num);
       break;
     case GNUNET_SETU_OPTION_FORCE_FULL:
       msg->force_full = GNUNET_YES;

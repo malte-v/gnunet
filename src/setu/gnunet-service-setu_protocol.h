@@ -40,11 +40,6 @@ struct OperationRequestMessage
   struct GNUNET_MessageHeader header;
 
   /**
-   * Operation to request, values from `enum GNUNET_SET_OperationType`
-   */
-  uint32_t operation GNUNET_PACKED;
-
-  /**
    * For Intersection: my element count
    */
   uint32_t element_count GNUNET_PACKED;
@@ -72,20 +67,9 @@ struct IBFMessage
   struct GNUNET_MessageHeader header;
 
   /**
-   * Order of the whole ibf, where
-   * num_buckets = 2^order
+   * Size of the whole ibf (number of buckets)
    */
-  uint8_t order;
-
-  /**
-   * Padding, must be 0.
-   */
-  uint8_t reserved1;
-
-  /**
-   * Padding, must be 0.
-   */
-  uint16_t reserved2 GNUNET_PACKED;
+  uint32_t ibf_size;
 
   /**
    * Offset of the strata in the rest of the message
@@ -95,10 +79,22 @@ struct IBFMessage
   /**
    * Salt used when hashing elements for this IBF.
    */
-  uint32_t salt GNUNET_PACKED;
+  uint16_t salt GNUNET_PACKED;
 
+  /**
+   * The bit lenght of the counter
+   */
+  uint16_t ibf_counter_bit_length;
   /* rest: buckets */
 };
+/**
+estimate_best_mode_of_operation (uint64_t avg_element_size,
+uint64_t local_set_size,
+        uint64_t remote_set_size,
+uint64_t est_set_diff_remote,
+        uint64_t est_set_diff_local,)
+        **/
+
 
 
 struct InquiryMessage
@@ -112,11 +108,6 @@ struct InquiryMessage
    * Salt used when hashing elements for this inquiry.
    */
   uint32_t salt GNUNET_PACKED;
-
-  /**
-   * Reserved, set to 0.
-   */
-  uint32_t reserved GNUNET_PACKED;
 
   /* rest: inquiry IBF keys */
 };
@@ -218,8 +209,46 @@ struct StrataEstimatorMessage
    */
   struct GNUNET_MessageHeader header;
 
+  /**
+   * The number of ses transmitted
+   */
+  uint8_t se_count;
+
+  /**
+   * Size of the local set
+   */
   uint64_t set_size;
 };
+
+
+/**
+ * Message which signals to other peer that we are sending full set
+ *
+ */
+struct TransmitFullMessage
+{
+  /**
+   * Type: #GNUNET_MESSAGE_TYPE_SETU_P2P_SEND_FULL
+   */
+  struct GNUNET_MessageHeader header;
+
+  /**
+   * Remote set difference calculated with strata estimator
+   */
+  uint32_t remote_set_difference;
+
+  /**
+   * Total remote set size
+   */
+  uint32_t remote_set_size;
+
+  /**
+   *  Local set difference calculated with strata estimator
+   */
+  uint32_t local_set_difference;
+
+};
+
 
 GNUNET_NETWORK_STRUCT_END
 

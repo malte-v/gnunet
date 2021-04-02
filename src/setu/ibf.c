@@ -20,11 +20,15 @@
 
 /**
  * @file set/ibf.c
- * @brief implementation of the invertible Bloom filter
+ * @brief implementation of the invertible bloom filter
  * @author Florian Dold
+ * @author Elias Summermatter
  */
 
 #include "ibf.h"
+#include "gnunet_util_lib.h"
+#define LOG(kind, ...) GNUNET_log_from (kind, "setu", __VA_ARGS__)
+
 
 /**
  * Compute the key's hash from the key.
@@ -58,11 +62,12 @@ ibf_hashcode_from_key (struct IBF_Key key,
                        struct GNUNET_HashCode *dst)
 {
   struct IBF_Key *p;
+  unsigned int i;
   const unsigned int keys_per_hashcode = sizeof(struct GNUNET_HashCode)
                                          / sizeof(struct IBF_Key);
 
   p = (struct IBF_Key *) dst;
-  for (unsigned int i = 0; i < keys_per_hashcode; i++)
+  for (i = 0; i < keys_per_hashcode; i++)
     *p++ = key;
 }
 
@@ -75,14 +80,14 @@ ibf_hashcode_from_key (struct IBF_Key key,
  * @return the newly created invertible bloom filter, NULL on error
  */
 struct InvertibleBloomFilter *
-ibf_create (uint32_t size,
-            uint8_t hash_num)
+ibf_create (uint32_t size, uint8_t hash_num)
 {
   struct InvertibleBloomFilter *ibf;
 
   GNUNET_assert (0 != size);
+
   ibf = GNUNET_new (struct InvertibleBloomFilter);
-  ibf->count = GNUNET_malloc_large (size * sizeof(uint8_t));
+  ibf->count = GNUNET_malloc_large (size * sizeof(uint64_t));
   if (NULL == ibf->count)
   {
     GNUNET_free (ibf);
@@ -105,6 +110,7 @@ ibf_create (uint32_t size,
   }
   ibf->size = size;
   ibf->hash_num = hash_num;
+
   return ibf;
 }
 
@@ -121,8 +127,7 @@ ibf_get_indices (const struct InvertibleBloomFilter *ibf,
   uint32_t i;
   uint32_t bucket;
 
-  bucket = GNUNET_CRYPTO_crc32_n (&key,
-                                  sizeof (key));
+  bucket = GNUNET_CRYPTO_crc32_n (&key, sizeof key);
   for (i = 0, filled = 0; filled < ibf->hash_num; i++)
   {
     uint64_t x;
@@ -133,8 +138,7 @@ ibf_get_indices (const struct InvertibleBloomFilter *ibf,
     dst[filled++] = bucket % ibf->size;
 try_next:
     x = ((uint64_t) bucket << 32) | i;
-    bucket = GNUNET_CRYPTO_crc32_n (&x,
-                                    sizeof (x));
+    bucket = GNUNET_CRYPTO_crc32_n (&x, sizeof x);
   }
 }
 
@@ -170,13 +174,8 @@ ibf_insert (struct InvertibleBloomFilter *ibf,
   int buckets[ibf->hash_num];
 
   GNUNET_assert (ibf->hash_num <= ibf->size);
-  ibf_get_indices (ibf,
-                   key,
-                   buckets);
-  ibf_insert_into (ibf,
-                   key,
-                   buckets,
-                   1);
+  ibf_get_indices (ibf, key, buckets);
+  ibf_insert_into (ibf, key, buckets, 1);
 }
 
 
@@ -193,13 +192,8 @@ ibf_remove (struct InvertibleBloomFilter *ibf,
   int buckets[ibf->hash_num];
 
   GNUNET_assert (ibf->hash_num <= ibf->size);
-  ibf_get_indices (ibf,
-                   key,
-                   buckets);
-  ibf_insert_into (ibf,
-                   key,
-                   buckets,
-                   -1);
+  ibf_get_indices (ibf, key, buckets);
+  ibf_insert_into (ibf, key, buckets, -1);
 }
 
 
@@ -244,6 +238,8 @@ ibf_decode (struct InvertibleBloomFilter *ibf,
 
   for (uint32_t i = 0; i < ibf->size; i++)
   {
+    int hit;
+
     /* we can only decode from pure buckets */
     if ( (1 != ibf->count[i].count_val) &&
          (-1 != ibf->count[i].count_val) )
@@ -257,36 +253,59 @@ ibf_decode (struct InvertibleBloomFilter *ibf,
 
     /* test if key in bucket hits its own location,
      * if not, the key hash was subject to collision */
-    {
-      bool hit = false;
+    hit = GNUNET_NO;
+    ibf_get_indices (ibf, ibf->key_sum[i], buckets);
+    for (int j = 0; j < ibf->hash_num; j++)
+      if (buckets[j] == i)
+        hit = GNUNET_YES;
 
-      ibf_get_indices (ibf,
-                       ibf->key_sum[i],
-                       buckets);
-      for (int j = 0; j < ibf->hash_num; j++)
-        if (buckets[j] == i)
-        {
-          hit = true;
-          break;
-        }
-      if (! hit)
-        continue;
+    if (GNUNET_NO == hit)
+      continue;
+
+    if (1 == ibf->count[i].count_val)
+    {
+      ibf->remote_decoded_count++;
     }
+    else
+    {
+      ibf->local_decoded_count++;
+    }
+
+
     if (NULL != ret_side)
       *ret_side = ibf->count[i].count_val;
     if (NULL != ret_id)
       *ret_id = ibf->key_sum[i];
 
     /* insert on the opposite side, effectively removing the element */
-    ibf_insert_into (ibf,
-                     ibf->key_sum[i], buckets,
-                     -ibf->count[i].count_val);
+    ibf_insert_into (ibf, ibf->key_sum[i], buckets, -ibf->count[i].count_val);
+
     return GNUNET_YES;
   }
 
   if (GNUNET_YES == ibf_is_empty (ibf))
     return GNUNET_NO;
   return GNUNET_SYSERR;
+}
+
+
+/**
+ * Returns the minimal bytes needed to store the counter of the IBF
+ *
+ * @param ibf the IBF
+ */
+uint8_t
+ibf_get_max_counter (struct InvertibleBloomFilter *ibf)
+{
+  long long max_counter = 0;
+  for (uint64_t i = 0; i < ibf->size; i++)
+  {
+    if (ibf->count[i].count_val > max_counter)
+    {
+      max_counter = ibf->count[i].count_val;
+    }
+  }
+  return 64 - __builtin_clzll (max_counter);
 }
 
 
@@ -298,16 +317,17 @@ ibf_decode (struct InvertibleBloomFilter *ibf,
  * @param start with which bucket to start
  * @param count how many buckets to write
  * @param buf buffer to write the data to
+ * @param max bit length of a counter for unpacking
  */
 void
 ibf_write_slice (const struct InvertibleBloomFilter *ibf,
                  uint32_t start,
-                 uint32_t count,
-                 void *buf)
+                 uint64_t count,
+                 void *buf,
+                 uint8_t counter_max_length)
 {
   struct IBF_Key *key_dst;
   struct IBF_KeyHash *key_hash_dst;
-  struct IBF_Count *count_dst;
 
   GNUNET_assert (start + count <= ibf->size);
 
@@ -315,19 +335,182 @@ ibf_write_slice (const struct InvertibleBloomFilter *ibf,
   key_dst = (struct IBF_Key *) buf;
   GNUNET_memcpy (key_dst,
                  ibf->key_sum + start,
-                 count * sizeof *key_dst);
+                 count * sizeof(*key_dst));
   key_dst += count;
   /* copy key hashes */
   key_hash_dst = (struct IBF_KeyHash *) key_dst;
   GNUNET_memcpy (key_hash_dst,
                  ibf->key_hash_sum + start,
-                 count * sizeof *key_hash_dst);
+                 count * sizeof(*key_hash_dst));
   key_hash_dst += count;
-  /* copy counts */
-  count_dst = (struct IBF_Count *) key_hash_dst;
-  GNUNET_memcpy (count_dst,
-                 ibf->count + start,
-                 count * sizeof *count_dst);
+
+  /* pack and copy counter */
+  pack_counter (ibf,
+                start,
+                count,
+                (uint8_t *) key_hash_dst,
+                counter_max_length);
+
+
+}
+
+
+/**
+ *  Packs the counter to transmit only the smallest possible amount of bytes and
+ *  preventing overflow of the counter
+ * @param ibf the ibf to write
+ * @param start with which bucket to start
+ * @param count how many buckets to write
+ * @param buf buffer to write the data to
+ * @param max bit length of a counter for unpacking
+ */
+
+void
+pack_counter (const struct InvertibleBloomFilter *ibf,
+              uint32_t start,
+              uint64_t count,
+              uint8_t *buf,
+              uint8_t counter_max_length)
+{
+  uint8_t store_size = 0;
+  uint8_t store = 0;
+  uint16_t byte_ctr = 0;
+
+  /**
+  * Iterate over IBF bucket
+  */
+  for (uint64_t i = start; i< (count + start);)
+  {
+    uint64_t count_val_to_write = ibf->count[i].count_val;
+    uint8_t count_len_to_write = counter_max_length;
+
+    /**
+    * Pack and compose counters to byte values
+    */
+    while ((count_len_to_write + store_size) >= 8)
+    {
+      uint8_t bit_shift = 0;
+
+      /**
+      * Shift bits if more than a byte has to be written
+       * or the store size is not empty
+      */
+      if ((store_size > 0) || (count_len_to_write > 8))
+      {
+        uint8_t bit_unused = 8 - store_size;
+        bit_shift = count_len_to_write - bit_unused;
+        store = store << bit_unused;
+      }
+
+      buf[byte_ctr] = ((count_val_to_write >> bit_shift) | store) & 0xFF;
+      byte_ctr++;
+      count_len_to_write -= (8 - store_size);
+      count_val_to_write = count_val_to_write & ((1ULL <<
+                                                  count_len_to_write) - 1);
+      store = 0;
+      store_size = 0;
+    }
+    store = (store << count_len_to_write) | count_val_to_write;
+    store_size = store_size + count_len_to_write;
+    count_len_to_write = 0;
+    i++;
+  }
+
+  /**
+  * Pack data left in story before finishing
+  */
+  if (store_size > 0)
+  {
+    buf[byte_ctr] = store << (8 - store_size);
+    byte_ctr++;
+  }
+
+}
+
+
+/**
+ *  Unpacks the counter to transmit only the smallest possible amount of bytes and
+ *  preventing overflow of the counter
+ * @param ibf the ibf to write
+ * @param start with which bucket to start
+ * @param count how many buckets to write
+ * @param buf buffer to write the data to
+ * @param max bit length of a counter for unpacking
+ */
+
+void
+unpack_counter (const struct InvertibleBloomFilter *ibf,
+                uint32_t start,
+                uint64_t count,
+                uint8_t *buf,
+                uint8_t counter_max_length)
+{
+  uint64_t ibf_counter_ctr = 0;
+  uint64_t store = 0;
+  uint64_t store_bit_ctr = 0;
+  uint64_t byte_ctr = 0;
+
+  /**
+  * Iterate over received bytes
+  */
+  while (true)
+  {
+    uint8_t byte_read = buf[byte_ctr];
+    uint8_t bit_to_read_left = 8;
+    byte_ctr++;
+
+    /**
+    * Pack data left in story before finishing
+    */
+    while (bit_to_read_left >= 0)
+    {
+      /**
+      * Stop decoding when end is reached
+      */
+      if (ibf_counter_ctr > (count - 1))
+        return;
+
+      /*
+       * Unpack the counter
+       */
+      if ((store_bit_ctr + bit_to_read_left) >= counter_max_length)
+      {
+        uint8_t bytes_used = counter_max_length - store_bit_ctr;
+        if (store_bit_ctr > 0)
+        {
+          store = store << bytes_used;
+        }
+
+        uint8_t bytes_to_shift = bit_to_read_left - bytes_used;
+        uint64_t counter_part = byte_read >> bytes_to_shift;
+        store = store | counter_part;
+        ibf->count[ibf_counter_ctr + start].count_val = store;
+        byte_read = byte_read & ((1 << bytes_to_shift) - 1);
+        bit_to_read_left -= bytes_used;
+        ibf_counter_ctr++;
+        store = 0;
+        store_bit_ctr = 0;
+      }
+      else
+      {
+        store_bit_ctr += bit_to_read_left;
+        if (0 == store)
+        {
+          store = byte_read;
+        }
+        else
+        {
+          store = store << bit_to_read_left;
+          store = store | byte_read;
+        }
+        break;
+
+      }
+
+    }
+
+  }
+
 }
 
 
@@ -338,12 +521,14 @@ ibf_write_slice (const struct InvertibleBloomFilter *ibf,
  * @param start which bucket to start at
  * @param count how many buckets to read
  * @param ibf the ibf to read from
+ * @param max bit length of a counter for unpacking
  */
 void
 ibf_read_slice (const void *buf,
                 uint32_t start,
-                uint32_t count,
-                struct InvertibleBloomFilter *ibf)
+                uint64_t count,
+                struct InvertibleBloomFilter *ibf,
+                uint8_t counter_max_length)
 {
   struct IBF_Key *key_src;
   struct IBF_KeyHash *key_hash_src;
@@ -364,11 +549,10 @@ ibf_read_slice (const void *buf,
                  key_hash_src,
                  count * sizeof *key_hash_src);
   key_hash_src += count;
-  /* copy counts */
+
+  /* copy and unpack counts  */
   count_src = (struct IBF_Count *) key_hash_src;
-  GNUNET_memcpy (ibf->count + start,
-                 count_src,
-                 count * sizeof *count_src);
+  unpack_counter (ibf,start,count,(uint8_t *) count_src,counter_max_length);
 }
 
 

@@ -294,7 +294,7 @@ ibf_write_slice (const struct InvertibleBloomFilter *ibf, uint32_t start,
   struct IBF_KeyHash *key_hash_dst;
   struct IBF_Count *count_dst;
 
-  GNUNET_assert (start + count <= ibf->size);
+    GNUNET_assert (start + count <= ibf->size);
 
   /* copy keys */
   key_dst = (struct IBF_Key *) buf;

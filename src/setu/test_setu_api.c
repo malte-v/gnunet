@@ -204,62 +204,6 @@ init_set2 (void *cls)
   GNUNET_SETU_add_element (set2, &element, &start, NULL);
 }
 
-/**
- * Generate random byte stream
- */
-
-unsigned char *gen_rdm_bytestream (size_t num_bytes)
-{
-    unsigned char *stream = GNUNET_malloc (num_bytes);
-    GNUNET_CRYPTO_random_block(GNUNET_CRYPTO_QUALITY_WEAK, stream, num_bytes);
-    return stream;
-}
-
-/**
- * Generate random sets
- */
-
-static void
-initRandomSets(int overlap, int set1_size, int set2_size, int element_size_in_bytes)
-{
-    struct GNUNET_SETU_Element element;
-    element.element_type = 0;
-
-    // Add elements to both sets
-    for (int i = 0; i < overlap; i++) {
-        element.data = gen_rdm_bytestream(element_size_in_bytes);
-        element.size = element_size_in_bytes;
-        GNUNET_SETU_add_element (set1, &element, NULL, NULL);
-        GNUNET_SETU_add_element (set2, &element, NULL, NULL);
-        set1_size--;
-        set2_size--;
-    }
-    GNUNET_log (GNUNET_ERROR_TYPE_INFO, "initialized elements in both sets\n");
-
-    // Add other elements to set 1
-    while(set1_size>0) {
-        element.data = gen_rdm_bytestream(element_size_in_bytes);
-        element.size = element_size_in_bytes;
-        GNUNET_SETU_add_element (set1, &element, NULL, NULL);
-        set1_size--;
-    }
-    GNUNET_log (GNUNET_ERROR_TYPE_INFO, "initialized elements in set1\n");
-
-    // Add other elements to set 2
-    while(set2_size > 0) {
-        element.data = gen_rdm_bytestream(element_size_in_bytes);
-        element.size = element_size_in_bytes;
-
-        if(set2_size != 1) {
-            GNUNET_SETU_add_element (set2, &element,NULL, NULL);
-        } else {
-            GNUNET_SETU_add_element (set2, &element,&start, NULL);
-        }
-
-        set2_size--;
-    }
-    GNUNET_log (GNUNET_ERROR_TYPE_INFO, "initialized elements in set2\n");
-}
 
 /**
  * Initialize the first set, continue.
@@ -392,9 +336,7 @@ run (void *cls,
   /* test the real set reconciliation */
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Running real set-reconciliation\n");
-  //init_set1 ();
-  initRandomSets(19500,20000,20000,4096);
-  //initRandomSets(19500,20000,20000,32);
+  init_set1 ();
 }
 
 

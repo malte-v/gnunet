@@ -22,6 +22,7 @@
  * @file set/ibf.h
  * @brief invertible bloom filter
  * @author Florian Dold
+ * @author Elias Summermatter
  */
 
 #ifndef GNUNET_CONSENSUS_IBF_H
@@ -62,7 +63,7 @@ struct IBF_KeyHash
  */
 struct IBF_Count
 {
-  int8_t count_val;
+  int64_t count_val;
 };
 
 
@@ -91,6 +92,20 @@ struct InvertibleBloomFilter
    * Usually 4 or 3.
    */
   uint8_t hash_num;
+
+  /**
+ * If an IBF is decoded this count stores how many
+ * elements are on the local site. This is used
+ * to estimate the set difference on a site
+ */
+  int local_decoded_count;
+
+  /**
+ * If an IBF is decoded this count stores how many
+ * elements are on the remote site. This is used
+ * to estimate the set difference on a site
+ */
+  int remote_decoded_count;
 
   /**
    * Xor sums of the elements' keys, used to identify the elements.
@@ -125,8 +140,9 @@ struct InvertibleBloomFilter
 void
 ibf_write_slice (const struct InvertibleBloomFilter *ibf,
                  uint32_t start,
-                 uint32_t count,
-                 void *buf);
+                 uint64_t count,
+                 void *buf,
+                 uint8_t counter_max_length);
 
 
 /**
@@ -140,8 +156,9 @@ ibf_write_slice (const struct InvertibleBloomFilter *ibf,
 void
 ibf_read_slice (const void *buf,
                 uint32_t start,
-                uint32_t count,
-                struct InvertibleBloomFilter *ibf);
+                uint64_t count,
+                struct InvertibleBloomFilter *ibf,
+                uint8_t counter_max_length);
 
 
 /**
@@ -243,6 +260,44 @@ ibf_dup (const struct InvertibleBloomFilter *ibf);
  */
 void
 ibf_destroy (struct InvertibleBloomFilter *ibf);
+
+uint8_t
+ibf_get_max_counter (struct InvertibleBloomFilter *ibf);
+
+
+/**
+ *  Packs the counter to transmit only the smallest possible amount of bytes and
+ *  preventing overflow of the counter
+ * @param ibf the ibf to write
+ * @param start with which bucket to start
+ * @param count how many buckets to write
+ * @param buf buffer to write the data to
+ * @param max bit length of a counter for unpacking
+ */
+
+void
+pack_counter (const struct InvertibleBloomFilter *ibf,
+              uint32_t start,
+              uint64_t count,
+              uint8_t *buf,
+              uint8_t counter_max_length);
+
+/**
+ *  Unpacks the counter to transmit only the smallest possible amount of bytes and
+ *  preventing overflow of the counter
+ * @param ibf the ibf to write
+ * @param start with which bucket to start
+ * @param count how many buckets to write
+ * @param buf buffer to write the data to
+ * @param max bit length of a counter for unpacking
+ */
+
+void
+unpack_counter (const struct InvertibleBloomFilter *ibf,
+                uint32_t start,
+                uint64_t count,
+                uint8_t *buf,
+                uint8_t counter_max_length);
 
 
 #if 0                           /* keep Emacsens' auto-indent happy */

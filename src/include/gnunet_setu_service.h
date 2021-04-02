@@ -163,7 +163,31 @@ enum GNUNET_SETU_OptionType
   /**
    * Notify client also if we are sending a value to the other peer.
    */
-  GNUNET_SETU_OPTION_SYMMETRIC = 8
+  GNUNET_SETU_OPTION_SYMMETRIC = 8,
+
+  /**
+   * Byzantine upper bound. Is the maximal plausible number of elements
+   * a peer can have default max uint64
+   */
+  GNUNET_SETU_OPTION_CUSTOM_BYZANTINE_UPPER_BOUND = 16,
+
+  /**
+   * Bandwidth latency tradeoff determines how much bytes a single RTT is
+   * worth, which is a performance setting
+   */
+  GNUNET_SETU_OPTION_CUSTOM_BANDWIDTH_LATENCY_TRADEOFF= 32,
+
+   /**
+   * The factor determines the number of buckets an IBF has which is
+   * multiplied by the estimated setsize default: 2
+   */
+    GNUNET_SETU_OPTION_CUSTOM_IBF_BUCKET_NUMBER_FACTOR= 64,
+
+   /**
+   * This setting determines to how many IBF buckets an single elements
+   * is mapped to.
+   */
+    GNUNET_SETU_OPTION_CUSTOM_IBF_BUCKETS_PER_ELEMENT= 128
 };
 
 

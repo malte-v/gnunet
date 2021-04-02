@@ -122,6 +122,31 @@ struct GNUNET_SETU_AcceptMessage
    */
   uint32_t byzantine_lower_bound;
 
+
+  /**
+   * Upper bound for the set size, used only when
+   * byzantine mode is enabled.
+   */
+  uint64_t byzantine_upper_bond;
+
+  /**
+   * Bandwidth latency tradeoff determines how much bytes a single RTT is
+   * worth, which is a performance setting
+   */
+  uint64_t bandwidth_latency_tradeoff;
+
+  /**
+  * The factor determines the number of buckets an IBF has which is
+  * multiplied by the estimated setsize default: 2
+  */
+  uint64_t ibf_bucket_number_factor;
+
+  /**
+  * This setting determines to how many IBF buckets an single elements
+  * is mapped to.
+  */
+  uint64_t ibf_number_of_buckets_per_element;
+
 };
 
 
@@ -225,6 +250,30 @@ struct GNUNET_SETU_EvaluateMessage
    * byzantine mode is enabled.
    */
   uint32_t byzantine_lower_bound;
+
+  /**
+   * Upper bound for the set size, used only when
+   * byzantine mode is enabled.
+   */
+  uint64_t byzantine_upper_bond;
+
+  /**
+   * Bandwidth latency tradeoff determines how much bytes a single RTT is
+   * worth, which is a performance setting
+   */
+  uint64_t bandwidth_latency_tradeoff;
+
+  /**
+  * The factor determines the number of buckets an IBF has which is
+  * multiplied by the estimated setsize default: 2
+  */
+  uint64_t ibf_bucket_number_factor;
+
+  /**
+  * This setting determines to how many IBF buckets an single elements
+  * is mapped to.
+  */
+  uint64_t ibf_number_of_buckets_per_element;
 
   /* rest: context message, that is, application-specific
      message to convince listener to pick up */

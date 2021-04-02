@@ -245,6 +245,7 @@ void
 ibf_destroy (struct InvertibleBloomFilter *ibf);
 
 
+
 #if 0                           /* keep Emacsens' auto-indent happy */
 {
 #endif
