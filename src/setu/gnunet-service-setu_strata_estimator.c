@@ -62,7 +62,9 @@ strata_estimator_write (const struct StrataEstimator *se,
                                 &cbuf,
                                 &nsize))
     {
-      GNUNET_memcpy (buf, cbuf, nsize);
+      GNUNET_memcpy (buf,
+                     cbuf,
+                     nsize);
       osize = nsize;
       GNUNET_free (cbuf);
     }
@@ -224,19 +226,23 @@ strata_estimator_difference (const struct StrataEstimator *se1,
 
     /* FIXME: implement this without always allocating new IBFs */
     diff = ibf_dup (se1->strata[i]);
-    ibf_subtract (diff, se2->strata[i]);
+    ibf_subtract (diff,
+                  se2->strata[i]);
     for (int ibf_count = 0; GNUNET_YES; ibf_count++)
     {
       int more;
 
-      more = ibf_decode (diff, NULL, NULL);
+      more = ibf_decode (diff,
+                         NULL,
+                         NULL);
       if (GNUNET_NO == more)
       {
         count += ibf_count;
         break;
       }
       /* Estimate if decoding fails or would not terminate */
-      if ((GNUNET_SYSERR == more) || (ibf_count > diff->size))
+      if ( (GNUNET_SYSERR == more) ||
+           (ibf_count > diff->size) )
       {
         ibf_destroy (diff);
         return count * (1 << (i + 1));
