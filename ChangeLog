@@ -1,3 +1,24 @@
+Sat, 3 Apr 2021 09:40:46 +0200 (08fe7735b)
+handbook: Add section on commit messages and developer branches - Martin Schanzenbach
+
+Thu, 1 Apr 2021 00:41:38 +0200 (9f340d5cc)
+SETU: added some more perf messurement point for var message size - Elias Summermatter
+
+Thu, 1 Apr 2021 00:15:43 +0200 (12bb61317)
+SETU: fixed some bug in rand element gen and added variable payload for perfmance - Elias Summermatter
+
+Wed, 31 Mar 2021 11:49:10 +0200 (902331756)
+SETU: Added new operation parameters for performance tests - Elias Summermatter
+
+Wed, 31 Mar 2021 11:16:38 +0200 (b5660e0a3)
+SETU: imporved tests - Elias Summermatter
+
+Tue, 30 Mar 2021 19:26:40 +0200 (ca4c9eae2)
+UTIL/SCALARPRODUCT: Do not build ECC dlog or scalarproduct with incompatible libgcrypt versions (>=1.9.0) - Martin Schanzenbach
+
+Mon, 22 Mar 2021 20:06:33 +0100 (a42d7df64)
+fix #6808: gnunet-bcd card generation - Martin Schanzenbach
+
 Thu, 18 Mar 2021 18:44:46 +0100 (7d85c27e9)
 Fixed setu tests and state maschine - Elias Summermatter
 
