@@ -689,6 +689,7 @@ Here you can find some rules to help you write code for GNUnet.
 @menu
 * Naming conventions::
 * Coding style::
+* Commit messages and developer branches::
 @end menu
 
 @node Naming conventions
@@ -1091,6 +1092,75 @@ fun (short i,
      short j);
 @end example
 
+@end itemize
+
+@cindex Commit messages and developer branches
+@node Commit messages and developer branches
+@subsection Commit messages and developer branches
+
+You can find the GNUnet project repositories at @uref{https://git.gnunet.org}.
+For each release, the ChangeLog file is generated from the commit history.
+Hence, commit messages are required to convey what changes were made in
+a self-contained fashion. Commit messages such as "fix" or "cleanup" are
+not acceptable.
+You commit message should ideally start with the subsystem name and be followed
+by a succinct description of the change. Where applicable a reference to
+a bug number in the bugtracker may also be included.
+Example:
+
+@example
+# <subsystem>: <description>. (#XXXX)
+IDENTITY: Fix wrong key construction for anonymous ECDSA identity. (Fixes #12344)
+@end example
+
+If you need to commit a minor fix you may prefix the commit message with a
+dash. It will then be ignored when generating the ChangeLog entries:
+
+@example
+# -<text>
+-fix
+@end example
+
+If you need to modify a commit you can do so using:
+
+@example
+$ git commit --amend
+@end example
+
+If you need to modify a number of successive commits you will have to rebase
+and squash.
+Note that most branches are protected. This means that you can only fix commits
+as long as they are not pushed. You can only modify pushed commits in your own
+developer branches.
+
+A developer branch is a branch which matches a developer-specific prefix.
+As a developer with git access, you should have a git username. If you do not
+know it, please ask an admin.
+A developer branch has the format:
+
+@example
+dev/<username>/<branchname>
+@end example
+
+
+Assuming the developer with username "jdoe" wants to create a new branch for an
+i18n fix, the branch name could be:
+
+@example
+dev/jdoe/i18n_fx
+@end example
+
+The developer will be able to force push to and delete branches under his prefix.
+It is highly recommended to work in your own developer branches.
+Code which conforms to the commit message guidelines and coding style, is tested
+and builds may be merged to the master branch.
+Preferably, you would then...
+
+@itemize
+@item ...squash your commits,
+@item rebase to master and then
+@item merge your branch.
+@item (optional) Delete the branch.
 @end itemize
 
 @c ***********************************************************************
