@@ -20,7 +20,7 @@
 
 /**
  * @file set/ibf.c
- * @brief implementation of the invertible bloom filter
+ * @brief implementation of the invertible Bloom filter
  * @author Florian Dold
  */
 
@@ -58,12 +58,11 @@ ibf_hashcode_from_key (struct IBF_Key key,
                        struct GNUNET_HashCode *dst)
 {
   struct IBF_Key *p;
-  unsigned int i;
   const unsigned int keys_per_hashcode = sizeof(struct GNUNET_HashCode)
                                          / sizeof(struct IBF_Key);
 
   p = (struct IBF_Key *) dst;
-  for (i = 0; i < keys_per_hashcode; i++)
+  for (unsigned int i = 0; i < keys_per_hashcode; i++)
     *p++ = key;
 }
 
@@ -76,12 +75,12 @@ ibf_hashcode_from_key (struct IBF_Key key,
  * @return the newly created invertible bloom filter, NULL on error
  */
 struct InvertibleBloomFilter *
-ibf_create (uint32_t size, uint8_t hash_num)
+ibf_create (uint32_t size,
+            uint8_t hash_num)
 {
   struct InvertibleBloomFilter *ibf;
 
   GNUNET_assert (0 != size);
-
   ibf = GNUNET_new (struct InvertibleBloomFilter);
   ibf->count = GNUNET_malloc_large (size * sizeof(uint8_t));
   if (NULL == ibf->count)
@@ -106,7 +105,6 @@ ibf_create (uint32_t size, uint8_t hash_num)
   }
   ibf->size = size;
   ibf->hash_num = hash_num;
-
   return ibf;
 }
 
@@ -123,7 +121,8 @@ ibf_get_indices (const struct InvertibleBloomFilter *ibf,
   uint32_t i;
   uint32_t bucket;
 
-  bucket = GNUNET_CRYPTO_crc32_n (&key, sizeof key);
+  bucket = GNUNET_CRYPTO_crc32_n (&key,
+                                  sizeof (key));
   for (i = 0, filled = 0; filled < ibf->hash_num; i++)
   {
     uint64_t x;
@@ -134,7 +133,8 @@ ibf_get_indices (const struct InvertibleBloomFilter *ibf,
     dst[filled++] = bucket % ibf->size;
 try_next:
     x = ((uint64_t) bucket << 32) | i;
-    bucket = GNUNET_CRYPTO_crc32_n (&x, sizeof x);
+    bucket = GNUNET_CRYPTO_crc32_n (&x,
+                                    sizeof (x));
   }
 }
 
@@ -170,8 +170,13 @@ ibf_insert (struct InvertibleBloomFilter *ibf,
   int buckets[ibf->hash_num];
 
   GNUNET_assert (ibf->hash_num <= ibf->size);
-  ibf_get_indices (ibf, key, buckets);
-  ibf_insert_into (ibf, key, buckets, 1);
+  ibf_get_indices (ibf,
+                   key,
+                   buckets);
+  ibf_insert_into (ibf,
+                   key,
+                   buckets,
+                   1);
 }
 
 
@@ -188,8 +193,13 @@ ibf_remove (struct InvertibleBloomFilter *ibf,
   int buckets[ibf->hash_num];
 
   GNUNET_assert (ibf->hash_num <= ibf->size);
-  ibf_get_indices (ibf, key, buckets);
-  ibf_insert_into (ibf, key, buckets, -1);
+  ibf_get_indices (ibf,
+                   key,
+                   buckets);
+  ibf_insert_into (ibf,
+                   key,
+                   buckets,
+                   -1);
 }
 
 
@@ -234,8 +244,6 @@ ibf_decode (struct InvertibleBloomFilter *ibf,
 
   for (uint32_t i = 0; i < ibf->size; i++)
   {
-    int hit;
-
     /* we can only decode from pure buckets */
     if ( (1 != ibf->count[i].count_val) &&
          (-1 != ibf->count[i].count_val) )
@@ -249,23 +257,30 @@ ibf_decode (struct InvertibleBloomFilter *ibf,
 
     /* test if key in bucket hits its own location,
      * if not, the key hash was subject to collision */
-    hit = GNUNET_NO;
-    ibf_get_indices (ibf, ibf->key_sum[i], buckets);
-    for (int j = 0; j < ibf->hash_num; j++)
-      if (buckets[j] == i)
-        hit = GNUNET_YES;
+    {
+      bool hit = false;
 
-    if (GNUNET_NO == hit)
-      continue;
-
+      ibf_get_indices (ibf,
+                       ibf->key_sum[i],
+                       buckets);
+      for (int j = 0; j < ibf->hash_num; j++)
+        if (buckets[j] == i)
+        {
+          hit = true;
+          break;
+        }
+      if (! hit)
+        continue;
+    }
     if (NULL != ret_side)
       *ret_side = ibf->count[i].count_val;
     if (NULL != ret_id)
       *ret_id = ibf->key_sum[i];
 
     /* insert on the opposite side, effectively removing the element */
-    ibf_insert_into (ibf, ibf->key_sum[i], buckets, -ibf->count[i].count_val);
-
+    ibf_insert_into (ibf,
+                     ibf->key_sum[i], buckets,
+                     -ibf->count[i].count_val);
     return GNUNET_YES;
   }
 
@@ -287,7 +302,8 @@ ibf_decode (struct InvertibleBloomFilter *ibf,
 void
 ibf_write_slice (const struct InvertibleBloomFilter *ibf,
                  uint32_t start,
-                 uint32_t count, void *buf)
+                 uint32_t count,
+                 void *buf)
 {
   struct IBF_Key *key_dst;
   struct IBF_KeyHash *key_hash_dst;
