@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: GNUnet 0.7.0b\n"
 "Report-Msgid-Bugs-To: gnunet-developers@mail.gnu.org\n"
-"POT-Creation-Date: 2020-11-13 23:46+0900\n"
+"POT-Creation-Date: 2021-04-04 19:19+0200\n"
 "PO-Revision-Date: 2006-01-21 17:16+0100\n"
 "Last-Translator: Daniel Nylander <po@danielnylander.se>\n"
 "Language-Team: Swedish <tp-sv@listor.tp-sv.se>\n"
@@ -763,7 +763,7 @@ msgstr ""
 
 #: src/auction/gnunet-auction-info.c:77 src/auction/gnunet-auction-join.c:77
 #: src/conversation/gnunet-conversation-test.c:256
-#: src/revocation/gnunet-revocation.c:569 src/template/gnunet-template.c:75
+#: src/revocation/gnunet-revocation.c:564 src/template/gnunet-template.c:75
 #, fuzzy
 msgid "help text"
 msgstr "hjälptext för -t"
@@ -1347,7 +1347,7 @@ msgstr "Okänt fel"
 msgid "%24s: %-30s %4s (timeout in %6s)\n"
 msgstr ""
 
-#: src/core/gnunet-core.c:157 src/peerinfo-tool/gnunet-peerinfo.c:696
+#: src/core/gnunet-core.c:157 src/peerinfo-tool/gnunet-peerinfo.c:697
 #, fuzzy, c-format
 msgid "Invalid command line argument `%s'\n"
 msgstr "Ogiltiga kommandoradsargument:\n"
@@ -1649,7 +1649,7 @@ msgstr ""
 #: src/testbed/generate-underlay-topology.c:48
 #: src/testbed/gnunet-daemon-latency-logger.c:53
 #: src/testbed/gnunet-daemon-testbed-underlay.c:57
-#: src/testbed/testbed_api_hosts.c:72 src/util/crypto_ecc.c:62
+#: src/testbed/testbed_api_hosts.c:72 src/util/crypto_ecc.c:78
 #: src/util/crypto_ecc_setup.c:47 src/util/crypto_mpi.c:40
 #, c-format
 msgid "`%s' failed at %s:%d with error: %s\n"
@@ -2098,7 +2098,7 @@ msgstr ""
 msgid "Exiting as the number of peers is %u\n"
 msgstr "Maximalt antal chattklienter uppnått.\n"
 
-#: src/dht/gnunet_dht_profiler.c:955 src/rps/gnunet-rps-profiler.c:3194
+#: src/dht/gnunet_dht_profiler.c:955 src/rps/gnunet-rps-profiler.c:3136
 #, fuzzy
 msgid "number of peers to start"
 msgstr "antal iterationer"
@@ -3300,7 +3300,7 @@ msgid "Downloading `%s' done (%s/s).\n"
 msgstr "Uppladdning vägrades!"
 
 #: src/fs/gnunet-download.c:206 src/fs/gnunet-publish.c:299
-#: src/fs/gnunet-search.c:226 src/fs/gnunet-unindex.c:117
+#: src/fs/gnunet-search.c:229 src/fs/gnunet-unindex.c:117
 #, c-format
 msgid "Unexpected status: %d\n"
 msgstr ""
@@ -3324,12 +3324,12 @@ msgid "Target filename must be specified.\n"
 msgstr ""
 
 #: src/fs/gnunet-download.c:271 src/fs/gnunet-publish.c:869
-#: src/fs/gnunet-search.c:291 src/fs/gnunet-unindex.c:154
+#: src/fs/gnunet-search.c:294 src/fs/gnunet-unindex.c:154
 #, fuzzy, c-format
 msgid "Could not initialize `%s' subsystem.\n"
 msgstr "Misslyckades att initiera tjänsten \"%s\".\n"
 
-#: src/fs/gnunet-download.c:318 src/fs/gnunet-search.c:331
+#: src/fs/gnunet-download.c:318 src/fs/gnunet-search.c:334
 msgid "set the desired LEVEL of receiver-anonymity"
 msgstr ""
 
@@ -3337,7 +3337,7 @@ msgstr ""
 msgid "delete incomplete downloads (when aborted with CTRL-C)"
 msgstr ""
 
-#: src/fs/gnunet-download.c:330 src/fs/gnunet-search.c:336
+#: src/fs/gnunet-download.c:330 src/fs/gnunet-search.c:339
 msgid "only search the local peer (no P2P network search)"
 msgstr ""
 
@@ -3581,39 +3581,39 @@ msgstr ""
 msgid "Publish a file or directory on GNUnet"
 msgstr ""
 
-#: src/fs/gnunet-search.c:127
+#: src/fs/gnunet-search.c:130
 #, c-format
 msgid "Failed to write directory with search results to `%s'\n"
 msgstr ""
 
-#: src/fs/gnunet-search.c:216
+#: src/fs/gnunet-search.c:219
 #, fuzzy, c-format
 msgid "Error searching: %s.\n"
 msgstr "Fel vid lämning av DHT.\n"
 
-#: src/fs/gnunet-search.c:278
+#: src/fs/gnunet-search.c:281
 #, fuzzy
 msgid "Could not create keyword URI from arguments.\n"
 msgstr "Kunde inte skapa namnrymd \"%s\" (existerar?).\n"
 
-#: src/fs/gnunet-search.c:305
+#: src/fs/gnunet-search.c:308
 #, fuzzy
 msgid "Could not start searching.\n"
 msgstr "Kunde inte skapa namnrymd \"%s\" (existerar?).\n"
 
-#: src/fs/gnunet-search.c:342
+#: src/fs/gnunet-search.c:345
 msgid "write search results to file starting with PREFIX"
 msgstr ""
 
-#: src/fs/gnunet-search.c:348
+#: src/fs/gnunet-search.c:351
 msgid "automatically terminate search after DELAY"
 msgstr ""
 
-#: src/fs/gnunet-search.c:354
+#: src/fs/gnunet-search.c:357
 msgid "automatically terminate search after VALUE results are found"
 msgstr ""
 
-#: src/fs/gnunet-search.c:368
+#: src/fs/gnunet-search.c:371
 msgid "Search GNUnet for files that were published on GNUnet"
 msgstr ""
 
@@ -3997,7 +3997,7 @@ msgstr ""
 msgid "Expected a base32-encoded public zone key\n"
 msgstr ""
 
-#: src/gns/gnunet-bcd.c:133
+#: src/gns/gnunet-bcd.c:134
 #, c-format
 msgid "Refusing `%s' request to HTTP server\n"
 msgstr ""
@@ -4030,35 +4030,40 @@ msgstr ""
 msgid "Failed to pack DNS response into UDP packet!\n"
 msgstr "Misslyckades att skicka HTTP-begäran till värd \"%s\": %s\n"
 
-#: src/gns/gnunet-dns2gns.c:444
+#: src/gns/gnunet-dns2gns.c:315
+#, fuzzy
+msgid "Failed to parse DNS response!\n"
+msgstr "Misslyckades att skicka HTTP-begäran till värd \"%s\": %s\n"
+
+#: src/gns/gnunet-dns2gns.c:452
 #, fuzzy, c-format
 msgid "Cannot parse DNS request from %s\n"
 msgstr "Misslyckades att skicka HTTP-begäran till värd \"%s\": %s\n"
 
-#: src/gns/gnunet-dns2gns.c:460
+#: src/gns/gnunet-dns2gns.c:468
 #, fuzzy, c-format
 msgid "Received malformed DNS request from %s\n"
 msgstr "Mottog ogiltig \"%s\" begäran (storlek %d)\n"
 
-#: src/gns/gnunet-dns2gns.c:468
+#: src/gns/gnunet-dns2gns.c:476
 #, fuzzy, c-format
 msgid "Received unsupported DNS request from %s\n"
 msgstr "Mottog okänd typ av begäran %d vid %s:%d\n"
 
-#: src/gns/gnunet-dns2gns.c:629
+#: src/gns/gnunet-dns2gns.c:637
 #, fuzzy
 msgid "No DNS server specified!\n"
 msgstr "Inga nyckelord angivna!\n"
 
-#: src/gns/gnunet-dns2gns.c:778
+#: src/gns/gnunet-dns2gns.c:786
 msgid "IP of recursive DNS resolver to use (required)"
 msgstr ""
 
-#: src/gns/gnunet-dns2gns.c:784
+#: src/gns/gnunet-dns2gns.c:792
 msgid "UDP port to listen on for inbound DNS requests; default: 2853"
 msgstr ""
 
-#: src/gns/gnunet-dns2gns.c:801
+#: src/gns/gnunet-dns2gns.c:809
 msgid "GNUnet DNS-to-GNS proxy (a DNS server)"
 msgstr ""
 
@@ -4179,64 +4184,64 @@ msgstr ""
 msgid "Cookie domain `%s' supplied by server is invalid\n"
 msgstr ""
 
-#: src/gns/gnunet-gns-proxy.c:2133
+#: src/gns/gnunet-gns-proxy.c:2134
 #, fuzzy, c-format
 msgid "Unsupported HTTP method `%s'\n"
 msgstr "Kommando \"%s\" stöds ej.  Avbryter.\n"
 
-#: src/gns/gnunet-gns-proxy.c:2657
+#: src/gns/gnunet-gns-proxy.c:2658
 #, fuzzy, c-format
 msgid "Unable to import private key from file `%s'\n"
 msgstr "Kunde inte skapa användarkonto:"
 
-#: src/gns/gnunet-gns-proxy.c:2689
+#: src/gns/gnunet-gns-proxy.c:2690
 #, fuzzy, c-format
 msgid "Unable to import certificate from `%s'\n"
 msgstr "Kunde inte spara konfigurationsfil \"%s\":"
 
-#: src/gns/gnunet-gns-proxy.c:2898
+#: src/gns/gnunet-gns-proxy.c:2899
 #, fuzzy, c-format
 msgid "Failed to start HTTPS server for `%s'\n"
 msgstr "Misslyckades att starta samling.\n"
 
-#: src/gns/gnunet-gns-proxy.c:2922 src/rest/gnunet-rest-server.c:917
+#: src/gns/gnunet-gns-proxy.c:2923 src/rest/gnunet-rest-server.c:917
 #, fuzzy
 msgid "Failed to pass client to MHD\n"
 msgstr "Misslyckades att ansluta till gnunetd.\n"
 
-#: src/gns/gnunet-gns-proxy.c:3271
+#: src/gns/gnunet-gns-proxy.c:3272
 #, fuzzy, c-format
 msgid "Unsupported socks version %d\n"
 msgstr "Kommando \"%s\" stöds ej.  Avbryter.\n"
 
-#: src/gns/gnunet-gns-proxy.c:3303
+#: src/gns/gnunet-gns-proxy.c:3304
 #, fuzzy, c-format
 msgid "Unsupported socks command %d\n"
 msgstr "Kommando \"%s\" stöds ej.  Avbryter.\n"
 
-#: src/gns/gnunet-gns-proxy.c:3389
+#: src/gns/gnunet-gns-proxy.c:3390
 #, fuzzy, c-format
 msgid "Unsupported socks address type %d\n"
 msgstr "Kommando \"%s\" stöds ej.  Avbryter.\n"
 
-#: src/gns/gnunet-gns-proxy.c:3730
+#: src/gns/gnunet-gns-proxy.c:3731
 #, fuzzy, c-format
 msgid "Failed to load X.509 key and certificate from `%s'\n"
 msgstr "Misslyckades att läsa kompislista från \"%s\"\n"
 
-#: src/gns/gnunet-gns-proxy.c:3864
+#: src/gns/gnunet-gns-proxy.c:3865
 msgid "listen on specified port (default: 7777)"
 msgstr ""
 
-#: src/gns/gnunet-gns-proxy.c:3869
+#: src/gns/gnunet-gns-proxy.c:3870
 msgid "pem file to use as CA"
 msgstr ""
 
-#: src/gns/gnunet-gns-proxy.c:3873
+#: src/gns/gnunet-gns-proxy.c:3874
 msgid "disable use of IPv6"
 msgstr ""
 
-#: src/gns/gnunet-gns-proxy.c:3899
+#: src/gns/gnunet-gns-proxy.c:3900
 msgid "GNUnet GNS proxy"
 msgstr ""
 
@@ -4261,7 +4266,7 @@ msgstr "Kunde inte ansluta till gnunetd.\n"
 msgid "Error converting GNS response to DNS response!\n"
 msgstr ""
 
-#: src/gns/gnunet-service-gns_interceptor.c:387
+#: src/gns/gnunet-service-gns_interceptor.c:386
 #, fuzzy
 msgid "Failed to connect to the DNS service!\n"
 msgstr "Misslyckades att ansluta till gnunetd.\n"
@@ -4296,36 +4301,36 @@ msgstr ""
 msgid "VPN returned empty result for `%s'\n"
 msgstr ""
 
-#: src/gns/gnunet-service-gns_resolver.c:1910
+#: src/gns/gnunet-service-gns_resolver.c:1919
 #, c-format
 msgid "Name `%s' cannot be converted to IDNA."
 msgstr ""
 
-#: src/gns/gnunet-service-gns_resolver.c:1923
+#: src/gns/gnunet-service-gns_resolver.c:1934
 #, c-format
 msgid "GNS lookup resulted in DNS name that is too long (`%s')\n"
 msgstr ""
 
-#: src/gns/gnunet-service-gns_resolver.c:1966
+#: src/gns/gnunet-service-gns_resolver.c:1979
 #, fuzzy, c-format
 msgid "GNS lookup failed (zero records found for `%s')\n"
 msgstr "%d filer hittades i katalog.\n"
 
-#: src/gns/gnunet-service-gns_resolver.c:2393
+#: src/gns/gnunet-service-gns_resolver.c:2406
 msgid "GNS lookup recursion failed (no delegation record found)\n"
 msgstr ""
 
-#: src/gns/gnunet-service-gns_resolver.c:2416
+#: src/gns/gnunet-service-gns_resolver.c:2429
 #, fuzzy, c-format
 msgid "Failed to cache GNS resolution: %s\n"
 msgstr "Misslyckades att skicka HTTP-begäran till värd \"%s\": %s\n"
 
-#: src/gns/gnunet-service-gns_resolver.c:2581
+#: src/gns/gnunet-service-gns_resolver.c:2594
 #, c-format
 msgid "GNS namecache returned empty result for `%s'\n"
 msgstr ""
 
-#: src/gns/gnunet-service-gns_resolver.c:2721
+#: src/gns/gnunet-service-gns_resolver.c:2734
 #, c-format
 msgid "Zone %s was revoked, resolution fails\n"
 msgstr ""
@@ -4359,7 +4364,7 @@ msgstr "Misslyckades att läsa kompislista från \"%s\"\n"
 msgid "Unable to parse BOX record string `%s'\n"
 msgstr "Misslyckades att läsa kompislista från \"%s\"\n"
 
-#: src/gns/plugin_rest_gns.c:448
+#: src/gns/plugin_rest_gns.c:450
 #, fuzzy
 msgid "Gns REST API initialized\n"
 msgstr " Anslutning misslyckades\n"
@@ -4701,7 +4706,7 @@ msgstr ""
 #: src/hostlist/gnunet-daemon-hostlist_server.c:236
 #: src/hostlist/gnunet-daemon-hostlist_server.c:527
 #: src/peerinfo-tool/gnunet-peerinfo.c:379
-#: src/peerinfo-tool/gnunet-peerinfo.c:515
+#: src/peerinfo-tool/gnunet-peerinfo.c:516
 #: src/topology/gnunet-daemon-topology.c:799
 #, fuzzy, c-format
 msgid "Error in communication with PEERINFO service: %s\n"
@@ -4866,8 +4871,8 @@ msgid "default configured, but ego unknown (internal error)"
 msgstr ""
 
 #: src/identity/gnunet-service-identity.c:621
-#: src/identity/gnunet-service-identity.c:898
-#: src/identity/gnunet-service-identity.c:1018
+#: src/identity/gnunet-service-identity.c:896
+#: src/identity/gnunet-service-identity.c:1016
 #, fuzzy, c-format
 msgid "Failed to write subsystem default identifier map to `%s'.\n"
 msgstr "Misslyckades att läsa kompislista från \"%s\"\n"
@@ -4876,30 +4881,30 @@ msgstr "Misslyckades att läsa kompislista från \"%s\"\n"
 msgid "Unknown ego specified for service (internal error)"
 msgstr ""
 
-#: src/identity/gnunet-service-identity.c:726
+#: src/identity/gnunet-service-identity.c:725
 msgid "identifier already in use for another ego"
 msgstr ""
 
-#: src/identity/gnunet-service-identity.c:874
+#: src/identity/gnunet-service-identity.c:872
 msgid "target name already exists"
 msgstr ""
 
-#: src/identity/gnunet-service-identity.c:916
-#: src/identity/gnunet-service-identity.c:1035
+#: src/identity/gnunet-service-identity.c:914
+#: src/identity/gnunet-service-identity.c:1033
 msgid "no matching ego found"
 msgstr ""
 
-#: src/identity/gnunet-service-identity.c:1133
+#: src/identity/gnunet-service-identity.c:1131
 #, fuzzy, c-format
 msgid "Failed to parse ego information in `%s'\n"
 msgstr "Misslyckades att läsa kompislista från \"%s\"\n"
 
-#: src/identity/gnunet-service-identity.c:1191
+#: src/identity/gnunet-service-identity.c:1189
 #, fuzzy, c-format
 msgid "Failed to parse subsystem identity configuration file `%s'\n"
 msgstr "Kunde inte spara konfigurationsfil \"%s\":"
 
-#: src/identity/gnunet-service-identity.c:1200
+#: src/identity/gnunet-service-identity.c:1198
 #, fuzzy, c-format
 msgid "Failed to create directory `%s' for storing egos\n"
 msgstr "Misslyckades att läsa kompislista från \"%s\"\n"
@@ -5141,7 +5146,7 @@ msgid "Invalid public key for reverse lookup `%s'\n"
 msgstr "Ogiltigt argument: \"%s\"\n"
 
 #: src/namestore/gnunet-namestore.c:1220
-#: src/peerinfo-tool/gnunet-peerinfo.c:736
+#: src/peerinfo-tool/gnunet-peerinfo.c:737
 #, fuzzy, c-format
 msgid "Invalid URI `%s'\n"
 msgstr "Ogiltiga argument: "
@@ -5328,7 +5333,7 @@ msgstr ""
 msgid "GNU Name System First Come First Serve name registration service"
 msgstr ""
 
-#: src/namestore/gnunet-service-namestore.c:866
+#: src/namestore/gnunet-service-namestore.c:871
 #, fuzzy, c-format
 msgid "Failed to replicate block in namecache: %s\n"
 msgstr "Misslyckades att läsa kompislista från \"%s\"\n"
@@ -5359,7 +5364,7 @@ msgstr ""
 msgid "Flat file database running\n"
 msgstr ""
 
-#: src/namestore/plugin_rest_namestore.c:1103
+#: src/namestore/plugin_rest_namestore.c:1105
 #, fuzzy
 msgid "Namestore REST API initialized\n"
 msgstr " Anslutning misslyckades\n"
@@ -5681,8 +5686,8 @@ msgstr ""
 msgid "Measure quality and performance of the NSE service."
 msgstr "Kan inte tillgå tjänsten"
 
-#: src/nse/gnunet-service-nse.c:1443
-#: src/revocation/gnunet-service-revocation.c:875 src/util/gnunet-scrypt.c:257
+#: src/nse/gnunet-service-nse.c:1450
+#: src/revocation/gnunet-service-revocation.c:883 src/util/gnunet-scrypt.c:260
 msgid "Value is too large.\n"
 msgstr ""
 
@@ -5722,17 +5727,17 @@ msgstr "Misslyckades att läsa kompislista från \"%s\"\n"
 msgid "Still no peers found in `%s'!\n"
 msgstr ""
 
-#: src/peerinfo/gnunet-service-peerinfo.c:1024
+#: src/peerinfo/gnunet-service-peerinfo.c:1027
 #, fuzzy, c-format
 msgid "Cleaning up directory `%s'\n"
 msgstr "Misslyckades att läsa kompislista från \"%s\"\n"
 
-#: src/peerinfo/gnunet-service-peerinfo.c:1319
+#: src/peerinfo/gnunet-service-peerinfo.c:1322
 #, c-format
 msgid "Importing HELLOs from `%s'\n"
 msgstr ""
 
-#: src/peerinfo/gnunet-service-peerinfo.c:1332
+#: src/peerinfo/gnunet-service-peerinfo.c:1335
 msgid "Skipping import of included HELLOs\n"
 msgstr ""
 
@@ -5752,7 +5757,7 @@ msgid "\tExpires: %s \t %s\n"
 msgstr ""
 
 #: src/peerinfo-tool/gnunet-peerinfo.c:292
-#: src/peerinfo-tool/plugin_rest_peerinfo.c:523
+#: src/peerinfo-tool/plugin_rest_peerinfo.c:525
 #, fuzzy, c-format
 msgid "Failure: Cannot convert address to string for peer `%s'\n"
 msgstr "Misslyckades att binda till UDP-port %d.\n"
@@ -5762,54 +5767,54 @@ msgstr "Misslyckades att binda till UDP-port %d.\n"
 msgid "Failure: Received invalid %s\n"
 msgstr ""
 
-#: src/peerinfo-tool/gnunet-peerinfo.c:463
+#: src/peerinfo-tool/gnunet-peerinfo.c:464
 #, fuzzy, c-format
 msgid "Failed to write HELLO with %u bytes to file `%s'\n"
 msgstr "Misslyckades att läsa kompislista från \"%s\"\n"
 
-#: src/peerinfo-tool/gnunet-peerinfo.c:479
+#: src/peerinfo-tool/gnunet-peerinfo.c:480
 #, c-format
 msgid "Wrote %s HELLO containing %u addresses with %u bytes to file `%s'\n"
 msgstr ""
 
-#: src/peerinfo-tool/gnunet-peerinfo.c:758
+#: src/peerinfo-tool/gnunet-peerinfo.c:759
 #, c-format
 msgid "I am peer `%s'.\n"
 msgstr "Jag är ändpunkt \"%s\".\n"
 
-#: src/peerinfo-tool/gnunet-peerinfo.c:799
+#: src/peerinfo-tool/gnunet-peerinfo.c:800
 msgid "don't resolve host names"
 msgstr ""
 
-#: src/peerinfo-tool/gnunet-peerinfo.c:805
+#: src/peerinfo-tool/gnunet-peerinfo.c:806
 msgid "output only the identity strings"
 msgstr ""
 
-#: src/peerinfo-tool/gnunet-peerinfo.c:810
+#: src/peerinfo-tool/gnunet-peerinfo.c:811
 msgid "include friend-only information"
 msgstr ""
 
-#: src/peerinfo-tool/gnunet-peerinfo.c:815
+#: src/peerinfo-tool/gnunet-peerinfo.c:816
 msgid "output our own identity only"
 msgstr ""
 
-#: src/peerinfo-tool/gnunet-peerinfo.c:820
+#: src/peerinfo-tool/gnunet-peerinfo.c:821
 msgid "list all known peers"
 msgstr ""
 
-#: src/peerinfo-tool/gnunet-peerinfo.c:826
+#: src/peerinfo-tool/gnunet-peerinfo.c:827
 msgid "dump hello to file"
 msgstr ""
 
-#: src/peerinfo-tool/gnunet-peerinfo.c:831
+#: src/peerinfo-tool/gnunet-peerinfo.c:832
 msgid "also output HELLO uri(s)"
 msgstr ""
 
-#: src/peerinfo-tool/gnunet-peerinfo.c:838
+#: src/peerinfo-tool/gnunet-peerinfo.c:839
 msgid "add given HELLO uri to the database"
 msgstr ""
 
-#: src/peerinfo-tool/gnunet-peerinfo.c:852
+#: src/peerinfo-tool/gnunet-peerinfo.c:853
 #, fuzzy
 msgid "Print information about peers."
 msgstr "Skriv ut information om GNUnets motparter."
@@ -5832,7 +5837,7 @@ msgstr "Testar transport(er) %s\n"
 msgid "Failed to load transport plugin for `%s'\n"
 msgstr "Kunde inte slå upp \"%s\": %s\n"
 
-#: src/peerinfo-tool/plugin_rest_peerinfo.c:809
+#: src/peerinfo-tool/plugin_rest_peerinfo.c:811
 #, fuzzy
 msgid "Peerinfo REST API initialized\n"
 msgstr " Anslutning misslyckades\n"
@@ -5841,7 +5846,7 @@ msgstr " Anslutning misslyckades\n"
 msgid "peerstore"
 msgstr ""
 
-#: src/peerstore/gnunet-service-peerstore.c:561
+#: src/peerstore/gnunet-service-peerstore.c:570
 #, fuzzy, c-format
 msgid "Could not load database backend `%s'\n"
 msgstr "Misslyckades att läsa kompislista från \"%s\"\n"
@@ -6032,12 +6037,12 @@ msgstr ""
 msgid "re:claimID command line tool"
 msgstr ""
 
-#: src/reclaim/plugin_rest_openid_connect.c:2613
+#: src/reclaim/plugin_rest_openid_connect.c:2788
 #, fuzzy
 msgid "OpenID Connect REST API initialized\n"
 msgstr " Anslutning misslyckades\n"
 
-#: src/reclaim/plugin_rest_reclaim.c:1502
+#: src/reclaim/plugin_rest_reclaim.c:1521
 #, fuzzy
 msgid "Identity Provider REST API initialized\n"
 msgstr " Anslutning misslyckades\n"
@@ -6199,116 +6204,116 @@ msgstr ""
 msgid "Cancelling calculation.\n"
 msgstr ""
 
-#: src/revocation/gnunet-revocation.c:299
+#: src/revocation/gnunet-revocation.c:302
 #, c-format
 msgid "Revocation certificate for `%s' stored in `%s'\n"
 msgstr ""
 
-#: src/revocation/gnunet-revocation.c:339
+#: src/revocation/gnunet-revocation.c:334
 #, fuzzy, c-format
 msgid "Ego `%s' not found.\n"
 msgstr "\"%s\" misslyckades: tabell hittades inte!\n"
 
-#: src/revocation/gnunet-revocation.c:356
+#: src/revocation/gnunet-revocation.c:351
 #, c-format
 msgid "Error: revocation certificate in `%s' is not for `%s'\n"
 msgstr ""
 
-#: src/revocation/gnunet-revocation.c:366
+#: src/revocation/gnunet-revocation.c:361
 msgid "Revocation certificate ready\n"
 msgstr ""
 
-#: src/revocation/gnunet-revocation.c:378
+#: src/revocation/gnunet-revocation.c:373
 msgid "Continuing calculation where left off...\n"
 msgstr ""
 
-#: src/revocation/gnunet-revocation.c:385
+#: src/revocation/gnunet-revocation.c:380
 msgid "Revocation certificate not ready, calculating proof of work\n"
 msgstr ""
 
-#: src/revocation/gnunet-revocation.c:423
+#: src/revocation/gnunet-revocation.c:418
 #, fuzzy, c-format
 msgid "Public key `%s' malformed\n"
 msgstr "Ogiltigt argument: \"%s\"\n"
 
-#: src/revocation/gnunet-revocation.c:433
+#: src/revocation/gnunet-revocation.c:428
 msgid ""
 "Testing and revoking at the same time is not allowed, only executing test.\n"
 msgstr ""
 
-#: src/revocation/gnunet-revocation.c:463
+#: src/revocation/gnunet-revocation.c:458
 #, fuzzy
 msgid "No filename to store revocation certificate given.\n"
 msgstr "Misslyckades att läsa kompislista från \"%s\"\n"
 
-#: src/revocation/gnunet-revocation.c:480
+#: src/revocation/gnunet-revocation.c:475
 #, fuzzy, c-format
 msgid "Failed to read revocation certificate from `%s'\n"
 msgstr "Misslyckades att läsa kompislista från \"%s\"\n"
 
-#: src/revocation/gnunet-revocation.c:488
+#: src/revocation/gnunet-revocation.c:483
 #, fuzzy, c-format
 msgid "Revocation certificate corrupted in `%s'\n"
 msgstr "Misslyckades att läsa kompislista från \"%s\"\n"
 
-#: src/revocation/gnunet-revocation.c:510
+#: src/revocation/gnunet-revocation.c:505
 #, fuzzy
 msgid "No action specified. Nothing to do.\n"
 msgstr "Inget tabellnamn angivet, använder \"%s\".\n"
 
-#: src/revocation/gnunet-revocation.c:529
+#: src/revocation/gnunet-revocation.c:524
 msgid "use NAME for the name of the revocation file"
 msgstr ""
 
-#: src/revocation/gnunet-revocation.c:537
+#: src/revocation/gnunet-revocation.c:532
 msgid ""
 "revoke the private key associated for the the private key associated with "
 "the ego NAME "
 msgstr ""
 
-#: src/revocation/gnunet-revocation.c:544
+#: src/revocation/gnunet-revocation.c:539
 msgid "actually perform revocation, otherwise we just do the precomputation"
 msgstr ""
 
-#: src/revocation/gnunet-revocation.c:551
+#: src/revocation/gnunet-revocation.c:546
 msgid "test if the public key KEY has been revoked"
 msgstr ""
 
-#: src/revocation/gnunet-revocation.c:557
+#: src/revocation/gnunet-revocation.c:552
 #, fuzzy
 msgid "number of epochs to calculate for"
 msgstr "antal iterationer"
 
-#: src/revocation/gnunet-service-revocation.c:494
+#: src/revocation/gnunet-service-revocation.c:502
 #, fuzzy
 msgid "# unsupported revocations received via set union"
 msgstr "# byte mottogs via TCP"
 
-#: src/revocation/gnunet-service-revocation.c:504
+#: src/revocation/gnunet-service-revocation.c:512
 #, fuzzy
 msgid "# revocation messages received via set union"
 msgstr "# krypterade PONG-meddelanden mottagna"
 
-#: src/revocation/gnunet-service-revocation.c:509
+#: src/revocation/gnunet-service-revocation.c:517
 #, c-format
 msgid "Error computing revocation set union with %s\n"
 msgstr ""
 
-#: src/revocation/gnunet-service-revocation.c:513
+#: src/revocation/gnunet-service-revocation.c:521
 #, fuzzy
 msgid "# revocation set unions failed"
 msgstr "# sessionsnycklar accepterade"
 
-#: src/revocation/gnunet-service-revocation.c:521
+#: src/revocation/gnunet-service-revocation.c:529
 #, fuzzy
 msgid "# revocation set unions completed"
 msgstr "# klartext PONG-meddelanden mottagna"
 
-#: src/revocation/gnunet-service-revocation.c:559
+#: src/revocation/gnunet-service-revocation.c:567
 msgid "SET service crashed, terminating revocation service\n"
 msgstr ""
 
-#: src/revocation/gnunet-service-revocation.c:912
+#: src/revocation/gnunet-service-revocation.c:920
 #, fuzzy
 msgid "Could not open revocation database file!"
 msgstr "Kunde inte ansluta till gnunetd.\n"
@@ -6325,21 +6330,21 @@ msgstr ""
 msgid "Get peers from biased stream"
 msgstr ""
 
-#: src/rps/gnunet-rps-profiler.c:3200
+#: src/rps/gnunet-rps-profiler.c:3142
 msgid "duration of the profiling"
 msgstr ""
 
-#: src/rps/gnunet-rps-profiler.c:3206
+#: src/rps/gnunet-rps-profiler.c:3148
 #, fuzzy
 msgid "timeout for the profiling"
 msgstr "ange prioritet för innehållet"
 
-#: src/rps/gnunet-rps-profiler.c:3211
+#: src/rps/gnunet-rps-profiler.c:3153
 #, fuzzy
 msgid "number of PeerIDs to request"
 msgstr "antal iterationer"
 
-#: src/rps/gnunet-rps-profiler.c:3228
+#: src/rps/gnunet-rps-profiler.c:3170
 #, fuzzy
 msgid "Measure quality and performance of the RPS service."
 msgstr "Kan inte tillgå tjänsten"
@@ -6428,7 +6433,7 @@ msgid "also profile decryption"
 msgstr ""
 
 #: src/set/gnunet-service-set.c:1916 src/seti/gnunet-service-seti.c:2467
-#: src/setu/gnunet-service-setu.c:3633
+#: src/setu/gnunet-service-setu.c:3832
 #, fuzzy
 msgid "Could not connect to CADET service\n"
 msgstr "Kunde inte ansluta till gnunetd.\n"
@@ -7001,12 +7006,12 @@ msgstr "Fel vid %s:%d.\n"
 msgid "Failed to load configuration from %s\n"
 msgstr "Kunde inte spara konfigurationsfil \"%s\":"
 
-#: src/topology/friends.c:127
+#: src/topology/friends.c:118
 #, fuzzy, c-format
 msgid "Syntax error in FRIENDS file at offset %llu, skipping bytes `%.*s'.\n"
 msgstr "Syntaxfel i konfigurationsfil \"%s\" på rad %d.\n"
 
-#: src/topology/friends.c:181
+#: src/topology/friends.c:172
 #, c-format
 msgid "Directory for file `%s' does not seem to be writable.\n"
 msgstr ""
@@ -7074,19 +7079,19 @@ msgstr "# krypterade PONG-meddelanden mottagna"
 msgid "GNUnet topology control"
 msgstr ""
 
-#: src/transport/gnunet-communicator-tcp.c:3221
-#: src/transport/gnunet-communicator-udp.c:3076
-#: src/transport/gnunet-service-tng.c:10014
+#: src/transport/gnunet-communicator-tcp.c:3331
+#: src/transport/gnunet-communicator-udp.c:3790
+#: src/transport/gnunet-service-tng.c:10220
 #: src/transport/gnunet-service-transport.c:2627
 #, fuzzy
 msgid "Transport service is lacking key configuration settings. Exiting.\n"
 msgstr "GNUnet-konfiguration"
 
-#: src/transport/gnunet-communicator-tcp.c:3553
+#: src/transport/gnunet-communicator-tcp.c:3668
 msgid "GNUnet TCP communicator"
 msgstr ""
 
-#: src/transport/gnunet-communicator-udp.c:3148
+#: src/transport/gnunet-communicator-udp.c:3862
 msgid "GNUnet UDP communicator"
 msgstr ""
 
@@ -8194,7 +8199,7 @@ msgstr ""
 msgid "Service process failed to report status\n"
 msgstr ""
 
-#: src/transport/tcp_service_legacy.c:1253 src/util/disk.c:1176
+#: src/transport/tcp_service_legacy.c:1253 src/util/disk.c:1040
 #: src/util/service.c:1637
 #, fuzzy, c-format
 msgid "Cannot obtain information about user `%s': %s\n"
@@ -8214,7 +8219,7 @@ msgid "do daemonize (detach from terminal)"
 msgstr ""
 
 #: src/transport/tcp_service_legacy.c:1397
-#: src/transport/transport-testing2.c:985 src/util/service.c:2072
+#: src/transport/transport-testing-communicator.c:1045 src/util/service.c:2072
 #: src/util/service.c:2084
 #, fuzzy, c-format
 msgid "Malformed configuration file `%s', exit ...\n"
@@ -8380,39 +8385,39 @@ msgid ""
 "Configuration specifies invalid value for option `%s' in section `%s': %s\n"
 msgstr "Konfigurationsfil \"%s\" hittades inte.  Kör \"gnunet-setup -d\"!\n"
 
-#: src/util/configuration.c:402
+#: src/util/configuration.c:370
 #, fuzzy, c-format
 msgid "Syntax error while deserializing in line %u\n"
 msgstr "Syntaxfel i konfigurationsfil \"%s\" på rad %d.\n"
 
-#: src/util/configuration.c:460
+#: src/util/configuration.c:420
 #, fuzzy, c-format
 msgid "Error while reading file `%s'\n"
 msgstr "Fel vid nedladdning: %s\n"
 
-#: src/util/configuration.c:1063
+#: src/util/configuration.c:980
 #, fuzzy
 msgid "Not a valid relative time specification"
 msgstr "Konfigurationsfil \"%s\" skapad.\n"
 
-#: src/util/configuration.c:1154
+#: src/util/configuration.c:1050
 #, c-format
 msgid ""
 "Configuration value '%s' for '%s' in section '%s' is not in set of legal "
 "choices\n"
 msgstr ""
 
-#: src/util/configuration.c:1269
+#: src/util/configuration.c:1145
 #, c-format
 msgid "Recursive expansion suspected, aborting $-expansion for term `%s'\n"
 msgstr ""
 
-#: src/util/configuration.c:1301
+#: src/util/configuration.c:1177
 #, fuzzy, c-format
 msgid "Missing closing `%s' in option `%s'\n"
 msgstr "Konfigurationsfil \"%s\" skapad.\n"
 
-#: src/util/configuration.c:1367
+#: src/util/configuration.c:1243
 #, c-format
 msgid ""
 "Failed to expand `%s' in `%s' as it is neither found in [PATHS] nor defined "
@@ -8426,37 +8431,37 @@ msgid ""
 "%llu)\n"
 msgstr ""
 
-#: src/util/crypto_ecc.c:663
+#: src/util/crypto_ecc.c:567
 #, fuzzy, c-format
 msgid "ECC signing failed at %s:%d: %s\n"
 msgstr "\"%s\" misslyckades vid %s:%d med fel: \"%s\".\n"
 
-#: src/util/crypto_ecc.c:791
+#: src/util/crypto_ecc.c:669
 #, fuzzy, c-format
 msgid "ECDSA signature verification failed at %s:%d: %s\n"
 msgstr "\"%s\" misslyckades vid %s:%d med fel: \"%s\".\n"
 
-#: src/util/crypto_ecc_setup.c:369
+#: src/util/crypto_ecc_setup.c:273
 #, fuzzy
 msgid "Could not load peer's private key\n"
 msgstr "Kunde inte tolka konfigurationsfil \"%s\".\n"
 
-#: src/util/crypto_random.c:345
+#: src/util/crypto_random.c:381
 #, c-format
 msgid "libgcrypt has not the expected version (version %s is required).\n"
 msgstr "libgcrypt har inte den förväntande versionen (version %s krävs).\n"
 
-#: src/util/crypto_rsa.c:959
+#: src/util/crypto_rsa.c:862
 #, fuzzy, c-format
 msgid "RSA signing failed at %s:%d: %s\n"
 msgstr "\"%s\" misslyckades vid %s:%d med fel: \"%s\".\n"
 
-#: src/util/crypto_rsa.c:1318
+#: src/util/crypto_rsa.c:1162
 #, fuzzy, c-format
 msgid "RSA signature verification failed at %s:%d: %s\n"
 msgstr "\"%s\" misslyckades vid %s:%d med fel: \"%s\".\n"
 
-#: src/util/disk.c:940
+#: src/util/disk.c:823
 #, fuzzy, c-format
 msgid "Expected `%s' to be a directory!\n"
 msgstr "\"%s\" förväntade att \"%s\" skulle vara en katalog!\n"
@@ -8541,17 +8546,17 @@ msgstr "%s: flagga \"-W %s\" är tvetydig\n"
 msgid "%s: option `-W %s' does not allow an argument\n"
 msgstr "%s: flagga \"-W %s\" tillåter inte ett argument\n"
 
-#: src/util/getopt.c:974
+#: src/util/getopt.c:970
 #, fuzzy, c-format
 msgid "Use %s to get a list of options.\n"
 msgstr "Använd --help för att få en lista på flaggor.\n"
 
-#: src/util/getopt.c:986
+#: src/util/getopt.c:983
 #, fuzzy, c-format
 msgid "Option `%s' can't be used with other options.\n"
 msgstr "Kommando \"%s\" kräver ett argument (\"%s\").\n"
 
-#: src/util/getopt.c:998
+#: src/util/getopt.c:995
 #, fuzzy, c-format
 msgid "Missing mandatory option `%s'.\n"
 msgstr "Konfigurationsfil \"%s\" skapad.\n"
@@ -8639,6 +8644,10 @@ msgstr "Du måste skicka med ett nummer till flaggan \"%s\".\n"
 msgid "Argument `%s' malformed. Expected base32 (Crockford) encoded value.\n"
 msgstr ""
 
+#: src/util/gnunet-base32.c:45
+msgid "run decoder modus, otherwise runs as encoder"
+msgstr ""
+
 #: src/util/gnunet-config.c:167
 #, fuzzy, c-format
 msgid "failed to load configuration defaults"
@@ -8693,6 +8702,10 @@ msgstr ""
 #, fuzzy
 msgid "Manipulate GNUnet configuration files"
 msgstr "skriv ut ett värde från konfigurationsfilen till standard ut"
+
+#: src/util/gnunet-crypto-tvg.c:1072
+msgid "verify a test vector from stdin"
+msgstr ""
 
 #: src/util/gnunet-ecc.c:94
 #, fuzzy, c-format
@@ -8814,31 +8827,31 @@ msgid "perform a reverse lookup"
 msgstr ""
 
 #: src/util/gnunet-resolver.c:182
-msgid "Use build-in GNUnet stub resolver"
+msgid "Use built-in GNUnet stub resolver"
 msgstr ""
 
-#: src/util/gnunet-scrypt.c:229
+#: src/util/gnunet-scrypt.c:232
 #, fuzzy, c-format
 msgid "Loading hostkey from `%s' failed.\n"
 msgstr "Tolkning av HTTP-svar för URL \"%s\" misslyckades.\n"
 
-#: src/util/gnunet-scrypt.c:295
+#: src/util/gnunet-scrypt.c:298
 msgid "number of bits to require for the proof of work"
 msgstr ""
 
-#: src/util/gnunet-scrypt.c:301
+#: src/util/gnunet-scrypt.c:304
 msgid "file with private key, otherwise default is used"
 msgstr ""
 
-#: src/util/gnunet-scrypt.c:307
+#: src/util/gnunet-scrypt.c:310
 msgid "file with proof of work, otherwise default is used"
 msgstr ""
 
-#: src/util/gnunet-scrypt.c:313
+#: src/util/gnunet-scrypt.c:316
 msgid "time to wait between calculations"
 msgstr ""
 
-#: src/util/gnunet-scrypt.c:326
+#: src/util/gnunet-scrypt.c:330
 #, fuzzy
 msgid "Manipulate GNUnet proof of work files"
 msgstr "skriv ut ett värde från konfigurationsfilen till standard ut"
@@ -8876,25 +8889,25 @@ msgstr "Fel vid skapandet av användare"
 msgid "Unable to shorten unix path `%s' while keeping name unique\n"
 msgstr ""
 
-#: src/util/network.c:1364
+#: src/util/network.c:1361
 #, c-format
 msgid ""
 "Fatal internal logic error, process hangs in `%s' (abort with CTRL-C)!\n"
 msgstr ""
 
-#: src/util/os_installation.c:411
+#: src/util/os_installation.c:415
 #, c-format
 msgid ""
 "Could not determine installation path for %s.  Set `%s' environment "
 "variable.\n"
 msgstr ""
 
-#: src/util/os_installation.c:794
+#: src/util/os_installation.c:802
 #, fuzzy, c-format
 msgid "Could not find binary `%s' in PATH!\n"
 msgstr "Kunde inte hitta motpart \"%s\" i routingtabell!\n"
 
-#: src/util/os_installation.c:827
+#: src/util/os_installation.c:835
 #, c-format
 msgid "Binary `%s' exists, but is not SUID\n"
 msgstr ""
@@ -8904,32 +8917,32 @@ msgstr ""
 msgid "Initialization of plugin mechanism failed: %s!\n"
 msgstr "Initiering av insticksmekanism misslyckades: %s!\n"
 
-#: src/util/plugin.c:147
+#: src/util/plugin.c:156
 #, fuzzy, c-format
 msgid "`%s' failed to resolve method '%s' with error: %s\n"
 msgstr "\"%s\" misslyckades för fil \"%s\" vid %s:%d med fel: %s\n"
 
-#: src/util/plugin.c:223
+#: src/util/plugin.c:234
 #, fuzzy, c-format
 msgid "`%s' failed for library `%s' with error: %s\n"
 msgstr "\"%s\" misslyckades vid %s:%d med fel: %s\n"
 
-#: src/util/plugin.c:384
+#: src/util/plugin.c:409
 #, fuzzy
 msgid "Could not determine plugin installation path.\n"
 msgstr "Kunde inte fastställa min publika IPv6-adress.\n"
 
-#: src/util/program.c:267
+#: src/util/program.c:259
 #, fuzzy, c-format
 msgid "Unreadable or malformed configuration file `%s', exit ...\n"
 msgstr "Kunde inte spara konfigurationsfil \"%s\":"
 
-#: src/util/program.c:284
+#: src/util/program.c:276
 #, fuzzy, c-format
 msgid "Unreadable or malformed default configuration file `%s', exit ...\n"
 msgstr "Kunde inte spara konfigurationsfil \"%s\":"
 
-#: src/util/program.c:299
+#: src/util/program.c:291
 #, fuzzy
 msgid "Unreadable or malformed configuration, exit ...\n"
 msgstr "Kunde inte spara konfigurationsfil \"%s\":"
@@ -9066,12 +9079,12 @@ msgstr "Fel format \"%s\" för nätmask: %s\n"
 msgid "Wrong format `%s' for network\n"
 msgstr "Fel format \"%s\" för nätverk: %s\n"
 
-#: src/util/time.c:848 src/util/time.c:876
+#: src/util/time.c:878 src/util/time.c:906
 #, c-format
 msgid "Failed to map `%s', cannot assure monotonic time!\n"
 msgstr ""
 
-#: src/util/time.c:884
+#: src/util/time.c:914
 #, c-format
 msgid ""
 "Failed to setup monotonic time file `%s', cannot assure monotonic time!\n"
