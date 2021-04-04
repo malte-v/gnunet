@@ -96,10 +96,11 @@ init ()
   if (GNUNET_YES == initialized)
     return;
   initialized = GNUNET_YES;
-  GNUNET_PLUGIN_load_all ("libgnunet_plugin_reclaim_attribute_",
-                          NULL,
-                          &add_plugin,
-                          NULL);
+  GNUNET_PLUGIN_load_all_in_context (GNUNET_OS_project_data_default (),
+                                     "libgnunet_plugin_reclaim_attribute_",
+                                     NULL,
+                                     &add_plugin,
+                                     NULL);
 }
 
 /**

@@ -122,6 +122,28 @@ GNUNET_PLUGIN_load_all (const char *basename,
 
 
 /**
+ * Load all compatible plugins with the given base name while inside the given
+ * context (i.e. a specific project data structure.)
+ *
+ * Note that the library must export symbols called `basename_ANYTHING_init`
+ * and `basename_ANYTHING__done`.  These will be called when the library is
+ * loaded and unloaded respectively.
+ *
+ * @param ctx the context used to find the plugins
+ * @param basename basename of the plugins to load
+ * @param arg argument to the plugin initialization function
+ * @param cb function to call for each plugin found
+ * @param cb_cls closure for @a cb
+ */
+void
+GNUNET_PLUGIN_load_all_in_context (const struct GNUNET_OS_ProjectData *ctx,
+                                   const char *basename,
+                                   void *arg,
+                                   GNUNET_PLUGIN_LoaderCallback cb,
+                                   void *cb_cls);
+
+
+/**
  * Unload plugin (runs the "done" callback and returns whatever "done"
  * returned).  The plugin is then unloaded.
  *

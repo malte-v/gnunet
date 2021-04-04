@@ -1229,10 +1229,11 @@ run (void *cls,
     return;
   }
   /* Load plugins */
-  GNUNET_PLUGIN_load_all ("libgnunet_plugin_rest",
-                          (void *) cfg,
-                          &load_plugin,
-                          NULL);
+  GNUNET_PLUGIN_load_all_in_context (GNUNET_OS_project_data_default (),
+                                     "libgnunet_plugin_rest",
+                                     (void *) cfg,
+                                     &load_plugin,
+                                     NULL);
   GNUNET_SCHEDULER_add_shutdown (&do_shutdown, NULL);
 }
 

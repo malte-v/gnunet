@@ -102,15 +102,12 @@ init ()
   if (1 == once)
     return;
   once = 1;
-  const struct GNUNET_OS_ProjectData *pd = GNUNET_OS_project_data_get ();
-  const struct GNUNET_OS_ProjectData *dpd = GNUNET_OS_project_data_default ();
 
-  if (pd != dpd)
-    GNUNET_OS_init (dpd);
-  GNUNET_PLUGIN_load_all ("libgnunet_plugin_gnsrecord_", NULL,
-                          &add_plugin, NULL);
-  if (pd != dpd)
-    GNUNET_OS_init (pd);
+  GNUNET_PLUGIN_load_all_in_context (GNUNET_OS_project_data_default (),
+                                     "libgnunet_plugin_gnsrecord_",
+                                     NULL,
+                                     &add_plugin,
+                                     NULL);
 }
 
 
