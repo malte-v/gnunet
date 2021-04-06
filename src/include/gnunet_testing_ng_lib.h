@@ -28,7 +28,6 @@
 #define GNUNET_TESTING_NG_LIB_H
 
 #include "gnunet_util_lib.h"
-#include "gnunet_scheduler_lib.h"
 
 
 /* ********************* Helper functions ********************* */
@@ -52,6 +51,9 @@
  * Global state of the interpreter, used by a command
  * to access information about other commands.
  */
+// SUGGESTION: consider making this struct opaque (only known inside of libgnunettesting,
+// say main loop and a few select commands, like next/fail/batch); + helper
+// function to access 'cfg'?
 struct GNUNET_TESTING_Interpreter
 {
 
@@ -97,8 +99,7 @@ struct GNUNET_TESTING_Command
 {
 
   /**
-   * Closure for all commands with command-specific context
-   * information.
+   * Closure for all commands with command-specific context information.
    */
   void *cls;
 
@@ -115,6 +116,10 @@ struct GNUNET_TESTING_Command
    * #GNUNET_TESTING_interpreter_next() or
    * #GNUNET_TESTING_interpreter_fail().
    *
+   * If this function creates some asynchronous activity, it should
+   * initialize @e finish to a function that can be used to wait for
+   * the asynchronous activity to terminate.
+   *
    * @param cls closure
    * @param cmd command being run
    * @param i interpreter state
@@ -124,6 +129,21 @@ struct GNUNET_TESTING_Command
          const struct GNUNET_TESTING_Command *cmd,
          struct GNUNET_TESTING_Interpreter *i);
 
+  /**
+   * Wait for any asynchronous execution of @e run to conclude,
+   * then call @a cont.  Finish may only be called once per command.
+   *
+   * This member may be NULL if this command is a synchronous command,
+   * and also should be set to NULL once the command has finished.
+   *
+   * @param cont function to call upon completion, can be NULL
+   * @param cont_cls closure for @a cont
+   */
+  // SUGGESTION (NEW!)
+  void
+  (*finish)(void *cls,
+            struct GNUNET_SCHEDULER_Task cont,
+            void *cont_cls);
 
   /**
    * Clean up after the command.  Run during forced termination
@@ -163,17 +183,40 @@ struct GNUNET_TESTING_Command
   struct GNUNET_TIME_Absolute finish_time;
 
   /**
-   * When did we start the last request of this command?
-   * Delta to @e finish_time gives the latency for the last
-   * successful request.
+   * When did we start the last run of this command?  Delta to @e finish_time
+   * gives the latency for the last successful run.  Useful in case @e
+   * num_tries was positive and the command was run multiple times.  In that
+   * case, the @e start_time gives the time when we first tried to run the
+   * command, so the difference between @e start_time and @e finish_time would
+   * be the time all of the @e num_tries took, while the delta to @e
+   * last_req_time is the time the last (successful) execution took.
    */
   struct GNUNET_TIME_Absolute last_req_time;
 
   /**
-   * How often did we try to execute this command? (In case
-   * it is a request that is repated.)
+   * How often did we try to execute this command? (In case it is a request
+   * that is repated.)  Note that a command must have some build-in retry
+   * mechanism for this value to be useful.
    */
   unsigned int num_tries;
+
+  /**
+   * In case @e asynchronous_finish is true, how long should we wait for this
+   * command to complete? If @e finish did not complete after this amount of
+   * time, the interpreter will fail.  Should be set generously to ensure
+   * tests do not fail on slow systems.
+   */
+  // SUGGESTION (NEW):
+  struct GNUNET_TIME_Relative default_timeout;
+
+  /**
+   * If "true", the interpreter should not immediately call
+   * @e finish, even if @e finish is non-NULL.  Otherwise,
+   * #TALER_TESTING_cmd_finish() must be used
+   * to ensure that a command actually completed.
+   */
+  // SUGGESTION (NEW):
+  bool asynchronous_finish;
 
 };
 
@@ -225,6 +268,24 @@ GNUNET_TESTING_interpreter_fail (struct GNUNET_TESTING_Interpreter *is);
  */
 struct GNUNET_TESTING_Command
 GNUNET_TESTING_cmd_end (void);
+
+
+/**
+ * Create (synchronous) command that waits for another command to finish.
+ * If @a cmd_ref did not finish after @a timeout, this command will fail
+ * the test case.
+ *
+ * @param finish_label label for this command
+ * @param cmd_ref reference to a previous command which we should
+ *        wait for (call `finish()` on)
+ * @param timeout how long to wait at most for @a cmd_ref to finish
+ * @return a finish-command.
+ */
+// SUGGESTION (NEW!)
+const struct GNUNET_TESTING_Command *
+TALER_TESTING_cmd_finish (const char *finish_label,
+                          const char *cmd_ref,
+                          struct GNUNET_TIME_Relative timeout);
 
 
 /**
@@ -331,6 +392,7 @@ GNUNET_TESTING_cmd_batch (const char *label,
  *
  * @return false if not, true if it is a batch command
  */
+// TODO: figure out if this needs to be exposed in the public API.
 int
 GNUNET_TESTING_cmd_is_batch (const struct GNUNET_TESTING_Command *cmd);
 
@@ -340,14 +402,17 @@ GNUNET_TESTING_cmd_is_batch (const struct GNUNET_TESTING_Command *cmd);
  *
  * @param is interpreter state.
  */
+// TODO: figure out if this needs to be exposed in the public API.
 void
 GNUNET_TESTING_cmd_batch_next (struct GNUNET_TESTING_Interpreter *is);
+
 
 /**
  * Obtain what command the batch is at.
  *
  * @return cmd current batch command
  */
+// TODO: figure out if this needs to be exposed in the public API.
 struct GNUNET_TESTING_Command *
 GNUNET_TESTING_cmd_batch_get_current (const struct GNUNET_TESTING_Command *cmd);
 
@@ -358,6 +423,7 @@ GNUNET_TESTING_cmd_batch_get_current (const struct GNUNET_TESTING_Command *cmd);
  * @param cmd current batch command
  * @param new_ip where to move the IP
  */
+// TODO: figure out if this needs to be exposed in the public API.
 void
 GNUNET_TESTING_cmd_batch_set_current (const struct GNUNET_TESTING_Command *cmd,
                                       unsigned int new_ip);

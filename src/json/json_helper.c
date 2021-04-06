@@ -168,6 +168,7 @@ static void
 clean_variable_data (void *cls,
                      struct GNUNET_JSON_Specification *spec)
 {
+  (void) cls;
   if (0 != *spec->size_ptr)
   {
     GNUNET_free (*(void **) spec->ptr);
@@ -221,6 +222,7 @@ parse_string (void *cls,
 {
   const char *str;
 
+  (void) cls;
   str = json_string_value (root);
   if (NULL == str)
   {
