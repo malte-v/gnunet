@@ -271,6 +271,17 @@ GNUNET_TESTING_cmd_end (void);
 
 
 /**
+ * Turn synchronous command into asynchronous command.
+ *
+ * @param cmd command to make synchronous.
+ * @return a finish-command.
+ */
+// SUGGESTION (NEW!)
+const struct GNUNET_TESTING_Command
+TALER_TESTING_cmd_make_asynchronous (const struct GNUNET_TESTING_Command cmd);
+
+
+/**
  * Create (synchronous) command that waits for another command to finish.
  * If @a cmd_ref did not finish after @a timeout, this command will fail
  * the test case.
@@ -282,7 +293,7 @@ GNUNET_TESTING_cmd_end (void);
  * @return a finish-command.
  */
 // SUGGESTION (NEW!)
-const struct GNUNET_TESTING_Command *
+const struct GNUNET_TESTING_Command
 TALER_TESTING_cmd_finish (const char *finish_label,
                           const char *cmd_ref,
                           struct GNUNET_TIME_Relative timeout);
