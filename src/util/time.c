@@ -44,11 +44,6 @@
  */
 static long long timestamp_offset;
 
-/**
- * Set the timestamp offset for this instance.
- *
- * @param offset the offset to skew the locale time by
- */
 void
 GNUNET_TIME_set_offset (long long offset)
 {
@@ -56,11 +51,6 @@ GNUNET_TIME_set_offset (long long offset)
 }
 
 
-/**
- * Get the timestamp offset for this instance.
- *
- * @return the offset we currently skew the locale time by
- */
 long long
 GNUNET_TIME_get_offset ()
 {
@@ -68,14 +58,6 @@ GNUNET_TIME_get_offset ()
 }
 
 
-/**
- * Round a time value so that it is suitable for transmission
- * via JSON encodings.
- *
- * @param at time to round
- * @return #GNUNET_OK if time was already rounded, #GNUNET_NO if
- *         it was just now rounded
- */
 int
 GNUNET_TIME_round_abs (struct GNUNET_TIME_Absolute *at)
 {
@@ -88,14 +70,6 @@ GNUNET_TIME_round_abs (struct GNUNET_TIME_Absolute *at)
 }
 
 
-/**
- * Round a time value so that it is suitable for transmission
- * via JSON encodings.
- *
- * @param rt time to round
- * @return #GNUNET_OK if time was already rounded, #GNUNET_NO if
- *         it was just now rounded
- */
 int
 GNUNET_TIME_round_rel (struct GNUNET_TIME_Relative *rt)
 {
@@ -108,12 +82,6 @@ GNUNET_TIME_round_rel (struct GNUNET_TIME_Relative *rt)
 }
 
 
-/**
- * Get the current time (works just as "time", just that we use the
- * unit of time that the cron-jobs use (and is 64 bit)).
- *
- * @return the current time
- */
 struct GNUNET_TIME_Absolute
 GNUNET_TIME_absolute_get ()
 {
@@ -128,9 +96,6 @@ GNUNET_TIME_absolute_get ()
 }
 
 
-/**
- * Return relative time of 0ms.
- */
 struct GNUNET_TIME_Relative
 GNUNET_TIME_relative_get_zero_ ()
 {
@@ -140,9 +105,6 @@ GNUNET_TIME_relative_get_zero_ ()
 }
 
 
-/**
- * Return absolute time of 0ms.
- */
 struct GNUNET_TIME_Absolute
 GNUNET_TIME_absolute_get_zero_ ()
 {
@@ -152,9 +114,6 @@ GNUNET_TIME_absolute_get_zero_ ()
 }
 
 
-/**
- * Return relative time of 1us.
- */
 struct GNUNET_TIME_Relative
 GNUNET_TIME_relative_get_unit_ ()
 {
@@ -164,9 +123,6 @@ GNUNET_TIME_relative_get_unit_ ()
 }
 
 
-/**
- * Return relative time of 1ms.
- */
 struct GNUNET_TIME_Relative
 GNUNET_TIME_relative_get_millisecond_ ()
 {
@@ -176,9 +132,6 @@ GNUNET_TIME_relative_get_millisecond_ ()
 }
 
 
-/**
- * Return relative time of 1s.
- */
 struct GNUNET_TIME_Relative
 GNUNET_TIME_relative_get_second_ ()
 {
@@ -188,9 +141,6 @@ GNUNET_TIME_relative_get_second_ ()
 }
 
 
-/**
- * Return relative time of 1 minute.
- */
 struct GNUNET_TIME_Relative
 GNUNET_TIME_relative_get_minute_ ()
 {
@@ -200,9 +150,6 @@ GNUNET_TIME_relative_get_minute_ ()
 }
 
 
-/**
- * Return relative time of 1 hour.
- */
 struct GNUNET_TIME_Relative
 GNUNET_TIME_relative_get_hour_ ()
 {
@@ -212,9 +159,6 @@ GNUNET_TIME_relative_get_hour_ ()
 }
 
 
-/**
- * Return "forever".
- */
 struct GNUNET_TIME_Relative
 GNUNET_TIME_relative_get_forever_ ()
 {
@@ -224,9 +168,6 @@ GNUNET_TIME_relative_get_forever_ ()
 }
 
 
-/**
- * Return "forever".
- */
 struct GNUNET_TIME_Absolute
 GNUNET_TIME_absolute_get_forever_ ()
 {
@@ -236,12 +177,6 @@ GNUNET_TIME_absolute_get_forever_ ()
 }
 
 
-/**
- * Convert relative time to an absolute time in the
- * future.
- *
- * @return timestamp that is "rel" in the future, or FOREVER if rel==FOREVER (or if we would overflow)
- */
 struct GNUNET_TIME_Absolute
 GNUNET_TIME_relative_to_absolute (struct GNUNET_TIME_Relative rel)
 {
@@ -261,13 +196,6 @@ GNUNET_TIME_relative_to_absolute (struct GNUNET_TIME_Relative rel)
 }
 
 
-/**
- * Return the minimum of two relative time values.
- *
- * @param t1 first timestamp
- * @param t2 other timestamp
- * @return timestamp that is smaller
- */
 struct GNUNET_TIME_Relative
 GNUNET_TIME_relative_min (struct GNUNET_TIME_Relative t1,
                           struct GNUNET_TIME_Relative t2)
@@ -276,13 +204,6 @@ GNUNET_TIME_relative_min (struct GNUNET_TIME_Relative t1,
 }
 
 
-/**
- * Return the maximum of two relative time values.
- *
- * @param t1 first timestamp
- * @param t2 other timestamp
- * @return timestamp that is larger
- */
 struct GNUNET_TIME_Relative
 GNUNET_TIME_relative_max (struct GNUNET_TIME_Relative t1,
                           struct GNUNET_TIME_Relative t2)
@@ -291,13 +212,6 @@ GNUNET_TIME_relative_max (struct GNUNET_TIME_Relative t1,
 }
 
 
-/**
- * Return the minimum of two relative time values.
- *
- * @param t1 first timestamp
- * @param t2 other timestamp
- * @return timestamp that is smaller
- */
 struct GNUNET_TIME_Absolute
 GNUNET_TIME_absolute_min (struct GNUNET_TIME_Absolute t1,
                           struct GNUNET_TIME_Absolute t2)
@@ -306,13 +220,6 @@ GNUNET_TIME_absolute_min (struct GNUNET_TIME_Absolute t1,
 }
 
 
-/**
- * Return the maximum of two relative time values.
- *
- * @param t1 first timestamp
- * @param t2 other timestamp
- * @return timestamp that is bigger
- */
 struct GNUNET_TIME_Absolute
 GNUNET_TIME_absolute_max (struct GNUNET_TIME_Absolute t1,
                           struct GNUNET_TIME_Absolute t2)
@@ -321,12 +228,6 @@ GNUNET_TIME_absolute_max (struct GNUNET_TIME_Absolute t1,
 }
 
 
-/**
- * Given a timestamp in the future, how much time
- * remains until then?
- *
- * @return future - now, or 0 if now >= future, or FOREVER if future==FOREVER.
- */
 struct GNUNET_TIME_Relative
 GNUNET_TIME_absolute_get_remaining (struct GNUNET_TIME_Absolute future)
 {
@@ -343,13 +244,6 @@ GNUNET_TIME_absolute_get_remaining (struct GNUNET_TIME_Absolute future)
 }
 
 
-/**
- * Compute the time difference between the given start and end times.
- * Use this function instead of actual subtraction to ensure that
- * "FOREVER" and overflows are handled correctly.
- *
- * @return 0 if start >= end; FOREVER if end==FOREVER; otherwise end - start
- */
 struct GNUNET_TIME_Relative
 GNUNET_TIME_absolute_get_difference (struct GNUNET_TIME_Absolute start,
                                      struct GNUNET_TIME_Absolute end)
@@ -365,12 +259,6 @@ GNUNET_TIME_absolute_get_difference (struct GNUNET_TIME_Absolute start,
 }
 
 
-/**
- * Get the duration of an operation as the
- * difference of the current time and the given start time "whence".
- *
- * @return 0 if whence > now, otherwise now-whence.
- */
 struct GNUNET_TIME_Relative
 GNUNET_TIME_absolute_get_duration (struct GNUNET_TIME_Absolute whence)
 {
@@ -385,12 +273,6 @@ GNUNET_TIME_absolute_get_duration (struct GNUNET_TIME_Absolute whence)
 }
 
 
-/**
- * Add a given relative duration to the
- * given start time.
- *
- * @return FOREVER if either argument is FOREVER or on overflow; start+duration otherwise
- */
 struct GNUNET_TIME_Absolute
 GNUNET_TIME_absolute_add (struct GNUNET_TIME_Absolute start,
                           struct GNUNET_TIME_Relative duration)
@@ -402,7 +284,7 @@ GNUNET_TIME_absolute_add (struct GNUNET_TIME_Absolute start,
     return GNUNET_TIME_UNIT_FOREVER_ABS;
   if (start.abs_value_us + duration.rel_value_us < start.abs_value_us)
   {
-    GNUNET_break (0);
+    GNUNET_assert (0);
     return GNUNET_TIME_UNIT_FOREVER_ABS;
   }
   ret.abs_value_us = start.abs_value_us + duration.rel_value_us;
@@ -410,14 +292,6 @@ GNUNET_TIME_absolute_add (struct GNUNET_TIME_Absolute start,
 }
 
 
-/**
- * Subtract a given relative duration from the
- * given start time.
- *
- * @param start some absolute time
- * @param duration some relative time to subtract
- * @return ZERO if start <= duration, or FOREVER if start time is FOREVER; start-duration otherwise
- */
 struct GNUNET_TIME_Absolute
 GNUNET_TIME_absolute_subtract (struct GNUNET_TIME_Absolute start,
                                struct GNUNET_TIME_Relative duration)
@@ -433,11 +307,6 @@ GNUNET_TIME_absolute_subtract (struct GNUNET_TIME_Absolute start,
 }
 
 
-/**
- * Multiply relative time by a given factor.
- *
- * @return FOREVER if rel=FOREVER or on overflow; otherwise rel*factor
- */
 struct GNUNET_TIME_Relative
 GNUNET_TIME_relative_multiply (struct GNUNET_TIME_Relative rel,
                                unsigned long long factor)
@@ -458,12 +327,6 @@ GNUNET_TIME_relative_multiply (struct GNUNET_TIME_Relative rel,
 }
 
 
-/**
- * Multiply relative time by a given floating-point factor.  The factor must be
- * positive.
- *
- * @return FOREVER if rel=FOREVER or on overflow; otherwise rel*factor
- */
 struct GNUNET_TIME_Relative
 relative_multiply_double (struct GNUNET_TIME_Relative rel, double factor)
 {
@@ -490,13 +353,6 @@ relative_multiply_double (struct GNUNET_TIME_Relative rel, double factor)
 }
 
 
-/**
- * Saturating multiply relative time by a given factor.
- *
- * @param rel some duration
- * @param factor integer to multiply with
- * @return FOREVER if rel=FOREVER or on overflow; otherwise rel*factor
- */
 struct GNUNET_TIME_Relative
 GNUNET_TIME_relative_saturating_multiply (struct GNUNET_TIME_Relative rel,
                                           unsigned long long factor)
@@ -516,13 +372,6 @@ GNUNET_TIME_relative_saturating_multiply (struct GNUNET_TIME_Relative rel,
 }
 
 
-/**
- * Divide relative time by a given factor.
- *
- * @param rel some duration
- * @param factor integer to divide by
- * @return FOREVER if rel=FOREVER or factor==0; otherwise rel/factor
- */
 struct GNUNET_TIME_Relative
 GNUNET_TIME_relative_divide (struct GNUNET_TIME_Relative rel,
                              unsigned long long factor)
@@ -537,16 +386,6 @@ GNUNET_TIME_relative_divide (struct GNUNET_TIME_Relative rel,
 }
 
 
-/**
- * Calculate the estimate time of arrival/completion
- * for an operation.
- *
- * @param start when did the operation start?
- * @param finished how much has been done?
- * @param total how much must be done overall (same unit as for "finished")
- * @return remaining duration for the operation,
- *        assuming it continues at the same speed
- */
 struct GNUNET_TIME_Relative
 GNUNET_TIME_calculate_eta (struct GNUNET_TIME_Absolute start,
                            uint64_t finished,
@@ -568,13 +407,6 @@ GNUNET_TIME_calculate_eta (struct GNUNET_TIME_Absolute start,
 }
 
 
-/**
- * Add relative times together.
- *
- * @param a1 first timestamp
- * @param a2 second timestamp
- * @return FOREVER if either argument is FOREVER or on overflow; a1+a2 otherwise
- */
 struct GNUNET_TIME_Relative
 GNUNET_TIME_relative_add (struct GNUNET_TIME_Relative a1,
                           struct GNUNET_TIME_Relative a2)
@@ -593,13 +425,6 @@ GNUNET_TIME_relative_add (struct GNUNET_TIME_Relative a1,
 }
 
 
-/**
- * Subtract relative timestamp from the other.
- *
- * @param a1 first timestamp
- * @param a2 second timestamp
- * @return ZERO if a2>=a1 (including both FOREVER), FOREVER if a1 is FOREVER, a1-a2 otherwise
- */
 struct GNUNET_TIME_Relative
 GNUNET_TIME_relative_subtract (struct GNUNET_TIME_Relative a1,
                                struct GNUNET_TIME_Relative a2)
@@ -615,12 +440,6 @@ GNUNET_TIME_relative_subtract (struct GNUNET_TIME_Relative a1,
 }
 
 
-/**
- * Convert relative time to network byte order.
- *
- * @param a time to convert
- * @return time in network byte order
- */
 struct GNUNET_TIME_RelativeNBO
 GNUNET_TIME_relative_hton (struct GNUNET_TIME_Relative a)
 {
@@ -631,12 +450,6 @@ GNUNET_TIME_relative_hton (struct GNUNET_TIME_Relative a)
 }
 
 
-/**
- * Convert relative time from network byte order.
- *
- * @param a time to convert
- * @return time in host byte order
- */
 struct GNUNET_TIME_Relative
 GNUNET_TIME_relative_ntoh (struct GNUNET_TIME_RelativeNBO a)
 {
@@ -647,12 +460,6 @@ GNUNET_TIME_relative_ntoh (struct GNUNET_TIME_RelativeNBO a)
 }
 
 
-/**
- * Convert absolute time to network byte order.
- *
- * @param a time to convert
- * @return time in network byte order
- */
 struct GNUNET_TIME_AbsoluteNBO
 GNUNET_TIME_absolute_hton (struct GNUNET_TIME_Absolute a)
 {
@@ -663,12 +470,6 @@ GNUNET_TIME_absolute_hton (struct GNUNET_TIME_Absolute a)
 }
 
 
-/**
- * Convert absolute time from network byte order.
- *
- * @param a time to convert
- * @return time in host byte order
- */
 struct GNUNET_TIME_Absolute
 GNUNET_TIME_absolute_ntoh (struct GNUNET_TIME_AbsoluteNBO a)
 {
@@ -679,9 +480,6 @@ GNUNET_TIME_absolute_ntoh (struct GNUNET_TIME_AbsoluteNBO a)
 }
 
 
-/**
- * Return the current year (i.e. '2011').
- */
 unsigned int
 GNUNET_TIME_get_current_year ()
 {
@@ -696,12 +494,6 @@ GNUNET_TIME_get_current_year ()
 }
 
 
-/**
- * Convert an expiration time to the respective year (rounds)
- *
- * @param at absolute time
- * @return year a year (after 1970), 0 on error
- */
 unsigned int
 GNUNET_TIME_time_to_year (struct GNUNET_TIME_Absolute at)
 {
@@ -742,12 +534,6 @@ my_timegm (struct tm *tm)
 #endif
 
 
-/**
- * Convert a year to an expiration time of January 1st of that year.
- *
- * @param year a year (after 1970, please ;-)).
- * @return absolute time for January 1st of that year.
- */
 struct GNUNET_TIME_Absolute
 GNUNET_TIME_year_to_time (unsigned int year)
 {
@@ -777,15 +563,6 @@ GNUNET_TIME_year_to_time (unsigned int year)
 }
 
 
-/**
- * Randomized exponential back-off, starting at 1 ms
- * and going up by a factor of 2+r, where 0 <= r < 0.5, up
- * to a maximum of the given threshold.
- *
- * @param r current backoff time, initially zero
- * @param threshold maximum value for backoff
- * @return the next backoff time
- */
 struct GNUNET_TIME_Relative
 GNUNET_TIME_randomized_backoff (struct GNUNET_TIME_Relative rt,
                                 struct GNUNET_TIME_Relative threshold)
@@ -800,12 +577,6 @@ GNUNET_TIME_randomized_backoff (struct GNUNET_TIME_Relative rt,
 }
 
 
-/**
- * Return a random time value between 0.5*r and 1.5*r.
- *
- * @param r input time for scaling
- * @return randomized time
- */
 struct GNUNET_TIME_Relative
 GNUNET_TIME_randomize (struct GNUNET_TIME_Relative r)
 {
@@ -815,24 +586,6 @@ GNUNET_TIME_randomize (struct GNUNET_TIME_Relative r)
 }
 
 
-/**
- * Obtain the current time and make sure it is monotonically
- * increasing.  Guards against systems without an RTC or
- * clocks running backwards and other nasty surprises. Does
- * not guarantee that the returned time is near the current
- * time returned by #GNUNET_TIME_absolute_get().  Two
- * subsequent calls (within a short time period) may return the
- * same value. Persists the last returned time on disk to
- * ensure that time never goes backwards. As a result, the
- * resulting value can be used to check if a message is the
- * "most recent" value and replays of older messages (from
- * the same origin) would be discarded.
- *
- * @param cfg configuration, used to determine where to
- *   store the time; user can also insist RTC is working
- *   nicely and disable the feature
- * @return monotonically increasing time
- */
 struct GNUNET_TIME_Absolute
 GNUNET_TIME_absolute_get_monotonic (
   const struct GNUNET_CONFIGURATION_Handle *cfg)
