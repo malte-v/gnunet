@@ -284,7 +284,7 @@ GNUNET_TIME_absolute_add (struct GNUNET_TIME_Absolute start,
     return GNUNET_TIME_UNIT_FOREVER_ABS;
   if (start.abs_value_us + duration.rel_value_us < start.abs_value_us)
   {
-    GNUNET_assert (0);
+    GNUNET_break (0);
     return GNUNET_TIME_UNIT_FOREVER_ABS;
   }
   ret.abs_value_us = start.abs_value_us + duration.rel_value_us;
