@@ -121,7 +121,6 @@ registration_comp (void *cls,
   {
     cs->reg_handle = NULL;
     cs->host_ready = GNUNET_YES;
-    GNUNET_TESTING_interpreter_next (cs->is);
   }
 }
 

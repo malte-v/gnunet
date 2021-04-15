@@ -38,33 +38,7 @@
 #include "gnunet_util_lib.h"
 #include "gnunet_testing_ng_lib.h"
 
-struct ServiceState
-{
-  /**
-   * Handle to operation
-   */
-  struct GNUNET_TESTBED_Operation *operation;
-
-  /**
-   * Flag indicating if service is ready.
-   */
-  int service_ready;
-
-  /**
-   * Abort task identifier
-   */
-  struct GNUNET_SCHEDULER_Task *abort_task;
-
-  /**
-   * Label of peer command.
-   */
-  const char *peer_label;
-
-  /**
-   * Name of service to start.
-   */
-  const char *servicename;
-};
+struct TngState;
 
 struct PeerCmdState
 {
@@ -109,11 +83,6 @@ struct PeerCmdState
    * Abort task identifier
    */
   struct GNUNET_SCHEDULER_Task *abort_task;
-
-  /**
-   * Handle for host registration
-   */
-  struct GNUNET_TESTBED_HostRegistrationHandle *reg_handle;
 
   /**
    * Flag indicating if peer is ready.
@@ -242,6 +211,6 @@ void
 GNUNET_TESTBED_shutdown_peer (struct PeerCmdState *ps);
 
 void
-GNUNET_TESTBED_shutdown_service (struct ServiceState *ss);
+GNUNET_TESTBED_shutdown_service (struct TngState *ss);
 
 #endif

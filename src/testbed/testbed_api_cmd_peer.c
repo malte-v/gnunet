@@ -20,8 +20,8 @@
 
 
 /**
- * @file testbed/testbed_api_cmd_controller.c
- * @brief Command to create a controller.
+ * @file testbed/testbed_api_cmd_peer.c
+ * @brief Command to create a peer.
  * @author t3sserakt
  */
 #include "platform.h"
@@ -54,8 +54,41 @@ peer_traits (void *cls,
              const char *trait,
              unsigned int index)
 {
-  (void) cls;
+  struct PeerCmdState *ps = cls;
+
+  struct GNUNET_TESTING_Trait traits[] = {
+    {
+      .index = 0,
+      .trait_name = "peer",
+      .ptr = (const void *) ps->peer,
+    },
+    GNUNET_TESTING_trait_end ()
+  };
+
+  return GNUNET_TESTING_get_trait (traits,
+                                   ret,
+                                   trait,
+                                   index);
+
   return GNUNET_OK;
+}
+
+/**
+ * Offer data from trait
+ *
+ * @param cmd command to extract the controller from.
+ * @param peer pointer GNUNET_TESTBED_PEER
+ * @return #GNUNET_OK on success.
+ */
+int
+GNUNET_TESTBED_get_trait_peer (const struct GNUNET_TESTING_Command *cmd,
+                               struct GNUNET_TESTBED_Peer **
+                               peer)
+{
+  return cmd->traits (cmd->cls,
+                      (const void **) peer,
+                      "peer",
+                      (unsigned int) 0);
 }
 
 
@@ -110,7 +143,6 @@ peer_started_cb (void *cls,
   if (NULL == emsg)
   {
     ps->peer_ready = GNUNET_YES;
-    GNUNET_TESTING_interpreter_next (ps->is);
   }
   else
   {

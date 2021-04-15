@@ -26,7 +26,7 @@
  */
 #include "platform.h"
 #include "gnunet_testing_ng_lib.h"
-
+#include "testing.h"
 
 /**
  * State for a "batch" CMD.
@@ -70,7 +70,6 @@ batch_run (void *cls,
     GNUNET_log (GNUNET_ERROR_TYPE_INFO,
                 "Exiting from batch: %s\n",
                 cmd->label);
-    GNUNET_TESTING_interpreter_next (is);
     return;
   }
   bs->batch[bs->batch_ip].start_time

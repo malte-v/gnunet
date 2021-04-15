@@ -112,7 +112,6 @@ hello_world_birth_run (void *cls,
   {
     hbs->what_am_i = "boy!";
   }
-  GNUNET_TESTING_interpreter_next (is);
 }
 
 /**

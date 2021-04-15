@@ -51,46 +51,7 @@
  * Global state of the interpreter, used by a command
  * to access information about other commands.
  */
-// SUGGESTION: consider making this struct opaque (only known inside of libgnunettesting,
-// say main loop and a few select commands, like next/fail/batch); + helper
-// function to access 'cfg'?
-struct GNUNET_TESTING_Interpreter
-{
-
-  /**
-   * Commands the interpreter will run.
-   */
-  struct GNUNET_TESTING_Command *commands;
-
-  /**
-   * Interpreter task (if one is scheduled).
-   */
-  struct GNUNET_SCHEDULER_Task *task;
-
-  /**
-   * Our configuration.
-   */
-  const struct GNUNET_CONFIGURATION_Handle *cfg;
-
-  /**
-   * Task run on timeout.
-   */
-  struct GNUNET_SCHEDULER_Task *timeout_task;
-
-  /**
-   * Instruction pointer.  Tells #interpreter_run() which instruction to run
-   * next.  Need (signed) int because it gets -1 when rewinding the
-   * interpreter to the first CMD.
-   */
-  int ip;
-
-  /**
-   * Result of the testcases, #GNUNET_OK on success
-   */
-  int result;
-
-};
-
+struct GNUNET_TESTING_Interpreter;
 
 /**
  * A command to be run by the interpreter.
@@ -131,19 +92,24 @@ struct GNUNET_TESTING_Command
 
   /**
    * Wait for any asynchronous execution of @e run to conclude,
-   * then call @a cont.  Finish may only be called once per command.
+   * then call finish_cont. Finish may only be called once per command.
    *
    * This member may be NULL if this command is a synchronous command,
    * and also should be set to NULL once the command has finished.
    *
+   * @param cls closure
    * @param cont function to call upon completion, can be NULL
    * @param cont_cls closure for @a cont
    */
-  // SUGGESTION (NEW!)
-  void
+  bool
   (*finish)(void *cls,
-            struct GNUNET_SCHEDULER_Task cont,
+            GNUNET_SCHEDULER_TaskCallback cont,
             void *cont_cls);
+
+  /**
+   * Task for running the finish function.
+   */
+  struct GNUNET_SCHEDULER_Task *finish_task;
 
   /**
    * Clean up after the command.  Run during forced termination
@@ -206,7 +172,6 @@ struct GNUNET_TESTING_Command
    * time, the interpreter will fail.  Should be set generously to ensure
    * tests do not fail on slow systems.
    */
-  // SUGGESTION (NEW):
   struct GNUNET_TIME_Relative default_timeout;
 
   /**
@@ -215,11 +180,37 @@ struct GNUNET_TESTING_Command
    * #TALER_TESTING_cmd_finish() must be used
    * to ensure that a command actually completed.
    */
-  // SUGGESTION (NEW):
   bool asynchronous_finish;
 
 };
 
+
+/**
+ * Struct to use for command-specific context information closure of a command waiting
+ * for another command.
+ */
+struct SyncState
+{
+  /**
+   * Closure for all commands with command-specific context information.
+   */
+  void *cls;
+
+  /**
+   * The asynchronous command the synchronous command of this closure waits for.
+   */
+  const struct GNUNET_TESTING_Command *async_cmd;
+
+  /**
+   * Task for running the finish method of the asynchronous task the command is waiting for.
+   */
+  struct GNUNET_SCHEDULER_Task *finish_task;
+
+  /**
+   * When did the execution of this commands finish function start?
+   */
+  struct GNUNET_TIME_Absolute start_finish_time;
+};
 
 /**
  * Lookup command by label.
@@ -244,15 +235,6 @@ GNUNET_TESTING_interpreter_get_current_label (
 
 
 /**
- * Current command is done, run the next one.
- *
- * @param is interpreter state.
- */
-void
-GNUNET_TESTING_interpreter_next (struct GNUNET_TESTING_Interpreter *is);
-
-
-/**
  * Current command failed, clean up and fail the test case.
  *
  * @param is interpreter state.
@@ -271,14 +253,13 @@ GNUNET_TESTING_cmd_end (void);
 
 
 /**
- * Turn synchronous command into asynchronous command.
+ * Turn asynchronous command into non blocking command by setting asynchronous_finish to true.
  *
  * @param cmd command to make synchronous.
  * @return a finish-command.
  */
-// SUGGESTION (NEW!)
 const struct GNUNET_TESTING_Command
-TALER_TESTING_cmd_make_asynchronous (const struct GNUNET_TESTING_Command cmd);
+GNUNET_TESTING_cmd_make_unblocking (const struct GNUNET_TESTING_Command cmd);
 
 
 /**
@@ -292,11 +273,10 @@ TALER_TESTING_cmd_make_asynchronous (const struct GNUNET_TESTING_Command cmd);
  * @param timeout how long to wait at most for @a cmd_ref to finish
  * @return a finish-command.
  */
-// SUGGESTION (NEW!)
 const struct GNUNET_TESTING_Command
-TALER_TESTING_cmd_finish (const char *finish_label,
-                          const char *cmd_ref,
-                          struct GNUNET_TIME_Relative timeout);
+GNUNET_TESTING_cmd_finish (const char *finish_label,
+                           const char *cmd_ref,
+                           struct GNUNET_TIME_Relative timeout);
 
 
 /**

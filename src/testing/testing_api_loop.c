@@ -28,8 +28,48 @@
 #include "platform.h"
 #include "gnunet_util_lib.h"
 #include "gnunet_testing_ng_lib.h"
+#include "testing.h"
 
 struct GNUNET_TESTING_Interpreter *is;
+
+/**
+ * Closure used to sync an asynchronous with an synchronous command.
+ */
+struct SyncTaskClosure
+{
+
+  /**
+   * The asynchronous command the synchronous command waits for.
+   */
+  const struct GNUNET_TESTING_Command *async_cmd;
+
+  /**
+   * The synchronous command that waits for the asynchronous command.
+   */
+  const struct GNUNET_TESTING_Command *sync_cmd;
+
+  /**
+   * The interpreter of the test.
+   */
+  struct GNUNET_TESTING_Interpreter *is;
+};
+
+/**
+* Closure used to run the finish task.
+*/
+struct FinishTaskClosure
+{
+
+  /**
+   * The asynchronous command the synchronous command waits for.
+   */
+  const struct GNUNET_TESTING_Command *cmd;
+
+  /**
+   * The interpreter of the test.
+   */
+  struct GNUNET_TESTING_Interpreter *is;
+};
 
 /**
  * Lookup command by label.
@@ -107,9 +147,10 @@ interpreter_run (void *cls);
 /**
  * Current command is done, run the next one.
  */
-void
-GNUNET_TESTING_interpreter_next (struct GNUNET_TESTING_Interpreter *is)
+static void
+interpreter_next (void *cls)
 {
+  struct GNUNET_TESTING_Interpreter *is = cls;
   static unsigned long long ipc;
   static struct GNUNET_TIME_Absolute last_report;
   struct GNUNET_TESTING_Command *cmd = &is->commands[is->ip];
@@ -138,6 +179,123 @@ GNUNET_TESTING_interpreter_next (struct GNUNET_TESTING_Interpreter *is)
   ipc++;
   is->task = GNUNET_SCHEDULER_add_now (&interpreter_run,
                                        is);
+}
+
+
+static void
+run_finish_task_next (void *cls)
+{
+  struct FinishTaskClosure *ftc = cls;
+  const struct GNUNET_TESTING_Command *cmd = ftc->cmd;
+  struct GNUNET_TESTING_Interpreter *is = ftc->is;
+
+  if (cmd->finish (cmd->cls, &interpreter_next, is))
+  {
+    is->finish_task = GNUNET_SCHEDULER_add_now (&run_finish_task_next, ftc);
+  }
+  else
+  {
+    is->finish_task = NULL;
+  }
+
+}
+
+
+static void
+run_finish_task_sync (void *cls)
+{
+  struct SyncTaskClosure *stc = cls;
+  const struct GNUNET_TESTING_Command *cmd = stc->async_cmd;
+  const struct GNUNET_TESTING_Command *sync_cmd = stc->sync_cmd;
+  struct FinishTaskClosure *ftc;
+  struct SyncState *sync_state = sync_cmd->cls;
+  struct GNUNET_SCHEDULER_Task *finish_task = sync_state->finish_task;
+
+  GNUNET_assert (NULL != finish_task);
+  ftc = GNUNET_new (struct FinishTaskClosure);
+  ftc->cmd = stc->sync_cmd;
+  ftc->is = stc->is;
+  struct GNUNET_TIME_Absolute now = GNUNET_TIME_absolute_get ();
+  if (cmd->default_timeout.rel_value_us < now.abs_value_us
+      - sync_state->start_finish_time.abs_value_us)
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                "The command with label %s did not finish its asyncronous task in time.\n",
+                cmd->label);
+    is->result = GNUNET_SYSERR;
+    GNUNET_SCHEDULER_shutdown ();
+  }
+
+  if (cmd->finish (cmd->cls, run_finish_task_next, ftc))
+  {
+    finish_task = GNUNET_SCHEDULER_add_now (&run_finish_task_sync, stc);
+  }
+  else
+  {
+    finish_task = NULL;
+  }
+}
+
+
+static void
+start_finish_on_ref (void *cls,
+                     const struct GNUNET_TESTING_Command *cmd,
+                     struct GNUNET_TESTING_Interpreter *is)
+{
+  struct SyncState *sync_state = cls;
+  struct SyncTaskClosure *stc;
+  const struct GNUNET_TESTING_Command *async_cmd;
+
+  async_cmd = sync_state->async_cmd;
+  stc = GNUNET_new (struct SyncTaskClosure);
+  stc->async_cmd = async_cmd;
+  stc->sync_cmd = cmd;
+  stc->is = is;
+  sync_state->start_finish_time = GNUNET_TIME_absolute_get ();
+  sync_state->finish_task = GNUNET_SCHEDULER_add_now (&run_finish_task_sync,
+                                                      stc);
+}
+
+
+const struct GNUNET_TESTING_Command
+GNUNET_TESTING_cmd_finish (const char *finish_label,
+                           const char *cmd_ref,
+                           struct GNUNET_TIME_Relative timeout)
+{
+  const struct GNUNET_TESTING_Command *async_cmd;
+  struct SyncState *sync_state;
+
+  async_cmd = GNUNET_TESTING_interpreter_lookup_command (cmd_ref);
+  sync_state = GNUNET_new (struct SyncState);
+  sync_state->async_cmd = async_cmd;
+
+  struct GNUNET_TESTING_Command cmd = {
+    .cls = sync_state,
+    .label = finish_label,
+    .run = &start_finish_on_ref,
+    .asynchronous_finish = GNUNET_NO
+  };
+
+  return cmd;
+}
+
+
+const struct GNUNET_TESTING_Command
+GNUNET_TESTING_cmd_make_asynchronous (const struct GNUNET_TESTING_Command cmd)
+{
+
+  GNUNET_assert (NULL != cmd.finish);
+  const struct GNUNET_TESTING_Command async_cmd = {
+    .cls = cmd.cls,
+    .label = cmd.label,
+    .run = cmd.run,
+    .cleanup = cmd.cleanup,
+    .traits = cmd.traits,
+    .finish = cmd.finish,
+    .asynchronous_finish = GNUNET_YES
+  };
+
+  return async_cmd;
 }
 
 
@@ -195,14 +353,15 @@ GNUNET_TESTING_interpreter_get_current_label (struct
 
 
 /**
- * Run the main interpreter loop that performs exchange operations.
+ * Run the main interpreter loop.
  *
  * @param cls contains the `struct GNUNET_TESTING_Interpreter`
  */
 static void
 interpreter_run (void *cls)
 {
-  (void) cls;
+  struct FinishTaskClosure *ftc;
+  struct GNUNET_TESTING_Interpreter *is = cls;
   struct GNUNET_TESTING_Command *cmd = &is->commands[is->ip];
 
   is->task = NULL;
@@ -227,6 +386,17 @@ interpreter_run (void *cls)
   cmd->run (cmd->cls,
             cmd,
             is);
+  if ((NULL != cmd->finish) && (GNUNET_NO == cmd->asynchronous_finish))
+  {
+    ftc = GNUNET_new (struct FinishTaskClosure);
+    ftc->cmd = cmd;
+    ftc->is = is;
+    cmd->finish_task = GNUNET_SCHEDULER_add_now (run_finish_task_next, ftc);
+  }
+  else
+  {
+    interpreter_next (is);
+  }
 }
 
 
@@ -253,9 +423,15 @@ do_shutdown (void *cls)
 
   for (unsigned int j = 0;
        NULL != (cmd = &is->commands[j])->label;
-       j++)
+       j++) {
     cmd->cleanup (cmd->cls,
                   cmd);
+    if (NULL != cmd->finish_task)
+    {
+      GNUNET_SCHEDULER_cancel (cmd->finish_task);
+      cmd->finish_task = NULL;
+    }
+  }
 
   if (NULL != is->task)
   {

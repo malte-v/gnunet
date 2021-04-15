@@ -89,7 +89,6 @@ hello_world_run (void *cls,
   GNUNET_log (GNUNET_ERROR_TYPE_INFO,
               "Now I am a %s\n",
               hs->message);
-  GNUNET_TESTING_interpreter_next (is);
 }
 
 /**
