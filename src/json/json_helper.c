@@ -28,9 +28,6 @@
 #include "gnunet_json_lib.h"
 
 
-/**
- * End of a parser specification.
- */
 struct GNUNET_JSON_Specification
 GNUNET_JSON_spec_end ()
 {
@@ -84,14 +81,6 @@ parse_fixed_data (void *cls,
 }
 
 
-/**
- * Variable size object (in network byte order, encoded using Crockford
- * Base32hex encoding).
- *
- * @param name name of the JSON field
- * @param[out] obj pointer where to write the data, must have @a size bytes
- * @param size number of bytes expected in @a obj
- */
 struct GNUNET_JSON_Specification
 GNUNET_JSON_spec_fixed (const char *name,
                         void *obj,
@@ -178,14 +167,6 @@ clean_variable_data (void *cls,
 }
 
 
-/**
- * Variable size object (in network byte order, encoded using
- * Crockford Base32hex encoding).
- *
- * @param name name of the JSON field
- * @param[out] obj pointer where to write the data, will be allocated
- * @param[out] size where to store the number of bytes allocated for @a obj
- */
 struct GNUNET_JSON_Specification
 GNUNET_JSON_spec_varsize (const char *name,
                           void **obj,
@@ -234,12 +215,6 @@ parse_string (void *cls,
 }
 
 
-/**
- * The expected field stores a string.
- *
- * @param name name of the JSON field
- * @param strptr where to store a pointer to the field
- */
 struct GNUNET_JSON_Specification
 GNUNET_JSON_spec_string (const char *name,
                          const char **strptr)
@@ -303,12 +278,6 @@ clean_object (void *cls,
 }
 
 
-/**
- * JSON object.
- *
- * @param name name of the JSON field
- * @param[out] jsonp where to store the JSON found under @a name
- */
 struct GNUNET_JSON_Specification
 GNUNET_JSON_spec_json (const char *name,
                        json_t **jsonp)
@@ -358,12 +327,6 @@ parse_bool (void *cls,
 }
 
 
-/**
- * boolean.
- *
- * @param name name of the JSON field
- * @param[out] b where to store the boolean found under @a name
- */
 struct GNUNET_JSON_Specification
 GNUNET_JSON_spec_bool (const char *name,
                        bool *b)
@@ -414,12 +377,6 @@ parse_u8 (void *cls,
 }
 
 
-/**
- * 8-bit integer.
- *
- * @param name name of the JSON field
- * @param[out] u8 where to store the integer found under @a name
- */
 struct GNUNET_JSON_Specification
 GNUNET_JSON_spec_uint8 (const char *name,
                         uint8_t *u8)
@@ -470,12 +427,6 @@ parse_u16 (void *cls,
 }
 
 
-/**
- * 16-bit integer.
- *
- * @param name name of the JSON field
- * @param[out] u16 where to store the integer found under @a name
- */
 struct GNUNET_JSON_Specification
 GNUNET_JSON_spec_uint16 (const char *name,
                          uint16_t *u16)
@@ -526,12 +477,6 @@ parse_u32 (void *cls,
 }
 
 
-/**
- * 32-bit integer.
- *
- * @param name name of the JSON field
- * @param[out] u32 where to store the integer found under @a name
- */
 struct GNUNET_JSON_Specification
 GNUNET_JSON_spec_uint32 (const char *name,
                          uint32_t *u32)
@@ -577,12 +522,6 @@ parse_u64 (void *cls,
 }
 
 
-/**
- * 64-bit integer.
- *
- * @param name name of the JSON field
- * @param[out] u64 where to store the integer found under @a name
- */
 struct GNUNET_JSON_Specification
 GNUNET_JSON_spec_uint64 (const char *name,
                          uint64_t *u64)
@@ -628,12 +567,6 @@ parse_i64 (void *cls,
 }
 
 
-/**
- * 64-bit signed integer.
- *
- * @param name name of the JSON field
- * @param[out] i64 where to store the integer found under @a name
- */
 struct GNUNET_JSON_Specification
 GNUNET_JSON_spec_int64 (const char *name,
                         int64_t *i64)
@@ -707,12 +640,6 @@ parse_abs_time (void *cls,
 }
 
 
-/**
- * Absolute time.
- *
- * @param name name of the JSON field
- * @param[out] at where to store the absolute time found under @a name
- */
 struct GNUNET_JSON_Specification
 GNUNET_JSON_spec_absolute_time (const char *name,
                                 struct GNUNET_TIME_Absolute *at)
@@ -761,12 +688,6 @@ parse_abs_time_nbo (void *cls,
 }
 
 
-/**
- * Absolute time in network byte order.
- *
- * @param name name of the JSON field
- * @param[out] at where to store the absolute time found under @a name
- */
 struct GNUNET_JSON_Specification
 GNUNET_JSON_spec_absolute_time_nbo (const char *name,
                                     struct GNUNET_TIME_AbsoluteNBO *at)
@@ -838,12 +759,6 @@ parse_rel_time (void *cls,
 }
 
 
-/**
- * Relative time.
- *
- * @param name name of the JSON field
- * @param[out] rt where to store the relative time found under @a name
- */
 struct GNUNET_JSON_Specification
 GNUNET_JSON_spec_relative_time (const char *name,
                                 struct GNUNET_TIME_Relative *rt)
@@ -931,12 +846,6 @@ clean_rsa_public_key (void *cls,
 }
 
 
-/**
- * Specification for parsing an RSA public key.
- *
- * @param name name of the JSON field
- * @param pk where to store the RSA key found under @a name
- */
 struct GNUNET_JSON_Specification
 GNUNET_JSON_spec_rsa_public_key (const char *name,
                                  struct GNUNET_CRYPTO_RsaPublicKey **pk)
@@ -1025,12 +934,6 @@ clean_rsa_signature (void *cls,
 }
 
 
-/**
- * Specification for parsing an RSA signature.
- *
- * @param name name of the JSON field
- * @param sig where to store the RSA signature found under @a name
- */
 struct GNUNET_JSON_Specification
 GNUNET_JSON_spec_rsa_signature (const char *name,
                                 struct GNUNET_CRYPTO_RsaSignature **sig)
@@ -1075,12 +978,6 @@ parse_boolean (void *cls,
 }
 
 
-/**
- * Boolean (true mapped to GNUNET_YES, false mapped to GNUNET_NO).
- *
- * @param name name of the JSON field
- * @param[out] boolean where to store the boolean found under @a name
- */
 struct GNUNET_JSON_Specification
 GNUNET_JSON_spec_boolean (const char *name,
                           int *boolean)
