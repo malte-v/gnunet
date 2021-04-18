@@ -1867,8 +1867,7 @@ AC_MSG_CHECKING(for source being under a VCS)
 git_version=
 AS_IF([test ! "X$gitcommand" = "X"],
 [
-  git_version=$(cd $srcdir ; git rev-list --full-history --all --abbrev-commit | head -n 1 2>/dev/null)
-  git_version=$(cd $srcdir ; git log -n 1)
+  git_version=$(cd $srcdir ; git log -n 1 | head -n 1 2>/dev/null)
 ])
 AS_IF([test "X$git_version" = "X"],
   [
