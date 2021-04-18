@@ -49,7 +49,7 @@
 /**
  * How many values do we test?
  */
-#define TEST_ITER 10
+#define TEST_ITER 100
 
 /**
  * Range of values to use for MATH tests.
@@ -65,55 +65,76 @@
 static void
 test_dlog (struct GNUNET_CRYPTO_EccDlogContext *edc)
 {
-  gcry_mpi_t fact;
-  gcry_mpi_t n;
-  gcry_ctx_t ctx;
-  gcry_mpi_point_t q;
-  gcry_mpi_point_t g;
-  unsigned int i;
-  int x;
-  int iret;
-
-  GNUNET_assert (0 == gcry_mpi_ec_new (&ctx, NULL, CURVE));
-  g = gcry_mpi_ec_get_point ("g", ctx, 0);
-  GNUNET_assert (NULL != g);
-  n = gcry_mpi_ec_get_mpi ("n", ctx, 0);
-  q = gcry_mpi_point_new (0);
-  fact = gcry_mpi_new (0);
-  for (i = 0; i < TEST_ITER; i++)
+  for (unsigned int i = 0; i < TEST_ITER; i++)
   {
+    struct GNUNET_CRYPTO_EccScalar fact;
+    struct GNUNET_CRYPTO_EccScalar n;
+    struct GNUNET_CRYPTO_EccPoint q;
+    int x;
+
     fprintf (stderr, ".");
     x = GNUNET_CRYPTO_random_u32 (GNUNET_CRYPTO_QUALITY_WEAK,
                                   MAX_FACT);
+    memset (&n,
+            0,
+            sizeof (n));
+    for (unsigned int j = 0; j < x; j++)
+      sodium_increment (n.v,
+                        sizeof (n.v));
     if (0 == GNUNET_CRYPTO_random_u32 (GNUNET_CRYPTO_QUALITY_WEAK,
                                        2))
     {
-      gcry_mpi_set_ui (fact, x);
-      gcry_mpi_sub (fact, n, fact);
+      GNUNET_log (GNUNET_ERROR_TYPE_INFO,
+                  "Trying negative %d\n",
+                  -x);
+      crypto_core_ed25519_scalar_negate (fact.v,
+                                         n.v);
       x = -x;
     }
     else
     {
-      gcry_mpi_set_ui (fact, x);
+      GNUNET_log (GNUNET_ERROR_TYPE_INFO,
+                  "Trying positive %d\n",
+                  x);
+      fact = n;
     }
-    gcry_mpi_ec_mul (q, fact, g, ctx);
-    if (x !=
-        (iret = GNUNET_CRYPTO_ecc_dlog (edc,
-                                        q)))
+    if (0 == x)
     {
-      fprintf (stderr,
-               "DLOG failed for value %d (%d)\n",
-               x,
-               iret);
-      GNUNET_assert (0);
+      /* libsodium does not like to multiply with zero; make sure
+         'q' is a valid point (g) first, then use q = q - q to get
+         the product with zero */
+      sodium_increment (fact.v,
+                        sizeof (fact.v));
+      GNUNET_assert (0 ==
+                     crypto_scalarmult_ed25519_base_noclamp (q.v,
+                                                             fact.v));
+      GNUNET_assert (
+        0 ==
+        crypto_core_ed25519_sub (q.v,
+                                 q.v,
+                                 q.v));
+    }
+    else
+      GNUNET_assert (0 ==
+                     crypto_scalarmult_ed25519_base_noclamp (q.v,
+                                                             fact.v));
+    {
+      int iret;
+
+      if (x !=
+          (iret = GNUNET_CRYPTO_ecc_dlog (edc,
+                                          &q)))
+      {
+        GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                    "DLOG failed for value %d (got: %d)\n",
+                    x,
+                    iret);
+        GNUNET_assert (0);
+      }
     }
   }
-  gcry_mpi_release (fact);
-  gcry_mpi_release (n);
-  gcry_mpi_point_release (g);
-  gcry_mpi_point_release (q);
-  gcry_ctx_release (ctx);
-  fprintf (stderr, "\n");
+  fprintf (stderr,
+           "\n");
 }
 
 
@@ -127,38 +148,40 @@ test_math (struct GNUNET_CRYPTO_EccDlogContext *edc)
 {
   int i;
   int j;
-  gcry_mpi_point_t ip;
-  gcry_mpi_point_t jp;
-  gcry_mpi_point_t r;
-  gcry_mpi_point_t ir;
-  gcry_mpi_point_t irj;
-  gcry_mpi_point_t r_inv;
-  gcry_mpi_point_t sum;
+  struct GNUNET_CRYPTO_EccPoint ip;
+  struct GNUNET_CRYPTO_EccPoint jp;
+  struct GNUNET_CRYPTO_EccPoint r;
+  struct GNUNET_CRYPTO_EccPoint ir;
+  struct GNUNET_CRYPTO_EccPoint irj;
+  struct GNUNET_CRYPTO_EccPoint r_inv;
+  struct GNUNET_CRYPTO_EccPoint sum;
 
   for (i = -MATH_MAX; i < MATH_MAX; i++)
   {
-    ip = GNUNET_CRYPTO_ecc_dexp (edc, i);
+    GNUNET_CRYPTO_ecc_dexp (i, &ip);
     for (j = -MATH_MAX; j < MATH_MAX; j++)
     {
       fprintf (stderr, ".");
-      jp = GNUNET_CRYPTO_ecc_dexp (edc, j);
-      GNUNET_CRYPTO_ecc_rnd (edc,
-                             &r,
+      GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                  "%d + %d\n",
+                  i,
+                  j);
+      GNUNET_CRYPTO_ecc_dexp (j, &jp);
+      GNUNET_CRYPTO_ecc_rnd (&r,
                              &r_inv);
-      ir = GNUNET_CRYPTO_ecc_add (edc, ip, r);
-      irj = GNUNET_CRYPTO_ecc_add (edc, ir, jp);
-      sum = GNUNET_CRYPTO_ecc_add (edc, irj, r_inv);
-      GNUNET_assert (i + j ==
-                     GNUNET_CRYPTO_ecc_dlog (edc,
-                                             sum));
-      GNUNET_CRYPTO_ecc_free (jp);
-      GNUNET_CRYPTO_ecc_free (ir);
-      GNUNET_CRYPTO_ecc_free (irj);
-      GNUNET_CRYPTO_ecc_free (r);
-      GNUNET_CRYPTO_ecc_free (r_inv);
-      GNUNET_CRYPTO_ecc_free (sum);
+      GNUNET_CRYPTO_ecc_add (&ip, &r, &ir);
+      GNUNET_CRYPTO_ecc_add (&ir, &jp, &irj);
+      GNUNET_CRYPTO_ecc_add (&irj, &r_inv, &sum);
+      int res = GNUNET_CRYPTO_ecc_dlog (edc, &sum);
+      if (i + j != res)
+      {
+        GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                    "Got %d, expected %d\n",
+                    res,
+                    i + j);
+        // GNUNET_assert (0);
+      }
     }
-    GNUNET_CRYPTO_ecc_free (ip);
   }
   fprintf (stderr, "\n");
 }

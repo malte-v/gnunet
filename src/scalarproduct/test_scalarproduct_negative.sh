@@ -5,6 +5,9 @@ INPUTALICE="-k CCC -e 'AB,10;RO,-3;FL,-3;LOL,1;'"
 INPUTBOB="-k CCC -e 'BC,-20000;RO,1000;FL,100;LOL,24;'"
 
 # necessary to make the testing prefix deterministic, so we can access the config files
+unset XDG_DATA_HOME
+unset XDG_CONFIG_HOME
+
 PREFIX=/tmp/test-scalarproduct`date +%H%M%S`
 
 # where can we find the peers config files?

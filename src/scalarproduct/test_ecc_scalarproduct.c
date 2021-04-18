@@ -45,20 +45,12 @@ test_sp (const unsigned int *avec,
          const unsigned int *bvec)
 {
   unsigned int len;
-  unsigned int i;
-  gcry_mpi_t a;
-  gcry_mpi_t a_inv;
-  gcry_mpi_t ri;
-  gcry_mpi_t val;
-  gcry_mpi_t ria;
-  gcry_mpi_t tmp;
-  gcry_mpi_point_t *g;
-  gcry_mpi_point_t *h;
-  gcry_mpi_point_t pg;
-  gcry_mpi_point_t ph;
-  gcry_mpi_point_t pgi;
-  gcry_mpi_point_t gsp;
-  int sp;
+  struct GNUNET_CRYPTO_EccScalar a;
+  struct GNUNET_CRYPTO_EccScalar a_neg;
+  struct GNUNET_CRYPTO_EccPoint *g;
+  struct GNUNET_CRYPTO_EccPoint *h;
+  struct GNUNET_CRYPTO_EccPoint pg;
+  struct GNUNET_CRYPTO_EccPoint ph;
 
   /* determine length */
   for (len = 0; 0 != avec[len]; len++)
@@ -67,88 +59,131 @@ test_sp (const unsigned int *avec,
     return 0;
 
   /* Alice */
-  GNUNET_CRYPTO_ecc_rnd_mpi (edc,
-                             &a, &a_inv);
+  GNUNET_CRYPTO_ecc_rnd_mpi (&a,
+                             &a_neg);
   g = GNUNET_new_array (len,
-                        gcry_mpi_point_t);
+                        struct GNUNET_CRYPTO_EccPoint);
   h = GNUNET_new_array (len,
-                        gcry_mpi_point_t);
-  ria = gcry_mpi_new (0);
-  tmp = gcry_mpi_new (0);
-  for (i = 0; i < len; i++)
+                        struct GNUNET_CRYPTO_EccPoint);
+  for (unsigned int i = 0; i < len; i++)
   {
-    ri = GNUNET_CRYPTO_ecc_random_mod_n (edc);
-    g[i] = GNUNET_CRYPTO_ecc_dexp_mpi (edc,
-                                       ri);
-    /* ria = ri * a */
-    gcry_mpi_mul (ria,
-                  ri,
-                  a);
+    struct GNUNET_CRYPTO_EccScalar tmp;
+    struct GNUNET_CRYPTO_EccScalar ri;
+    struct GNUNET_CRYPTO_EccScalar ria;
+
+    GNUNET_CRYPTO_ecc_random_mod_n (&ri);
+    GNUNET_assert (GNUNET_OK ==
+                   GNUNET_CRYPTO_ecc_dexp_mpi (&ri,
+                                               &g[i]));
+    /* ria = ri * a mod L, where L is the order of the main subgroup */
+    crypto_core_ed25519_scalar_mul (ria.v,
+                                    ri.v,
+                                    a.v);
     /* tmp = ria + avec[i] */
-    gcry_mpi_add_ui (tmp,
-                     ria,
-                     avec[i]);
-    h[i] = GNUNET_CRYPTO_ecc_dexp_mpi (edc,
-                                       tmp);
+    {
+      int64_t val = avec[i];
+      struct GNUNET_CRYPTO_EccScalar vali;
+
+      GNUNET_assert (INT64_MIN != val);
+      GNUNET_CRYPTO_ecc_scalar_from_int (val > 0 ? val : -val,
+                                         &vali);
+      if (val > 0)
+        crypto_core_ed25519_scalar_add (tmp.v,
+                                        ria.v,
+                                        vali.v);
+      else
+        crypto_core_ed25519_scalar_sub (tmp.v,
+                                        ria.v,
+                                        vali.v);
+    }
+    /* h[i] = g^tmp = g^{ria + avec[i]} */
+    GNUNET_assert (GNUNET_OK ==
+                   GNUNET_CRYPTO_ecc_dexp_mpi (&tmp,
+                                               &h[i]));
   }
-  gcry_mpi_release (ria);
-  gcry_mpi_release (tmp);
 
   /* Bob */
-  val = gcry_mpi_new (0);
-  gcry_mpi_set_ui (val, bvec[0]);
-  pg = GNUNET_CRYPTO_ecc_pmul_mpi (edc,
-                                   g[0],
-                                   val);
-  ph = GNUNET_CRYPTO_ecc_pmul_mpi (edc,
-                                   h[0],
-                                   val);
-  for (i = 1; i < len; i++)
+  for (unsigned int i = 0; i < len; i++)
   {
-    gcry_mpi_point_t m;
-    gcry_mpi_point_t tmp;
+    struct GNUNET_CRYPTO_EccPoint gm;
+    struct GNUNET_CRYPTO_EccPoint hm;
 
-    gcry_mpi_set_ui (val, bvec[i]);
-    m = GNUNET_CRYPTO_ecc_pmul_mpi (edc,
-                                    g[i],
-                                    val);
-    tmp = GNUNET_CRYPTO_ecc_add (edc,
-                                 m,
-                                 pg);
-    gcry_mpi_point_release (m);
-    gcry_mpi_point_release (pg);
-    gcry_mpi_point_release (g[i]);
-    pg = tmp;
+    {
+      int64_t val = bvec[i];
+      struct GNUNET_CRYPTO_EccScalar vali;
 
-    m = GNUNET_CRYPTO_ecc_pmul_mpi (edc,
-                                    h[i],
-                                    val);
-    tmp = GNUNET_CRYPTO_ecc_add (edc,
-                                 m,
-                                 ph);
-    gcry_mpi_point_release (m);
-    gcry_mpi_point_release (ph);
-    gcry_mpi_point_release (h[i]);
-    ph = tmp;
+      GNUNET_assert (INT64_MIN != val);
+      GNUNET_CRYPTO_ecc_scalar_from_int (val > 0 ? val : -val,
+                                         &vali);
+      if (val < 0)
+        crypto_core_ed25519_scalar_negate (vali.v,
+                                           vali.v);
+      /* gm = g[i]^vali */
+      GNUNET_assert (GNUNET_OK ==
+                     GNUNET_CRYPTO_ecc_pmul_mpi (&g[i],
+                                                 &vali,
+                                                 &gm));
+      /* hm = h[i]^vali */
+      GNUNET_assert (GNUNET_OK ==
+                     GNUNET_CRYPTO_ecc_pmul_mpi (&h[i],
+                                                 &vali,
+                                                 &hm));
+    }
+    if (0 != i)
+    {
+      /* pg += gm */
+      GNUNET_assert (GNUNET_OK ==
+                     GNUNET_CRYPTO_ecc_add (&gm,
+                                            &pg,
+                                            &pg));
+      /* ph += hm */
+      GNUNET_assert (GNUNET_OK ==
+                     GNUNET_CRYPTO_ecc_add (&hm,
+                                            &ph,
+                                            &ph));
+    }
+    else
+    {
+      pg = gm;
+      ph = hm;
+    }
   }
-  gcry_mpi_release (val);
   GNUNET_free (g);
   GNUNET_free (h);
 
   /* Alice */
-  pgi = GNUNET_CRYPTO_ecc_pmul_mpi (edc,
-                                    pg,
-                                    a_inv);
-  gsp = GNUNET_CRYPTO_ecc_add (edc,
-                               pgi,
-                               ph);
-  gcry_mpi_point_release (pgi);
-  gcry_mpi_point_release (ph);
-  sp = GNUNET_CRYPTO_ecc_dlog (edc,
-                               gsp);
-  gcry_mpi_point_release (gsp);
-  return sp;
+  {
+    struct GNUNET_CRYPTO_EccPoint pgi;
+    struct GNUNET_CRYPTO_EccPoint gsp;
+
+    /* pgi = pg^inv */
+    GNUNET_assert (GNUNET_OK ==
+                   GNUNET_CRYPTO_ecc_pmul_mpi (&pg,
+                                               &a_neg,
+                                               &pgi));
+    /* gsp = pgi + ph */
+    GNUNET_assert (GNUNET_OK ==
+                   GNUNET_CRYPTO_ecc_add (&pgi,
+                                          &ph,
+                                          &gsp));
+    return GNUNET_CRYPTO_ecc_dlog (edc,
+                                   &gsp);
+  }
 }
+
+
+/**
+ * Macro that checks that @a want is equal to @a have and
+ * if not returns with a failure code.
+ */
+#define CHECK(want,have) do { \
+    if (want != have) {         \
+      GNUNET_break (0);         \
+      GNUNET_log (GNUNET_ERROR_TYPE_ERROR, \
+                  "Wanted %d, got %d\n", want, have);   \
+      GNUNET_CRYPTO_ecc_dlog_release (edc); \
+      return 1; \
+    } } while (0)
 
 
 int
@@ -163,12 +198,12 @@ main (int argc, char *argv[])
                     "WARNING",
                     NULL);
   edc = GNUNET_CRYPTO_ecc_dlog_prepare (128, 128);
-  GNUNET_assert (2 == test_sp (v11, v11));
-  GNUNET_assert (4 == test_sp (v22, v11));
-  GNUNET_assert (8 == test_sp (v35, v11));
-  GNUNET_assert (26 == test_sp (v35, v24));
-  GNUNET_assert (26 == test_sp (v24, v35));
-  GNUNET_assert (16 == test_sp (v22, v35));
+  CHECK (2, test_sp (v11, v11));
+  CHECK (4, test_sp (v22, v11));
+  CHECK (8, test_sp (v35, v11));
+  CHECK (26, test_sp (v35, v24));
+  CHECK (26, test_sp (v24, v35));
+  CHECK (16, test_sp (v22, v35));
   GNUNET_CRYPTO_ecc_dlog_release (edc);
   return 0;
 }

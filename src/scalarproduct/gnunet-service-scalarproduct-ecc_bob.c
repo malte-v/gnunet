@@ -1,6 +1,6 @@
 /*
      This file is part of GNUnet.
-     Copyright (C) 2013-2017 GNUnet e.V.
+     Copyright (C) 2013-2017, 2021 GNUnet e.V.
 
      GNUnet is free software: you can redistribute it and/or modify it
      under the terms of the GNU Affero General Public License as published
@@ -54,7 +54,7 @@ struct MpiElement
   /**
    * Value represented (a).
    */
-  gcry_mpi_t value;
+  int64_t value;
 };
 
 
@@ -104,12 +104,12 @@ struct BobServiceSession
   /**
    * Product of the g_i^{b_i}
    */
-  gcry_mpi_point_t prod_g_i_b_i;
+  struct GNUNET_CRYPTO_EccPoint prod_g_i_b_i;
 
   /**
    * Product of the h_i^{b_i}
    */
-  gcry_mpi_point_t prod_h_i_b_i;
+  struct GNUNET_CRYPTO_EccPoint prod_h_i_b_i;
 
   /**
    * How many elements will be supplied in total from the client.
@@ -213,8 +213,6 @@ free_element_cb (void *cls,
 static void
 destroy_service_session (struct BobServiceSession *s)
 {
-  unsigned int i;
-
   if (GNUNET_YES == s->in_destroy)
     return;
   s->in_destroy = GNUNET_YES;
@@ -245,20 +243,8 @@ destroy_service_session (struct BobServiceSession *s)
   }
   if (NULL != s->sorted_elements)
   {
-    for (i = 0; i < s->used_element_count; i++)
-      gcry_mpi_release (s->sorted_elements[i].value);
     GNUNET_free (s->sorted_elements);
     s->sorted_elements = NULL;
-  }
-  if (NULL != s->prod_g_i_b_i)
-  {
-    gcry_mpi_point_release (s->prod_g_i_b_i);
-    s->prod_g_i_b_i = NULL;
-  }
-  if (NULL != s->prod_h_i_b_i)
-  {
-    gcry_mpi_point_release (s->prod_h_i_b_i);
-    s->prod_h_i_b_i = NULL;
   }
   if (NULL != s->port)
   {
@@ -364,14 +350,8 @@ transmit_bobs_cryptodata_message (struct BobServiceSession *s)
   e = GNUNET_MQ_msg (msg,
                      GNUNET_MESSAGE_TYPE_SCALARPRODUCT_ECC_BOB_CRYPTODATA);
   msg->contained_element_count = htonl (2);
-  if (NULL != s->prod_g_i_b_i)
-    GNUNET_CRYPTO_ecc_point_to_bin (edc,
-                                    s->prod_g_i_b_i,
-                                    &msg->prod_g_i_b_i);
-  if (NULL != s->prod_h_i_b_i)
-    GNUNET_CRYPTO_ecc_point_to_bin (edc,
-                                    s->prod_h_i_b_i,
-                                    &msg->prod_h_i_b_i);
+  msg->prod_g_i_b_i = s->prod_g_i_b_i;
+  msg->prod_h_i_b_i = s->prod_h_i_b_i;
   GNUNET_MQ_notify_sent (e,
                          &bob_cadet_done_cb,
                          s);
@@ -384,10 +364,9 @@ transmit_bobs_cryptodata_message (struct BobServiceSession *s)
  * Iterator to copy over messages from the hash map
  * into an array for sorting.
  *
- * @param cls the `struct BobServiceSession *`
+ * @param cls the `struct AliceServiceSession *`
  * @param key the key (unused)
  * @param value the `struct GNUNET_SCALARPRODUCT_Element *`
- * TODO: code duplication with Alice!
  */
 static int
 copy_element_cb (void *cls,
@@ -396,17 +375,10 @@ copy_element_cb (void *cls,
 {
   struct BobServiceSession *s = cls;
   struct GNUNET_SCALARPRODUCT_Element *e = value;
-  gcry_mpi_t mval;
-  int64_t val;
 
-  mval = gcry_mpi_new (0);
-  val = (int64_t) GNUNET_ntohll (e->value);
-  if (0 > val)
-    gcry_mpi_sub_ui (mval, mval, -val);
-  else
-    gcry_mpi_add_ui (mval, mval, val);
-  s->sorted_elements [s->used_element_count].value = mval;
-  s->sorted_elements [s->used_element_count].key = &e->key;
+  s->sorted_elements[s->used_element_count].value = (int64_t) GNUNET_ntohll (
+    e->value);
+  s->sorted_elements[s->used_element_count].key = &e->key;
   s->used_element_count++;
   return GNUNET_OK;
 }
@@ -490,13 +462,10 @@ handle_alices_cryptodata_message (void *cls,
   const struct GNUNET_CRYPTO_EccPoint *payload;
   uint32_t contained_elements;
   unsigned int max;
-  unsigned int i;
-  const struct MpiElement *b_i;
-  gcry_mpi_point_t tmp;
-  gcry_mpi_point_t g_i;
-  gcry_mpi_point_t h_i;
-  gcry_mpi_point_t g_i_b_i;
-  gcry_mpi_point_t h_i_b_i;
+  const struct GNUNET_CRYPTO_EccPoint *g_i;
+  const struct GNUNET_CRYPTO_EccPoint *h_i;
+  struct GNUNET_CRYPTO_EccPoint g_i_b_i;
+  struct GNUNET_CRYPTO_EccPoint h_i_b_i;
 
   contained_elements = ntohl (msg->contained_element_count);
   max = GNUNET_CONTAINER_multihashmap_size (s->intersected_elements);
@@ -522,21 +491,29 @@ handle_alices_cryptodata_message (void *cls,
               (unsigned int) contained_elements);
   payload = (const struct GNUNET_CRYPTO_EccPoint *) &msg[1];
 
-  for (i = 0; i < contained_elements; i++)
+  for (unsigned int i = 0; i < contained_elements; i++)
   {
-    b_i = &s->sorted_elements[i + s->cadet_received_element_count];
-    g_i = GNUNET_CRYPTO_ecc_bin_to_point (edc,
-                                          &payload[i * 2]);
-    g_i_b_i = GNUNET_CRYPTO_ecc_pmul_mpi (edc,
-                                          g_i,
-                                          b_i->value);
-    gcry_mpi_point_release (g_i);
-    h_i = GNUNET_CRYPTO_ecc_bin_to_point (edc,
-                                          &payload[i * 2 + 1]);
-    h_i_b_i = GNUNET_CRYPTO_ecc_pmul_mpi (edc,
-                                          h_i,
-                                          b_i->value);
-    gcry_mpi_point_release (h_i);
+    int64_t val = s->sorted_elements[i + s->cadet_received_element_count].value;
+    struct GNUNET_CRYPTO_EccScalar vali;
+
+    GNUNET_assert (INT64_MIN != val);
+    GNUNET_CRYPTO_ecc_scalar_from_int (val > 0 ? val : -val,
+                                       &vali);
+    if (val < 0)
+      crypto_core_ed25519_scalar_negate (vali.v,
+                                         vali.v);
+    g_i = &payload[i * 2];
+    /* g_i_b_i = g_i^vali */
+    GNUNET_assert (GNUNET_OK ==
+                   GNUNET_CRYPTO_ecc_pmul_mpi (g_i,
+                                               &vali,
+                                               &g_i_b_i));
+    h_i = &payload[i * 2 + 1];
+    /* h_i_b_i = h_i^vali */
+    GNUNET_assert (GNUNET_OK ==
+                   GNUNET_CRYPTO_ecc_pmul_mpi (h_i,
+                                               &vali,
+                                               &h_i_b_i));
     if (0 == i + s->cadet_received_element_count)
     {
       /* first iteration, nothing to add */
@@ -546,18 +523,14 @@ handle_alices_cryptodata_message (void *cls,
     else
     {
       /* further iterations, cummulate resulting value */
-      tmp = GNUNET_CRYPTO_ecc_add (edc,
-                                   s->prod_g_i_b_i,
-                                   g_i_b_i);
-      gcry_mpi_point_release (s->prod_g_i_b_i);
-      gcry_mpi_point_release (g_i_b_i);
-      s->prod_g_i_b_i = tmp;
-      tmp = GNUNET_CRYPTO_ecc_add (edc,
-                                   s->prod_h_i_b_i,
-                                   h_i_b_i);
-      gcry_mpi_point_release (s->prod_h_i_b_i);
-      gcry_mpi_point_release (h_i_b_i);
-      s->prod_h_i_b_i = tmp;
+      GNUNET_assert (GNUNET_OK ==
+                     GNUNET_CRYPTO_ecc_add (&s->prod_g_i_b_i,
+                                            &g_i_b_i,
+                                            &s->prod_g_i_b_i));
+      GNUNET_assert (GNUNET_OK ==
+                     GNUNET_CRYPTO_ecc_add (&s->prod_h_i_b_i,
+                                            &h_i_b_i,
+                                            &s->prod_h_i_b_i));
     }
   }
   s->cadet_received_element_count += contained_elements;
@@ -747,10 +720,9 @@ cb_channel_incoming (void *cls,
  * @return #GNUNET_OK if @a msg is well-formed
  */
 static int
-check_bob_client_message_multipart (void *cls,
-                                    const struct
-                                    ComputationBobCryptodataMultipartMessage *
-                                    msg)
+check_bob_client_message_multipart (
+  void *cls,
+  const struct ComputationBobCryptodataMultipartMessage *msg)
 {
   struct BobServiceSession *s = cls;
   uint32_t contained_count;
@@ -781,10 +753,9 @@ check_bob_client_message_multipart (void *cls,
  * @param msg the actual message
  */
 static void
-handle_bob_client_message_multipart (void *cls,
-                                     const struct
-                                     ComputationBobCryptodataMultipartMessage *
-                                     msg)
+handle_bob_client_message_multipart (
+  void *cls,
+  const struct ComputationBobCryptodataMultipartMessage *msg)
 {
   struct BobServiceSession *s = cls;
   uint32_t contained_count;

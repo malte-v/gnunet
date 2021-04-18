@@ -52,72 +52,88 @@
  */
 #define TEST_ITER 10
 
-/**
- * Range of values to use for MATH tests.
- */
-#define MATH_MAX 500000
-
 
 /**
  * Do some DLOG operations for testing.
  *
  * @param edc context for ECC operations
- * @param do_dlog #GNUNET_YES if we want to actually do the bencharked operation
+ * @param do_dlog true if we want to actually do the bencharked operation
  */
 static void
 test_dlog (struct GNUNET_CRYPTO_EccDlogContext *edc,
-           int do_dlog)
+           bool do_dlog)
 {
-  gcry_mpi_t fact;
-  gcry_mpi_t n;
-  gcry_ctx_t ctx;
-  gcry_mpi_point_t q;
-  gcry_mpi_point_t g;
-  unsigned int i;
-  int x;
-  int iret;
-
-  GNUNET_assert (0 == gcry_mpi_ec_new (&ctx, NULL, CURVE));
-  g = gcry_mpi_ec_get_point ("g", ctx, 0);
-  GNUNET_assert (NULL != g);
-  n = gcry_mpi_ec_get_mpi ("n", ctx, 0);
-  q = gcry_mpi_point_new (0);
-  fact = gcry_mpi_new (0);
-  for (i = 0; i < TEST_ITER; i++)
+  for (unsigned int i = 0; i < TEST_ITER; i++)
   {
+    struct GNUNET_CRYPTO_EccScalar fact;
+    struct GNUNET_CRYPTO_EccScalar n;
+    struct GNUNET_CRYPTO_EccPoint q;
+    int x;
+
     fprintf (stderr, ".");
     x = GNUNET_CRYPTO_random_u32 (GNUNET_CRYPTO_QUALITY_WEAK,
                                   MAX_FACT);
+    memset (&n,
+            0,
+            sizeof (n));
+    for (unsigned int j = 0; j < x; j++)
+      sodium_increment (n.v,
+                        sizeof (n.v));
     if (0 == GNUNET_CRYPTO_random_u32 (GNUNET_CRYPTO_QUALITY_WEAK,
                                        2))
     {
-      gcry_mpi_set_ui (fact, x);
-      gcry_mpi_sub (fact, n, fact);
+      GNUNET_log (GNUNET_ERROR_TYPE_INFO,
+                  "Trying negative %d\n",
+                  -x);
+      crypto_core_ed25519_scalar_negate (fact.v,
+                                         n.v);
       x = -x;
     }
     else
     {
-      gcry_mpi_set_ui (fact, x);
+      GNUNET_log (GNUNET_ERROR_TYPE_INFO,
+                  "Trying positive %d\n",
+                  x);
+      fact = n;
     }
-    gcry_mpi_ec_mul (q, fact, g, ctx);
-    if ((GNUNET_YES == do_dlog) &&
-        (x !=
-         (iret = GNUNET_CRYPTO_ecc_dlog (edc,
-                                         q))))
+    if (0 == x)
     {
-      fprintf (stderr,
-               "DLOG failed for value %d (%d)\n",
-               x,
-               iret);
-      GNUNET_assert (0);
+      /* libsodium does not like to multiply with zero; make sure
+         'q' is a valid point (g) first, then use q = q - q to get
+         the product with zero */
+      sodium_increment (fact.v,
+                        sizeof (fact.v));
+      GNUNET_assert (0 ==
+                     crypto_scalarmult_ed25519_base_noclamp (q.v,
+                                                             fact.v));
+      GNUNET_assert (
+        0 ==
+        crypto_core_ed25519_sub (q.v,
+                                 q.v,
+                                 q.v));
+    }
+    else
+      GNUNET_assert (0 ==
+                     crypto_scalarmult_ed25519_base_noclamp (q.v,
+                                                             fact.v));
+    if (do_dlog)
+    {
+      int iret;
+
+      if (x !=
+          (iret = GNUNET_CRYPTO_ecc_dlog (edc,
+                                          &q)))
+      {
+        GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                    "DLOG failed for value %d (got: %d)\n",
+                    x,
+                    iret);
+        GNUNET_assert (0);
+      }
     }
   }
-  gcry_mpi_release (fact);
-  gcry_mpi_release (n);
-  gcry_mpi_point_release (g);
-  gcry_mpi_point_release (q);
-  gcry_ctx_release (ctx);
-  fprintf (stderr, "\n");
+  fprintf (stderr,
+           "\n");
 }
 
 
@@ -128,17 +144,6 @@ main (int argc, char *argv[])
   struct GNUNET_TIME_Absolute start;
   struct GNUNET_TIME_Relative delta;
 
-  if (! gcry_check_version ("1.6.0"))
-  {
-    fprintf (stderr,
-             _
-             (
-               "libgcrypt has not the expected version (version %s is required).\n"),
-             "1.6.0");
-    return 0;
-  }
-  if (getenv ("GNUNET_GCRYPT_DEBUG"))
-    gcry_control (GCRYCTL_SET_DEBUG_FLAGS, 1u, 0);
   GNUNET_log_setup ("perf-crypto-ecc-dlog",
                     "WARNING",
                     NULL);
@@ -154,10 +159,10 @@ main (int argc, char *argv[])
             (start).rel_value_us / 1000LL, "ms/op");
   start = GNUNET_TIME_absolute_get ();
   /* first do a baseline run without the DLOG */
-  test_dlog (edc, GNUNET_NO);
+  test_dlog (edc, false);
   delta = GNUNET_TIME_absolute_get_duration (start);
   start = GNUNET_TIME_absolute_get ();
-  test_dlog (edc, GNUNET_YES);
+  test_dlog (edc, true);
   delta = GNUNET_TIME_relative_subtract (GNUNET_TIME_absolute_get_duration (
                                            start),
                                          delta);
@@ -165,7 +170,8 @@ main (int argc, char *argv[])
           TEST_ITER,
           GNUNET_STRINGS_relative_time_to_string (delta,
                                                   GNUNET_YES));
-  GAUGER ("UTIL", "ECC DLOG operations",
+  GAUGER ("UTIL",
+          "ECC DLOG operations",
           delta.rel_value_us / 1000LL / TEST_ITER,
           "ms/op");
 

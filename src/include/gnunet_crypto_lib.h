@@ -1443,9 +1443,16 @@ struct GNUNET_CRYPTO_EccPoint
    * Q consists of an x- and a y-value, each mod p (256 bits), given
    * here in affine coordinates and Ed25519 standard compact format.
    */
-  unsigned char q_y[256 / 8];
+  unsigned char v[256 / 8];
 };
 
+/**
+ * A ECC scalar for use in point multiplications
+ */
+struct GNUNET_CRYPTO_EccScalar
+{
+  unsigned char v[256 / 8];
+};
 
 /**
  * Do pre-calculation for ECC discrete logarithm for small factors.
@@ -1455,7 +1462,8 @@ struct GNUNET_CRYPTO_EccPoint
  * @return NULL on error
  */
 struct GNUNET_CRYPTO_EccDlogContext *
-GNUNET_CRYPTO_ecc_dlog_prepare (unsigned int max, unsigned int mem);
+GNUNET_CRYPTO_ecc_dlog_prepare (unsigned int max,
+                                unsigned int mem);
 
 
 /**
@@ -1468,7 +1476,7 @@ GNUNET_CRYPTO_ecc_dlog_prepare (unsigned int max, unsigned int mem);
  */
 int
 GNUNET_CRYPTO_ecc_dlog (struct GNUNET_CRYPTO_EccDlogContext *edc,
-                        gcry_mpi_point_t input);
+                        const struct GNUNET_CRYPTO_EccPoint *input);
 
 
 /**
@@ -1479,129 +1487,87 @@ GNUNET_CRYPTO_ecc_dlog (struct GNUNET_CRYPTO_EccDlogContext *edc,
  * convert a point back to an integer (as long as the
  * integer is smaller than the MAX of the @a edc context).
  *
- * @param edc calculation context for ECC operations
  * @param val value to encode into a point
- * @return representation of the value as an ECC point,
- *         must be freed using #GNUNET_CRYPTO_ecc_free()
+ * @param r where to write the point (must be allocated)
  */
-gcry_mpi_point_t
-GNUNET_CRYPTO_ecc_dexp (struct GNUNET_CRYPTO_EccDlogContext *edc, int val);
+void
+GNUNET_CRYPTO_ecc_dexp (int val,
+                        struct GNUNET_CRYPTO_EccPoint*r);
 
 
 /**
  * Multiply the generator g of the elliptic curve by @a val
  * to obtain the point on the curve representing @a val.
  *
- * @param edc calculation context for ECC operations
  * @param val (positive) value to encode into a point
- * @return representation of the value as an ECC point,
- *         must be freed using #GNUNET_CRYPTO_ecc_free()
+ * @param r where to write the point (must be allocated)
+ * @return #GNUNET_OK on success.
  */
-gcry_mpi_point_t
-GNUNET_CRYPTO_ecc_dexp_mpi (struct GNUNET_CRYPTO_EccDlogContext *edc,
-                            gcry_mpi_t val);
+enum GNUNET_GenericReturnValue
+GNUNET_CRYPTO_ecc_dexp_mpi (const struct GNUNET_CRYPTO_EccScalar *val,
+                            struct GNUNET_CRYPTO_EccPoint *r);
 
 
 /**
  * Multiply the point @a p on the elliptic curve by @a val.
  *
- * @param edc calculation context for ECC operations
  * @param p point to multiply
  * @param val (positive) value to encode into a point
- * @return representation of the value as an ECC point,
- *         must be freed using #GNUNET_CRYPTO_ecc_free()
+ * @param r where to write the point (must be allocated)
+ * @return #GNUNET_OK on success.
  */
-gcry_mpi_point_t
-GNUNET_CRYPTO_ecc_pmul_mpi (struct GNUNET_CRYPTO_EccDlogContext *edc,
-                            gcry_mpi_point_t p,
-                            gcry_mpi_t val);
-
-
-/**
- * Convert point value to binary representation.
- *
- * @param edc calculation context for ECC operations
- * @param point computational point representation
- * @param[out] bin binary point representation
- */
-void
-GNUNET_CRYPTO_ecc_point_to_bin (struct GNUNET_CRYPTO_EccDlogContext *edc,
-                                gcry_mpi_point_t point,
-                                struct GNUNET_CRYPTO_EccPoint *bin);
-
-
-/**
- * Convert binary representation of a point to computational representation.
- *
- * @param edc calculation context for ECC operations
- * @param bin binary point representation
- * @return computational representation
- */
-gcry_mpi_point_t
-GNUNET_CRYPTO_ecc_bin_to_point (struct GNUNET_CRYPTO_EccDlogContext *edc,
-                                const struct GNUNET_CRYPTO_EccPoint *bin);
+enum GNUNET_GenericReturnValue
+GNUNET_CRYPTO_ecc_pmul_mpi (const struct GNUNET_CRYPTO_EccPoint *p,
+                            const struct GNUNET_CRYPTO_EccScalar *val,
+                            struct GNUNET_CRYPTO_EccPoint *r);
 
 
 /**
  * Add two points on the elliptic curve.
  *
- * @param edc calculation context for ECC operations
  * @param a some value
  * @param b some value
- * @return @a a + @a b, must be freed using #GNUNET_CRYPTO_ecc_free()
+ * @param r where to write the point (must be allocated)
+ * @return #GNUNET_OK on success.
  */
-gcry_mpi_point_t
-GNUNET_CRYPTO_ecc_add (struct GNUNET_CRYPTO_EccDlogContext *edc,
-                       gcry_mpi_point_t a,
-                       gcry_mpi_point_t b);
+enum GNUNET_GenericReturnValue
+GNUNET_CRYPTO_ecc_add (const struct GNUNET_CRYPTO_EccPoint *a,
+                       const struct GNUNET_CRYPTO_EccPoint *b,
+                       struct GNUNET_CRYPTO_EccPoint *r);
 
 
 /**
  * Obtain a random point on the curve and its
- * additive inverse. Both returned values
- * must be freed using #GNUNET_CRYPTO_ecc_free().
+ * additive inverse.
  *
- * @param edc calculation context for ECC operations
  * @param[out] r set to a random point on the curve
  * @param[out] r_inv set to the additive inverse of @a r
+ * @return #GNUNET_OK on success.
  */
-void
-GNUNET_CRYPTO_ecc_rnd (struct GNUNET_CRYPTO_EccDlogContext *edc,
-                       gcry_mpi_point_t *r,
-                       gcry_mpi_point_t *r_inv);
+enum GNUNET_GenericReturnValue
+GNUNET_CRYPTO_ecc_rnd (struct GNUNET_CRYPTO_EccPoint *r,
+                       struct GNUNET_CRYPTO_EccPoint *r_inv);
 
 
 /**
  * Obtain a random scalar for point multiplication on the curve and
- * its multiplicative inverse.
+ * its additive inverse.
  *
- * @param edc calculation context for ECC operations
  * @param[out] r set to a random scalar on the curve
- * @param[out] r_inv set to the multiplicative inverse of @a r
+ * @param[out] r_neg set to the negation of @a
  */
 void
-GNUNET_CRYPTO_ecc_rnd_mpi (struct GNUNET_CRYPTO_EccDlogContext *edc,
-                           gcry_mpi_t *r,
-                           gcry_mpi_t *r_inv);
+GNUNET_CRYPTO_ecc_rnd_mpi (struct GNUNET_CRYPTO_EccScalar *r,
+                           struct GNUNET_CRYPTO_EccScalar *r_neg);
 
 
 /**
  * Generate a random value mod n.
  *
- * @param edc ECC context
- * @return random value mod n.
- */
-gcry_mpi_t
-GNUNET_CRYPTO_ecc_random_mod_n (struct GNUNET_CRYPTO_EccDlogContext *edc);
-
-
-/**
- * Free a point value returned by the API.
- *
- * @param p point to free
+ * @param[out] r random value mod n.
  */
 void
-GNUNET_CRYPTO_ecc_free (gcry_mpi_point_t p);
+GNUNET_CRYPTO_ecc_random_mod_n (struct GNUNET_CRYPTO_EccScalar*r);
 
 
 /**
@@ -1611,6 +1577,17 @@ GNUNET_CRYPTO_ecc_free (gcry_mpi_point_t p);
  */
 void
 GNUNET_CRYPTO_ecc_dlog_release (struct GNUNET_CRYPTO_EccDlogContext *dlc);
+
+
+/**
+ * Create a scalar from int value.
+ *
+ * @param val the int value
+ * @param[out] r where to write the salar
+ */
+void
+GNUNET_CRYPTO_ecc_scalar_from_int (int64_t val,
+                                   struct GNUNET_CRYPTO_EccScalar *r);
 
 
 /**
@@ -1642,6 +1619,7 @@ enum GNUNET_GenericReturnValue
 GNUNET_CRYPTO_eddsa_ecdh (const struct GNUNET_CRYPTO_EddsaPrivateKey *priv,
                           const struct GNUNET_CRYPTO_EcdhePublicKey *pub,
                           struct GNUNET_HashCode *key_material);
+
 
 /**
  * @ingroup crypto
@@ -1937,7 +1915,9 @@ GNUNET_CRYPTO_ecdsa_public_key_derive (
  * @param val value to write to @a buf
  */
 void
-GNUNET_CRYPTO_mpi_print_unsigned (void *buf, size_t size, gcry_mpi_t val);
+GNUNET_CRYPTO_mpi_print_unsigned (void *buf,
+                                  size_t size,
+                                  gcry_mpi_t val);
 
 
 /**

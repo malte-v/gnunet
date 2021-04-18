@@ -17,7 +17,6 @@
 
      SPDX-License-Identifier: AGPL3.0-or-later
  */
-
 /**
  * @author Christian M. Fuchs
  * @author Gaurav Kukreja
@@ -118,10 +117,9 @@ GNUNET_NETWORK_STRUCT_END
  * @param status Status of the request
  */
 typedef void
-(*GNUNET_SCALARPRODUCT_ContinuationWithStatus) (void *cls,
-                                                enum
-                                                GNUNET_SCALARPRODUCT_ResponseStatus
-                                                status);
+(*GNUNET_SCALARPRODUCT_ContinuationWithStatus) (
+  void *cls,
+  enum GNUNET_SCALARPRODUCT_ResponseStatus status);
 
 
 /**
@@ -132,10 +130,10 @@ typedef void
  * @param result result of the computation
  */
 typedef void
-(*GNUNET_SCALARPRODUCT_DatumProcessor) (void *cls,
-                                        enum GNUNET_SCALARPRODUCT_ResponseStatus
-                                        status,
-                                        gcry_mpi_t result);
+(*GNUNET_SCALARPRODUCT_DatumProcessor) (
+  void *cls,
+  enum GNUNET_SCALARPRODUCT_ResponseStatus status,
+  gcry_mpi_t result);
 
 
 /**
@@ -157,16 +155,14 @@ struct GNUNET_SCALARPRODUCT_ComputationHandle;
  * @return a new handle for this computation
  */
 struct GNUNET_SCALARPRODUCT_ComputationHandle *
-GNUNET_SCALARPRODUCT_start_computation (const struct
-                                        GNUNET_CONFIGURATION_Handle *cfg,
-                                        const struct
-                                        GNUNET_HashCode *session_key,
-                                        const struct GNUNET_PeerIdentity *peer,
-                                        const struct
-                                        GNUNET_SCALARPRODUCT_Element *elements,
-                                        uint32_t element_count,
-                                        GNUNET_SCALARPRODUCT_DatumProcessor cont,
-                                        void *cont_cls);
+GNUNET_SCALARPRODUCT_start_computation (
+  const struct GNUNET_CONFIGURATION_Handle *cfg,
+  const struct GNUNET_HashCode *session_key,
+  const struct GNUNET_PeerIdentity *peer,
+  const struct GNUNET_SCALARPRODUCT_Element *elements,
+  uint32_t element_count,
+  GNUNET_SCALARPRODUCT_DatumProcessor cont,
+  void *cont_cls);
 
 
 /**
@@ -181,15 +177,13 @@ GNUNET_SCALARPRODUCT_start_computation (const struct
  * @return a new handle for this computation
  */
 struct GNUNET_SCALARPRODUCT_ComputationHandle *
-GNUNET_SCALARPRODUCT_accept_computation (const struct
-                                         GNUNET_CONFIGURATION_Handle *cfg,
-                                         const struct GNUNET_HashCode *key,
-                                         const struct
-                                         GNUNET_SCALARPRODUCT_Element *elements,
-                                         uint32_t element_count,
-                                         GNUNET_SCALARPRODUCT_ContinuationWithStatus
-                                         cont,
-                                         void *cont_cls);
+GNUNET_SCALARPRODUCT_accept_computation (
+  const struct GNUNET_CONFIGURATION_Handle *cfg,
+  const struct GNUNET_HashCode *key,
+  const struct GNUNET_SCALARPRODUCT_Element *elements,
+  uint32_t element_count,
+  GNUNET_SCALARPRODUCT_ContinuationWithStatus cont,
+  void *cont_cls);
 
 
 /**

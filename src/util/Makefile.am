@@ -460,6 +460,7 @@ if HAVE_NOLIBGCRYPT19
 test_crypto_ecc_dlog_SOURCES = \
  test_crypto_ecc_dlog.c
 test_crypto_ecc_dlog_LDADD = \
+ -lsodium \
  libgnunetutil.la \
  $(LIBGCRYPT_LIBS)
 endif
@@ -610,7 +611,7 @@ perf_crypto_ecc_dlog_SOURCES = \
  perf_crypto_ecc_dlog.c
 perf_crypto_ecc_dlog_LDADD = \
  libgnunetutil.la \
- -lgcrypt
+ -lsodium
 endif
 
 perf_crypto_rsa_SOURCES = \
