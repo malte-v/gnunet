@@ -1868,6 +1868,7 @@ git_version=
 AS_IF([test ! "X$gitcommand" = "X"],
 [
   git_version=$(cd $srcdir ; git rev-list --full-history --all --abbrev-commit | head -n 1 2>/dev/null)
+  git_version=$(cd $srcdir ; git log -n 1)
 ])
 AS_IF([test "X$git_version" = "X"],
   [
