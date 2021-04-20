@@ -1060,14 +1060,14 @@ AC_CHECK_LIB([kvm],[kvm_open])
 AC_CHECK_LIB([kstat],[kstat_open])
 
 libsodium=0
-# test for libsodium >=1.017 (introduction of
+# test for libsodium >=1.018 (introduction of
 # crypto_scalarmult_ed25519_base_noclamp API)
 AC_CHECK_HEADER([sodium.h],
-                [AC_CHECK_LIB([sodium], [crypto_scalarmult_ed25519_base_noclamp],
+                [AC_CHECK_LIB([sodium], [crypto_core_ed25519_scalar_mul],
                               [libsodium=1])])
 
 AS_IF([test x$libsodium = x0],
-      [AC_MSG_ERROR([GNUnet requires libsodium.])])
+      [AC_MSG_ERROR([GNUnet requires libsodium >= 1.0.18.])])
 
 # test for libextractor
 extractor=0
