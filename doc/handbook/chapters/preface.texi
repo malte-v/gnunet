@@ -85,7 +85,7 @@ book which explains GNUnet in the least complicated way to you.
 
 Even when you don't want to or can't learn Texinfo, you can contribute.
 Send us an Email or join our IRC chat room on freenode and talk with
-us about the documentation (the prefered way to reach out is the
+us about the documentation (the preferred way to reach out is the
 mailinglist, since you can communicate with us without waiting on
 someone in the chatroom).
 One way or another you can help shape the understanding of GNUnet
@@ -144,7 +144,7 @@ and privacy-preserving online payments.  In 2015, the
 @c XXX: but the correct version would lead to problems with
 @c XXX: some of our outputs and/or older versions of texinfo
 @c XXX: and devices that display versions on consoles etc.
-@c XXX: This is why we keep the pEp until proven that p(tripple bar)p
+@c XXX: This is why we keep the pEp until proven that p(triple bar)p
 @c XXX: does not create broken outputs.
 @uref{https://pep.foundation/, pretty Easy privacy} (pEp) project
 announced that they will use GNUnet as the technology for their

@@ -171,7 +171,7 @@ group. In addition the group @code{gnunetdns} may be needed (see below).
 
 Create user @code{gnunet} who is member of the group @code{gnunet}
 (automatically created) and specify a home directory where the GNUnet
-services will store persistant data such as information about peers.
+services will store persistent data such as information about peers.
 @example
 $ sudo useradd --system --home-dir /var/lib/gnunet --create-home gnunet
 @end example
@@ -431,7 +431,7 @@ For the @emph{multi-user setup} first the system services need to be started
 as the system user, i.e. the user @code{gnunet} needs to execute
 @code{gnunet-arm -s}. This should be done by the system's init system.
 Then the user who wants to start GNUnet applications has to run
-@code{gnunet-arm -s} too. It is recommented to automate this, e.g. using
+@code{gnunet-arm -s} too. It is recommended to automate this, e.g. using
 the user's crontab.
 
 @node gnunet-gtk
@@ -1369,7 +1369,7 @@ proxy forwards the HTTP request he receives with a certain URL to another
 webserver, here a GNUnet peer.
 
 So if you have a running Apache or nginx webserver you can configure it to
-be a GNUnet reverse proxy. Especially if you have a well-known webiste
+be a GNUnet reverse proxy. Especially if you have a well-known website
 this improves censorship resistance since it looks as normal surfing
 behaviour.
 
@@ -2175,7 +2175,7 @@ Sane defaults should exist in your
 you could simply start without any configuration. If you want to
 configure your peer later, you need to stop it before invoking the
 @code{gnunet-setup} tool to customize further and to test your
-configuration (@code{gnunet-setup} has build-in test functions).
+configuration (@code{gnunet-setup} has built-in test functions).
 
 The most important option you might have to still set by hand is in
 [PATHS]. Here, you use the option "GNUNET_HOME" to specify the path where

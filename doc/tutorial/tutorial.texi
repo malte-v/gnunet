@@ -282,7 +282,7 @@ Assuming all dependencies are installed, the following commands will
 compile and install GNUnet in your home directory. You can specify the
 directory where GNUnet will be installed by changing the
 @code{--prefix} value when calling @command{./configure}.  If
-you do not specifiy a prefix, GNUnet is installed in the directory
+you do not specify a prefix, GNUnet is installed in the directory
 @file{/usr/local}. When developing new applications you may want
 to enable verbose logging by adding @code{--enable-logging=verbose}:
 
@@ -940,7 +940,7 @@ with the service, a connection must be created:
 As a result a @code{GNUNET\_MQ\_Handle} is returned
 which can to used henceforth to transmit messages to the service.
 The complete MQ API can be found in @file{gnunet\_mq\_lib.h}.
-The @code{hanlders} array in the example above is incomplete.
+The @code{handlers} array in the example above is incomplete.
 Here is where you will define which messages you expect to
 receive from the service, and which functions handle them.
 The @code{error\_cb} is a function that is to be called whenever
@@ -1060,7 +1060,7 @@ functions, typically called @code{run}, @code{client\_connect\_cb} and
 @code{client\_disconnect\_cb} as well as an array of message handlers
 that will be called for incoming messages from clients.
 
-A minimal version of the three central service funtions would look
+A minimal version of the three central service functions would look
 like this:
 
 @example
@@ -1093,7 +1093,7 @@ forget to call @code{GNUNET\_SERVICE\_client\_continue()}?
 @node Interacting directly with other Peers using the CORE Service
 @section Interacting directly with other Peers using the CORE Service
 
-FIXME: This section still needs to be updated to the lastest API!
+FIXME: This section still needs to be updated to the latest API!
 
 One of the most important services in GNUnet is the @code{CORE} service
 managing connections between peers and handling encryption between peers.
@@ -1349,7 +1349,7 @@ sent. This does not guarantee that the data is accessible to others peers,
 or even that is has been stored, only that the service has requested to
 a neighboring peer the retransmission of the PUT request towards its final
 destination. Currently there is no feedback about whether or not the data
-has been sucessfully stored or where it has been stored. In order to
+has been successfully stored or where it has been stored. In order to
 improve the availablilty of the data and to compensate for possible
 errors, peers leaving and other unfavorable events, just make several
 PUT requests!
@@ -1504,7 +1504,7 @@ GET request, a PUT request or a response (a reply to a GET).
 Since the different events have different associated data,
 the API gets 3 different callbacks (one for each message type)
 and optional type and key parameters, to allow for filtering of
-messages. When an event happens, the appropiate callback is
+messages. When an event happens, the appropriate callback is
 called with all the information about the event.
 
 @example

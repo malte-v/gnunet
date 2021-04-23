@@ -109,7 +109,7 @@ rules - GO0T87F9BPMF8NKD5A54L2AH1T0GRML539TPFSRMCEA98182QD30
 @subsection The GNS Tab
 
 
-Maintaing your zones is through the NAMESTORE service and is discussed
+Maintaining your zones is through the NAMESTORE service and is discussed
 here.  You can manage your zone using @command{gnunet-identity} and
 @command{gnunet-namestore}, or most conveniently using
 @command{gnunet-namestore-gtk}.
@@ -1633,7 +1633,7 @@ are BOXed up.
 @subsubsection LEHO
 
 The LEgacy HOstname of a server. Some webservers expect a specific
-hostname to provide a service (virtiual hosting). Also SSL
+hostname to provide a service (virtual hosting). Also SSL
 certificates usually contain DNS names. To provide the expected
 legacy DNS name for a server, the LEHO record can be used.
 To mitigate the just mentioned issues the GNS proxy has to be used.
@@ -2404,7 +2404,7 @@ $ gnunet-peerinfo -s
 
 A ROOMKEY gets entered in readable text form. The service will then hash the 
 entered ROOMKEY and use the result as shared secret for transmission through 
-the CADET submodule. You can also optionally leave out the '-r' paramter and 
+the CADET submodule. You can also optionally leave out the '-r' parameter and 
 the ROOMKEY to use the zeroed hash instead.
 
 If no IDENTITY is provided you will not send any name to others, you will be 
@@ -2478,7 +2478,7 @@ $ gnunet-messenger [-e IDENTITY] -d PEERIDENTITY -r ROOMKEY -p
 @end example
 
 Notice that you can only send such encrypted messages to members who use an ego
-which is not publically known as the anonymous ego to ensure transparency. If 
+which is not publicly known as the anonymous ego to ensure transparency. If 
 any user could decrypt these messages they would not be private. So as receiver
 of such messages the IDENTITY is required and it has to match a local ego.
 

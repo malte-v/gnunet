@@ -2305,7 +2305,7 @@ for new developers):
 @itemize @bullet
 @item logging (common_logging.c)
 @item memory allocation (common_allocation.c)
-@item endianess conversion (common_endian.c)
+@item endianness conversion (common_endian.c)
 @item internationalization (common_gettext.c)
 @item String manipulation (string.c)
 @item file access (disk.c)
@@ -4287,7 +4287,7 @@ which will warn you if you don't have the necessary libraries.
 @c work!@ Finally you just have to be sure that you have the correct drivers
 @c for your Bluetooth device installed and that your device is on and in a
 @c discoverable mode. The Windows Bluetooth Stack supports only the RFCOMM
-@c protocol so we cannot turn on your device programatically!
+@c protocol so we cannot turn on your device programmatically!
 
 @c FIXME: Change to unique title
 @node How does it work2?
@@ -4638,7 +4638,7 @@ simply use the socket.
 @c implementation follows the same principles as the GNU/Linux one:
 
 @c @itemize @bullet
-@c @item It has a initalization part where it initializes the
+@c @item It has a initialization part where it initializes the
 @c Windows Sockets, creates a RFCOMM socket which will be binded and switched
 @c to the listening mode and registers a SDP service. In the Microsoft
 @c Bluetooth API there are two ways to work with the SDP:
@@ -5023,7 +5023,7 @@ key of the other peer
 ephemeral key of the other peer, but we are waiting for the other peer to
 confirm it's authenticity (ability to decode) via challenge-response.
 @item @code{KX_STATE_UP} The connection is fully up from the point of
-view of the sender (now performing keep-alives)
+view of the sender (now performing keep-alive)
 @item @code{KX_STATE_REKEY_SENT} The sender has initiated a rekeying
 operation; the other peer has so far failed to confirm a working
 connection using the new ephemeral key
@@ -5653,7 +5653,7 @@ download. The client component is basically a HTTP client
 (based on libcurl) which can download hostlists from one or more websites.
 The hostlist format is a binary blob containing a sequence of HELLO
 messages. Note that any HTTP server can theoretically serve a hostlist,
-the build-in hostlist server makes it simply convenient to offer this
+the built-in hostlist server makes it simply convenient to offer this
 service.
 
 
@@ -5895,7 +5895,7 @@ The size of the list of URLs is restricted, so if an additional server is
 added and the list is full, the URL with the worst quality ranking
 (determined through successful downloads and number of HELLOs e.g.) is
 discarded. During shutdown the list of URLs is saved to a file for
-persistance and loaded on startup. URLs from the configuration file are
+persistence and loaded on startup. URLs from the configuration file are
 never discarded.
 
 @node Usage
@@ -6155,7 +6155,7 @@ To disconnect from NAMESTORE, clients use
 @code{GNUNET_NAMESTORE_disconnect} and specify the handle to disconnect.
 
 NAMESTORE internally uses the ECDSA private key to refer to zones. These
-private keys can be obtained from the IDENTITY subsytem.
+private keys can be obtained from the IDENTITY subsystem.
 Here @emph{egos} @emph{can be used to refer to zones or the default ego
 assigned to the GNS subsystem can be used to obtained the master zone's
 private key.}
@@ -6811,7 +6811,7 @@ the client.
 
 
 
-Each listener also requires a seperate client connection. By sending the
+Each listener also requires a separate client connection. By sending the
 @code{GNUNET_SERVICE_SET_LISTEN} message, the client notifies the service
 of the application id and operation type it is interested in. A client
 rejects an incoming request by sending @code{GNUNET_SERVICE_SET_REJECT}
@@ -7147,7 +7147,7 @@ the client.
 @node Listeners for Intersection
 @subsubsection Listeners for Intersection
 
-Each listener also requires a seperate client connection. By sending the
+Each listener also requires a separate client connection. By sending the
 @code{GNUNET_SERVICE_SETI_LISTEN} message, the client notifies the service
 of the application id and operation type it is interested in. A client
 rejects an incoming request by sending @code{GNUNET_SERVICE_SETI_REJECT}
@@ -7409,7 +7409,7 @@ the client.
 @node Listeners for Union
 @subsubsection Listeners for Union
 
-Each listener also requires a seperate client connection. By sending the
+Each listener also requires a separate client connection. By sending the
 @code{GNUNET_SERVICE_SETU_LISTEN} message, the client notifies the service
 of the application id and operation type it is interested in. A client
 rejects an incoming request by sending @code{GNUNET_SERVICE_SETU_REJECT}
@@ -7832,7 +7832,7 @@ performance).
 Third, an optional Bloom filter can be specified to exclude known results;
 replies that hash to the bits set in the Bloom filter are considered
 invalid. False-positives can be eliminated by sending the same query
-again with a different Bloom filter mutator value, which parameterizes
+again with a different Bloom filter mutator value, which parametrizes
 the hash function that is used.
 Finally, an optional application-specific "eXtended query" (xquery) can
 be specified to further constrain the results. It is entirely up to
@@ -9810,7 +9810,7 @@ properties designed for application level usage:
 @item MESSENGER allows detection for dropped messages by chaining them (messages 
       refer to the last message by their hash) improving accountability
 @item MESSENGER allows requesting messages from other peers explicitly to ensure
-      availibility
+      availability
 @item MESSENGER provides confidentiality by padding messages to few different
       sizes (512 bytes, 4096 bytes, 32768 bytes and maximal message size from 
       CADET)
@@ -9825,13 +9825,13 @@ Also MESSENGER provides multiple features with privacy in mind:
 @itemize @bullet
 @item MESSENGER allows deleting messages from all peers in the group by the 
       original sender (uses the MESSENGER provided verification)
-@item MESSENGER allows using the publically known anonymous ego instead of any
+@item MESSENGER allows using the publicly known anonymous ego instead of any
       unique identifying ego
 @item MESSENGER allows your node to decide between acting as host of the used 
       messaging room (sharing your peer's identity with all nodes in the group) 
       or acting as guest (sharing your peer's identity only with the nodes you
       explicitly open a connection to)
-@item MESSENGER handles members independantly of the peer's identity making 
+@item MESSENGER handles members independently of the peer's identity making 
       forwarded messages indistinguishable from directly received ones (
       complicating the tracking of messages and identifying its origin)
 @item MESSENGER allows names of members being not unique (also names are 
@@ -9977,7 +9977,7 @@ check for completion of a member session requires this information.
 
 A member session is a triple of the room key, the member ID and the public key 
 of the member's ego. Member sessions allow that a member can change their ID or 
-their ego once at a time without loosing the ability to delete old messages or 
+their ego once at a time without losing the ability to delete old messages or 
 identifying the original sender of a message. On every change of ID or EGO a 
 session will be marked as closed. So every session chain will only contain one 
 open session with the current ID and public key.
