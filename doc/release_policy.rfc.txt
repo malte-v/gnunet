@@ -42,7 +42,7 @@ document the current release model:
     mostly we rather explicitly declare certain bugs as "not critical")
   - Whenever API changes happen the person making that changes should update
     dependencies or at least work with people who hack on the dependencies to
-    cooridnate the adjustments
+    coordinate the adjustments
   o buildbots are happy (if running)
   o static analysis is happy (if available, false-positives => ignore)
   o documentation is reasonably up-to-date
@@ -57,7 +57,7 @@ For further information see: https://trunkbaseddevelopment.com/
 
 II. Evaluation Criteria 
 =======================
-(what are criterias to interprete the results as success if we review
+(what are criteria to interpret the results as success if we review
 the problem and solution after a year or so)
 
 III. Concerns (of team members)
@@ -74,7 +74,7 @@ code. I don't have a magic bullet to motivate you to write more tests,
 or to improve existing tests. -CG
 
   Your argument is good. Two or three of us thought that the problem is about
-  missing releases which we feld demotivating. We thought, we were stucked
+  missing releases which we feld demotivating. We thought, we were stuck
   somewhere. But as you state, it is us not doing the necessary work. What I
   still find useful is to document the release process. In consequence I
   changed the problem statement. -xrs
@@ -125,7 +125,7 @@ leaves of the dependency graph, that is great.  However, occasionally
 there are architectural changes. Not of the type where the graph
 changes, but where key API assumptions change. We recently had one for
 the GNU Name System with the dropping of ".gnu".  Before, CADET
-changed the semantics and paramter for 'port'.  In the future, CORE
+changed the semantics and parameter for 'port'.  In the future, CORE
 will introduce protocol versioning.  Whenever such a change happens,
 it usually falls upon the person making that change to update
 dependencies as well (or at least to work with people who hack on the
@@ -175,7 +175,7 @@ Note that none of this really adds up to a "release policy".
 V. Previous Versions
 ====================
 (if we found some flaws in the solution, and we want to change the
-release policy, we document the old ones here als previous versions.
+release policy, we document the old ones here as previous versions.
 the goal is establish a learn process.)
 
 IV. References

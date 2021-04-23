@@ -182,7 +182,7 @@ Recommended software for developer tools:
      you, open a bug so that we can get a more portable
      fix in.
 
-[*4] We are commited  to portable tools and solutions
+[*4] We are committed  to portable tools and solutions
      where possible. New scripts should be Posix sh
      compatible, current and older scripts are
      in the process of being rewritten to comply
@@ -213,7 +213,7 @@ For a correct functionality depending on the host OS, you need
 to run the equivalent of these steps after installation.
 Replace $(DESTDIR)$(libexecdir) with the appropriate paths,
 for example /usr/local/lib/gnunet/libexec/. Note that this
-obviously must be run as priviledged user.
+obviously must be run as privileged user.
 
 chown root:root $(DESTDIR)$(libexecdir)/gnunet-helper-vpn
 chmod u+s $(DESTDIR)$(libexecdir)/gnunet-helper-vpn
@@ -289,8 +289,8 @@ Building GNUnet from source
 
 IMPORTANT: You can read further notes about compilation from source in
 the handbook under doc/handbook/, which includes notes about specific
-requirements for operating systems aswell. If you are a package
-mantainer for an Operating System we invite you to add your notes if
+requirements for operating systems as well. If you are a package
+maintainer for an Operating System we invite you to add your notes if
 you feel it is necessary and can not be covered in your Operating
 System's documentation.
 
@@ -338,7 +338,7 @@ in 'contrib/services' or by running:
 
 
 Note that you must read paragraph "Notes on setuid", which documents steps you
-have to follow after the installation, as a priviledged user. We require some
+have to follow after the installation, as a privileged user. We require some
 binaries to be setuid. The most portable approach across all supported
 platforms and targets is to let this be handled manually.
 The installation will work if you do not run these steps as root, but some
@@ -376,7 +376,7 @@ $GNUNET_PREFIX you might have specified, as those libraries must be in
 your packaging script to miss those plugins, so you might need to do some
 additional manual work to include those libraries in your binary package(s).
 Similarly, if you want to use the GNUnet Name System and did NOT run
-GNUnet's 'make install' process with priviledged rights, the libraries will be
+GNUnet's 'make install' process with privileged rights, the libraries will be
 installed to "$GNUNET_PREFIX" and you will have to move them to "/lib/"
 manually.
 
@@ -443,7 +443,7 @@ GNUnet by periodically executing
 $ cat $SERVICEHOME/data/hosts/* > the_file
 
 and offering 'the_file' via your web server.  Alternatively, you can
-run the build-in web server by adding '-p' to the OPTIONS value
+run the built-in web server by adding '-p' to the OPTIONS value
 in the "hostlist" section of gnunet.conf and opening the respective
 HTTPPORT to the public.
 
@@ -495,7 +495,7 @@ https://bugs.gnunet.org/ or our bugs mailinglist.
 Please make sure to run the script "contrib/scripts/gnunet-bugreport"
 and include the output with your bug reports.  More about how to
 report bugs can be found in the GNUnet FAQ on the webpage.  Submit
-patches via E-Mail to gnunet-developers@gnu.org, formated with
+patches via E-Mail to gnunet-developers@gnu.org, formatted with
 `git format-patch`.
 
 In order to run the unit tests by hand (instead of using "make check"),
@@ -540,7 +540,7 @@ Then set in the HTTP section of gnunet.conf the "ADVERTISED_PORT" to
 "ADVERTISED_PORT" to "443" and "PORT" to 4433.
 
 You can do the same trick for the TCP and UDP transports if you want
-to map them to a priviledged port (from the point of view of the
+to map them to a privileged port (from the point of view of the
 network).  However, we are not aware of this providing any advantages
 at this point.
 
