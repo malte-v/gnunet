@@ -246,27 +246,27 @@ static int gnunet_force_log_present;
 
 /**
  * Convert a textual description of a loglevel
- * to the respective GNUNET_GE_KIND.
+ * to the respective enumeration type.
  *
  * @param log loglevel to parse
- * @return GNUNET_GE_INVALID if log does not parse
+ * @return GNUNET_ERROR_TYPE_INVALID if log does not parse
  */
 static enum GNUNET_ErrorType
 get_type (const char *log)
 {
   if (NULL == log)
     return GNUNET_ERROR_TYPE_UNSPECIFIED;
-  if (0 == strcasecmp (log, _ ("DEBUG")))
+  if (0 == strcasecmp (log, "DEBUG"))
     return GNUNET_ERROR_TYPE_DEBUG;
-  if (0 == strcasecmp (log, _ ("INFO")))
+  if (0 == strcasecmp (log, "INFO"))
     return GNUNET_ERROR_TYPE_INFO;
-  if (0 == strcasecmp (log, _ ("MESSAGE")))
+  if (0 == strcasecmp (log, "MESSAGE"))
     return GNUNET_ERROR_TYPE_MESSAGE;
-  if (0 == strcasecmp (log, _ ("WARNING")))
+  if (0 == strcasecmp (log, "WARNING"))
     return GNUNET_ERROR_TYPE_WARNING;
-  if (0 == strcasecmp (log, _ ("ERROR")))
+  if (0 == strcasecmp (log, "ERROR"))
     return GNUNET_ERROR_TYPE_ERROR;
-  if (0 == strcasecmp (log, _ ("NONE")))
+  if (0 == strcasecmp (log, "NONE"))
     return GNUNET_ERROR_TYPE_NONE;
   return GNUNET_ERROR_TYPE_INVALID;
 }

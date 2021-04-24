@@ -39,7 +39,7 @@
 .Op Fl s Ar SECTION | Fl -section= Ns Ar SECTION
 .Op Fl V Ar VALUE | Fl -value Ar VALUE
 .Op Fl v | -version
-.Op Fl W | -rewrite
+.Op Fl w | -rewrite
 .Sh DESCRIPTION
 .Nm
 can be used to read or modify GNUnet configuration files.
@@ -69,8 +69,8 @@ Configuration value to store in the given section under the given option.
 Must only be given together with -s and -o options.
 .It Fl v | -version
 Print GNUnet version number.
-.It Fl W | -rewrite
-Consider differences to defaults only.
+.It Fl w | -rewrite
+Write to file the full configuration, including default values, instead of just the differences.
 .El
 .Sh SEE ALSO
 The full documentation for gnunet is maintained as a Texinfo manual.

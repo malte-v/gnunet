@@ -65,10 +65,11 @@ static int list_sections;
 static int global_ret;
 
 /**
- * Should we generate a configuration file that is clean and
- * only contains the deltas to the defaults?
+ * Should the generated configuration file contain the whole configuration, or
+ * just the differences with the defaults?
+ * If set to a non-zero value, the full configuration will be written to file.
  */
-static int rewrite;
+static int rewrite = 0;
 
 
 /**
@@ -157,7 +158,7 @@ run (void *cls,
     GNUNET_free (name);
     return;
   }
-  if (rewrite)
+  if (!rewrite)
   {
     struct GNUNET_CONFIGURATION_Handle *def;
 
@@ -315,7 +316,7 @@ main (int argc, char *const *argv)
       'w',
       "rewrite",
       gettext_noop (
-        "write configuration file that only contains delta to defaults"),
+        "write the full configuration file, including default values"),
       &rewrite),
     GNUNET_GETOPT_OPTION_END };
   int ret;
