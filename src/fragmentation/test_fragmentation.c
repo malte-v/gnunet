@@ -108,7 +108,7 @@ proc_msgs (void *cls, const struct GNUNET_MessageHeader *hdr)
   if (0 == (total % (NUM_MSGS / 100)))
     fprintf (stderr, "%s", ".");
 #endif
-  /* tolerate 10% loss, i.e. due to duplicate fragment IDs */
+  /* tolerate 10% loss, e.g. due to duplicate fragment IDs */
   if ((total >= NUM_MSGS - (NUM_MSGS / 10)) && (ret != 0))
   {
     if (NULL == shutdown_task)

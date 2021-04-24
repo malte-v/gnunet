@@ -561,7 +561,7 @@ GNUNET_NETWORK_fdset_destroy (struct GNUNET_NETWORK_FDSet *fds);
 /**
  * Test if the given @a port is available.
  *
- * @param ipproto transport protocol to test (i.e. IPPROTO_TCP)
+ * @param ipproto transport protocol to test (e.g. IPPROTO_TCP)
  * @param port port number to test
  * @return #GNUNET_OK if the port is available, #GNUNET_NO if not
  */

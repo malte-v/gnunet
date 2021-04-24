@@ -558,7 +558,7 @@ GNUNET_TIME_get_offset (void);
 
 
 /**
- * Return the current year (i.e. '2011').
+ * Return the current year (e.g. '2011').
  */
 unsigned int
 GNUNET_TIME_get_current_year (void);

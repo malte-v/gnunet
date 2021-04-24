@@ -227,23 +227,23 @@ enum GNUNET_MQ_Error
 enum GNUNET_MQ_PriorityPreferences
 {
   /**
-   * Lowest priority, i.e. background traffic (i.e. NSE, FS).
+   * Lowest priority, i.e. background traffic (e.g. NSE, FS).
    * This is the default!
    */
   GNUNET_MQ_PRIO_BACKGROUND = 0,
 
   /**
-   * Best-effort traffic (i.e. CADET relay, DHT)
+   * Best-effort traffic (e.g. CADET relay, DHT)
    */
   GNUNET_MQ_PRIO_BEST_EFFORT = 1,
 
   /**
-   * Urgent traffic (local peer, i.e. Conversation).
+   * Urgent traffic (local peer, e.g. Conversation).
    */
   GNUNET_MQ_PRIO_URGENT = 2,
 
   /**
-   * Highest priority, control traffic (i.e. CORE/CADET KX).
+   * Highest priority, control traffic (e.g. CORE/CADET KX).
    */
   GNUNET_MQ_PRIO_CRITICAL_CONTROL = 3,
 

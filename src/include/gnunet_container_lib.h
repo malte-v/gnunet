@@ -161,7 +161,7 @@ enum EXTRACTOR_MetaFormat
  *
  * @param cls closure (user-defined)
  * @param plugin_name name of the plugin that produced this value;
- *        special values can be used (i.e. '&lt;zlib&gt;' for zlib being
+ *        special values can be used (e.g. '&lt;zlib&gt;' for zlib being
  *        used in the main libextractor library and yielding
  *        meta data).
  * @param type libextractor-type describing the meta data
@@ -484,7 +484,7 @@ GNUNET_CONTAINER_meta_data_test_equal (
  *
  * @param md metadata to extend
  * @param plugin_name name of the plugin that produced this value;
- *        special values can be used (i.e. '&lt;zlib&gt;' for zlib being
+ *        special values can be used (e.g. '&lt;zlib&gt;' for zlib being
  *        used in the main libextractor library and yielding
  *        meta data).
  * @param type libextractor-type describing the meta data
@@ -693,7 +693,7 @@ GNUNET_CONTAINER_meta_data_get_serialized_size (
  *
  * @param input serialized meta-data.
  * @param size number of bytes available
- * @return MD on success, NULL on error (i.e.
+ * @return MD on success, NULL on error (e.g.
  *         bad format)
  */
 struct GNUNET_CONTAINER_MetaData *
@@ -2441,7 +2441,7 @@ GNUNET_CONTAINER_multihashmap32_iterator_destroy (
  * Insertion sort of @a element into DLL from @a head to @a tail
  * sorted by @a comparator.
  *
- * @param TYPE element type of the elements, i.e. `struct ListElement`
+ * @param TYPE element type of the elements, e.g. `struct ListElement`
  * @param comparator function like memcmp() to compare elements; takes
  *                   three arguments, the @a comparator_cls and two elements,
  *                   returns an `int` (-1, 0 or 1)

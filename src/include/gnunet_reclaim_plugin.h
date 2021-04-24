@@ -92,8 +92,8 @@ typedef uint32_t (*GNUNET_RECLAIM_AttributeTypenameToNumberFunction) (
 
 
 /**
- * Function called to convert a type number (i.e. 1) to the
- * corresponding type string
+ * Function called to convert a type number to the
+ * corresponding type string (e.g. 1 to "A")
  *
  * @param cls closure
  * @param type number of a type to convert
@@ -154,8 +154,8 @@ typedef uint32_t (*GNUNET_RECLAIM_CredentialTypenameToNumberFunction) (
 
 
 /**
- * Function called to convert a type number (i.e. 1) to the
- * corresponding type string
+ * Function called to convert a type number to the
+ * corresponding type string (e.g. 1 to "A")
  *
  * @param cls closure
  * @param type number of a type to convert
@@ -253,8 +253,8 @@ typedef uint32_t (*GNUNET_RECLAIM_PresentationTypenameToNumberFunction) (
 
 
 /**
- * Function called to convert a type number (i.e. 1) to the
- * corresponding type string
+ * Function called to convert a type number to the
+ * corresponding type string (e.g. 1 to "A")
  *
  * @param cls closure
  * @param type number of a type to convert

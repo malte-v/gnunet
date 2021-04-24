@@ -109,7 +109,7 @@ run (void *cls, char *const *args, const char *cfgfile,
  * @param event_mask bit mask with set of events to call 'cc' for;
  *                   or-ed values of "1LL" shifted by the
  *                   respective 'enum GNUNET_TESTBED_EventType'
- *                   (i.e.  "(1LL << GNUNET_TESTBED_ET_CONNECT) || ...")
+ *                   (e.g.  "(1LL << GNUNET_TESTBED_ET_CONNECT) || ...")
  * @param cc controller callback to invoke on events; This callback is called
  *        for all peer start events even if GNUNET_TESTBED_ET_PEER_START isn't
  *        set in the event_mask as this is the only way get access to the

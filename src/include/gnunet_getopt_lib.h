@@ -83,7 +83,7 @@ struct GNUNET_GETOPT_CommandLineProcessorContext
  *
  * @param ctx context for all options
  * @param scls specific closure (for this processor)
- * @param option long name of the option (i.e. "config" for --config)
+ * @param option long name of the option (e.g. "config" for --config)
  * @param value argument, NULL if none was given
  * @return #GNUNET_OK to continue processing other options, #GNUNET_SYSERR to abort
  */

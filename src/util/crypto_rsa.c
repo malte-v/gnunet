@@ -473,7 +473,7 @@ rsa_gcd_validate (gcry_mpi_t r, gcry_mpi_t n)
 /**
  * Create a blinding key
  *
- * @param len length of the key in bits (i.e. 2048)
+ * @param len length of the key in bits (e.g. 2048)
  * @param bks pre-secret to use to derive the blinding key
  * @return the newly created blinding key, NULL if RSA key is malicious
  */

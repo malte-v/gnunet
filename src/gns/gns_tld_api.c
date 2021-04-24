@@ -235,7 +235,7 @@ identity_zone_cb (void *cls,
  * @param options local options for the lookup
  * @param proc processor to call on result
  * @param proc_cls closure for @a proc
- * @return handle to the get request, NULL on error (i.e. bad configuration)
+ * @return handle to the get request, NULL on error (e.g. bad configuration)
  */
 struct GNUNET_GNS_LookupWithTldRequest *
 GNUNET_GNS_lookup_with_tld (struct GNUNET_GNS_Handle *handle,

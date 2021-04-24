@@ -178,7 +178,7 @@ GNUNET_DHT_put (struct GNUNET_DHT_Handle *handle,
  * has not yet been sent to the service, cancelling the PUT will stop
  * this from happening (but there is no way for the user of this API
  * to tell if that is the case).  The only use for this API is to
- * prevent a later call to 'cont' from #GNUNET_DHT_put (i.e. because
+ * prevent a later call to 'cont' from #GNUNET_DHT_put (e.g. because
  * the system is shutting down).
  *
  * @param ph put operation to cancel ('cont' will no longer be called)

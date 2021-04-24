@@ -1332,13 +1332,12 @@ options_cont (struct GNUNET_REST_RequestHandle *con_handle,
  * with 'NULL' for 'ego'. That does NOT mean that the callback won't
  * be invoked in the future or that there was an error.
  *
- * When used with 'GNUNET_IDENTITY_create' or 'GNUNET_IDENTITY_get',
- * this function is only called ONCE, and 'NULL' being passed in
- * 'ego' does indicate an error (i.e. name is taken or no default
- * value is known).  If 'ego' is non-NULL and if '*ctx'
- * is set in those callbacks, the value WILL be passed to a subsequent
- * call to the identity callback of 'GNUNET_IDENTITY_connect' (if
- * that one was not NULL).
+ * When used with 'GNUNET_IDENTITY_create' or 'GNUNET_IDENTITY_get', this
+ * function is only called ONCE, and 'NULL' being passed in 'ego' does
+ * indicate an error (for example because name is taken or no default value is
+ * known).  If 'ego' is non-NULL and if '*ctx' is set in those callbacks, the
+ * value WILL be passed to a subsequent call to the identity callback of
+ * 'GNUNET_IDENTITY_connect' (if that one was not NULL).
  *
  * When an identity is renamed, this function is called with the
  * (known) ego but the NEW identifier.

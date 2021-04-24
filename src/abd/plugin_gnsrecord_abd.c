@@ -276,7 +276,7 @@ static struct
 
 
 /**
- * Convert a type name (i.e. "AAAA") to the corresponding number.
+ * Convert a type name (e.g. "AAAA") to the corresponding number.
  *
  * @param cls closure, unused
  * @param gns_typename name to convert
@@ -296,7 +296,7 @@ abd_typename_to_number (void *cls, const char *gns_typename)
 
 
 /**
- * Convert a type number (i.e. 1) to the corresponding type string (i.e. "A")
+ * Convert a type number to the corresponding type string (e.g. 1 to "A")
  *
  * @param cls closure, unused
  * @param type number of a type to convert

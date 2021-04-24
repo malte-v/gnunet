@@ -85,7 +85,7 @@ struct GNUNET_ATS_Properties
 
   /**
    * Distance on network layer (required for distance-vector routing)
-   * in hops.  Zero for direct connections (i.e. plain TCP/UDP).
+   * in hops.  Zero for direct connections (e.g. plain TCP/UDP).
    */
   uint32_t distance;
 

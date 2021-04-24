@@ -418,7 +418,7 @@ struct GNS_ResolverHandle
 
   /**
    * We increment the loop limiter for each step in a recursive
-   * resolution.  If it passes our @e loop_threshold (i.e. due to
+   * resolution.  If it passes our @e loop_threshold (e.g. due to
    * self-recursion in the resolution, i.e CNAME fun), we stop.
    */
   unsigned int loop_limiter;
@@ -516,7 +516,7 @@ static const struct GNUNET_CONFIGURATION_Handle *cfg;
 /**
  * Determine if this name is canonical (is a legal name in a zone, without delegation);
  * note that we do not test that the name does not contain illegal characters, we only
- * test for delegation.  Note that service records (i.e. _foo._srv) are canonical names
+ * test for delegation.  Note that service records (like _foo._srv) are canonical names
  * even though they consist of multiple labels.
  *
  * Examples:

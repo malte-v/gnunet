@@ -49,7 +49,7 @@
  * connections to a given peer.  Typically used by stateful plugins to
  * allow the service to refer to specific streams instead of a more
  * general notion of "some connection" to the given peer.  This is
- * useful since sometimes (i.e. for inbound TCP connections) a
+ * useful since sometimes (e.g. for inbound TCP connections) a
  * connection may not have an address that can be used for meaningful
  * distinction between sessions to the same peer.
  *

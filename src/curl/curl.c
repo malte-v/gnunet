@@ -697,7 +697,7 @@ GNUNET_CURL_job_cancel (struct GNUNET_CURL_Job *job)
 /**
  * Test if the given content type @a ct is JSON
  *
- * @param ct a content type, i.e. "application/json; charset=UTF-8"
+ * @param ct a content type, e.g. "application/json; charset=UTF-8"
  * @return true if @a ct denotes JSON
  */
 static bool
@@ -741,7 +741,7 @@ is_json (const char *ct)
  * @param db download buffer
  * @param eh CURL handle (to get the response code)
  * @param[out] response_code set to the HTTP response code
- *             (or zero if we aborted the download, i.e.
+ *             (or zero if we aborted the download, for example
  *              because the response was too big, or if
  *              the JSON we received was malformed).
  * @return NULL if downloading a JSON reply failed.

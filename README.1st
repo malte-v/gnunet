@@ -13,7 +13,7 @@ impact are given with each item.
 
 ats:
 * We currently select one transport per peer, but we should allow the
-use of multiple channels concurrently (i.e. UDP + TCP at the same
+use of multiple channels concurrently (e.g. UDP + TCP at the same
 time). Neither ATS nor transport support this today, and this requires
 a major change in the ATS plugins and the ATS API and the overall
 ATS/transport logic. [6-12 PM, robustness, performance]

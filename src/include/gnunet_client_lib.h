@@ -56,7 +56,7 @@ extern "C"
  *         #GNUNET_NO if the service is (definitively) down,
  *         #GNUNET_SYSERR if the configuration does not give us
  *          the necessary information about the service, or if
- *          we could not check (i.e. socket() failed)
+ *          we could not check (e.g. socket() failed)
  */
 int
 GNUNET_CLIENT_test (const struct GNUNET_CONFIGURATION_Handle *cfg,

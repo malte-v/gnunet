@@ -104,7 +104,7 @@ struct GnsClient
 
 /**
  * Representation of a TLD, mapping the respective TLD string
- * (i.e. ".gnu") to the respective public key of the zone.
+ * (e.g. ".gnu") to the respective public key of the zone.
  */
 struct GNS_TopLevelDomain
 {

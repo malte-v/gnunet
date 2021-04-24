@@ -84,12 +84,12 @@ struct DatastorePlugin
   struct GNUNET_DATASTORE_PluginFunctions *api;
 
   /**
-   * Short name for the plugin (i.e. "sqlite").
+   * Short name for the plugin (e.g. "sqlite").
    */
   char *short_name;
 
   /**
-   * Name of the library (i.e. "gnunet_plugin_datastore_sqlite").
+   * Name of the library (e.g. "gnunet_plugin_datastore_sqlite").
    */
   char *lib_name;
 

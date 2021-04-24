@@ -81,7 +81,7 @@ typedef int
 
 
 /**
- * Function called to convert a type name (i.e. "AAAA") to the
+ * Function called to convert a type name (e.g. "AAAA") to the
  * corresponding number.
  *
  * @param cls closure
@@ -94,8 +94,8 @@ typedef uint32_t
 
 
 /**
- * Function called to convert a type number (i.e. 1) to the
- * corresponding type string (i.e. "A")
+ * Function called to convert a type number to the
+ * corresponding type string (e.g. 1 to "A")
  *
  * @param cls closure
  * @param type number of a type to convert

@@ -1374,7 +1374,7 @@ inquiry_devices:      // skip the conditions and force a inquiry for new devices
  * stdin/stdout of this process.  Error messages are written to stderr.
  *
  * @param argc number of arguments, must be 2
- * @param argv arguments only argument is the name of the interface (i.e. 'hci0')
+ * @param argv arguments only argument is the name of the interface (e.g. 'hci0')
  * @return 0 on success (never happens, as we don't return unless aborted), 1 on error
  *
  **** similar to gnunet-helper-transport-wlan.c ****

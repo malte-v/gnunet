@@ -392,9 +392,9 @@ etc.).
 @item @file{transport/} --- transport service
 The transport service is responsible for managing the
 basic P2P communication. It uses plugins to support P2P communication
-over TCP, UDP, HTTP, HTTPS and other protocols.The transport service
+over TCP, UDP, HTTP, HTTPS and other protocols. The transport service
 validates peer addresses, enforces bandwidth restrictions, limits the
-total number of connections and enforces connectivity restrictions (i.e.
+total number of connections and enforces connectivity restrictions (e.g.
 friends-only).
 @item @file{peerinfo-tool/} --- gnunet-peerinfo
 This directory contains the gnunet-peerinfo binary which can be used to
@@ -746,21 +746,21 @@ Here you can find some rules to help you write code for GNUnet.
 
 @itemize @bullet
 @item services and daemons use their directory name in
-@code{GNUNET_log_setup} (i.e. 'core') and log using
+@code{GNUNET_log_setup} (e.g. 'core') and log using
 plain 'GNUNET_log'.
 @item command-line tools use their full name in
-@code{GNUNET_log_setup} (i.e. 'gnunet-publish') and log using
+@code{GNUNET_log_setup} (e.g. 'gnunet-publish') and log using
 plain 'GNUNET_log'.
 @item service access libraries log using
 '@code{GNUNET_log_from}' and use '@code{DIRNAME-api}' for the
-component (i.e. 'core-api')
+component (e.g. 'core-api')
 @item pure libraries (without associated service) use
 '@code{GNUNET_log_from}' with the component set to their
 library name (without lib or '@file{.so}'),
-which should also be their directory name (i.e. '@file{nat}')
+which should also be their directory name (e.g. '@file{nat}')
 @item plugins should use '@code{GNUNET_log_from}'
 with the directory name and the plugin name combined to produce
-the component name (i.e. 'transport-tcp').
+the component name (e.g. 'transport-tcp').
 @item logging should be unified per-file by defining a
 @code{LOG} macro with the appropriate arguments,
 along these lines:
@@ -832,14 +832,14 @@ test
 @subsubsection src/ directories
 
 @itemize @bullet
-@item gnunet-NAME: end-user applications (i.e., gnunet-search, gnunet-arm)
-@item gnunet-service-NAME: service processes with accessor library (i.e.,
+@item gnunet-NAME: end-user applications (like gnunet-search or gnunet-arm)
+@item gnunet-service-NAME: service processes with accessor library (e.g.
 gnunet-service-arm)
 @item libgnunetNAME: accessor library (_service.h-header) or standalone
 library (_lib.h-header)
-@item gnunet-daemon-NAME: daemon process without accessor library (i.e.,
+@item gnunet-daemon-NAME: daemon process without accessor library (e.g.
 gnunet-daemon-hostlist) and no GNUnet management port
-@item libgnunet_plugin_DIR_NAME: loadable plugins (i.e.,
+@item libgnunet_plugin_DIR_NAME: loadable plugins (e.g.
 libgnunet_plugin_transport_tcp)
 @end itemize
 
@@ -6640,7 +6640,7 @@ The size of an element's data is limited to around 62 KB.
 Sets created by a local client can be modified and reused for multiple
 operations. As each set operation requires potentially expensive special
 auxiliary data to be computed for each element of a set, a set can only
-participate in one type of set operation (i.e. union or intersection).
+participate in one type of set operation (either union or intersection).
 The type of a set is determined upon its creation.
 If a the elements of a set are needed for an operation of a different
 type, all of the set's element must be copied to a new set of appropriate
@@ -9030,14 +9030,13 @@ particular key has been revoked. The service responds with a
 @code{QueryResponseMessage} which simply contains a bit that says if the
 given public key is still valid, or if it has been revoked.
 
-The second possible interaction is for a client to revoke a key by
-passing a @code{RevokeMessage} to the service. The @code{RevokeMessage}
-contains the ECDSA public key to be revoked, a signature by the
-corresponding private key and the proof-of-work, The service responds
-with a @code{RevocationResponseMessage} which can be used to indicate
-that the @code{RevokeMessage} was invalid (i.e. proof of work incorrect),
-or otherwise indicates that the revocation has been processed
-successfully.
+The second possible interaction is for a client to revoke a key by passing a
+@code{RevokeMessage} to the service. The @code{RevokeMessage} contains the
+ECDSA public key to be revoked, a signature by the corresponding private key
+and the proof-of-work. The service responds with a
+@code{RevocationResponseMessage} which can be used to indicate that the
+@code{RevokeMessage} was invalid (e.g. the proof of work is incorrect), or
+otherwise to indicate that the revocation has been processed successfully.
 
 @node The REVOCATION Peer-to-Peer Protocol
 @subsection The REVOCATION Peer-to-Peer Protocol
@@ -9615,9 +9614,9 @@ In order to address the above issues, we want to:
       TRANSPORT shall create bi-directional channels from this whenever
       possible.
 @item DV should no longer be a plugin, but part of TRANSPORT.
-@item TRANSPORT should provide communicators help communicating (i.e. in the
-      case of uni-directional communicators or the need for out-of-band
-      signalling for NAT traversal). We call this functionality
+@item TRANSPORT should provide communicators help communicating, for example
+      in the case of uni-directional communicators or the need for out-of-band
+      signalling for NAT traversal. We call this functionality
       @emph{backchannels}.
 @item Transport manipulation should be signalled to CORE on a per-message basis
       instead of an approximate bandwidth.
@@ -9715,8 +9714,8 @@ by layer. For example, CADET will always strictly implement reliable and
 in-order delivery of messages, while the same options are only advisory for
 TRANSPORT and CORE: they should try (using ACKs on unreliable communicators,
 not changing the message order themselves), but if messages are lost anyway
-(i.e. because a TCP is dropped in the middle), or if messages are reordered
-(i.e. because they took dierent paths over the network and arrived in a
+(e.g. because a TCP is dropped in the middle), or if messages are reordered
+(e.g. because they took different paths over the network and arrived in a
 different order) TRANSPORT and CORE do not have to correct this. Whether a
 preference is strict or loose is thus dened by the respective layer.
 
@@ -9728,8 +9727,8 @@ The API for communicators is defined in
 Each communicator must specify its (global) communication characteristics, which
 for now only say whether the communication is reliable (e.g. TCP, HTTPS) or
 unreliable (e.g. UDP, WLAN). Each communicator must specify a unique address
-prex, or NULL if the communicator cannot establish outgoing connections (i.e.
-is only acting as a TCP server).
+prex, or NULL if the communicator cannot establish outgoing connections
+(for example because it is only acting as a TCP server).
 A communicator must tell TRANSPORT which addresses it is reachable under.
 Addresses may be added or removed at any time. A communicator may have zero
 addresses (transmission only).

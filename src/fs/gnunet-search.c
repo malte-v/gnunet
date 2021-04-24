@@ -64,7 +64,7 @@ static struct GNUNET_SCHEDULER_Task *tt;
  *
  * @param cls closure (user-defined, unused)
  * @param plugin_name name of the plugin that produced this value;
- *        special values can be used (i.e. '&lt;zlib&gt;' for zlib being
+ *        special values can be used (e.g. '&lt;zlib&gt;' for zlib being
  *        used in the main libextractor library and yielding
  *        meta data).
  * @param type libextractor-type describing the meta data

@@ -50,12 +50,12 @@ struct TransportPlugin
   struct GNUNET_TRANSPORT_PluginFunctions *api;
 
   /**
-   * Short name for the plugin (i.e. "tcp").
+   * Short name for the plugin (e.g. "tcp").
    */
   char *short_name;
 
   /**
-   * Name of the library (i.e. "gnunet_plugin_transport_tcp").
+   * Name of the library (e.g. "gnunet_plugin_transport_tcp").
    */
   char *lib_name;
 
