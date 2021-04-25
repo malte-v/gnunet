@@ -210,13 +210,12 @@ GNUNET_IDENTITY_ego_get_public_key (struct GNUNET_IDENTITY_Ego *ego,
  * with 'NULL' for @a ego. That does NOT mean that the callback won't
  * be invoked in the future or that there was an error.
  *
- * When used with #GNUNET_IDENTITY_create or #GNUNET_IDENTITY_get,
- * this function is only called ONCE, and 'NULL' being passed in
- * @a ego does indicate an error (i.e. name is taken or no default
- * value is known).  If @a ego is non-NULL and if '*ctx'
- * is set in those callbacks, the value WILL be passed to a subsequent
- * call to the identity callback of #GNUNET_IDENTITY_connect (if
- * that one was not NULL).
+ * When used with #GNUNET_IDENTITY_create or #GNUNET_IDENTITY_get, this
+ * function is only called ONCE, and 'NULL' being passed in @a ego does
+ * indicate an error (for example because name is taken or no default value is
+ * known).  If @a ego is non-NULL and if '*ctx' is set in those callbacks, the
+ * value WILL be passed to a subsequent call to the identity callback of
+ * #GNUNET_IDENTITY_connect (if that one was not NULL).
  *
  * When an identity is renamed, this function is called with the
  * (known) @a ego but the NEW @a name.
@@ -768,7 +767,7 @@ struct GNUNET_IDENTITY_EgoSuffixLookup;
 
 /**
  * Obtain the ego with the maximum suffix match between the
- * ego's name and the given domain name @a suffix.  I.e., given
+ * ego's name and the given domain name @a suffix.  For example, given
  * a @a suffix "a.b.c" and egos with names "d.a.b.c", "b.c" and "c",
  * we return the ego for "b.c".
  *

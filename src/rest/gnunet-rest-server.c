@@ -436,7 +436,7 @@ post_data_iter (void *cls,
  * @param con MHD connection handle
  * @param url the url in the request
  * @param meth the HTTP method used ("GET", "PUT", etc.)
- * @param ver the HTTP version string (i.e. "HTTP/1.1")
+ * @param ver the HTTP version string ("HTTP/1.1" for version 1.1, etc.)
  * @param upload_data the data being uploaded (excluding HEADERS,
  *        for a POST that fits into memory and that is encoded
  *        with a supported encoding, the POST data will NOT be

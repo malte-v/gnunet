@@ -68,7 +68,7 @@ struct GNUNET_CURL_DownloadBuffer
 
   /**
    * Error code (based on libc errno) if we failed to download
-   * (i.e. response too large).
+   * (e.g. response too large).
    */
   int eno;
 };

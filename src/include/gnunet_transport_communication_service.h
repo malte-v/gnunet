@@ -94,17 +94,17 @@ struct GNUNET_TRANSPORT_CommunicatorHandle;
 enum GNUNET_TRANSPORT_CommunicatorCharacteristics
 {
   /**
-   * Characteristics are unknown (i.e. DV).
+   * Characteristics are unknown (e.g. DV).
    */
   GNUNET_TRANSPORT_CC_UNKNOWN = 0,
 
   /**
-   * Transmission is reliabile (with ACKs), i.e. TCP/HTTP/HTTPS.
+   * Transmission is reliabile (with ACKs), e.g. TCP/HTTP/HTTPS.
    */
   GNUNET_TRANSPORT_CC_RELIABLE = 1,
 
   /**
-   * Transmission is unreliable (i.e. UDP)
+   * Transmission is unreliable (e.g. UDP)
    */
   GNUNET_TRANSPORT_CC_UNRELIABLE = 2
 };

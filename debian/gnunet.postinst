@@ -149,12 +149,10 @@ EOF
                     fi
                     port=$((8000+$(id -u "${users[$i]}")))
                     gnunet-config -c "${homedirs[$i]}/.config/gnunet.conf" \
-                         --rewrite \
                          --section=gns-proxy \
                          --option=IMMEDIATE_START \
                          --value=YES
                     gnunet-config -c "${homedirs[$i]}/.config/gnunet.conf" \
-                         --rewrite \
                          --section=gns-proxy \
                          --option=OPTIONS \
  			             --value="-p $port"
@@ -180,7 +178,6 @@ if [ "$gnunet_proxy" ]; then
         port=$((8000+$(id -u $user)))
 
         gnunet-config -c $HOME/.config/gnunet.conf \
-                --rewrite \
                 --section=gns-proxy \
                 --option=OPTIONS \
                 --value="-p $port"

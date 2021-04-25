@@ -1546,7 +1546,7 @@ mq_error_handler (void *cls, enum GNUNET_MQ_Error error)
  * @param event_mask bit mask with set of events to call 'cc' for;
  *                   or-ed values of "1LL" shifted by the
  *                   respective 'enum GNUNET_TESTBED_EventType'
- *                   (i.e.  "(1LL << GNUNET_TESTBED_ET_CONNECT) | ...")
+ *                   (e.g.  "(1LL << GNUNET_TESTBED_ET_CONNECT) | ...")
  * @param cc controller callback to invoke on events
  * @param cc_cls closure for cc
  * @return handle to the controller

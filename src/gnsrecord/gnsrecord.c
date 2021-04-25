@@ -208,7 +208,7 @@ GNUNET_GNSRECORD_string_to_value (uint32_t type,
 
 
 /**
- * Convert a type name (i.e. "AAAA") to the corresponding number.
+ * Convert a type name (e.g "AAAA") to the corresponding number.
  *
  * @param dns_typename name to convert
  * @return corresponding number, UINT32_MAX on error
@@ -235,7 +235,7 @@ GNUNET_GNSRECORD_typename_to_number (const char *dns_typename)
 
 
 /**
- * Convert a type number (i.e. 1) to the corresponding type string (i.e. "A")
+ * Convert a type number to the corresponding type string (e.g. 1 to "A")
  *
  * @param type number of a type to convert
  * @return corresponding typestring, NULL on error

@@ -124,7 +124,7 @@ basic_typename_to_number (void *cls, const char *basic_typename)
 
 
 /**
- * Convert a type number (i.e. 1) to the corresponding type string
+ * Convert a type number to the corresponding type string (e.g. 1 to "A")
  *
  * @param cls closure, unused
  * @param type number of a type to convert

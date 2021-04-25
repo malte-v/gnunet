@@ -242,7 +242,7 @@ against identification.
 
 The messaging service allows the use of an anonymous ego for the signing and
 verification process of messages instead of a unique ego. This anonymous ego is
-a publically known key pair which is shared between all peers in GNUnet.
+a publicly known key pair which is shared between all peers in GNUnet.
 
 Using this ego only ensures that individual messages alone can't identify its 
 sender inside of a messenger room. It should be clarified that the route of 

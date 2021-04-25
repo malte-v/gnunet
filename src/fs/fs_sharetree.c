@@ -183,7 +183,7 @@ add_to_keyword_counter (void *cls, const char *keyword, int is_mandatory)
  *
  * @param cls the container multihashmap to update
  * @param plugin_name name of the plugin that produced this value;
- *        special values can be used (i.e. '&lt;zlib&gt;' for zlib being
+ *        special values can be used (e.g. '&lt;zlib&gt;' for zlib being
  *        used in the main libextractor library and yielding
  *        meta data).
  * @param type libextractor-type describing the meta data

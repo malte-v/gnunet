@@ -21,7 +21,7 @@
 /**
  * @file fs/perf_gnunet_service_fs_p2p_respect.c
  * @brief profile P2P routing respect mechanism. Creates
- *        a clique of NUM_DAEMONS (i.e. 3) where two
+ *        a clique of NUM_DAEMONS (at least 3) where two
  *        peers share (seed) different files and download
  *        them from each other while all the other peers
  *        just "leach" those files.  Ideally, the seeders

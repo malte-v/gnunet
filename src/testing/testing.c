@@ -91,7 +91,7 @@ struct SharedService
 struct GNUNET_TESTING_System
 {
   /**
-   * Prefix (i.e. "/tmp/gnunet-testing/") we prepend to each
+   * Prefix (e.g. "/tmp/gnunet-testing/") we prepend to each
    * GNUNET_HOME.
    */
   char *tmppath;

@@ -791,6 +791,30 @@ AS_IF([test "x$zbar" = x1],
       [AC_DEFINE([HAVE_ZBAR],[1],[Have zbar library])],
       [AC_DEFINE([HAVE_ZBAR],[0],[Lacking zbar library])])
 
+# check for libpabc library
+pabc=0
+AC_MSG_CHECKING(for libpabc)
+AC_ARG_WITH(pabc,
+   [  --with-pabc=PREFIX (base of libpabc installation)],
+   [AC_MSG_RESULT([$with_pabc])
+    AS_CASE([$with_pabc],
+      [no],[],
+      [yes],[
+        CHECK_LIBHEADER(PABC, pabc, pabc_new_ctx, pabc/pabc.h,pabc=1,)
+      ],[
+        LDFLAGS="-L$with_pabc/lib $LDFLAGS"
+        CPPFLAGS="-I$with_pabc/include $CPPFLAGS"
+        AC_CHECK_HEADERS(pabc/pabc.h,
+          AC_CHECK_LIB([pabc], [pabc_new_ctx],
+            EXT_LIB_PATH="-L$with_pabc/lib $EXT_LIB_PATH"
+            pabc=1))
+      ])
+   ],
+   [AC_MSG_RESULT([--with-pabc not specified])
+    CHECK_LIBHEADER(PABC, pabc, pabc_new_ctx, pabc/pabc.h,pabc=1,)])
+AM_CONDITIONAL(HAVE_PABC, [test x$pabc = x1])
+
+
 # check for jansson library
 jansson=0
 AC_MSG_CHECKING(for libjansson)

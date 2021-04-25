@@ -193,7 +193,7 @@ struct GNUNET_SCHEDULER_Task
   /**
    * Why is the task ready?  Set after task is added to ready queue.
    * Initially set to zero.  All reasons that have already been
-   * satisfied (i.e.  read or write ready) will be set over time.
+   * satisfied (e.g. read or write ready) will be set over time.
    */
   enum GNUNET_SCHEDULER_Reason reason;
 

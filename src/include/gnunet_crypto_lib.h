@@ -945,7 +945,7 @@ GNUNET_CRYPTO_hash_get_bit_rtl (const struct GNUNET_HashCode *code,
 /**
  * @ingroup hash
  * Determine how many low order bits match in two
- * `struct GNUNET_HashCodes`.  i.e. - 010011 and 011111 share
+ * `struct GNUNET_HashCodes`.  e.g. - 010011 and 011111 share
  * the first two lowest order bits, and therefore the
  * return value is two (NOT XOR distance, nor how many
  * bits match absolutely!).
@@ -2048,7 +2048,7 @@ struct GNUNET_CRYPTO_RsaSignature;
 /**
  * Create a new private key. Caller must free return value.
  *
- * @param len length of the key in bits (i.e. 2048)
+ * @param len length of the key in bits (e.g. 2048)
  * @return fresh private key
  */
 struct GNUNET_CRYPTO_RsaPrivateKey *

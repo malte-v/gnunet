@@ -316,7 +316,7 @@ convert_with_table (const char *input,
 /**
  * Convert a given fancy human-readable size to bytes.
  *
- * @param fancy_size human readable string (i.e. 1 MB)
+ * @param fancy_size human readable string (e.g. 1 MB)
  * @param size set to the size in bytes
  * @return #GNUNET_OK on success, #GNUNET_SYSERR on error
  */
@@ -348,7 +348,7 @@ GNUNET_STRINGS_fancy_size_to_bytes (const char *fancy_size,
  * Convert a given fancy human-readable time to our internal
  * representation.
  *
- * @param fancy_time human readable string (i.e. 1 minute)
+ * @param fancy_time human readable string (e.g. 1 minute)
  * @param rtime set to the relative time
  * @return #GNUNET_OK on success, #GNUNET_SYSERR on error
  */
@@ -399,7 +399,7 @@ GNUNET_STRINGS_fancy_time_to_relative (const char *fancy_time,
  * representation. The human-readable time is expected to be
  * in local time, whereas the returned value will be in UTC.
  *
- * @param fancy_time human readable string (i.e. %Y-%m-%d %H:%M:%S)
+ * @param fancy_time human readable string (e.g. %Y-%m-%d %H:%M:%S)
  * @param atime set to the absolute time
  * @return #GNUNET_OK on success, #GNUNET_SYSERR on error
  */
@@ -1364,7 +1364,7 @@ GNUNET_STRINGS_to_address_ip (const char *addr,
  * `struct sockaddr`.
  *
  * @param addr the address
- * @param[out] af set to the parsed address family (i.e. AF_INET)
+ * @param[out] af set to the parsed address family (e.g. AF_INET)
  * @param[out] sa set to the parsed address
  * @return 0 on error, otherwise number of bytes in @a sa
  */

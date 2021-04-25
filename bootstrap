@@ -1,7 +1,7 @@
 #!/bin/sh
 #
 # We should use /usr/bin/env sh, but some systems are notoriously picky.
-# In fact we could ommit this line if some automations wouldn't rely on
+# In fact we could omit this line if some automations wouldn't rely on
 # running this file via ./bootstrap.
 #
 # This file is in the public domain.

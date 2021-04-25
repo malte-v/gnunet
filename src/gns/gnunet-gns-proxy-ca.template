@@ -51,7 +51,7 @@ cn = "GNS Proxy CA"
 #dn = "cn = Nikos,st = New\, Something,C=GR,surName=Mavrogiannopoulos,2.5.4.9=Arkadias"
 
 # The serial number of the certificate
-# The value is in decimal (i.e. 1963) or hex (i.e. 0x07ab).
+# The value is in decimal (e.g. 1963) or hex (e.g. 0x07ab).
 # Comment the field for a random serial number.
 #serial = 007
 
@@ -283,7 +283,7 @@ tls_www_server
 #crl_next_update = 43
 
 # this is the 5th CRL by this CA
-# The value is in decimal (i.e. 1963) or hex (i.e. 0x07ab).
+# The value is in decimal (e.g. 1963) or hex (e.g. 0x07ab).
 # Comment the field for a time-based number.
 # Time-based CRL numbers generated in GnuTLS 3.6.3 and later
 # are significantly larger than those generated in previous

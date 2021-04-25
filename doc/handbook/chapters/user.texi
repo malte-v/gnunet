@@ -71,7 +71,7 @@ $ gnunet-arm -e
 ``.pin'' is a default zone which points to a zone managed by gnunet.org.
 Use @code{gnunet-config -s gns} to view the GNS configuration, including
 all configured zones that are operated by other users.  The respective
-configuration entry names start with a ``.'', i.e. ``.pin''.
+configuration entry names start with a ``.'', e.g. ``.pin''.
 
 You can configure any number of top-level domains, and point them to
 the respective zones of your friends!  For this, simply obtain the
@@ -109,7 +109,7 @@ rules - GO0T87F9BPMF8NKD5A54L2AH1T0GRML539TPFSRMCEA98182QD30
 @subsection The GNS Tab
 
 
-Maintaing your zones is through the NAMESTORE service and is discussed
+Maintaining your zones is through the NAMESTORE service and is discussed
 here.  You can manage your zone using @command{gnunet-identity} and
 @command{gnunet-namestore}, or most conveniently using
 @command{gnunet-namestore-gtk}.
@@ -1620,7 +1620,7 @@ under "*.friend.gnu".
 BOX records are there to integrate information from TLSA or
 SRV records under the main label. In DNS, TLSA and SRV records
 use special names of the form @code{_port._proto.(label.)*tld} to
-indicate the port number and protocol (i.e. tcp or udp) for which
+indicate the port number and protocol (like TCP or UDP) for which
 the TLSA or SRV record is valid. This causes various problems, and
 is elegantly solved in GNS by integrating the protocol and port
 numbers together with the respective value into a "BOX" record.
@@ -1633,7 +1633,7 @@ are BOXed up.
 @subsubsection LEHO
 
 The LEgacy HOstname of a server. Some webservers expect a specific
-hostname to provide a service (virtiual hosting). Also SSL
+hostname to provide a service (virtual hosting). Also SSL
 certificates usually contain DNS names. To provide the expected
 legacy DNS name for a server, the LEHO record can be used.
 To mitigate the just mentioned issues the GNS proxy has to be used.
@@ -1700,7 +1700,7 @@ be useful if you do not want to start resolution in the DNS root zone
 (due to issues such as censorship or availability).
 
 Note that you would typically want to use a relative name for the
-nameserver, i.e.
+nameserver, like so:
 
 @example
 Name: pet; RRType: GNS2DNS; Value: gnunet.org@@ns-joker.+@
@@ -2244,7 +2244,7 @@ that subnet to the GNUnet exit's TUN interface.
 
 When running a local service, you should make sure that the local
 service is (also) bound to the IP address of your EXIT interface
-(i.e. 169.254.86.1). It will NOT work if your local service is
+(e.g. 169.254.86.1). It will NOT work if your local service is
 just bound to loopback. You may also want to create a "VPN" record
 in your zone of the GNU Name System to make it easy for others to
 access your service via a name instead of just the full service
@@ -2315,7 +2315,7 @@ and restart your peer, your Internet traffic should be tunneled
 over the GNUnet VPN.
 
 The GNUnet VPN uses DNS-ALG to hijack your IP traffic. Whenever an
-application resolves a hostname (i.e. 'gnunet.org'), the
+application resolves a hostname (like 'gnunet.org'), the
 "gnunet-daemon-pt" will instruct the "gnunet-service-dns" to intercept
 the request (possibly route it over GNUnet as well) and replace the
 normal answer with an IP in the range of the VPN's interface.
@@ -2325,8 +2325,8 @@ destination.
 
 For applications that do not use DNS, you can also manually create
 such a mapping using the gnunet-vpn command-line tool. Here, you
-specify the desired address family of the result (i.e. "-4"), and the
-intended target IP on the Internet ("-i 131.159.74.67") and
+specify the desired address family of the result (e.g. "-4"), and the
+intended target IP on the Internet (e.g. "-i 131.159.74.67") and
 "gnunet-vpn" will tell you which IP address in the range of your
 VPN tunnel was mapped.
 
@@ -2404,7 +2404,7 @@ $ gnunet-peerinfo -s
 
 A ROOMKEY gets entered in readable text form. The service will then hash the 
 entered ROOMKEY and use the result as shared secret for transmission through 
-the CADET submodule. You can also optionally leave out the '-r' paramter and 
+the CADET submodule. You can also optionally leave out the '-r' parameter and 
 the ROOMKEY to use the zeroed hash instead.
 
 If no IDENTITY is provided you will not send any name to others, you will be 
@@ -2478,7 +2478,7 @@ $ gnunet-messenger [-e IDENTITY] -d PEERIDENTITY -r ROOMKEY -p
 @end example
 
 Notice that you can only send such encrypted messages to members who use an ego
-which is not publically known as the anonymous ego to ensure transparency. If 
+which is not publicly known as the anonymous ego to ensure transparency. If 
 any user could decrypt these messages they would not be private. So as receiver
 of such messages the IDENTITY is required and it has to match a local ego.
 

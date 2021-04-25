@@ -320,7 +320,7 @@ accept_policy_callback (void *cls,
  * @param url the requested url
  * @param method the HTTP method used (#MHD_HTTP_METHOD_GET,
  *        #MHD_HTTP_METHOD_PUT, etc.)
- * @param version the HTTP version string (i.e.
+ * @param version the HTTP version string (e.g.
  *        #MHD_HTTP_VERSION_1_1)
  * @param upload_data the data being uploaded (excluding HEADERS,
  *        for a POST that fits into memory and that is encoded
@@ -335,7 +335,7 @@ accept_policy_callback (void *cls,
  * @param con_cls pointer that the callback can set to some
  *        address and that will be preserved by MHD for future
  *        calls for this request; since the access handler may
- *        be called many times (i.e., for a PUT/POST operation
+ *        be called many times (e.g. for a PUT/POST operation
  *        with plenty of upload data) this allows the application
  *        to easily associate some request-specific state.
  *        If necessary, this state can be cleaned up in the

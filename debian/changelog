@@ -389,7 +389,7 @@ gnunet (0.9.3-4) unstable; urgency=low
   * Revert the use dh_installdocs --link-doc (Closes: #687875, #687881,
     #687883).
   * Fix build on kfreebsd, thanks to Christoph Egger (Closes: #688486).
-  * Allways install libnss to /lib and fix FTBFS on ia64 (Closes: #688590).
+  * Always install libnss to /lib and fix FTBFS on ia64 (Closes: #688590).
   * Install libnss to /lib, really fix #688590, thanks to Christian Grothoff.
   * Change default option UNIX_MATCH_UID for services datastore and namestore,
     so users in the gnunet group may use these services (Closes: #686238,
@@ -546,7 +546,7 @@ gnunet (0.8.1b-5) unstable; urgency=low
 
 gnunet (0.8.1b-4) unstable; urgency=low
 
-  * Stopp calling debconf-updatepo in clean target of rules.
+  * Stop calling debconf-updatepo in clean target of rules.
   * Dropping la files.
 
  -- Daniel Baumann <daniel.baumann@progress-technologies.net>  Mon, 03 May 2010 21:06:32 +0200
@@ -659,7 +659,7 @@ gnunet (0.8.0c-4) unstable; urgency=low
 
 gnunet (0.8.0c-3) unstable; urgency=low
 
-  * Removing unneded versions for build-depends.
+  * Removing unneeded versions for build-depends.
   * Wrapping build depends.
   * Sorting depends.
   * Updating year in copyright file.
@@ -694,7 +694,7 @@ gnunet (0.8.0c-1) unstable; urgency=low
   * Removing old conflicts and replaces.
   * Making gnunet binNMU safe (Closes: #527453, #527462).
   * Using correct rfc-2822 date formats in changelog.
-  * Using more generic directoy name for local additions within the
+  * Using more generic directory name for local additions within the
     packaging directory.
   * Updating debhelper install files for new upstream.
   * Adding misc:Depends in control to remaining binary packages.
@@ -773,7 +773,7 @@ gnunet (0.8.0-1) unstable; urgency=low
   * Reordering rules file.
   * Also excluding gnunet meta package from ia64 since there is no gnunet on
     ia64 anyway.
-  * Using lintian debhelper to intall lintian overrides.
+  * Using lintian debhelper to install lintian overrides.
   * Removing watch file.
   * Rewriting copyright file in machine-interpretable format.
   * Bumping versioned libextractor depends to 0.5.20.
@@ -870,7 +870,7 @@ gnunet (0.7.2c-3) unstable; urgency=medium
     - Updated to new policy.
     - Using Homepage field in control.
     - Using versioned depends for libextractor.
-    - Comented lintian overrides.
+    - Commented lintian overrides.
 
  -- Daniel Baumann <daniel.baumann@progress-technologies.net>  Thu, 06 Dec 2007 22:36:00 +0100
 
@@ -971,7 +971,7 @@ gnunet (0.7.1c-2) unstable; urgency=low
 gnunet (0.7.1c-1) unstable; urgency=low
 
   * New upstream release (Closes: #420538).
-  * Package splitted into common, tools, daemon, client and dev (Closes: #394740).
+  * Package split into common, tools, daemon, client and dev (Closes: #394740).
   * Added LSB section in init script.
   * Enable IPv6 (Closes: #405763).
 
@@ -1009,7 +1009,7 @@ gnunet (0.7.0e-2) unstable; urgency=low
 
 gnunet (0.7.0e-1) unstable; urgency=high
 
-  * New uptream release.
+  * New upstream release.
   * Set urgency to high since this release fix the remote DOS CVE-2006-2413 (Closes: #368159)
 
  -- Arnaud Kyheng <Arnaud.Kyheng@free.fr>  Sun, 21 May 2006 11:24:28 +0200
@@ -1062,7 +1062,7 @@ gnunet (0.7.0-1) unstable; urgency=low
 gnunet (0.6.6b-5) unstable; urgency=low
 
   * debian/control: Bumped policy version to 3.6.2.
-  * debian/control: Updated depedencies to follow C++ ABI changes (Closes: #325844).
+  * debian/control: Updated dependencies to follow C++ ABI changes (Closes: #325844).
   * debian/po/vi.po: Added new Vietnamese translation of gnunet debconf messages. Thanks to Clytie Siddall (Closes: #314190).
 
  -- Arnaud Kyheng <Arnaud.Kyheng@free.fr>  Sun, 21 Aug 2005 10:54:54 +0200
@@ -1163,7 +1163,7 @@ gnunet (0.6.5-3) unstable; urgency=low
 
 gnunet (0.6.5-2) unstable; urgency=low
 
-  * Applied Martin Quinson l10n patch wich switch to gettext-based debconf and
+  * Applied Martin Quinson l10n patch which switch to gettext-based debconf and
     does the following modifications (Closes: #283632):
     - debian/control: modification for dependencies:
       build-dep: debhelper (>= 4.1.16) which depends on po-debconf.
@@ -1276,7 +1276,7 @@ gnunet (0.6.4a-4) unstable; urgency=low
 
 gnunet (0.6.4a-3) unstable; urgency=high
 
-  * Bumb revision number for the package to be rebuild against fixed
+  * Bump revision number for the package to be rebuild against fixed
     libgcrypt11 (>=1.2.0-10) (Closes: #275793)
 
   * debian/control: Added version requirement for libgcrypt11-dev (>=1.2.0-10).
@@ -1298,7 +1298,7 @@ gnunet (0.6.4a-1) unstable; urgency=medium
   * contrib/gnunet.desktop: Added menu file for GNOME and KDE.
   * contrib/gnunet.root: Fixed to follow debian policy.
   * Removed beta binaries gnunet-dht* and gnunet-setup from package since
-    they are not yet fonctional.
+    they are not yet functional.
 
  -- Arnaud Kyheng <Arnaud.Kyheng@free.fr>  Wed, 29 Sep 2004 08:09:38 +0200
 
@@ -1310,7 +1310,7 @@ gnunet (0.6.4-3) unstable; urgency=low
 
 gnunet (0.6.4-2) unstable; urgency=low
 
-  * Bumb revision number so ftp-master will accept it.
+  * Bump revision number so ftp-master will accept it.
 
  -- Glenn McGrath <bug1@debian.org>  Fri, 10 Sep 2004 12:13:54 +1000
 
@@ -1386,7 +1386,7 @@ gnunet (0.6.1d-1) unstable; urgency=low
 gnunet (0.6.1b-1) unstable; urgency=low
 
   * New upstream release
-  * Run "gnunet-check -ra" in postinst for compatability
+  * Run "gnunet-check -ra" in postinst for compatibility
 
  -- Glenn McGrath <bug1@debian.org>  Sat, 31 Jan 2004 21:39:33 +1100
 
@@ -1452,7 +1452,7 @@ gnunet (0.5.4a-5) unstable; urgency=low
 
 gnunet (0.5.4a-4) unstable; urgency=low
 
-  * Declare build depenency on libtool as well, grrrr
+  * Declare build dependency on libtool as well, grrrr
 
  -- Glenn McGrath <bug1@debian.org>  Mon, 21 Jul 2003 15:02:20 +0000
 
@@ -1477,15 +1477,15 @@ gnunet (0.5.4a-1) unstable; urgency=low
   * New upstream release.
   * Remove build dependency on libgcrypt, gnunet now uses an internal
     crypto library based on the CVS branch of libgcrypt.
-  * Change build dependcy from libgdbmg1-dev to libgdbm-dev
-  * After 1 year and 39 days in preparation, its now eligable to be
+  * Change build dependency from libgdbmg1-dev to libgdbm-dev
+  * After 1 year and 39 days in preparation, its now eligible to be
     uploaded to  unstable (Closes: #147380)
 
  -- Glenn McGrath <bug1@debian.org>  Fri, 27 Jun 2003 16:47:54 +0000
 
 gnunet (0.5.4-1) unstable; urgency=low
 
-  * New upsteam release
+  * New upstream release
   * Declare shared libraries within gnunet, dependency now detected
     in gnunet-gtk
 

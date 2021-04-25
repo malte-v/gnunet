@@ -1935,7 +1935,7 @@ stdin_send_hw (void *cls, const struct GNUNET_MessageHeader *hdr)
  * process.  Error messages are written to stdout.
  *
  * @param argc number of arguments, must be 2
- * @param argv arguments only argument is the name of the interface (i.e. 'mon0')
+ * @param argv arguments only argument is the name of the interface (e.g. 'mon0')
  * @return 0 on success (never happens, as we don't return unless aborted), 1 on error
  */
 int

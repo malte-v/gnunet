@@ -66,12 +66,12 @@ struct GNUNET_DATACACHE_Handle
   struct GNUNET_DATACACHE_PluginFunctions *api;
 
   /**
-   * Short name for the plugin (i.e. "sqlite").
+   * Short name for the plugin (e.g. "sqlite").
    */
   char *short_name;
 
   /**
-   * Name of the library (i.e. "gnunet_plugin_datacache_sqlite").
+   * Name of the library (e.g. "gnunet_plugin_datacache_sqlite").
    */
   char *lib_name;
 

@@ -10,7 +10,6 @@ if [ "$gnunet_proxy" ]; then
 	port=$((8000+$(id -u $user)))
 
 	gnunet-config -c /home/$user/.config/gnunet.conf \
-		--rewrite \
 		--section=gns-proxy \
 		--option=OPTIONS \
 		--value="-p $port"

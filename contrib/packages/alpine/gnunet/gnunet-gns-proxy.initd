@@ -21,12 +21,10 @@ start() {
 		# Customize gnunet.conf
                 port=$((8000+$(id -u $user)))
                 gnunet-config -c /home/$user/.config/gnunet.conf \
-                        --rewrite \
                         --section=gns-proxy \
                         --option=IMMEDIATE_START \
                         --value=YES
                 gnunet-config -c /home/$user/.config/gnunet.conf \
-                        --rewrite \
                         --section=gns-proxy \
                         --option=OPTIONS \
                         --value="-p $port"
@@ -79,7 +77,6 @@ stop() {
 
 		# Disable gns-proxy in config
                 gnunet-config -c /home/$user/.config/gnunet.conf \
-                        --rewrite \
                         --section=gns-proxy \
                         --option=IMMEDIATE_START \
                         --value=NO

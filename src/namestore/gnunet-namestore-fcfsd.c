@@ -751,7 +751,7 @@ lookup_it_finished (void *cls)
  * @param connection MHD connection handle
  * @param url the requested url
  * @param method the HTTP method used ("GET", "PUT", etc.)
- * @param version the HTTP version string (i.e. "HTTP/1.1")
+ * @param version the HTTP version string ("HTTP/1.1" for version 1.1, etc.)
  * @param upload_data the data being uploaded (excluding HEADERS,
  *        for a POST that fits into memory and that is encoded
  *        with a supported encoding, the POST data will NOT be
@@ -1057,13 +1057,12 @@ do_shutdown (void *cls)
 /**
  * Method called to inform about the egos of this peer.
  *
- * When used with #GNUNET_IDENTITY_create or #GNUNET_IDENTITY_get,
- * this function is only called ONCE, and 'NULL' being passed in
- * @a ego does indicate an error (i.e. name is taken or no default
- * value is known).  If @a ego is non-NULL and if '*ctx'
- * is set in those callbacks, the value WILL be passed to a subsequent
- * call to the identity callback of #GNUNET_IDENTITY_connect (if
- * that one was not NULL).
+ * When used with #GNUNET_IDENTITY_create or #GNUNET_IDENTITY_get, this
+ * function is only called ONCE, and 'NULL' being passed in @a ego does
+ * indicate an error (for example because name is taken or no default value is
+ * known).  If @a ego is non-NULL and if '*ctx' is set in those callbacks, the
+ * value WILL be passed to a subsequent call to the identity callback of
+ * #GNUNET_IDENTITY_connect (if that one was not NULL).
  *
  * @param cls closure, NULL
  * @param ego ego handle

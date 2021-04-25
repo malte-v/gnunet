@@ -171,7 +171,7 @@ group. In addition the group @code{gnunetdns} may be needed (see below).
 
 Create user @code{gnunet} who is member of the group @code{gnunet}
 (automatically created) and specify a home directory where the GNUnet
-services will store persistant data such as information about peers.
+services will store persistent data such as information about peers.
 @example
 $ sudo useradd --system --home-dir /var/lib/gnunet --create-home gnunet
 @end example
@@ -431,7 +431,7 @@ For the @emph{multi-user setup} first the system services need to be started
 as the system user, i.e. the user @code{gnunet} needs to execute
 @code{gnunet-arm -s}. This should be done by the system's init system.
 Then the user who wants to start GNUnet applications has to run
-@code{gnunet-arm -s} too. It is recommented to automate this, e.g. using
+@code{gnunet-arm -s} too. It is recommended to automate this, e.g. using
 the user's crontab.
 
 @node gnunet-gtk
@@ -1355,7 +1355,7 @@ The interface channel depends on the wlan network that the card is
 connected to. If no connection has been made since the start of the
 computer, it is usually the first channel of the card.
 Peers will only find each other and communicate if they are on the same
-channel. Channels must be set manually, i.e. using:
+channel. Channels must be set manually, e.g. by using:
 
 @example
 iwconfig wlan0 channel 1
@@ -1369,7 +1369,7 @@ proxy forwards the HTTP request he receives with a certain URL to another
 webserver, here a GNUnet peer.
 
 So if you have a running Apache or nginx webserver you can configure it to
-be a GNUnet reverse proxy. Especially if you have a well-known webiste
+be a GNUnet reverse proxy. Especially if you have a well-known website
 this improves censorship resistance since it looks as normal surfing
 behaviour.
 
@@ -1944,12 +1944,13 @@ Python installation and its dependencies.
 
 Another way to install Ascension on Debian is to install the python3-ascension
 package. It can be found within the above mentioned Ascension git repository.
-This also adds a system user ascension and runs a GNUnet peer in the
-background. Attention: This only works if a recent version of GNUnet is
+This also adds a system user called ascension and runs a GNUnet peer in the
+background. Please note: This only works if a recent version of GNUnet is
 installed on your system. The version number of Ascension is chosen according
-to the required feature level of GNUnet. I.e. Ascension 0.11.5 is only
-compatible with GNUnet 0.11.5 and upwards. As Debian's packages for GNUnet are
-outdated even in experimental, you will need to install GNUnet manually
+to the required feature level of GNUnet: Ascension 0.11.5 is only
+compatible with GNUnet 0.11.5 or later and so on.
+As Debian's packages for GNUnet are outdated even in experimental,
+you will need to install GNUnet manually
 @xref{Installing GNUnet}.
 
 Please check @xref{Migrating an existing DNS zone into GNS}, for usage manual
@@ -2034,11 +2035,11 @@ Furthermore, you can serve as a DNS, IPv4 or IPv6 exit to the Internet.
 Being a DNS exit is usually pretty harmless. However, enabling IPv4 or
 IPv6-exit without further precautions may enable adversaries to access
 your local network, send spam, attack other systems from your Internet
-connection and to other mischief that will appear to come from your
+connection and do other mischiefs that will appear to come from your
 machine. This may or may not get you into legal trouble.
 If you want to allow IPv4 or IPv6-exit functionality, you should strongly
 consider adding additional firewall rules manually to protect your local
-network and to restrict outgoing TCP traffic (i.e. by not allowing access
+network and to restrict outgoing TCP traffic (e.g. by not allowing access
 to port 25). While we plan to improve exit-filtering in the future,
 you're currently on your own here.
 Essentially, be prepared for any kind of IP-traffic to exit the respective
@@ -2159,7 +2160,7 @@ run as use "gnunet" (and with option "-c /etc/gnunet.conf" so that it
 modifies the system configuration). As always, gnunet-setup should be run
 after the GNUnet peer was stopped using "gnunet-arm -e". Distributors
 might want to include a wrapper for gnunet-setup that allows the
-desktop-user to "sudo" (i.e. using gtksudo) to the "gnunet" user account
+desktop-user to "sudo" (e.g. using gtksudo) to the "gnunet" user account
 and then runs "gnunet-arm -e", "gnunet-setup" and "gnunet-arm -s" in
 sequence.
 
@@ -2175,7 +2176,7 @@ Sane defaults should exist in your
 you could simply start without any configuration. If you want to
 configure your peer later, you need to stop it before invoking the
 @code{gnunet-setup} tool to customize further and to test your
-configuration (@code{gnunet-setup} has build-in test functions).
+configuration (@code{gnunet-setup} has built-in test functions).
 
 The most important option you might have to still set by hand is in
 [PATHS]. Here, you use the option "GNUNET_HOME" to specify the path where

@@ -94,7 +94,7 @@ struct GNUNET_ATS_Properties
 
   /**
    * Distance on network layer (required for distance-vector routing)
-   * in hops.  Zero for direct connections (i.e. plain TCP/UDP).
+   * in hops.  Zero for direct connections (e.g. plain TCP/UDP).
    */
   unsigned int distance;
 
@@ -136,7 +136,7 @@ struct GNUNET_ATS_PropertiesNBO
 
   /**
    * Distance on network layer (required for distance-vector routing)
-   * in hops.  Zero for direct connections (i.e. plain TCP/UDP).
+   * in hops.  Zero for direct connections (e.g. plain TCP/UDP).
    */
   uint32_t distance GNUNET_PACKED;
 
@@ -308,7 +308,7 @@ struct GNUNET_ATS_AddressRecord;
  *
  * @param sh handle
  * @param address the address
- * @param session session handle (if available, i.e. for incoming connections)
+ * @param session session handle (if available, e.g for incoming connections)
  * @param prop performance data for the address
  * @return handle to the address representation inside ATS, NULL
  *         on error (i.e. ATS knows this exact address already, or

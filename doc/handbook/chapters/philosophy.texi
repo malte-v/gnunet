@@ -70,7 +70,7 @@ applications.
 @node Practicality
 @section Practicality
 
-Whereever possible GNUnet allows the peer to adjust its operations and
+Wherever possible GNUnet allows the peer to adjust its operations and
 functionalities to specific use cases. A GNUnet peer running on a
 mobile device with limited battery for example might choose not to
 relay traffic for other participants.
