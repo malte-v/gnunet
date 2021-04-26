@@ -40,13 +40,13 @@ diff -u indent-2.2.11/src/handletoken.c indent-2.2.11.my/src/handletoken.c
 +      parser_state_tos->in_parameter_declaration = 0;
 +    }
  }
- 
+
  /**
 diff -u indent-2.2.11/src/indent.h indent-2.2.11.my/src/indent.h
 --- indent-2.2.11/src/indent.h	2009-10-11 23:15:34 +0400
 +++ indent-2.2.11.my/src/indent.h	2011-08-16 14:19:37 +0400
 @@ -318,6 +318,11 @@
-     int brace_indent; /*!< number of spaces to indent braces from the suround if, while, etc. in -bl
+     int brace_indent; /*!< number of spaces to indent braces from the surround if, while, etc. in -bl
                         * (bype_2 == 0) code */
      int expect_output_file;  /*!< Means "-o" was specified. */
 +    int diff_decls_and_defs; /*!< Makes indent think that function prototypes are terminated by ';',
@@ -55,7 +55,7 @@ diff -u indent-2.2.11/src/indent.h indent-2.2.11.my/src/indent.h
 +                              * This is the default.
 +                              */
  } user_options_ty;
- 
+
  extern user_options_ty settings;
 @@ -430,6 +435,7 @@
                                     * slightly different */
@@ -71,7 +71,7 @@ diff -u indent-2.2.11/src/lexi.c indent-2.2.11.my/src/lexi.c
 @@ -616,8 +616,11 @@
                 * I've added '=' to this list to keep from breaking
                 * a non-valid C macro from libc.  -jla */
-                     
+
 -               if (*tp != ';' && *tp != ',' && *tp != '(' && *tp != '=')
 +               if ((*tp != ';' || !settings.diff_decls_and_defs) &&
 +                   *tp != ',' && *tp != '(' && *tp != '=')

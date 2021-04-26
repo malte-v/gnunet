@@ -25,5 +25,5 @@ environment, run:
 
   guix environment --load-path=<gnunet.git>/contrib/guix.scm --ad-hoc guix
 
-It is recommented to also pass the '--pure' option to guix, to make
+It is recommended to also pass the '--pure' option to guix, to make
 sure the environment is not polluted with existing packages.

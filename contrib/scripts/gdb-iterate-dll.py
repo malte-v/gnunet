@@ -7,7 +7,7 @@ def search_dll(head, field, match, pfield):
 
     head: name of the symbol denoting the head of the DLL
     field: the field that should be search for match
-    match: the mathing value for field
+    match: the matching value for field
     pfield: the field whose value is to be printed for matched elements; None to
       print all fields of the matched elemented
     """

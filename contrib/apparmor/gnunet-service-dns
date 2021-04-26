@@ -14,11 +14,11 @@ profile @{GNUNET_PREFIX}/lib/gnunet/libexec/gnunet-service-dns {
 
   @{GNUNET_PREFIX}/lib/gnunet/libexec/gnunet-service-dns mr,
 
-  #Gnunet librairies
+  #Gnunet libraries
   @{GNUNET_PREFIX}/lib/libgnunetdnsstub.so.* mr,
   @{GNUNET_PREFIX}/lib/libgnunetstatistics.so.* mr,
   @{GNUNET_PREFIX}/lib/libgnunettun.so.* mr,
-  
+
   # Site-specific additions and overrides. See local/README for details.
   #include <local/gnunet-sgid>
 }

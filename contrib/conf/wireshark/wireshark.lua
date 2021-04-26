@@ -6,7 +6,7 @@ local f = gwlan_proto.fields
 f.len = ProtoField.uint16 ("gnunet.len", "Gnunet Message Len")
 f.type = ProtoField.uint16 ("gnunet.type", "Gnunet Message Type")
 -- rhs_proto.fields.sequence = ProtoField.uint16("rhs.sequence","Sequence number")
-f_proto = DissectorTable.new("gnunet.proto", "Gnunet Protocoll", FT_UINT16, BASE_DEC)
+f_proto = DissectorTable.new("gnunet.proto", "GNUnet Protocol", FT_UINT16, BASE_DEC)
 --gwlan_proto.fields = {f_len, f_type}
 
 function gwlan_proto.dissector(buffer,pinfo,tree)
@@ -80,8 +80,8 @@ function fragment.dissector(buffer,pinfo,tree)
 		if buffer(10,2):uint() == 0 then
 			if (buffer(8,2):uint() <= buffer:len() - 12) then
 				gnunet_packet_disector(buffer(12):tvb(),pinfo,tree)
-			end 
-		else		
+			end
+		else
 			subtree:add(buffer(12), "Data: " .. buffer(12))
 		end
 	end
@@ -92,7 +92,7 @@ hello = Proto("gnunet.hello","Gnunet Hello Message")
 function hello.dissector(buffer,pinfo,tree)
     	pinfo.cols.protocol = "Gnunet Hello Message"
 	local subtree = tree:add(hello, buffer(),"Gnunet Hello Message (" .. buffer:len() .. ")")
-	gnunet_message_header(buffer, pinfo, subtree)    	
+	gnunet_message_header(buffer, pinfo, subtree)
 	if buffer:len() > (264 + 8) then
 		subtree:add(buffer(4,4),"Reserved: " .. buffer(4,4):uint())
 		RsaPublicKeyBinaryEncoded(buffer(8 , 264):tvb(),pinfo, subtree)
@@ -110,7 +110,7 @@ function wlan.dissector(buffer,pinfo,tree)
 	if buffer:len() > (4 + 4 + 2*64) then
 		subtree:add(buffer(4,4),"CRC: " .. buffer(4,4):uint())
 		local peer = GNUNET_PeerIdentity(buffer(8,64), pinfo, subtree)
-		peer:append_text(" Traget")
+		peer:append_text(" Target")
 		peer = GNUNET_PeerIdentity(buffer(8 + 64,64), pinfo, subtree)
 		peer:append_text(" Source")
 	else
@@ -118,7 +118,7 @@ function wlan.dissector(buffer,pinfo,tree)
 	end
 	if (buffer:len() - (4 + 4 + 2*64) > 0) then
 		gnunet_packet_disector(buffer(4 + 4 + 2*64):tvb(),pinfo,tree)
-	end 
+	end
 end
 
 function RsaPublicKeyBinaryEncoded(buffer,pinfo,tree)

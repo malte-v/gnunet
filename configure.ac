@@ -158,7 +158,7 @@ AS_CASE(["$host_os"],
   ],
   [*solaris*],[
      AC_DEFINE_UNQUOTED(SOLARIS,1,[This is a Solaris system])
-     AC_DEFINE_UNQUOTED(_REENTRANT,1,[Need with solaris or errno doesnt work])
+     AC_DEFINE_UNQUOTED(_REENTRANT,1,[Need with solaris or errno does not work])
      AC_CHECK_LIB(resolv, res_init)
      AC_CHECK_LIB(rt, nanosleep)
      build_target="solaris"
@@ -188,7 +188,7 @@ AC_DEFINE_UNQUOTED([GNUNET_DEFAULT_INTERFACE], $DEFAULT_INTERFACE, [This should 
 AC_SUBST(DEFAULT_INTERFACE)
 
 # Disable TCP-based IPC on systems that support UNIX domain
-# sockets in default configuratin:
+# sockets in default configuration:
 AC_SUBST(UNIXONLY)
 
 

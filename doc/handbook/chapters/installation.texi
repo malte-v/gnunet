@@ -1533,7 +1533,7 @@ Now restart your webserver and your peer...
 @subsection Blacklisting peers
 
 Transport service supports to deny connecting to a specific peer of to a
-specific peer with a specific transport plugin using te blacklisting
+specific peer with a specific transport plugin using the blacklisting
 component of transport service. With@ blacklisting it is possible to deny
 connections to specific peers of@ to use a specific plugin to a specific
 peer. Peers can be blacklisted using@ the configuration or a blacklist
@@ -1560,7 +1560,7 @@ To blacklist connections to P565... on peer AG2P... using all plugins add:
 P565723JO1C2HSN6J29TAQ22MN6CI8HTMUU55T0FUQG4CMDGGEQ8UCNBKUMB94GC8R9G4FB2SF9LDOBAJ6AMINBP4JHHDD6L7VD801G =
 @end example
 
-You can also add a blacklist client usign the blacklist API. On a
+You can also add a blacklist client using the blacklist API. On a
 blacklist check, blacklisting first checks internally if the peer is
 blacklisted and if not, it asks the blacklisting clients. Clients are
 asked if it is OK to connect to a peer ID, the plugin is omitted.

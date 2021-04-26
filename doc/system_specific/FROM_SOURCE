@@ -204,7 +204,7 @@ $ gnunet-arm -s
 @subsection Install the GNUnet-gtk user interface from Git
 
 
-Install depencies:
+Install dependencies:
 
 @example
 $ sudo apt-get install libgtk-3-dev libunique-3.0-dev libgladeui-dev \
@@ -866,7 +866,7 @@ This means that you have to make sure the proper tools are used in the build pro
 For example, after installing texinfo you need to make sure the new texinfo is actually used:
 
 @example
-$ echo 'export PATH="/usr/local/opt/texinfo/bin:$PATH"' >> ~/.bash_profile 
+$ echo 'export PATH="/usr/local/opt/texinfo/bin:$PATH"' >> ~/.bash_profile
 @end example
 
 Note: brew tells you the appropriate command when executing
@@ -886,7 +886,7 @@ $ export CC=gcc-7
 
 You might see configure failing telling you that it ``cannot run C compiled programs.''.
 In this case, you might need to open/run Xcode once and you will be prompted to
-install additonal packages.
+install additional packages.
 Then, you might have to manually install the command line tools from here https://developer.apple.com/download/more/ (you need an Apple ID for this).
 Install those and execute
 

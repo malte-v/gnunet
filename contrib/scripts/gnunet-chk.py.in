@@ -32,7 +32,7 @@ from functools import reduce
 # Defaults
 DBLOCK_SIZE = (32 * 1024)  # Data block size
 
-# Pick a multiple of 2 here to achive 8-byte alignment!  We also
+# Pick a multiple of 2 here to achieve 8-byte alignment!  We also
 # probably want DBlocks to have (roughly) the same size as IBlocks.
 # With SHA-512, the optimal value is 32768 byte / 128 byte = 256 (128
 # byte = 2 * 512 bits).  DO NOT CHANGE!
@@ -288,7 +288,7 @@ def compute_rootchk(readin, size):
     current_depth = 0
     chks = [None] * (depth * CHK_PER_INODE)  # list buffer
     read_offset = 0
-    logging.debug("Begining to calculate tree hash with depth: " + repr(depth))
+    logging.debug("Beginning to calculate tree hash with depth: " + repr(depth))
     while True:
         if (depth == current_depth):
             off = CHK_PER_INODE * (depth - 1)
@@ -370,7 +370,7 @@ if '__main__' == __name__:
         opts, args = getopt.getopt(sys.argv[1:], "h", ["help"])
     except getopt.GetoptError as err:
         print(err)
-        print("Exception occured")
+        print("Exception occurred")
         usage()
         sys.exit(2)
     for option, value in opts:

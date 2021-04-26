@@ -27,7 +27,7 @@ profile @{GNUNET_PREFIX}/lib/gnunet/libexec/gnunet-helper-dns {
   /usr/bin/sysctl rix,
   /usr/bin/xtables-multi rix,
 
-  #Librairies
+  # Libraries
   /usr/lib/iptables/libxt_MARK.so mr,
   /usr/lib/iptables/libxt_owner.so mr,
   /usr/lib/iptables/libxt_standard.so mr,
@@ -42,7 +42,7 @@ profile @{GNUNET_PREFIX}/lib/gnunet/libexec/gnunet-helper-dns {
   /usr/lib/locale/locale-archive r,
 
   @{GNUNET_PREFIX}/lib/gnunet/libexec/gnunet-helper-dns mr,
-  
+
   # Site-specific additions and overrides. See local/README for details.
   #include <local/gnunet>
 }

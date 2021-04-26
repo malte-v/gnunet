@@ -13,7 +13,7 @@ depend() {
 }
 
 start() {
-        # Enable GNS proxy for existant users.
+        # Enable GNS proxy for existing users.
         for user in $users; do
 		# Create/Renew GNS certificate authority (CA) per user.
 		su $user -c "gnunet-gns-proxy-setup-ca"

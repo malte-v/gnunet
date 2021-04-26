@@ -54,7 +54,7 @@ encountered.
 .It
 A section contains a number of options of the form "OPTION=VALUE".
 .It
-Whitespace surounding the "=" token is striped out, in other words
+Whitespace surrounding the "=" token is striped out, in other words
 "OPTION = VALUE" and "OPTION=VALUE" are treated equal.
 .It
 Empty lines and lines beginning with a "#" are treated as comments.
@@ -166,7 +166,7 @@ Set to NO if this is a system service.
 In the following sections the absence of a default value is either
 expressed as "Default value:" followed by nothing, or the lack of this line.
 .Ss ARM
-.Bl -tag -width indent 
+.Bl -tag -width indent
 .It PORT
 Default value: 2087
 .It HOSTNAME
@@ -215,7 +215,7 @@ options differ.
 If set to YES, ARM will only start services that are marked as per-user
 services (and we'll expect a system user to run ARM to provide system-level
 services).
-Per-user services enable better personalization and priviledge separation and
+Per-user services enable better personalization and privilege separation and
 in particular ensures that personal data is stored under $HOME, which might be
 important in a multi-user system (or if $HOME is encrypted and
 .Pa /var/
@@ -321,7 +321,7 @@ Default value: 2.00
 .It 1.0
 Fair with respect to addresses without preferences.
 .It > 1.0
-The bigger, the more respect is payed to preferences.
+The bigger, the more respect is paid to preferences.
 .El
 .It PROP_STABILITY_FACTOR
 Should we stick to existing connections are prefer to switch?
@@ -430,7 +430,7 @@ Default value: 5 min
 Percentage of packets CADET is artificially dropping.
 Used for testing only!
 .It ID_ANNOUNCE_TIME
-How frequently do we usually anounce our presence in the DHT?
+How frequently do we usually announce our presence in the DHT?
 .Pp
 Default value: 1 h
 .It CONNECT_TIMEOUT

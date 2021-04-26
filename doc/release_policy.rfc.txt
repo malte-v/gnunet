@@ -7,17 +7,17 @@ social process in order to find a decision in a cooperativ and common
 way.
 
 
-I. Driver 
+I. Driver
 =========
 (What is the problem and what solution did we find?)
 
 In the past it was sometimes unclear when and how the community would reach its
-next release. Members were lacking in orientation and felt demotivated. 
+next release. Members were lacking in orientation and felt demotivated.
 
 Another minor concern not yet analysed in depth was the expectation to show the
 public that the GNUnet project is still active and making progress. With an old
 release distributed by popular linux distributions it was hard to showcase
-people the GNUnet features and encourage to participate in the project. 
+people the GNUnet features and encourage to participate in the project.
 
 To show people how the GNUnet project is releasing its software we hereby
 document the current release model:
@@ -55,7 +55,7 @@ document the current release model:
 
 For further information see: https://trunkbaseddevelopment.com/
 
-II. Evaluation Criteria 
+II. Evaluation Criteria
 =======================
 (what are criteria to interpret the results as success if we review
 the problem and solution after a year or so)
@@ -74,7 +74,7 @@ code. I don't have a magic bullet to motivate you to write more tests,
 or to improve existing tests. -CG
 
   Your argument is good. Two or three of us thought that the problem is about
-  missing releases which we feld demotivating. We thought, we were stuck
+  missing releases which we felt demotivating. We thought, we were stuck
   somewhere. But as you state, it is us not doing the necessary work. What I
   still find useful is to document the release process. In consequence I
   changed the problem statement. -xrs
@@ -106,7 +106,7 @@ for improving that situation). -CG
   With resprect to changes kept in branches the reason why I personally keep
   changes back is because it takes very long for me to get something really
   working in C. Before that I either not worth it or I don't want to blame
-  other before not being sure it's not my fault. 
+  other before not being sure it's not my fault.
 
   Can we track branches? Can we write a little cronjob that checks for branches
   that are to long undercover with the aim to recommend the responsible person
@@ -137,7 +137,7 @@ rewrites are happening, it is important to minimize the number of
 branches. -CG
 
   Thank you for clarifying. I added the API aspect above. -xrs
-  
+
 
 IV. Doing
 =========
@@ -153,7 +153,7 @@ Let me list what I think needs doing:
 2) A culture of fixing "other people"'s bugs: test case failures,
    portability issues, Mantis reports, all the non-sexy
    stuff.  Not the 'psycstore' was written by tg, so no
-   need for !tg to try to fix it, or the "I use sqlite, 
+   need for !tg to try to fix it, or the "I use sqlite,
    why should I bother with postgres?"-crap I have heard
    too often.
 3) Improving test cases: better code coverage, more corner
