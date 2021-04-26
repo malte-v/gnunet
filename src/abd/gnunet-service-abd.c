@@ -721,7 +721,7 @@ handle_bidirectional_match (struct DelegationSetQueueEntry *actual_entry,
                                  tmp_set->delegation_chain_entry);
 
     // if one node on the path still needs solutions, this current
-    // patch cannot fullfil the conditions and therefore stops here
+    // patch cannot fulfill the conditions and therefore stops here
     // however, it is in the vrh and can be used by the other paths
     // related to this path/collection/verification
     if (0 < tmp_set->parent_queue_entry->required_solutions)
@@ -1334,7 +1334,7 @@ delegation_chain_fw_resolution_start (void *cls)
   }
 
   // Pre-check with vrh->dele_chain_.. if match issuer_key
-  // otherwise FW: start mutliple lookups for each vrh->dele_chain
+  // otherwise FW: start multiple lookups for each vrh->dele_chain
   // A.a <- ...
   // X.x <- C
   // Y.y <- C
@@ -1562,7 +1562,7 @@ delegate_collection_finished (void *cls)
   if (GNUNET_ABD_FLAG_BACKWARD & vrh->resolution_algo &&
       GNUNET_ABD_FLAG_FORWARD & vrh->resolution_algo)
   {
-    // if premature match found don't start bw resultion
+    // if premature match found don't start bw resolution
     if (1 == delegation_chain_fw_resolution_start (vrh))
       return;
     delegation_chain_bw_resolution_start (vrh);
@@ -1603,8 +1603,8 @@ handle_delegate_collection_cb (void *cls,
       GNUNET_log (GNUNET_ERROR_TYPE_WARNING, "Invalid delegate found\n");
       continue;
     }
-    // only add the entries that are explicity marked as private
-    // and therefor symbolize the end of a chain
+    // only add the entries that are explicitly marked as private
+    // and therefore symbolize the end of a chain
     if (rd[i].flags & GNUNET_GNSRECORD_RF_PRIVATE)
     {
       del_entry = GNUNET_new (struct DelegateRecordEntry);

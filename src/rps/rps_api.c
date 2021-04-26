@@ -714,7 +714,7 @@ reconnect (struct GNUNET_RPS_Handle *h);
 /**
  * Error handler for mq.
  *
- * This function is called whan mq encounters an error.
+ * This function is called when mq encounters an error.
  * Until now mq doesn't provide useful error messages.
  *
  * @param cls the closure
@@ -1192,9 +1192,9 @@ GNUNET_RPS_act_malicious (struct GNUNET_RPS_Handle *h,
 
 
 /**
- * Cancle an issued request.
+ * Cancel an issued request.
  *
- * @param rh request handle of request to cancle
+ * @param rh request handle of request to cancel
  */
 void
 GNUNET_RPS_request_cancel (struct GNUNET_RPS_Request_Handle *rh)
@@ -1223,9 +1223,9 @@ GNUNET_RPS_request_cancel (struct GNUNET_RPS_Request_Handle *rh)
 
 
 /**
- * Cancle an issued single info request.
+ * Cancel an issued single info request.
  *
- * @param rhs request handle of request to cancle
+ * @param rhs request handle of request to cancel
  */
 void
 GNUNET_RPS_request_single_info_cancel (

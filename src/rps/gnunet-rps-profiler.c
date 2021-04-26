@@ -44,7 +44,7 @@
 static uint32_t num_peers;
 
 /**
- * @brief numer of bits required to represent the largest peer id
+ * @brief number of bits required to represent the largest peer id
  */
 static unsigned bits_needed;
 
@@ -127,7 +127,7 @@ static char*stat_type_strings[] = {
   "# pushes sent",
   "# pull requests sent",
   "# pull requests sent (multi-hop peer)",
-  "# pull replys sent",
+  "# pull replies sent",
   "# push message received",
   "# push message received (multi-hop peer)",
   "# pull request message received",
@@ -1173,7 +1173,7 @@ trigger_shutdown (void *cls)
   (void) cls;
 
   GNUNET_log (GNUNET_ERROR_TYPE_INFO,
-              "Shutdown was triggerd by timeout, going down.\n");
+              "Shutdown was triggered by timeout, going down.\n");
   shutdown_task = NULL;
   GNUNET_SCHEDULER_shutdown ();
 }
@@ -2091,7 +2091,7 @@ profiler_cb (struct RPSPeer *rps_peer)
   }
 
   /* Only request peer ids at one peer.
-   * (It's the before-last because last one is target of the focussed attack.)
+   * (It's the before-last because last one is target of the focused attack.)
    */
   if (0 < rps_peer->num_ids_to_request)
     schedule_missing_requests (rps_peer);
@@ -2468,7 +2468,7 @@ void
 compute_diversity ()
 {
   uint32_t i;
-  /* ith entry represents the numer of occurrences in other peer's views */
+  /* ith entry represents the number of occurrences in other peer's views */
   uint32_t *count_peers = GNUNET_new_array (num_peers, uint32_t);
   uint32_t views_total_size;
   double expected;

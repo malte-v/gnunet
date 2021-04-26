@@ -25,7 +25,7 @@
  *
  * GNUnet URIs are of the general form "gnunet://MODULE/IDENTIFIER".
  * The specific structure of "IDENTIFIER" depends on the module and
- * maybe differenciated into additional subcategories if applicable.
+ * maybe differentiated into additional subcategories if applicable.
  * This module only deals with fs identifiers (MODULE = "fs").
  * <p>
  *
@@ -213,7 +213,7 @@ GNUNET_FS_uri_ksk_to_string_fancy (const struct GNUNET_FS_Uri *uri)
  *
  * @param in string with %-encoding
  * @param emsg where to store the parser error message (if any)
- * @return decodded string with leading space (or preserved plus)
+ * @return decoded string with leading space (or preserved plus)
  */
 static char *
 percent_decode_keyword (const char *in, char **emsg)

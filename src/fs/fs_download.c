@@ -343,7 +343,7 @@ full_recursive_download (struct GNUNET_FS_DownloadContext *dc)
       GNUNET_log (
         GNUNET_ERROR_TYPE_WARNING,
         _ (
-          "Failed to access full directroy contents of `%s' for recursive download\n"),
+          "Failed to access full directory contents of `%s' for recursive download\n"),
         dc->filename);
     }
     GNUNET_DISK_file_unmap (m);
@@ -1431,7 +1431,7 @@ try_reconnect (struct GNUNET_FS_DownloadContext *dc)
  * We're allowed to ask the FS service for our blocks.  Start the download.
  *
  * @param cls the 'struct GNUNET_FS_DownloadContext'
- * @param mq handle to use for communcation with FS (we must destroy it!)
+ * @param mq handle to use for communication with FS (we must destroy it!)
  */
 static void
 activate_fs_download (void *cls)

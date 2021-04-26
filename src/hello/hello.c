@@ -709,7 +709,7 @@ struct EqualsContext
 {
   /**
    * Addresses that expired before this date are ignored for
-   * the comparisson.
+   * the comparison.
    */
   struct GNUNET_TIME_Absolute expiration_limit;
 
@@ -905,7 +905,7 @@ GNUNET_HELLO_get_last_expiration (const struct GNUNET_HELLO_Message *msg)
 /**
  * GNUnet URIs are of the general form "gnunet://MODULE/IDENTIFIER".
  * The specific structure of "IDENTIFIER" depends on the module and
- * maybe differenciated into additional subcategories if applicable.
+ * maybe differentiated into additional subcategories if applicable.
  * This module only deals with hello identifiers (MODULE = "hello").
  * <p>
  *

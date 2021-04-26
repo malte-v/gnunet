@@ -98,7 +98,7 @@ run (void *cls, char *const *args, const char *cfgfile,
  * the program is stopped without 'master' ever being run.
  *
  * NOTE: this function should be called from 'main', NOT from
- * within a GNUNET_SCHEDULER-loop.  This function will initialze
+ * within a GNUNET_SCHEDULER-loop.  This function will initialize
  * the scheduler loop, the testbed and then pass control to
  * 'master'.
  *

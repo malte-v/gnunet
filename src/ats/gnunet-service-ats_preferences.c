@@ -47,7 +47,7 @@
 #define PREF_AGING_FACTOR 0.95
 
 /**
- * What is the lowest threshold up to which prefernce values
+ * What is the lowest threshold up to which preference values
  * are aged, and below which we consider them zero and thus
  * no longer subject to aging?
  */
@@ -211,7 +211,7 @@ sum_relative_preferences (void *cls,
 
 
 /**
- * Update the total releative preference for a peer by summing
+ * Update the total relative preference for a peer by summing
  * up the relative preferences all clients have for this peer.
  *
  * @param id peer id of the peer for which we should do the update

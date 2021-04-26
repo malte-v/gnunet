@@ -68,7 +68,7 @@ enum GNUNET_TRANSPORT_ValidationState
   /**
    * Timeout for validation entry
    *
-   * A timeout occured during the validation process
+   * A timeout occurred during the validation process
    */
   GNUNET_TRANSPORT_VS_TIMEOUT,
 
@@ -1361,7 +1361,7 @@ GST_validation_handle_address (const struct GNUNET_HELLO_Address *address)
   papi = GST_plugins_find (address->transport_name);
   if (NULL == papi)
   {
-    /* This plugin is currently unvailable ... ignore */
+    /* This plugin is currently unavailable ... ignore */
     GNUNET_log (GNUNET_ERROR_TYPE_INFO,
                 "No plugin available for %s\n",
                 address->transport_name);
@@ -1807,7 +1807,7 @@ GST_validation_set_address_use (const struct GNUNET_HELLO_Address *address,
   ve->in_use = in_use;
   if (GNUNET_YES == in_use)
   {
-    /* from now on, higher frequeny, so reschedule now */
+    /* from now on, higher frequency, so reschedule now */
     if (NULL != ve->revalidation_task)
       GNUNET_SCHEDULER_cancel (ve->revalidation_task);
     ve->revalidation_task = GNUNET_SCHEDULER_add_now (&revalidate_address,

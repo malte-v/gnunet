@@ -224,7 +224,7 @@ static struct GNUNET_CADET_Channel *incoming_ch;
 
 /**
  * Time we started the data transmission (after channel has been established
- * and initilized).
+ * and initialized).
  */
 static struct GNUNET_TIME_Absolute start_time;
 
@@ -292,7 +292,7 @@ get_target_channel ()
 
 
 /**
- * Show the results of the test (banwidth acheived) and log them to GAUGER
+ * Show the results of the test (banwidth achieved) and log them to GAUGER
  */
 static void
 show_end_data (void)
@@ -1311,7 +1311,7 @@ start_test (void *cls)
  * @param op the operation this callback corresponds to
  * @param pinfo the result; will be NULL if the operation has failed
  * @param emsg error message if the operation has failed;
- *             NULL if the operation is successfull
+ *             NULL if the operation is successful
  */
 static void
 pi_cb (void *cls,

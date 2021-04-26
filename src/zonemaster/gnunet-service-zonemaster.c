@@ -821,7 +821,7 @@ publish_zone_dht_start (void *cls)
 
 
 /**
- * Performe zonemaster duties: watch namestore, publish records.
+ * Perform zonemaster duties: watch namestore, publish records.
  *
  * @param cls closure
  * @param server the initialized server

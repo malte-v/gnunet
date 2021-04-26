@@ -127,7 +127,7 @@ typedef struct GNUNET_TIME_Relative
 
 /**
  * Function that can be called by plugins to figure if an address is
- * an loopback, LAN or WANT address.   Ultimately invokes
+ * an loopback, LAN or WAN address.   Ultimately invokes
  * #GNUNET_ATS_address_get_type().
  *
  * @param cls closure
@@ -265,7 +265,7 @@ struct GNUNET_TRANSPORT_PluginEnvironment
 
   /**
    * Function that will be called to figure if an address is an loopback,
-   * LAN, WANT etc. address
+   * LAN, WAN etc. address
    */
   GNUNET_TRANSPORT_AddressToType get_address_type;
 

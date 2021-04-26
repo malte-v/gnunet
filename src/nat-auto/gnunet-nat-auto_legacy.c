@@ -180,7 +180,7 @@ struct GNUNET_NAT_Test
  *
  * @param cls closure, our `struct GNUNET_NAT_Handle`
  * @param addr public IP address of the other peer
- * @param addrlen actual lenght of the @a addr
+ * @param addrlen actual length of the @a addr
  */
 static void
 reversal_cb (void *cls, const struct sockaddr *addr, socklen_t addrlen)

@@ -282,7 +282,7 @@ GNUNET_TRANSPORT_application_done (
  * @param peer identity of the peer we need an address for
  * @param pk what kind of application will the application require (can be
  *         #GNUNET_MQ_PRIO_BACKGROUND, we will still try to connect)
- * @param bw desired bandwith, can be zero (we will still try to connect)
+ * @param bw desired bandwidth, can be zero (we will still try to connect)
  * @return suggest handle, NULL if a request is already pending
  */
 struct GNUNET_TRANSPORT_ApplicationSuggestHandle *
@@ -359,7 +359,7 @@ GNUNET_TRANSPORT_application_suggest_cancel (
  * @param peer identity of the peer we have an address for
  * @param nt network type of @a addr (as claimed by the other peer);
  *        used by TRANSPORT to avoid trying @a addr's that really cannot work
- *        due to network type missmatches
+ *        due to network type mismatches
  * @param addr address to validate
  */
 void

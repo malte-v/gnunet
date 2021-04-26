@@ -490,7 +490,7 @@ set_operation_destroy (struct GNUNET_SET_OperationHandle *oh)
 
   if (NULL != oh->conclude_mqm)
     GNUNET_MQ_discard (oh->conclude_mqm);
-  /* is the operation already commited? */
+  /* is the operation already committed? */
   if (NULL != set)
   {
     GNUNET_CONTAINER_DLL_remove (set->ops_head,
@@ -649,7 +649,7 @@ create_internal (const struct GNUNET_CONFIGURATION_Handle *cfg,
  * @param op operation supported by the set
  *        Note that the operation has to be specified
  *        beforehand, as certain set operations need to maintain
- *        data structures spefific to the operation
+ *        data structures specific to the operation
  * @return a handle to the set
  */
 struct GNUNET_SET_Handle *
@@ -1163,7 +1163,7 @@ GNUNET_SET_commit (struct GNUNET_SET_OperationHandle *oh,
  * @param set the set to iterate over
  * @param iter the iterator to call for each element
  * @param iter_cls closure for @a iter
- * @return #GNUNET_YES if the iteration started successfuly,
+ * @return #GNUNET_YES if the iteration started successfully,
  *         #GNUNET_NO if another iteration is active
  *         #GNUNET_SYSERR if the set is invalid (e.g. the server crashed, disconnected)
  */

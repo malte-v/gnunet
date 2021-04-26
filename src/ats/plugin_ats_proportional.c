@@ -1051,7 +1051,7 @@ GAS_proportional_address_add (void *solver,
  * - Removed it from specific network
  * - Decrease the number of total addresses
  * - If active:
- *   - decrease number of active addreses
+ *   - decrease number of active addresses
  *   - update quotas
  *
  * @param solver the solver handle

@@ -36,7 +36,7 @@
 #define DELAY_WARN_TIMEOUT GNUNET_TIME_UNIT_MINUTES
 
 /**
- * Collect an instane number of statistics?  May cause excessive IPC.
+ * Collect an instance number of statistics?  May cause excessive IPC.
  */
 #define INSANE_STATISTICS GNUNET_NO
 
@@ -515,7 +515,7 @@ GNUNET_DATASTORE_disconnect (struct GNUNET_DATASTORE_Handle *h,
 
 
 /**
- * Create a new entry for our priority queue (and possibly discard other entires if
+ * Create a new entry for our priority queue (and possibly discard other entries if
  * the queue is getting too long).
  *
  * @param h handle to the datastore

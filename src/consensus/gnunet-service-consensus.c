@@ -357,7 +357,7 @@ struct ReferendumEntry
    * whether the peer finished the whole referendum.
    *
    * Votes from peers are only counted if they're
-   * marked as commited (#GNUNET_YES) in the referendum.
+   * marked as committed (#GNUNET_YES) in the referendum.
    *
    * Otherwise (#GNUNET_NO), the requested changes are
    * not counted for majority votes or thresholds.
@@ -2232,7 +2232,7 @@ task_start_reconcile (struct TaskEntry *task)
   if ((task->key.peer1 == session->local_peer_idx) && (task->key.peer2 ==
                                                        session->local_peer_idx))
   {
-    /* XXX: mark the corresponding rfn as commited if necessary */
+    /* XXX: mark the corresponding rfn as committed if necessary */
     finish_task (task);
     return;
   }
@@ -2642,7 +2642,7 @@ lookup_task (const struct ConsensusSession *session,
  *        to accept it, otherwise the request will be refused
  *        Note that we don't use a return value here, as it is also
  *        necessary to specify the set we want to do the operation with,
- *        whith sometimes can be derived from the context message.
+ *        which sometimes can be derived from the context message.
  *        Also necessary to specify the timeout.
  */
 static void
@@ -2705,7 +2705,7 @@ set_listen_cb (void *cls,
 
   if (task->key.peer2 != session->local_peer_idx)
   {
-    /* We're being asked, so we must be thne 2nd peer. */
+    /* We're being asked, so we must be the 2nd peer. */
     GNUNET_break_op (0);
     return;
   }

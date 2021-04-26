@@ -194,7 +194,8 @@ jwt_parse_attributes (void *cls,
       continue;
     if (0 == strcmp ("address", key))
     {
-      if (!json_is_object(value)) {
+      if (! json_is_object (value))
+      {
         GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
                     "address claim in wrong format!");
         continue;
@@ -202,12 +203,12 @@ jwt_parse_attributes (void *cls,
       json_object_foreach (value, addr_key, addr_value) {
         val_str = json_dumps (addr_value, JSON_ENCODE_ANY);
         tmp = val_str;
-        //Remove leading " from jasson conversion
+        // Remove leading " from jasson conversion
         if (tmp[0] == '"')
           tmp++;
-        //Remove trailing " from jansson conversion
-        if (tmp[strlen(tmp)-1] == '"')
-          tmp[strlen(tmp)-1] = '\0';
+        // Remove trailing " from jansson conversion
+        if (tmp[strlen (tmp) - 1] == '"')
+          tmp[strlen (tmp) - 1] = '\0';
         GNUNET_RECLAIM_attribute_list_add (attrs,
                                            addr_key,
                                            NULL,
@@ -220,12 +221,12 @@ jwt_parse_attributes (void *cls,
     }
     val_str = json_dumps (value, JSON_ENCODE_ANY);
     tmp = val_str;
-    //Remove leading " from jasson conversion
+    // Remove leading " from jasson conversion
     if (tmp[0] == '"')
       tmp++;
-    //Remove trailing " from jansson conversion
-    if (tmp[strlen(tmp)-1] == '"')
-      tmp[strlen(tmp)-1] = '\0';
+    // Remove trailing " from jansson conversion
+    if (tmp[strlen (tmp) - 1] == '"')
+      tmp[strlen (tmp) - 1] = '\0';
     GNUNET_RECLAIM_attribute_list_add (attrs,
                                        key,
                                        NULL,
@@ -307,7 +308,8 @@ jwt_get_issuer (void *cls,
   if (NULL == json_val)
     return NULL;
   issuer_json = json_object_get (json_val, "iss");
-  if ((NULL == issuer_json) || (! json_is_string (issuer_json))) {
+  if ((NULL == issuer_json) || (! json_is_string (issuer_json)))
+  {
     json_decref (json_val);
     return NULL;
   }
@@ -384,7 +386,8 @@ jwt_get_expiration (void *cls,
   if (NULL == json_val)
     return GNUNET_SYSERR;
   exp_json = json_object_get (json_val, "exp");
-  if ((NULL == exp_json) || (! json_is_integer (exp_json))) {
+  if ((NULL == exp_json) || (! json_is_integer (exp_json)))
+  {
     json_decref (json_val);
     return GNUNET_SYSERR;
   }
@@ -434,13 +437,14 @@ enum GNUNET_GenericReturnValue
 jwt_create_presentation (void *cls,
                          const struct GNUNET_RECLAIM_Credential *cred,
                          const struct GNUNET_RECLAIM_AttributeList *attrs,
-                         struct GNUNET_RECLAIM_Presentation **pres)
+                         struct GNUNET_RECLAIM_Presentation **presentation)
 {
   if (GNUNET_RECLAIM_CREDENTIAL_TYPE_JWT != cred->type)
     return GNUNET_NO;
-  *pres = GNUNET_RECLAIM_presentation_new (GNUNET_RECLAIM_CREDENTIAL_TYPE_JWT,
-                                           cred->data,
-                                           cred->data_size);
+  *presentation = GNUNET_RECLAIM_presentation_new (
+    GNUNET_RECLAIM_CREDENTIAL_TYPE_JWT,
+    cred->data,
+    cred->data_size);
   return GNUNET_OK;
 }
 

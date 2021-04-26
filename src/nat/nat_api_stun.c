@@ -71,7 +71,7 @@ struct GNUNET_NAT_STUN_Handle
   char *stun_server;
 
   /**
-   * Function to call when a error occours
+   * Function to call when a error occurs
    */
   GNUNET_NAT_TestCallback cb;
 

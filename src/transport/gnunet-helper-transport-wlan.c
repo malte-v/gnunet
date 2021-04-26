@@ -983,7 +983,7 @@ do_align:
     else
     {
       /* need to copy to private buffer to align;
-       * yes, we go a bit more spagetti than usual here */
+       * yes, we go a bit more spaghetti than usual here */
       goto do_align;
     }
   }
@@ -1093,7 +1093,7 @@ ieee80211_radiotap_iterator_init (struct
     iterator->arg += sizeof(uint32_t);
     /*
      * no need to check again for blowing past stated radiotap
-     * header length, becuase ieee80211_radiotap_iterator_next
+     * header length, because ieee80211_radiotap_iterator_next
      * checks it before it is dereferenced
      */}
   /* we are all initialized happily */

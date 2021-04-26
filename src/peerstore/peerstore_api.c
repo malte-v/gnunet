@@ -377,7 +377,7 @@ rewatch_it (void *cls, const struct GNUNET_HashCode *key, void *value)
 /**
  * Iterator over watch requests to cancel them.
  *
- * @param cls unsused
+ * @param cls unused
  * @param key key to the watch request
  * @param value watch context
  * @return #GNUNET_YES to continue iteration
@@ -534,7 +534,7 @@ GNUNET_PEERSTORE_store (struct GNUNET_PEERSTORE_Handle *h,
   struct GNUNET_PEERSTORE_StoreContext *sc;
 
   LOG (GNUNET_ERROR_TYPE_DEBUG,
-       "Storing value (size: %lu) for subsytem `%s', peer `%s', key `%s'\n",
+       "Storing value (size: %lu) for subsystem `%s', peer `%s', key `%s'\n",
        size,
        sub_system,
        GNUNET_i2s (peer),

@@ -245,7 +245,7 @@ struct RequestHandle
   char *emsg;
 
   /**
-   * Reponse code
+   * Response code
    */
   int response_code;
 
@@ -1200,7 +1200,7 @@ static void
 consume_cont (void *cls,
               const struct GNUNET_IDENTITY_PublicKey *identity,
               const struct GNUNET_RECLAIM_Attribute *attr,
-              const struct GNUNET_RECLAIM_Presentation *pres)
+              const struct GNUNET_RECLAIM_Presentation *presentation)
 {
   struct RequestHandle *handle = cls;
   char *val_str;

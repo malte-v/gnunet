@@ -105,7 +105,7 @@ struct GNUNET_TESTBED_Operation *op7;
 struct GNUNET_TESTBED_Operation *op8;
 
 /**
- * This opration is started after activating op8.  It should consume a resource
+ * This operation is started after activating op8.  It should consume a resource
  * on queues q1 and q2.  It should not be started until op8 is again made
  * inactive at which point it should be released.  It can be released as soon as
  * it begins.
@@ -250,7 +250,7 @@ start_cb (void *cls);
  * be because of a call to "GNUNET_TESTBED_operation_cancel" (before the
  * operation generated an event) or AFTER the operation generated an event due
  * to a call to "GNUNET_TESTBED_operation_done".  Thus it is not guaranteed that
- * a callback to the 'OperationStart' preceeds the call to 'OperationRelease'.
+ * a callback to the 'OperationStart' precedes the call to 'OperationRelease'.
  * Implementations of this function are expected to clean up whatever state is
  * in 'cls' and release all resources associated with the operation.
  */
@@ -419,7 +419,7 @@ start_cb (void *cls)
  * be because of a call to "GNUNET_TESTBED_operation_cancel" (before the
  * operation generated an event) or AFTER the operation generated an event due
  * to a call to "GNUNET_TESTBED_operation_done".  Thus it is not guaranteed that
- * a callback to the 'OperationStart' preceeds the call to 'OperationRelease'.
+ * a callback to the 'OperationStart' precedes the call to 'OperationRelease'.
  * Implementations of this function are expected to clean up whatever state is
  * in 'cls' and release all resources associated with the operation.
  */

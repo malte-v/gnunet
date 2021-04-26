@@ -569,7 +569,7 @@ static struct GNUNET_PeerIdentity attacked_peer;
  * This is an assumption of the Brahms protocol and either implemented
  * via proof of work
  * or
- * assumend to be the bandwidth limitation.
+ * assumed to be the bandwidth limitation.
  */
 static uint32_t push_limit = 10000;
 #endif /* ENABLE_MALICIOUS */
@@ -599,6 +599,7 @@ do_round (void *cls);
 #if ENABLE_MALICIOUS
 static void
 do_mal_round (void *cls);
+
 #endif /* ENABLE_MALICIOUS */
 
 
@@ -634,7 +635,7 @@ get_peer_ctx (const struct GNUNET_CONTAINER_MultiPeerMap *peer_map,
  * @param peer peer in question
  *
  * @return #GNUNET_YES if peer is known
- *         #GNUNET_NO  if peer is not knwon
+ *         #GNUNET_NO  if peer is not known
  */
 static int
 check_peer_known (const struct GNUNET_CONTAINER_MultiPeerMap *peer_map,
@@ -1036,9 +1037,9 @@ get_channel (struct PeerContext *peer_ctx)
  * Get the message queue (#GNUNET_MQ_Handle) of a specific peer.
  *
  * If we already have a message queue open to this client,
- * simply return it, otherways create one.
+ * simply return it, otherwise create one.
  *
- * @param peer_ctx Context of the peer of whicht to get the mq
+ * @param peer_ctx Context of the peer of which to get the mq
  * @return the #GNUNET_MQ_Handle
  */
 static struct GNUNET_MQ_Handle *
@@ -1119,7 +1120,7 @@ mq_online_check_successful (void *cls)
   if (NULL != peer_ctx->online_check_pending)
   {
     LOG (GNUNET_ERROR_TYPE_DEBUG,
-         "Online check for peer %s was successfull\n",
+         "Online check for peer %s was successful\n",
          GNUNET_i2s (&peer_ctx->peer_id));
     remove_pending_message (peer_ctx->online_check_pending, GNUNET_YES);
     peer_ctx->online_check_pending = NULL;
@@ -1292,7 +1293,7 @@ destroy_peer (struct PeerContext *peer_ctx)
     LOG (GNUNET_ERROR_TYPE_DEBUG,
          "Removing unsent %s\n",
          peer_ctx->pending_messages_head->type);
-    /* Cancle pending message, too */
+    /* Cancel pending message, too */
     if ((NULL != peer_ctx->online_check_pending) &&
         (0 == memcmp (peer_ctx->pending_messages_head,
                       peer_ctx->online_check_pending,
@@ -1402,7 +1403,7 @@ mq_notify_sent_cb (void *cls)
   if (pending_msg->peer_ctx->sub == msub)
   {
     if (0 == strncmp ("PULL REPLY", pending_msg->type, 10))
-      GNUNET_STATISTICS_update (stats, "# pull replys sent", 1, GNUNET_NO);
+      GNUNET_STATISTICS_update (stats, "# pull replies sent", 1, GNUNET_NO);
     if (0 == strncmp ("PULL REQUEST", pending_msg->type, 12))
       GNUNET_STATISTICS_update (stats, "# pull requests sent", 1, GNUNET_NO);
     if (0 == strncmp ("PUSH", pending_msg->type, 4))
@@ -1417,7 +1418,7 @@ mq_notify_sent_cb (void *cls)
                                 1,
                                 GNUNET_NO);
   }
-  /* Do not cancle message */
+  /* Do not cancel message */
   remove_pending_message (pending_msg, GNUNET_NO);
 }
 
@@ -1544,7 +1545,7 @@ s2i_full (const char *string_repr)
   {
     LOG (GNUNET_ERROR_TYPE_WARNING,
          "Not able to convert string representation of PeerID to PeerID\n"
-         "Sting representation: %s (len %lu) - too short\n",
+         "String representation: %s (len %lu) - too short\n",
          string_repr,
          len);
     GNUNET_break (0);
@@ -1560,7 +1561,7 @@ s2i_full (const char *string_repr)
   {
     LOG (GNUNET_ERROR_TYPE_WARNING,
          "Not able to convert string representation of PeerID to PeerID\n"
-         "Sting representation: %s\n",
+         "String representation: %s\n",
          string_repr);
     GNUNET_break (0);
   }
@@ -2428,7 +2429,7 @@ hist_update (const struct GNUNET_PeerIdentity *ids,
     }
 #ifdef TO_FILE_FULL
     to_file (sub->file_name_view_log,
-             "+%s\t(hist)",
+             "+%s\t(history)",
              GNUNET_i2s_full (ids));
 #endif /* TO_FILE_FULL */
   }
@@ -2502,6 +2503,8 @@ add_peer_array_to_set (const struct GNUNET_PeerIdentity *peer_array,
     }
   }
 }
+
+
 #endif /* ENABLE_MALICIOUS */
 
 
@@ -2845,7 +2848,7 @@ cleanup_destroyed_channel (void *cls,
   else
   {
     /* We need this if-else construct because we need to make sure the channel
-     * (context) is cleaned up before removing the peer, but still neet to
+     * (context) is cleaned up before removing the peer, but still need to
      * compare it while checking the condition */
     remove_channel_ctx (channel_ctx);
   }
@@ -2998,7 +3001,7 @@ new_sub (const struct GNUNET_HashCode *hash,
 // /**
 //  * @brief Write all numbers in the given array into the given file
 //  *
-//  * Single numbers devided by a newline
+//  * Single numbers divided by a newline
 //  *
 //  * FIXME: The call to store_prefix_file_name expects the index of the peer,
 //  * which cannot be known to the service.
@@ -3014,14 +3017,14 @@ new_sub (const struct GNUNET_HashCode *hash,
 //   char collect_str[SIZE_DUMP_FILE + 1] = "";
 //   char *recv_str_iter;
 //   char *file_name_full;
-// 
+//
 //   recv_str_iter = collect_str;
 //   file_name_full = store_prefix_file_name (&own_identity,
 //                                            file_name);
 //   for (uint32_t i = 0; i < HISTOGRAM_FILE_SLOTS; i++)
 //   {
 //     char collect_str_tmp[8];
-// 
+//
 //     GNUNET_snprintf (collect_str_tmp,
 //                      sizeof(collect_str_tmp),
 //                      "%" PRIu32 "\n",
@@ -3213,7 +3216,7 @@ adapt_sizes (struct Sub *sub, double logestimate, double std_dev)
 {
   double estimate;
 
-  // double scale; // TODO this might go gloabal/config
+  // double scale; // TODO this might go global/config
 
   LOG (GNUNET_ERROR_TYPE_DEBUG,
        "Received a ns estimate - logest: %f, std_dev: %f (old_size: %u)\n",
@@ -3359,7 +3362,7 @@ handle_client_seed (void *cls,
  * Handle RPS request from the client.
  *
  * @param cls Client context
- * @param message Message containing the numer of updates the client wants to
+ * @param message Message containing the number of updates the client wants to
  * receive
  */
 static void

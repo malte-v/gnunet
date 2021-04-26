@@ -239,7 +239,7 @@ struct SearchContext
 /**
  * Search iterator for searching an operation context
  *
- * @param cls the serach context
+ * @param cls the search context
  * @param key current key code
  * @param value value in the hash map
  * @return #GNUNET_YES if we should continue to iterate,
@@ -408,7 +408,7 @@ handle_add_host_confirm (void *cls,
  * Handler for forwarded operations
  *
  * @param c the controller handle
- * @param opc the opearation context
+ * @param opc the operation context
  * @param msg the message
  */
 static void

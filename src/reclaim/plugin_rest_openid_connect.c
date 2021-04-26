@@ -551,7 +551,7 @@ struct RequestHandle
   char *edesc;
 
   /**
-   * Reponse code
+   * Response code
    */
   int response_code;
 
@@ -974,7 +974,8 @@ oidc_iteration_error (void *cls)
 static void
 oidc_ticket_issue_cb (void *cls,
                       const struct GNUNET_RECLAIM_Ticket *ticket,
-                      const struct GNUNET_RECLAIM_PresentationList *pres)
+                      const struct
+                      GNUNET_RECLAIM_PresentationList *presentation)
 {
   struct RequestHandle *handle = cls;
   struct MHD_Response *resp;
@@ -997,7 +998,7 @@ oidc_ticket_issue_cb (void *cls,
   code_string = OIDC_build_authz_code (&handle->priv_key,
                                        &handle->ticket,
                                        handle->attr_idtoken_list,
-                                       pres,
+                                       presentation,
                                        handle->oidc->nonce,
                                        handle->oidc->code_challenge);
   if ((NULL != handle->redirect_prefix) && (NULL != handle->redirect_suffix) &&
@@ -1103,7 +1104,7 @@ oidc_cred_collect_finished_cb (void *cls)
                                       handle->attr_userinfo_list);
   for (le_m = merged_list->list_head; NULL != le_m; le_m = le_m->next)
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                "List Attibute in ticket to issue: %s\n",
+                "List Attribute in ticket to issue: %s\n",
                 le_m->attribute->name);
   handle->idp_op = GNUNET_RECLAIM_ticket_issue (idp,
                                                 &handle->priv_key,
@@ -1387,7 +1388,8 @@ build_redirect (void *cls)
     }
     resp = GNUNET_REST_create_response ("");
     GNUNET_assert (MHD_NO != MHD_add_response_header (resp,
-                                                      "Location", redirect_uri));
+                                                      "Location",
+                                                      redirect_uri));
     handle->proc (handle->proc_cls, resp, MHD_HTTP_FOUND);
     cleanup_handle (handle);
     GNUNET_free (redirect_uri);
@@ -2192,7 +2194,7 @@ token_endpoint (struct GNUNET_REST_RequestHandle *con_handle,
                                      &cache_key,
                                      code,
                                      GNUNET_CONTAINER_MULTIHASHMAPOPTION_REPLACE);
-  /* If there was a previus code in there, free the old value */
+  /* If there was a previous code in there, free the old value */
   if (NULL != tmp_at)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
@@ -2231,7 +2233,7 @@ static void
 consume_ticket (void *cls,
                 const struct GNUNET_IDENTITY_PublicKey *identity,
                 const struct GNUNET_RECLAIM_Attribute *attr,
-                const struct GNUNET_RECLAIM_Presentation *pres)
+                const struct GNUNET_RECLAIM_Presentation *presentation)
 {
   struct RequestHandle *handle = cls;
   struct GNUNET_RECLAIM_AttributeListEntry *ale;
@@ -2268,14 +2270,14 @@ consume_ticket (void *cls,
   GNUNET_CONTAINER_DLL_insert (handle->attr_userinfo_list->list_head,
                                handle->attr_userinfo_list->list_tail,
                                ale);
-  if (NULL == pres)
+  if (NULL == presentation)
     return;
   for (atle = handle->presentations->list_head;
        NULL != atle; atle = atle->next)
   {
     if (GNUNET_NO == GNUNET_RECLAIM_id_is_equal (
           &atle->presentation->credential_id,
-          &pres->credential_id))
+          &presentation->credential_id))
       continue;
     break; /** already in list **/
   }
@@ -2283,10 +2285,11 @@ consume_ticket (void *cls,
   {
     /** Credential matches for attribute, add **/
     atle = GNUNET_new (struct GNUNET_RECLAIM_PresentationListEntry);
-    atle->presentation = GNUNET_RECLAIM_presentation_new (pres->type,
-                                                          pres->data,
-                                                          pres->data_size);
-    atle->presentation->credential_id = pres->credential_id;
+    atle->presentation = GNUNET_RECLAIM_presentation_new (presentation->type,
+                                                          presentation->data,
+                                                          presentation->
+                                                          data_size);
+    atle->presentation->credential_id = presentation->credential_id;
     GNUNET_CONTAINER_DLL_insert (handle->presentations->list_head,
                                  handle->presentations->list_tail,
                                  atle);
@@ -2643,7 +2646,7 @@ oidc_config_endpoint (struct GNUNET_REST_RequestHandle *con_handle,
                        response_types);
   sub_types = json_array ();
   json_array_append_new (sub_types,
-                         json_string ("public"));  /* no pairwise suppport */
+                         json_string ("public"));  /* no pairwise support */
   json_object_set_new (oidc_config,
                        "subject_types_supported",
                        sub_types);

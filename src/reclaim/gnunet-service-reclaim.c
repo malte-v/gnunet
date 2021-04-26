@@ -1824,7 +1824,7 @@ handle_credential_delete_message (void *cls,
 
 
 /*************************************************
- * Attrubute iteration
+ * Attribute iteration
  *************************************************/
 
 

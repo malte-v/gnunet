@@ -21,7 +21,7 @@
 /**
  * @file regex/gnunet-daemon-regexprofiler.c
  * @brief daemon that uses cadet to announce a regular expression. Used in
- * conjunction with gnunet-regex-profiler to announce regexes on serveral peers
+ * conjunction with gnunet-regex-profiler to announce regexes on several peers
  * without the need to explicitly connect to the cadet service running on the
  * peer from within the profiler.
  * @author Maximilian Szengel

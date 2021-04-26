@@ -30,7 +30,7 @@
 #include "gnunet-service-fs_pr.h"
 
 /**
- * Collect an instane number of statistics?  May cause excessive IPC.
+ * Collect an instance number of statistics?  May cause excessive IPC.
  */
 #define INSANE_STATISTICS GNUNET_NO
 

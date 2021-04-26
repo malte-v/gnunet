@@ -277,7 +277,7 @@ run (void *cls,
     struct GNUNET_SCALARPRODUCT_Element element;
     char*separator = NULL;
 
-    /* get the length of the current key,value; tupel */
+    /* get the length of the current key,value; tuple */
     for (end = begin; *end != ';'; end++)
       if (*end == ',')
         separator = end;

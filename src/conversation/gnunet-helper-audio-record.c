@@ -60,7 +60,7 @@
 #define FRAME_SIZE (SAMPLING_RATE / 1000 * FRAME_SIZE_MS)
 
 /**
- * Pages are commited when their size goes over this value.
+ * Pages are committed when their size goes over this value.
  * Note that in practice we flush pages VERY often (every frame),
  * which means that pages NEVER really get to be this big.
  * With one-packet-per-page, pages are roughly 100-300 bytes each.

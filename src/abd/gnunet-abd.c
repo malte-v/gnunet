@@ -484,7 +484,7 @@ parse_expiration (const char *expirationstring,
 static void
 error_cb (void *cls)
 {
-  fprintf (stderr, "Error occured during lookup, shutting down.\n");
+  fprintf (stderr, "Error occurred during lookup, shutting down.\n");
   GNUNET_SCHEDULER_shutdown ();
   return;
 }
@@ -499,7 +499,7 @@ add_continuation (void *cls, int32_t success, const char *emsg)
   if (GNUNET_OK == success)
     printf ("Adding successful.\n");
   else
-    fprintf (stderr, "Error occured during adding, shutting down.\n");
+    fprintf (stderr, "Error occurred during adding, shutting down.\n");
 
   GNUNET_SCHEDULER_shutdown ();
 }

@@ -78,7 +78,7 @@ static double agedIOLoad = -1;
 
 
 /**
- * hanlde to the file to write the load statistics to
+ * handle to the file to write the load statistics to
  */
 struct GNUNET_BIO_WriteHandle *bw;
 

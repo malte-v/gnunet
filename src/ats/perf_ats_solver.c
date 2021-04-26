@@ -174,7 +174,7 @@ struct Iteration
 
 
 /**
- * Result for a solver calculcation
+ * Result for a solver calculation
  */
 struct Result
 {
@@ -1310,7 +1310,7 @@ run (void *cls, char *const *args, const char *cfgfile,
   }
   GNUNET_free (src_filename);
 
-  /* Calculcate peers */
+  /* Calculate peers */
   if ((0 == ph.N_peers_start) && (0 == ph.N_peers_end))
   {
     ph.N_peers_start = DEFAULT_PEERS_START;

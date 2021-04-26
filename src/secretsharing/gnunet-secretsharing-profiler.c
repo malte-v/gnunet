@@ -450,7 +450,7 @@ session_disconnect_adapter (void *cls, void *op_result)
  * @param op the operation this callback corresponds to
  * @param pinfo the result; will be NULL if the operation has failed
  * @param emsg error message if the operation has failed; will be NULL if the
- *          operation is successfull
+ *          operation is successful
  */
 static void
 peer_info_cb (void *cb_cls,

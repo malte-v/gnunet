@@ -137,7 +137,7 @@ debugctx (struct RegexCombineCtx *ctx, int level)
 
 
 /**
- * Add a single regex to a context, combining with exisiting regex by-prefix.
+ * Add a single regex to a context, combining with existing regex by-prefix.
  *
  * @param ctx Context with 0 or more regexes.
  * @param regex Regex to add.
@@ -378,14 +378,14 @@ regex_add_multiple (struct RegexCombineCtx *ctx,
 
 
 /**
- * Add a single regex to a context, splitting the exisiting state.
+ * Add a single regex to a context, splitting the existing state.
  *
  * We only had a partial match, split existing state, truncate the current node
  * so it only contains the prefix, add suffix(es) as children.
  *
  * @param ctx Context to split.
- * @param len Lenght of ctx->s
- * @param prefix_l Lenght of common prefix of the new regex and @a ctx->s
+ * @param len Length of ctx->s
+ * @param prefix_l Length of common prefix of the new regex and @a ctx->s
  */
 static void
 regex_split (struct RegexCombineCtx *ctx,
@@ -431,7 +431,7 @@ regex_split (struct RegexCombineCtx *ctx,
 
 
 /**
- * Add a single regex to a context, combining with exisiting regex by-prefix.
+ * Add a single regex to a context, combining with existing regex by-prefix.
  *
  * @param ctx Context with 0 or more regexes.
  * @param regex Regex to add.

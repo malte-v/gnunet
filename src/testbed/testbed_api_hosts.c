@@ -1044,7 +1044,7 @@ clear_msg (void *cls, int result)
 
 /**
  * Callback that will be called when the helper process dies. This is not called
- * when the helper process is stoped using GNUNET_HELPER_stop()
+ * when the helper process is stopped using GNUNET_HELPER_stop()
  *
  * @param cls the closure from GNUNET_HELPER_start()
  */

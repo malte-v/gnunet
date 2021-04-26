@@ -396,7 +396,7 @@ handle_monitor_error (void *cls)
 
 
 /**
- * Performe zonemaster duties: watch namestore, publish records.
+ * Perform zonemaster duties: watch namestore, publish records.
  *
  * @param cls closure
  * @param server the initialized server

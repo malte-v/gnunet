@@ -461,7 +461,7 @@ GNUNET_FRAGMENT_process_ack (struct GNUNET_FRAGMENT_Context *fc,
                             GNUNET_NO);
   if (abits != (fc->acks & abits))
   {
-    /* ID collission or message reordering, count! This should be rare! */
+    /* ID collision or message reordering, count! This should be rare! */
     GNUNET_STATISTICS_update (fc->stats,
                               _ ("# bits removed from fragmentation ACKs"), 1,
                               GNUNET_NO);

@@ -74,7 +74,7 @@
       password=$the_password_you_like
    @endverbatim
  *
- * Thats it. Note that .my.cnf file is a security risk unless its on
+ * That's it. Note that .my.cnf file is a security risk unless its on
  * a safe partition etc. The $HOME/.my.cnf can of course be a symbolic
  * link. Even greater security risk can be achieved by setting no
  * password for $USER.  Luckily $USER has only privileges to mess

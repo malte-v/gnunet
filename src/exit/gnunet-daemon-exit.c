@@ -530,7 +530,7 @@ handle_dns_request (void *cls,
   size_t mlen = ntohs (msg->header.size);
   size_t dlen = mlen - sizeof(struct GNUNET_MessageHeader);
   char buf[dlen] GNUNET_ALIGN;
-  struct GNUNET_TUN_DnsHeader *dout;
+  struct GNUNET_TUN_DnsHeader *dns_out;
 
   if (GNUNET_SYSERR == ts->is_dns)
   {
@@ -548,8 +548,8 @@ handle_dns_request (void *cls,
   GNUNET_memcpy (buf,
                  &msg->dns,
                  dlen);
-  dout = (struct GNUNET_TUN_DnsHeader *) buf;
-  dout->id = ts->specifics.dns.my_id;
+  dns_out = (struct GNUNET_TUN_DnsHeader *) buf;
+  dns_out->id = ts->specifics.dns.my_id;
   ts->specifics.dns.rs = GNUNET_DNSSTUB_resolve (dnsstub,
                                                  buf,
                                                  dlen,
@@ -2301,7 +2301,7 @@ handle_icmp_service (void *cls,
   setup_state_record (state);
 
   /* check that ICMP type is something we want to support,
-     perform ICMP PT if needed ans possibly make up payload */
+     perform ICMP PT if needed and possibly make up payload */
   switch (msg->af)
   {
   case AF_INET:

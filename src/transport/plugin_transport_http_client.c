@@ -639,7 +639,7 @@ client_schedule (struct HTTP_Client_Plugin *plugin,
 
 #if VERBOSE_CURL
 /**
- * Loggging function
+ * Logging function
  *
  * @param curl the curl easy handle
  * @param type message type
@@ -1306,7 +1306,7 @@ client_run (void *cls)
   int msgs_left;
 
   plugin->client_perform_task = NULL;
-  /* While data are available or timeouts occured */
+  /* While data are available or timeouts occurred */
   do
   {
     running = 0;
@@ -1390,7 +1390,7 @@ client_run (void *cls)
           break;
 
         case H_TMP_RECONNECT_REQUIRED:
-          /* Transport called send while disconnect in progess, reconnect */
+          /* Transport called send while disconnect in progress, reconnect */
           if (GNUNET_SYSERR == client_connect_put (s))
           {
             /* Reconnect failed, disconnect session */
@@ -2478,7 +2478,7 @@ LIBGNUNET_PLUGIN_TRANSPORT_INIT (void *cls)
   if (NULL == env->receive)
   {
     /* run in 'stub' mode (i.e. as part of gnunet-peerinfo), don't fully
-       initialze the plugin or the API */
+       initialize the plugin or the API */
     api = GNUNET_new (struct GNUNET_TRANSPORT_PluginFunctions);
     api->cls = NULL;
     api->address_to_string = &http_client_plugin_address_to_string;

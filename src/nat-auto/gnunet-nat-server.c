@@ -54,7 +54,7 @@ static const struct GNUNET_CONFIGURATION_Handle *cfg;
 
 
 /**
- * Try contacting the peer using autonomous NAT traveral method.
+ * Try contacting the peer using autonomous NAT traversal method.
  *
  * @param dst_ipv4 IPv4 address to send the fake ICMP message
  * @param dport destination port to include in ICMP message

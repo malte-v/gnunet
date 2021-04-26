@@ -655,7 +655,7 @@ GSF_cadet_query (const struct GNUNET_PeerIdentity *target,
 
 /**
  * Cancel an active request; must not be called after 'proc'
- * was calld.
+ * was called.
  *
  * @param sr request to cancel
  */

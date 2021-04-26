@@ -490,7 +490,7 @@ op_get_element (struct Operation *op,
  *
  * @param op the union operation
  * @param ee the element entry
- * @parem received was this element received from the remote peer?
+ * @param received was this element received from the remote peer?
  */
 static void
 op_register_element (struct Operation *op,
@@ -1836,7 +1836,7 @@ send_missing_full_elements_iter (void *cls,
 /**
  * Handle a request for full set transmission.
  *
- * @parem cls closure, a set union operation
+ * @param cls closure, a set union operation
  * @param mh the demand message
  */
 void
@@ -1870,7 +1870,7 @@ handle_union_p2p_request_full (void *cls,
 /**
  * Handle a "full done" message.
  *
- * @parem cls closure, a set union operation
+ * @param cls closure, a set union operation
  * @param mh the demand message
  */
 void
@@ -1930,7 +1930,7 @@ handle_union_p2p_full_done (void *cls,
  * Check a demand by the other peer for elements based on a list
  * of `struct GNUNET_HashCode`s.
  *
- * @parem cls closure, a set union operation
+ * @param cls closure, a set union operation
  * @param mh the demand message
  * @return #GNUNET_OK if @a mh is well-formed
  */
@@ -1962,7 +1962,7 @@ check_union_p2p_demand (void *cls,
  * Handle a demand by the other peer for elements based on a list
  * of `struct GNUNET_HashCode`s.
  *
- * @parem cls closure, a set union operation
+ * @param cls closure, a set union operation
  * @param mh the demand message
  */
 void

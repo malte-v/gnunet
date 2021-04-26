@@ -82,7 +82,7 @@ struct Neighbour
   struct GNUNET_BANDWIDTH_Tracker out_tracker;
 
   /**
-   * Entry in our readyness heap (which is sorted by @e next_ready
+   * Entry in our readiness heap (which is sorted by @e next_ready
    * value).  NULL if there is no pending transmission request for
    * this neighbour or if we're waiting for @e is_ready to become
    * true AFTER the @e out_tracker suggested that this peer's quota

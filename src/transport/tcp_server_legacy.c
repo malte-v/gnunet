@@ -836,7 +836,7 @@ GNUNET_SERVER_destroy (struct GNUNET_SERVER_Handle *server)
  *        incoming messages; the last entry must
  *        have "NULL" for the "callback"; multiple
  *        entries for the same type are allowed,
- *        they will be called in order of occurence.
+ *        they will be called in order of occurrence.
  *        These handlers can be removed later;
  *        the handlers array must exist until removed
  *        (or server is destroyed).

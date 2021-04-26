@@ -210,7 +210,7 @@ struct PrettyPrinterContext
   struct GNUNET_SCHEDULER_Task *timeout_task;
 
   /**
-   * Splitted Address
+   * Split Address
    */
   struct SplittedHTTPAddress *saddr;
 
@@ -222,7 +222,7 @@ struct PrettyPrinterContext
   /**
    * Was conversion successful
    */
-  int sucess;
+  int success;
 
   /**
    * Address options
@@ -247,7 +247,7 @@ static struct PrettyPrinterContext *dll_ppc_tail;
  * to override the address again.
  *
  * @param plugin the name of the plugin
- * @param saddr the splitted http address
+ * @param saddr the split http address
  * @param options address options
  * @param dnsresult dns name to include in address
  * @return string representing the same address or NULL on error
@@ -287,12 +287,12 @@ http_common_dns_reverse_lookup_cb (void *cls, const char *hostname)
               http_common_plugin_dnsresult_to_address (ppc->plugin, ppc->saddr,
                                                        ppc->options,
                                                        hostname), GNUNET_OK);
-    ppc->sucess = GNUNET_YES;
+    ppc->success = GNUNET_YES;
   }
   else
   {
     ppc->asc (ppc->asc_cls, NULL,
-              (GNUNET_NO == ppc->sucess) ? GNUNET_SYSERR : GNUNET_OK);
+              (GNUNET_NO == ppc->success) ? GNUNET_SYSERR : GNUNET_OK);
 
     GNUNET_CONTAINER_DLL_remove (dll_ppc_head, dll_ppc_tail, ppc);
     http_clean_splitted (ppc->saddr);
@@ -355,13 +355,13 @@ http_common_dns_ip_lookup_cb (void *cls,
                                                        GNUNET_a2s (addr,
                                                                    addrlen)),
               GNUNET_OK);
-    ppc->sucess = GNUNET_YES;
+    ppc->success = GNUNET_YES;
     ppc->asc (ppc->asc_cls, GNUNET_a2s (addr, addrlen), GNUNET_OK);
   }
   else
   {
     ppc->asc (ppc->asc_cls, NULL,
-              (GNUNET_NO == ppc->sucess) ? GNUNET_SYSERR : GNUNET_OK);
+              (GNUNET_NO == ppc->success) ? GNUNET_SYSERR : GNUNET_OK);
 
     GNUNET_CONTAINER_DLL_remove (dll_ppc_head, dll_ppc_tail, ppc);
     GNUNET_free (ppc->plugin);
@@ -383,7 +383,7 @@ http_common_dns_ip_lookup (const char *name,
   struct PrettyPrinterContext *ppc;
 
   ppc = GNUNET_new (struct PrettyPrinterContext);
-  ppc->sucess = GNUNET_NO;
+  ppc->success = GNUNET_NO;
   ppc->saddr = saddr;
   ppc->asc = asc;
   ppc->asc_cls = asc_cls;

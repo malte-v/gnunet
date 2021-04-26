@@ -1954,7 +1954,7 @@ queue_read (void *cls)
        wrong key for everything after the rekey; in that case, we have
        to re-do the decryption at 'total' instead of at 'max'.
        However, we have to take into account that the plaintext buffer may have
-       already contained data and not jumpt too far ahead in the ciphertext.
+       already contained data and not jumped too far ahead in the ciphertext.
        If there is no rekey and the last message is incomplete (max > total),
        it is safe to keep the decryption so we shift by 'max' */
     if (GNUNET_YES == queue->rekeyed)

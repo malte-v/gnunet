@@ -2569,7 +2569,7 @@ server_remove_address (void *cls,
  *     the previous (now invalid) one
  * @param ac address class the address belongs to
  * @param addr either the previous or the new public IP address
- * @param addrlen actual lenght of the address
+ * @param addrlen actual length of the address
  */
 static void
 server_nat_port_map_callback (void *cls,
@@ -3512,7 +3512,7 @@ LIBGNUNET_PLUGIN_TRANSPORT_INIT (void *cls)
   if (NULL == env->receive)
   {
     /* run in 'stub' mode (i.e. as part of gnunet-peerinfo), don't fully
-       initialze the plugin or the API */
+       initialize the plugin or the API */
     api = GNUNET_new (struct GNUNET_TRANSPORT_PluginFunctions);
     api->cls = NULL;
     api->address_to_string = &http_server_plugin_address_to_string;

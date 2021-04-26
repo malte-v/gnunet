@@ -281,7 +281,7 @@ postgres_plugin_put (void *cls,
             key,
             size,
             GNUNET_SYSERR,
-            _ ("Postgress exec failure"));
+            _ ("Postgresql exec failure"));
       return;
     }
     bool affected = (0 != ret);
@@ -322,7 +322,7 @@ postgres_plugin_put (void *cls,
             key,
             size,
             GNUNET_SYSERR,
-            "Postgress exec failure");
+            "Postgresql exec failure");
       return;
     }
   }
@@ -894,7 +894,7 @@ postgres_plugin_remove_key (void *cls,
           key,
           size,
           GNUNET_SYSERR,
-          _ ("Postgress exec failure"));
+          _ ("Postgresql exec failure"));
     return;
   }
   if (GNUNET_DB_STATUS_SUCCESS_NO_RESULTS == ret)

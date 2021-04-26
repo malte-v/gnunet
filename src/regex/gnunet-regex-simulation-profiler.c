@@ -60,7 +60,7 @@ struct ProgressMeter
   unsigned int total;
 
   /**
-   * Intervall for printing percentage.
+   * Interval for printing percentage.
    */
   unsigned int modnum;
 

@@ -685,7 +685,7 @@ calculate_perf_rtt() {
     int bytes_transmitted = 0;
 
     /**
-     *  Calculate RGNUNET_SETU_AcceptMessageRT of Fullsync normaly 1 or 1.5 depending
+     *  Calculate RGNUNET_SETU_AcceptMessageRT of Fullsync normally 1 or 1.5 depending
      */
      if (( perf_rtt.element_full.received != 0 ) ||
          ( perf_rtt.element_full.sent != 0)
@@ -1090,7 +1090,7 @@ op_get_element (struct Operation *op,
  *
  * @param op the union operation
  * @param ee the element entry
- * @parem received was this element received from the remote peer?
+ * @param received was this element received from the remote peer?
  */
 static void
 op_register_element (struct Operation *op,
@@ -2419,7 +2419,7 @@ send_missing_full_elements_iter (void *cls,
 /**
  * Handle a request for full set transmission.
  *
- * @parem cls closure, a set union operation
+ * @param cls closure, a set union operation
  * @param mh the demand message
  */
 static void
@@ -2449,7 +2449,7 @@ handle_union_p2p_request_full (void *cls,
 /**
  * Handle a "full done" message.
  *
- * @parem cls closure, a set union operation
+ * @param cls closure, a set union operation
  * @param mh the demand message
  */
 static void
@@ -2510,7 +2510,7 @@ handle_union_p2p_full_done (void *cls,
  * Check a demand by the other peer for elements based on a list
  * of `struct GNUNET_HashCode`s.
  *
- * @parem cls closure, a set union operation
+ * @param cls closure, a set union operation
  * @param mh the demand message
  * @return #GNUNET_OK if @a mh is well-formed
  */
@@ -2538,7 +2538,7 @@ check_union_p2p_demand (void *cls,
  * Handle a demand by the other peer for elements based on a list
  * of `struct GNUNET_HashCode`s.
  *
- * @parem cls closure, a set union operation
+ * @param cls closure, a set union operation
  * @param mh the demand message
  */
 static void

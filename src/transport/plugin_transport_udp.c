@@ -2390,7 +2390,7 @@ read_process_ack (struct Plugin *plugin,
 
 
 /**
- * Message tokenizer has broken up an incomming message. Pass it on
+ * Message tokenizer has broken up an incoming message. Pass it on
  * to the service.
  *
  * @param cls the `struct GNUNET_ATS_Session *`
@@ -3605,7 +3605,7 @@ libgnunet_plugin_transport_udp_init (void *cls)
   if (NULL == env->receive)
   {
     /* run in 'stub' mode (i.e. as part of gnunet-peerinfo), don't fully
-       initialze the plugin or the API */
+       initialize the plugin or the API */
     api = GNUNET_new (struct GNUNET_TRANSPORT_PluginFunctions);
     api->cls = NULL;
     api->address_pretty_printer = &udp_plugin_address_pretty_printer;

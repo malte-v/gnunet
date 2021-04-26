@@ -392,7 +392,7 @@ forwarded_overlay_connect_timeout (void *cls)
 
 /**
  * Callback to be called when forwarded overlay connection operation has a reply
- * from the sub-controller successfull. We have to relay the reply msg back to
+ * from the sub-controller successful. We have to relay the reply msg back to
  * the client
  *
  * @param cls ForwardedOperationContext
@@ -578,7 +578,7 @@ cleanup_occ (struct OverlayConnectContext *occ)
 
 
 /**
- * Task for cleaing up overlay connect context structure
+ * Task for cleaning up overlay connect context structure
  *
  * @param cls the overlay connect context
  */
@@ -1222,7 +1222,7 @@ occ_cache_get_handle_core_cb (void *cls,
 
 /**
  * Callback to be called when forwarded get peer config operation as part of
- * overlay connect is successfull. Connection to Peer 1's core is made and is
+ * overlay connect is successful. Connection to Peer 1's core is made and is
  * checked for new connection from peer 2
  *
  * @param cls ForwardedOperationContext
@@ -1369,7 +1369,7 @@ register_host (struct Slave *slave,
                                                    reghost_match_iterator,
                                                    &rhc)))
   {
-    /* create and add a new registerd host context */
+    /* create and add a new registered host context */
     /* add the focc to its queue */
     GNUNET_CONTAINER_multihashmap_put (slave->reghost_map,
                                        &hash,

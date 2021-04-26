@@ -287,7 +287,7 @@ main (int argc, char *const *argv)
                                "num-errors",
                                "COUNT",
                                gettext_noop (
-                                 "tolerate COUNT number of continious timeout failures"),
+                                 "tolerate COUNT number of continuous timeout failures"),
                                &num_cont_fails),
     GNUNET_GETOPT_option_flag ('n',
                                "non-interactive",

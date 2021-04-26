@@ -63,7 +63,7 @@ print_edge (void *cls,
 
 
 /**
- * The main function of the regex performace test.
+ * The main function of the regex performance test.
  *
  * Read a set of regex from a file, combine them and create a DFA from the
  * resulting combined regex.

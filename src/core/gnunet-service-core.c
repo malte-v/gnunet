@@ -804,7 +804,7 @@ GSC_CLIENTS_deliver_message (const struct GNUNET_PeerIdentity *sender,
           being kept if we are just barely below the hard max,
           and a 99% chance of being kept if we are at the soft max.
        The reason is to make it more likely to drop control traffic
-       (ACK, queries) which may be cummulative or highly redundant,
+       (ACK, queries) which may be cumulative or highly redundant,
        and cheap to drop than data traffic.  */qlen = GNUNET_MQ_get_length (c->mq);
     if ((qlen >= HARD_MAX_QUEUE) ||
         ((qlen > SOFT_MAX_QUEUE) &&

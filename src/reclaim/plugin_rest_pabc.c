@@ -112,7 +112,7 @@ struct RequestHandle
   char *emsg;
 
   /**
-   * Reponse code
+   * Response code
    */
   int response_code;
 

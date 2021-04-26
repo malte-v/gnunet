@@ -396,7 +396,7 @@ print_finish (void *cls)
  * Implements #GNUNET_STATISTICS_Callback
  *
  * @param cls Closure - The index of the node.
- * @param succes Whether statistics were obtained successfully.
+ * @param success Whether statistics were obtained successfully.
  */
 static void
 continuation_print (void *cls,

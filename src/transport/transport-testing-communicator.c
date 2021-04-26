@@ -431,7 +431,7 @@ handle_queue_create_ok (void *cls,
 
 
 /**
- * @brief Communicator informs that it wont try establishing requested queue.
+ * @brief Communicator informs that it won't try establishing requested queue.
  *
  * It will not do so probably because the address is bougus (see comment to
  * #GNUNET_MESSAGE_TYPE_TRANSPORT_QUEUE_CREATE_FAIL)

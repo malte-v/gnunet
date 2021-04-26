@@ -188,7 +188,7 @@ fork_and_exec (const char *file,
 /**
  * Creates a tun-interface called dev;
  *
- * @param dev is asumed to point to a char[IFNAMSIZ]
+ * @param dev is assumed to point to a char[IFNAMSIZ]
  *        if *dev == '\\0', uses the name supplied by the kernel;
  * @return the fd to the tun or -1 on error
  */

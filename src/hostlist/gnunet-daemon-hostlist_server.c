@@ -36,7 +36,7 @@
 
 
 /**
- * How long until our hostlist advertisment transmission via CORE should
+ * How long until our hostlist advertisement transmission via CORE should
  * time out?
  */
 #define GNUNET_ADV_TIMEOUT \
@@ -127,7 +127,7 @@ struct HostSet
 
 
 /**
- * NULL if we are not currenlty iterating over peer information.
+ * NULL if we are not currently iterating over peer information.
  */
 static struct HostSet *builder;
 
@@ -184,7 +184,7 @@ finish_response ()
  * @param cls closure, an `int *`
  * @param address the address (ignored)
  * @param expiration expiration time (call is ignored if this is in the past)
- * @return  #GNUNET_SYSERR to stop iterating (unless expiration has occured)
+ * @return  #GNUNET_SYSERR to stop iterating (unless expiration has occurred)
  */
 static int
 check_has_addr (void *cls,
@@ -343,7 +343,7 @@ accept_policy_callback (void *cls,
  *        can be set with the #MHD_OPTION_NOTIFY_COMPLETED).
  *        Initially, `*con_cls` will be NULL.
  * @return #MHD_YES if the connection was handled successfully,
- *         #MHD_NO if the socket must be closed due to a serios
+ *         #MHD_NO if the socket must be closed due to a serious
  *         error while handling the request
  */
 static MHD_RESULT

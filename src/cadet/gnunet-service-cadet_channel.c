@@ -382,7 +382,7 @@ struct CadetChannel
   int destroy;
 
   /**
-   * Type of message to be droped. See GCT_send.
+   * Type of message to be dropped. See GCT_send.
    */
   uint16_t type GNUNET_PACKED;
 

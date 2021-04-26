@@ -220,7 +220,7 @@ run_finish_task_sync (void *cls)
       - sync_state->start_finish_time.abs_value_us)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                "The command with label %s did not finish its asyncronous task in time.\n",
+                "The command with label %s did not finish its asynchronous task in time.\n",
                 cmd->label);
     is->result = GNUNET_SYSERR;
     GNUNET_SCHEDULER_shutdown ();

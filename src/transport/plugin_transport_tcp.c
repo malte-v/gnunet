@@ -164,7 +164,7 @@ typedef int (*GNUNET_CONNECTION_AccessCheck) (
  *
  * @param cls closure
  * @param buf pointer to received data
- * @param available number of bytes availabe in "buf",
+ * @param available number of bytes available in "buf",
  *        possibly 0 (on errors)
  * @param addr address of the sender
  * @param addrlen size of addr
@@ -3674,7 +3674,7 @@ libgnunet_plugin_transport_tcp_init (void *cls)
   if (NULL == env->receive)
   {
     /* run in 'stub' mode (i.e. as part of gnunet-peerinfo), don't fully
-       initialze the plugin or the API */
+       initialize the plugin or the API */
     api = GNUNET_new (struct GNUNET_TRANSPORT_PluginFunctions);
     api->cls = NULL;
     api->address_pretty_printer = &tcp_plugin_address_pretty_printer;

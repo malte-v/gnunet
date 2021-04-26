@@ -195,7 +195,7 @@ error:
  * @param rxstr regular expression and strings with expected results to
  *              match against.
  *
- * @return 0 on successfull, non 0 otherwise
+ * @return 0 on successful, non 0 otherwise
  */
 int
 test_automaton (struct REGEX_INTERNAL_Automaton *a, regex_t *rx,

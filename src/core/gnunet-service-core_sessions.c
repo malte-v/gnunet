@@ -886,7 +886,7 @@ GSC_SESSIONS_transmit (struct GSC_ClientActiveRequest *car,
     sme->deadline =
       GNUNET_TIME_relative_to_absolute (GNUNET_CONSTANTS_MAX_CORK_DELAY);
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                "Mesage corked, delaying transmission\n");
+                "Message corked, delaying transmission\n");
   }
   pos = session->sme_head;
   while ((NULL != pos) && (pos->priority >= sme->priority))

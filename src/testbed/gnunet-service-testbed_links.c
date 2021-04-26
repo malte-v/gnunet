@@ -58,7 +58,7 @@ enum LCFContextState
   DELEGATED_HOST_REGISTERED,
 
   /**
-   * The slave host has been registred at the forwarding controller
+   * The slave host has been registered at the forwarding controller
    */
   SLAVE_HOST_REGISTERED,
 
@@ -539,7 +539,7 @@ GST_find_dest_route (uint32_t host_id)
 
 
 /**
- * Function to send a failure reponse for controller link operation
+ * Function to send a failure response for controller link operation
  *
  * @param client the client to send the message to
  * @param operation_id the operation ID of the controller link request
@@ -794,12 +794,12 @@ slave_event_cb (void *cls, const struct GNUNET_TESTBED_EventInformation *event)
 
 
 /**
- * Callback to signal successfull startup of the controller process
+ * Callback to signal successful startup of the controller process
  *
  * @param cls the handle to the slave whose status is to be found here
  * @param cfg the configuration with which the controller has been started;
  *          NULL if status is not #GNUNET_OK
- * @param status #GNUNET_OK if the startup is successfull; #GNUNET_SYSERR if not,
+ * @param status #GNUNET_OK if the startup is successful; #GNUNET_SYSERR if not,
  *          GNUNET_TESTBED_controller_stop() shouldn't be called in this case
  */
 static void

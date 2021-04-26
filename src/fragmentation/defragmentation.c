@@ -114,7 +114,7 @@ struct MessageContext
   unsigned int frag_times_start_offset;
 
   /**
-   * Which offset whould we write the next frag value into
+   * Which offset would we write the next frag value into
    * in the @e frag_times array? All smaller entries are valid.
    */
   unsigned int frag_times_write_offset;

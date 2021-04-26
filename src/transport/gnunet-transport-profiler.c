@@ -204,7 +204,7 @@ shutdown_task (void *cls)
 
   if (benchmark_send)
   {
-    /* First iteration to calculcate avg and stddev */
+    /* First iteration to calculate avg and stddev */
     iterations = 0;
     avg_duration = 0;
     avg_rate = 0.0;

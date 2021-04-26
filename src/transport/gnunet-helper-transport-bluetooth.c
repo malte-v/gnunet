@@ -416,7 +416,7 @@ do_align:
     else
     {
       /* need to copy to private buffer to align;
-       * yes, we go a bit more spagetti than usual here */
+       * yes, we go a bit more spaghetti than usual here */
       goto do_align;
     }
   }

@@ -293,7 +293,7 @@ set_operation_destroy (struct GNUNET_SETU_OperationHandle *oh)
 
   if (NULL != oh->conclude_mqm)
     GNUNET_MQ_discard (oh->conclude_mqm);
-  /* is the operation already commited? */
+  /* is the operation already committed? */
   if (NULL != set)
   {
     GNUNET_CONTAINER_DLL_remove (set->ops_head,

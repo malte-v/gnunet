@@ -1957,7 +1957,7 @@ profiler_cb (struct RPSPeer *rps_peer)
   }
 
   /* Only request peer ids at one peer.
-   * (It's the before-last because last one is target of the focussed attack.)
+   * (It's the before-last because last one is target of the focused attack.)
    */
   if (eval_peer == rps_peer)
     schedule_missing_requests (rps_peer);
@@ -2306,7 +2306,7 @@ void
 compute_diversity ()
 {
   uint32_t i;
-  /* ith entry represents the numer of occurrences in other peer's views */
+  /* ith entry represents the number of occurrences in other peer's views */
   uint32_t *count_peers = GNUNET_new_array (num_peers, uint32_t);
   uint32_t views_total_size;
   double expected;
@@ -2596,8 +2596,8 @@ stat_str_2_type (const char *stat_str)
   {
     return STAT_TYPE_SENT_PULL_REQ;
   }
-  else if (0 == strncmp ("# pull replys sent", stat_str, strlen (
-                           "# pull replys sent")))
+  else if (0 == strncmp ("# pull replies sent", stat_str, strlen (
+                           "# pull replies sent")))
   {
     return STAT_TYPE_SENT_PULL_REP;
   }
@@ -2670,7 +2670,7 @@ stat_type_2_str (enum STAT_TYPE stat_type)
     return "# pull requests sent";
 
   case STAT_TYPE_SENT_PULL_REP:
-    return "# pull replys sent";
+    return "# pull replies sent";
 
   case STAT_TYPE_RECV_PUSH_SEND:
     return "# push message received";

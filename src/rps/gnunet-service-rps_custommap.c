@@ -48,10 +48,10 @@
  *
  * This list is expected to
  * - be altered in small steps frequently
- * - be cleared regularily
+ * - be cleared regularly
  * - often being queried whether a peer is contained
  * - alter indices of peers
- * - contain continous indices 0 <= i < len
+ * - contain continuous indices 0 <= i < len
  * - not contain duplicate peers
  */
 struct CustomPeerMap

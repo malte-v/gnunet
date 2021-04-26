@@ -306,7 +306,7 @@ run (void *cls,
   default:
     break;
   }
-  /* contruct topologies */
+  /* construct topologies */
   switch (topology)
   {
   case GNUNET_TESTBED_TOPOLOGY_LINE:
@@ -393,7 +393,7 @@ main (int argc, char *const argv[])
       "\t cap: the maximum number of links a node can have\n"
       "\t m: the number of links a node should have while joining the network\n"
       "\t filename: the path of the file which contains topology information\n"
-      "NOTE: the format of the above file is descibed here: https://www.gnunet.org/content/topology-file-format\n"),
+      "NOTE: the format of the above file is described here: https://www.gnunet.org/content/topology-file-format\n"),
     option,
     &run,
     NULL);

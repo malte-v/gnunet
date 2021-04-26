@@ -824,7 +824,7 @@ GNUNET_TRANSPORT_TESTING_connect_peers (struct
 
 /**
  * Cancel the request to connect two peers
- * Tou MUST cancel the request if you stop the peers before the peers connected succesfully
+ * Tou MUST cancel the request if you stop the peers before the peers connected successfully
  *
  * @param tth transport testing handle
  * @param cc a connect request handle

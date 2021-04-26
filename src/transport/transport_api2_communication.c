@@ -198,7 +198,7 @@ struct GNUNET_TRANSPORT_CommunicatorHandle
   struct GNUNET_MQ_Handle *mq;
 
   /**
-   * Maximum permissable queue length.
+   * Maximum permissible queue length.
    */
   unsigned long long max_queue_length;
 
@@ -262,7 +262,7 @@ struct GNUNET_TRANSPORT_QueueHandle
   struct GNUNET_PeerIdentity peer;
 
   /**
-   * Network type of the communciation queue.
+   * Network type of the communication queue.
    */
   enum GNUNET_NetworkType nt;
 
@@ -889,7 +889,7 @@ GNUNET_TRANSPORT_communicator_disconnect (
  *         immediately dropped due to memory limitations (communicator
  *         should try to apply back pressure),
  *         #GNUNET_SYSERR if the message could not be delivered because
- *         the tranport service is not yet up
+ *         the transport service is not yet up
  */
 int
 GNUNET_TRANSPORT_communicator_receive (

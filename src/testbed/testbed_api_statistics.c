@@ -145,7 +145,7 @@ static struct OperationQueue *no_wait_queue;
 /**
  * Call statistics operation completion.  We call it in a separate task because
  * the iteration_completion_cb() cannot destroy statistics handle which will be
- * the case if the user calles GNUNET_TESTBED_operation_done() on the
+ * the case if the user calls GNUNET_TESTBED_operation_done() on the
  * get_statistics operation.
  *
  * @param cls the GetStatsContext

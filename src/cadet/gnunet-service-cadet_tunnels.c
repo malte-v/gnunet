@@ -238,7 +238,7 @@ struct CadetTunnelAxolotl
   int ratchet_allowed;
 
   /**
-   * Number of messages recieved since our last ratchet advance.
+   * Number of messages received since our last ratchet advance.
    *
    * If this counter = 0, we cannot send a new ratchet key in the next
    * message.
@@ -1108,7 +1108,7 @@ store_skipped_key (struct CadetTunnelAxolotl *ax,
  * @param HKr Header key.
  * @param Np Received meesage number.
  * @return #GNUNET_OK if keys were stored.
- *         #GNUNET_SYSERR if an error ocurred (@a Np not expected).
+ *         #GNUNET_SYSERR if an error occurred (@a Np not expected).
  */
 static int
 store_ax_keys (struct CadetTunnelAxolotl *ax,
@@ -3030,7 +3030,7 @@ GCT_send_channel_destroy (struct CadetTunnel *t,
   struct GNUNET_CADET_ChannelDestroyMessage msg;
 
   LOG (GNUNET_ERROR_TYPE_DEBUG,
-       "Sending DESTORY message for channel ID %u\n",
+       "Sending DESTROY message for channel ID %u\n",
        ntohl (ctn.cn));
   msg.header.size = htons (sizeof(msg));
   msg.header.type = htons (GNUNET_MESSAGE_TYPE_CADET_CHANNEL_DESTROY);
@@ -3105,7 +3105,7 @@ handle_plaintext_channel_destroy (void *cls,
     /* We don't know about such a channel, might have been destroyed on our
        end in the meantime, or never existed. */
     LOG (GNUNET_ERROR_TYPE_DEBUG,
-         "Received channel DESTORY for unknown channel %u. Ignoring.\n",
+         "Received channel DESTROY for unknown channel %u. Ignoring.\n",
          ntohl (cm->ctn.cn));
     return;
   }
@@ -3157,7 +3157,7 @@ decrypted_error_cb (void *cls,
 
 
 /**
- * Create a tunnel to @a destionation.  Must only be called
+ * Create a tunnel to @a destination.  Must only be called
  * from within #GCP_get_tunnel().
  *
  * @param destination where to create the tunnel to
@@ -3220,7 +3220,7 @@ GCT_create_tunnel (struct CadetPeer *destination)
  * Add a @a connection to the @a tunnel.
  *
  * @param t a tunnel
- * @param cid connection identifer to use for the connection
+ * @param cid connection identifier to use for the connection
  * @param options options for the connection
  * @param path path to use for the connection
  * @return #GNUNET_OK on success,

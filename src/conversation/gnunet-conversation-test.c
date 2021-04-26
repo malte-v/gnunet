@@ -143,7 +143,7 @@ switch_to_speaker (void *cls)
   }
   fprintf (stderr,
            _ (
-             "\nWe are now playing your recording back.  If you can hear it, your audio settings are working..."));
+             "\new are now playing your recording back.  If you can hear it, your audio settings are working..."));
   for (struct Recording *rec = rec_head; NULL != rec; rec = rec->next)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,

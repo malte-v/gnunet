@@ -71,7 +71,7 @@ struct RegexBlock
   uint16_t num_edges GNUNET_PACKED;
 
   /**
-   * Nubmer of unique destinations reachable from this state.
+   * Number of unique destinations reachable from this state.
    */
   uint16_t num_destinations GNUNET_PACKED;
 
@@ -158,7 +158,7 @@ struct CheckEdgeContext
  *
  * @param cls Closure, (xquery context).
  * @param token Token that follows to next state.
- * @param len Lenght of token.
+ * @param len Length of token.
  * @param key Hash of next state.
  *
  * @return #GNUNET_YES, to keep iterating

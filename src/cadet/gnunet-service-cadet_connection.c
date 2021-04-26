@@ -424,7 +424,7 @@ GCC_ack_expected (const struct GNUNET_CADET_ConnectionTunnelIdentifier *cid)
 
   cc = GCC_lookup (cid);
   if (NULL == cc)
-    return; /* whopise, connection alredy down? */
+    return; /* whopise, connection already down? */
   cc->metrics.num_acked_transmissions++;
 }
 
@@ -444,7 +444,7 @@ GCC_ack_observed (const struct GNUNET_CADET_ConnectionTunnelIdentifier *cid)
 
   cc = GCC_lookup (cid);
   if (NULL == cc)
-    return; /* whopise, connection alredy down? */
+    return; /* whopise, connection already down? */
   cc->metrics.num_successes++;
 }
 
@@ -467,7 +467,7 @@ GCC_latency_observed (const struct GNUNET_CADET_ConnectionTunnelIdentifier *cid,
 
   cc = GCC_lookup (cid);
   if (NULL == cc)
-    return; /* whopise, connection alredy down? */
+    return; /* whopise, connection already down? */
   GNUNET_STATISTICS_update (stats, "# latencies observed", 1, GNUNET_NO);
   cc->latency_datapoints++;
   if (cc->latency_datapoints >= 7)

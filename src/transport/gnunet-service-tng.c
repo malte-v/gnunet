@@ -47,7 +47,7 @@
  * - When we passively learned DV (with unconfirmed freshness), we
  *   right now add the path to our list but with a zero path_valid_until
  *   time and only use it for unconfirmed routes.  However, we could consider
- *   triggering an explicit validation mechansim ourselves, specifically routing
+ *   triggering an explicit validation mechanism ourselves, specifically routing
  *   a challenge-response message over the path [ROUTING]
  * = if available, try to confirm unconfirmed DV paths when trying to establish
  *   virtual link for a `struct IncomingRequest`. (i.e. if DVH is
@@ -83,7 +83,7 @@
 
 /**
  * Maximum number of messages we acknowledge together in one
- * cummulative ACK.  Larger values may save a bit of bandwidth.
+ * cumulative ACK.  Larger values may save a bit of bandwidth.
  */
 #define MAX_CUMMULATIVE_ACKS 64
 
@@ -453,7 +453,7 @@ struct TransportReliabilityBoxMessage
 struct TransportCummulativeAckPayloadP
 {
   /**
-   * How long was the ACK delayed for generating cummulative ACKs?
+   * How long was the ACK delayed for generating cumulative ACKs?
    * Used to calculate the correct network RTT by taking the receipt
    * time of the ack minus the transmission time of the sender minus
    * this value.
@@ -514,7 +514,7 @@ struct TransportFragmentBoxMessage
 
   /**
    * Unique ID of this fragment (and fragment transmission!). Will
-   * change even if a fragement is retransmitted to make each
+   * change even if a fragment is retransmitted to make each
    * transmission attempt unique! If a client receives a duplicate
    * fragment (same @e frag_off for same @a msg_uuid, it must send
    * #GNUNET_MESSAGE_TYPE_TRANSPORT_RELIABILITY_ACK immediately.
@@ -1944,7 +1944,7 @@ struct Neighbour
   struct GNUNET_TIME_Absolute last_dv_learn_monotime;
 
   /**
-   * Do we have the lastest value for @e last_dv_learn_monotime from
+   * Do we have the latest value for @e last_dv_learn_monotime from
    * PEERSTORE yet, or are we still waiting for a reply of PEERSTORE?
    */
   int dv_monotime_available;
@@ -2238,7 +2238,7 @@ struct AcknowledgementCummulator
   struct TransportCummulativeAckPayload ack_uuids[MAX_CUMMULATIVE_ACKS];
 
   /**
-   * Task scheduled either to transmit the cummulative ACK message,
+   * Task scheduled either to transmit the cumulative ACK message,
    * or to clean up this data structure after extended periods of
    * inactivity (if @e num_acks is zero).
    */
@@ -2657,7 +2657,7 @@ static struct GNUNET_CONTAINER_MultiPeerMap *backtalkers;
 
 /**
  * Map from PIDs to `struct AcknowledgementCummulator`s.
- * Here we track the cummulative ACKs for transmission.
+ * Here we track the cumulative ACKs for transmission.
  */
 static struct GNUNET_CONTAINER_MultiPeerMap *ack_cummulators;
 
@@ -2735,7 +2735,7 @@ static struct PendingAcknowledgement *pa_head;
 static struct PendingAcknowledgement *pa_tail;
 
 /**
- * List of incomming connections where we are trying
+ * List of incoming connections where we are trying
  * to get a connection back established. Length
  * kept in #ir_total.
  */
@@ -3888,10 +3888,10 @@ client_send_response (struct PendingMessage *pm)
   if (NULL != tc)
   {
     struct GNUNET_MQ_Envelope *env;
-    struct SendOkMessage *som;
+    struct SendOkMessage *so_msg;
 
-    env = GNUNET_MQ_msg (som, GNUNET_MESSAGE_TYPE_TRANSPORT_SEND_OK);
-    som->peer = vl->target;
+    env = GNUNET_MQ_msg (so_msg, GNUNET_MESSAGE_TYPE_TRANSPORT_SEND_OK);
+    so_msg->peer = vl->target;
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                 "Confirming transmission of <%llu> to %s\n",
                 pm->logging_uuid,
@@ -4713,7 +4713,7 @@ route_control_message_without_fc (const struct GNUNET_PeerIdentity *target,
   }
   if ((NULL != n) && (NULL != dv))
     options &= ~RMO_REDUNDANT; /* We will do one DV and one direct, that's
-                                  enough for redunancy, so clear the flag. */
+                                  enough for redundancy, so clear the flag. */
   rtt1 = GNUNET_TIME_UNIT_FOREVER_REL;
   rtt2 = GNUNET_TIME_UNIT_FOREVER_REL;
   if (NULL != n)
@@ -4862,7 +4862,7 @@ check_vl_transmission (struct VirtualLink *vl)
         vl->outbound_fc_window_size)
     {
       GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                  "Stalled transmision on VL %s due to flow control: %llu < %llu\n",
+                  "Stalled transmission on VL %s due to flow control: %llu < %llu\n",
                   GNUNET_i2s (&vl->target),
                   (unsigned long long) vl->outbound_fc_window_size,
                   (unsigned long long) (pm->bytes_msg
@@ -5286,7 +5286,7 @@ handle_raw_message (void *cls, const struct GNUNET_MessageHeader *mh)
        it. Thus logging as error for now. */
     GNUNET_break_op (0);
     GNUNET_STATISTICS_update (GST_stats,
-                              "# CORE messages droped (virtual link still down)",
+                              "# CORE messages dropped (virtual link still down)",
                               1,
                               GNUNET_NO);
 
@@ -5296,7 +5296,7 @@ handle_raw_message (void *cls, const struct GNUNET_MessageHeader *mh)
   if (vl->incoming_fc_window_size_ram > UINT_MAX - size)
   {
     GNUNET_STATISTICS_update (GST_stats,
-                              "# CORE messages droped (FC arithmetic overflow)",
+                              "# CORE messages dropped (FC arithmetic overflow)",
                               1,
                               GNUNET_NO);
 
@@ -5306,7 +5306,7 @@ handle_raw_message (void *cls, const struct GNUNET_MessageHeader *mh)
   if (vl->incoming_fc_window_size_ram + size > vl->available_fc_window_size)
   {
     GNUNET_STATISTICS_update (GST_stats,
-                              "# CORE messages droped (FC window overflow)",
+                              "# CORE messages dropped (FC window overflow)",
                               1,
                               GNUNET_NO);
     finish_cmc_handling (cmc);
@@ -5397,7 +5397,7 @@ check_fragment_box (void *cls, const struct TransportFragmentBoxMessage *fb)
 
 
 /**
- * Clean up an idle cummulative acknowledgement data structure.
+ * Clean up an idle cumulative acknowledgement data structure.
  *
  * @param cls a `struct AcknowledgementCummulator *`
  */
@@ -5416,7 +5416,7 @@ destroy_ack_cummulator (void *cls)
 
 
 /**
- * Do the transmission of a cummulative acknowledgement now.
+ * Do the transmission of a cumulative acknowledgement now.
  *
  * @param cls a `struct AcknowledgementCummulator *`
  */
@@ -5674,7 +5674,7 @@ handle_fragment_box (void *cls, const struct TransportFragmentBoxMessage *fb)
     }
   }
 
-  /* Compute cummulative ACK */
+  /* Compute cumulative ACK */
   cdelay = GNUNET_TIME_absolute_get_duration (rc->last_frag);
   cdelay = GNUNET_TIME_relative_multiply (cdelay, rc->msg_missing / fsize);
   if (0 == rc->msg_missing)
@@ -5911,7 +5911,7 @@ completed_pending_message (struct PendingMessage *pm)
  * The @a pa was acknowledged, process the acknowledgement.
  *
  * @param pa the pending acknowledgement that was satisfied
- * @param ack_delay artificial delay from cummulative acks created by the
+ * @param ack_delay artificial delay from cumulative acks created by the
  * other peer
  */
 static void
@@ -7353,7 +7353,7 @@ handle_dv_box (void *cls, const struct TransportDVBoxMessage *dvb)
       path = tmp;
     }
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                "Received DVBox with remainig path %s\n",
+                "Received DVBox with remaining path %s\n",
                 path);
     GNUNET_free (path);
   }
@@ -7418,7 +7418,7 @@ handle_dv_box (void *cls, const struct TransportDVBoxMessage *dvb)
   dv_hmac (&key, &hmac, hdr, hdr_len);
   if (0 != GNUNET_memcmp (&hmac, &dvb->hmac))
   {
-    /* HMAC missmatch, disard! */
+    /* HMAC mismatch, discard! */
     GNUNET_break_op (0);
     finish_cmc_handling (cmc);
     return;
@@ -7493,7 +7493,7 @@ handle_dv_box (void *cls, const struct TransportDVBoxMessage *dvb)
           &ppay.sender_sig,
           &ppay.sender.public_key))
       {
-        /* Signature invalid, disard! */
+        /* Signature invalid, discard! */
         GNUNET_break_op (0);
         finish_cmc_handling (cmc);
         return;
@@ -8210,7 +8210,7 @@ handle_flow_control (void *cls, const struct TransportFlowControlMessage *fc)
        % FC_NO_CHANGE_REPLY_PROBABILITY))
   {
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                "Consider re-sending our FC message, as clearly the  ther peer's idea of the window is not up-to-date (%llu vs %llu)\n",
+                "Consider re-sending our FC message, as clearly the other peer's idea of the window is not up-to-date (%llu vs %llu)\n",
                 (unsigned long long) wnd,
                 (unsigned long long) vl->incoming_fc_window_size);
     consider_sending_fc (vl);
@@ -8563,7 +8563,7 @@ reliability_box_message (struct Queue *queue,
 /**
  * Change the value of the `next_attempt` field of @a pm
  * to @a next_attempt and re-order @a pm in the transmission
- * list as required by the new timestmap.
+ * list as required by the new timestamp.
  *
  * @param pm a pending message to update
  * @param next_attempt timestamp to use
@@ -8755,7 +8755,7 @@ select_best_pending_from_link (struct PendingMessageScoreContext *sc,
           10;     /* increase weight, favors 'sc->best', which is low latency */
       if (0 != queue->mtu)
       {
-        /* Grant bonus if we are bellow MTU, larger bonus the closer we will
+        /* Grant bonus if we are below MTU, larger bonus the closer we will
            be to the MTU */
         if (queue->mtu > sc->real_overhead + sc->best->bytes_msg)
           sc_score -= queue->mtu - (sc->real_overhead + sc->best->bytes_msg);
@@ -9645,7 +9645,9 @@ handle_add_queue_message (void *cls,
   if (NULL != queue)
   {
     neighbour = queue->neighbour;
-  } else {
+  }
+  else
+  {
     neighbour = lookup_neighbour (&aqm->receiver);
     if (NULL == neighbour)
     {

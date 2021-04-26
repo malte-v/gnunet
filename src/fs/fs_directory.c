@@ -350,7 +350,7 @@ struct GNUNET_FS_DirectoryBuilder
   struct BuilderEntry *head;
 
   /**
-   * Number of entires in the directory.
+   * Number of entries in the directory.
    */
   unsigned int count;
 };
@@ -401,7 +401,7 @@ GNUNET_FS_directory_builder_add (struct GNUNET_FS_DirectoryBuilder *bld,
   size_t mds;
   size_t mdxs;
   char *uris;
-  char *ser;
+  char *serialized;
   char *sptr;
   size_t slen;
   struct GNUNET_CONTAINER_MetaData *meta;
@@ -456,10 +456,10 @@ GNUNET_FS_directory_builder_add (struct GNUNET_FS_DirectoryBuilder *bld,
     mds = GNUNET_MAX_MALLOC_CHECKED / 2;
   e = GNUNET_malloc (sizeof(struct BuilderEntry) + slen + mds
                      + sizeof(uint32_t));
-  ser = (char *) &e[1];
-  GNUNET_memcpy (ser, uris, slen);
+  serialized = (char *) &e[1];
+  GNUNET_memcpy (serialized, uris, slen);
   GNUNET_free (uris);
-  sptr = &ser[slen + sizeof(uint32_t)];
+  sptr = &serialized[slen + sizeof(uint32_t)];
   ret =
     GNUNET_CONTAINER_meta_data_serialize (meta_use, &sptr, mds,
                                           GNUNET_CONTAINER_META_DATA_SERIALIZE_PART);
@@ -470,7 +470,7 @@ GNUNET_FS_directory_builder_add (struct GNUNET_FS_DirectoryBuilder *bld,
   else
     mds = ret;
   big = htonl (mds);
-  GNUNET_memcpy (&ser[slen], &big, sizeof(uint32_t));
+  GNUNET_memcpy (&serialized[slen], &big, sizeof(uint32_t));
   e->len = slen + sizeof(uint32_t) + mds;
   e->next = bld->head;
   bld->head = e;
@@ -496,7 +496,7 @@ do_align (size_t start_position, size_t end_position)
 
 
 /**
- * Compute a permuation of the blocks to
+ * Compute a permutation of the blocks to
  * minimize the cost of alignment.  Greedy packer.
  *
  * @param start starting position for the first block

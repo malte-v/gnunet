@@ -139,7 +139,7 @@ testDirectory (unsigned int i)
                                                 (start),
                                               GNUNET_YES);
   fprintf (stdout,
-           "Creating directory with %u entires and total size %llu took %s\n",
+           "Creating directory with %u entries and total size %llu took %s\n",
            i, (unsigned long long) dlen, s);
   if (i < 100)
   {

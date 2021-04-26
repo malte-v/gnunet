@@ -173,7 +173,7 @@ struct RegexPeer
   struct GNUNET_SCHEDULER_Task *timeout;
 
   /**
-   * Deamon start
+   * Daemon start
    */
   struct GNUNET_TESTBED_Operation *daemon_op;
 };
@@ -718,7 +718,7 @@ find_string (void *cls);
  * @param cls Closure provided in REGEX_INTERNAL_search.
  * @param id Peer providing a regex that matches the string.
  * @param get_path Path of the get request.
- * @param get_path_length Lenght of get_path.
+ * @param get_path_length Length of get_path.
  * @param put_path Path of the put request.
  * @param put_path_length Length of the put_path.
  */
@@ -936,7 +936,7 @@ daemon_started (void *cls,
   else
   {
     GNUNET_log (GNUNET_ERROR_TYPE_INFO,
-                "Deamon %u started successfully\n", peer->id);
+                "Daemon %u started successfully\n", peer->id);
   }
 
   /* Find a peer to look for a string matching the regex announced */
@@ -1027,7 +1027,7 @@ announce_next_regex (void *cls)
 
 /**
  * DHT connect callback. Called when we are connected to the dht service for
- * the peer in 'cls'. If successfull we connect to the stats service of this
+ * the peer in 'cls'. If successful we connect to the stats service of this
  * peer and then try to match the search string of this peer.
  *
  * @param cls internal peer id.

@@ -138,7 +138,7 @@ struct CadetExit
 
   /**
    * Channel we use for DNS requests over CADET, NULL if we did
-   * not initialze a channel to this peer yet.
+   * not initialize a channel to this peer yet.
    */
   struct GNUNET_CADET_Channel *cadet_channel;
 

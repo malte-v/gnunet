@@ -102,7 +102,7 @@ static struct GNUNET_TIME_Relative announce_delay;
  * @param exp when will this value expire
  * @param key key of the result
  * @param get_path path of the get request
- * @param get_path_length lenght of @a get_path
+ * @param get_path_length length of @a get_path
  * @param put_path path of the put request
  * @param put_path_length length of the @a put_path
  * @param type type of the result

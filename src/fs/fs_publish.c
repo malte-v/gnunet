@@ -1431,7 +1431,7 @@ compute_contents_size (struct GNUNET_FS_FileInformation *fi)
  * @param h handle to the file sharing subsystem
  * @param fi information about the file or directory structure to publish
  * @param ns namespace to publish the file in, NULL for no namespace
- * @param nid identifier to use for the publishd content in the namespace
+ * @param nid identifier to use for the published content in the namespace
  *        (can be NULL, must be NULL if namespace is NULL)
  * @param nuid update-identifier that will be used for future updates
  *        (can be NULL, must be NULL if namespace or nid is NULL)
@@ -1560,7 +1560,7 @@ fip_signal_stop (void *cls,
 
 /**
  * Stop an upload.  Will abort incomplete uploads (but
- * not remove blocks that have already been publishd) or
+ * not remove blocks that have already been published) or
  * simply clean up the state for completed uploads.
  * Must NOT be called from within the event callback!
  *

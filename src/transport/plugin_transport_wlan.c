@@ -470,7 +470,7 @@ struct Plugin
   struct GNUNET_TRANSPORT_PluginEnvironment *env;
 
   /**
-   * Handle to helper process for priviledged operations.
+   * Handle to helper process for privileged operations.
    */
   struct GNUNET_HELPER_Handle *suid_helper;
 
@@ -2262,7 +2262,7 @@ LIBGNUNET_PLUGIN_TRANSPORT_INIT (void *cls)
   if (NULL == env->receive)
   {
     /* run in 'stub' mode (i.e. as part of gnunet-peerinfo), don't fully
-       initialze the plugin or the API */
+       initialize the plugin or the API */
     api = GNUNET_new (struct GNUNET_TRANSPORT_PluginFunctions);
     api->cls = NULL;
     api->address_pretty_printer = &wlan_plugin_address_pretty_printer;

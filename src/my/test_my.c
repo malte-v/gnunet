@@ -33,7 +33,7 @@
  * Run actual test queries.
  *
  * @param contexte the current context of mysql
- * @return 0 on succes
+ * @return 0 on success
  */
 static int
 run_queries (struct GNUNET_MYSQL_Context *context)
@@ -252,7 +252,7 @@ main (int argc, const char *const argv[])
   if (GNUNET_OK !=
       GNUNET_CONFIGURATION_parse (config, "test_my.conf"))
   {
-    fprintf (stderr, "Failed to parse configuaration\n");
+    fprintf (stderr, "Failed to parse configuration\n");
     return 1;
   }
 

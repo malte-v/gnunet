@@ -78,7 +78,7 @@ struct ValidationResolutionContext
   struct GNUNET_TIME_Absolute next_validation;
 
   /**
-   * Tranport conversion handle
+   * Transport conversion handle
    */
   struct GNUNET_TRANSPORT_AddressToStringContext *asc;
 

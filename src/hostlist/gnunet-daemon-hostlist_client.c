@@ -83,7 +83,7 @@
 #define HOSTLIST_SUCCESSFUL_DOWNLOAD 100
 
 /**
- * Value added for each valid HELLO recived during a hostlist download
+ * Value added for each valid HELLO received during a hostlist download
  */
 #define HOSTLIST_SUCCESSFUL_HELLO 1
 
@@ -111,7 +111,7 @@ struct Hostlist
   /**
    * Value describing the quality of the hostlist, the bigger the better but (should) never < 0
    * used for deciding which hostlist is replaced if MAX_NUMBER_HOSTLISTS in data structure is reached
-   * intial value = HOSTLIST_INITIAL
+   * initial value = HOSTLIST_INITIAL
    * increased every successful download by HOSTLIST_SUCCESSFULL_DOWNLOAD
    * increased every successful download by number of obtained HELLO messages
    * decreased every failed download by HOSTLIST_SUCCESSFULL_DOWNLOAD
@@ -119,7 +119,7 @@ struct Hostlist
   uint64_t quality;
 
   /**
-   * Time the hostlist advertisement was recieved and the entry was created
+   * Time the hostlist advertisement was received and the entry was created
    */
   struct GNUNET_TIME_Absolute time_creation;
 
@@ -211,7 +211,7 @@ static struct GNUNET_SCHEDULER_Task *ti_check_download;
 static struct GNUNET_SCHEDULER_Task *ti_download;
 
 /**
- * ID of the task saving the hostlsit in a regular intervall
+ * ID of the task saving the hostlsit in a regular interval
  */
 static struct GNUNET_SCHEDULER_Task *ti_saving_task;
 
@@ -246,7 +246,7 @@ static struct Hostlist *linked_list_tail;
 static struct Hostlist *current_hostlist;
 
 /**
- *  Size of the linke list  used to store hostlists
+ *  Size of the linked list  used to store hostlists
  */
 static unsigned int linked_list_size;
 
@@ -1098,7 +1098,7 @@ task_download_dispatcher (void *cls)
   else
   {
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                "Download in progess, have to wait...\n");
+                "Download in progress, have to wait...\n");
     ti_download_dispatcher_task =
       GNUNET_SCHEDULER_add_delayed (WAITING_INTERVAL,
                                     &task_download_dispatcher,
@@ -1160,7 +1160,7 @@ task_check (void *cls)
 
 
 /**
- * This tasks sets hostlist testing to allowed after intervall between to testings is reached
+ * This tasks sets hostlist testing to allowed after interval between to testings is reached
  *
  * @param cls closure
  */
@@ -1249,7 +1249,7 @@ handler_advertisement (const char *uri)
 
   uri_size = strlen (uri) + 1;
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "Hostlist client recieved advertisement containing URI `%s'\n",
+              "Hostlist client received advertisement containing URI `%s'\n",
               uri);
   if (GNUNET_NO != linked_list_contains (uri))
   {
@@ -1440,7 +1440,7 @@ load_hostlist_file ()
     GNUNET_CONTAINER_DLL_insert (linked_list_head, linked_list_tail, hostlist);
     linked_list_size++;
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                "Added hostlist entry eith URI `%s' \n",
+                "Added hostlist entry with URI `%s' \n",
                 hostlist->hostlist_uri);
     GNUNET_free (uri);
     uri = NULL;

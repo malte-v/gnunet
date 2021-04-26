@@ -122,7 +122,7 @@ do_abort (void *cls)
  * @param op the operation this callback corresponds to
  * @param pinfo the result; will be NULL if the operation has failed
  * @param emsg error message if the operation has failed; will be NULL if the
- *          operation is successfull
+ *          operation is successful
  */
 static void
 peerinfo_cb (void *cb_cls, struct GNUNET_TESTBED_Operation *op_,

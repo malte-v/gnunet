@@ -101,7 +101,7 @@ test_finished ()
 
 
 /**
- * Function to iterate over sugested changes options
+ * Function to iterate over suggested changes options
  *
  * @param cls closure
  * @param section name of the section

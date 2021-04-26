@@ -20,7 +20,7 @@
 
 /**
  * @file src/testbed/test_testbed_api_test.c
- * @brief testing cases for testing notications via test master callback upon
+ * @brief testing cases for testing notifications via test master callback upon
  *          timeout while setting up testbed using functions
  *          GNUNET_TESTBED_test_run()
  * @author Sree Harsha Totakura <sreeharsha@totakura.in>

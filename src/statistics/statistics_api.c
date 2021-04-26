@@ -1287,7 +1287,7 @@ add_setter_action (struct GNUNET_STATISTICS_Handle *h,
     {
       if (ACTION_UPDATE == type)
       {
-        /* make delta cummulative */
+        /* make delta cumulative */
         delta = (int64_t) value;
         ai->value += delta;
       }

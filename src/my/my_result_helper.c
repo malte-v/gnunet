@@ -663,7 +663,7 @@ pre_extract_uint16 (void *cls,
 
 
 /**
- * Check size of extracted fixed size data from a Mysql datbase.
+ * Check size of extracted fixed size data from a Mysql database.
  *
  * @param cls closure
  * @param[in,out] rs
@@ -712,7 +712,7 @@ GNUNET_MY_result_spec_uint16 (uint16_t *u16)
 
 
 /**
- * Extrac data from a  MYSQL database @a result at row @a row
+ * Extract data from a  MYSQL database @a result at row @a row
  *
  * @param cls closure
  * @param cls closure
@@ -743,7 +743,7 @@ pre_extract_uint32 (void *cls,
 
 
 /**
- * Extrac data from a  MYSQL database @a result at row @a row
+ * Extract data from a  MYSQL database @a result at row @a row
  *
  * @param cls closure
  * @param cls closure
@@ -825,7 +825,7 @@ pre_extract_uint64 (void *cls,
 
 
 /**
- * Check size of extracted fixe size data from a Mysql database
+ * Check size of extracted fixed-size data from a Mysql database
  *
  * @param cls closure
  * @param[in,out] rs

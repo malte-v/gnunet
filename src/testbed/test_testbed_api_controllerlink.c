@@ -163,7 +163,7 @@ enum Stage
   SLAVE1_PEER_DESTROY_SUCCESS,
 
   /**
-   * Peer destory on slave 2 successful
+   * Peer destroy on slave 2 successful
    */
   SLAVE2_PEER_DESTROY_SUCCESS,
 
@@ -178,7 +178,7 @@ enum Stage
   SLAVE3_LINK_SUCCESS,
 
   /**
-   * Master peer destoryed.  Destory slave 3 peer
+   * Master peer destroyed.  Destroy slave 3 peer
    */
   MASTER_PEER_DESTROY_SUCCESS,
 
@@ -478,7 +478,7 @@ peer_create_cb (void *cls, struct GNUNET_TESTBED_Peer *peer, const char *emsg)
 
 /**
  * Checks the event if it is an operation finished event and if indicates a
- * successfull completion of operation
+ * successful completion of operation
  *
  * @param event the event information to check
  */
@@ -727,12 +727,12 @@ registration_cont (void *cls, const char *emsg)
 
 
 /**
- * Callback to signal successfull startup of the controller process
+ * Callback to signal successful startup of the controller process
  *
  * @param cls the closure from GNUNET_TESTBED_controller_start()
  * @param cfg the configuration with which the controller has been started;
  *          NULL if status is not GNUNET_OK
- * @param status GNUNET_OK if the startup is successfull; GNUNET_SYSERR if not,
+ * @param status GNUNET_OK if the startup is successful; GNUNET_SYSERR if not,
  *          GNUNET_TESTBED_controller_stop() shouldn't be called in this case
  */
 static void

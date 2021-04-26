@@ -626,7 +626,7 @@ struct ReceiverAddress
   int rekeying;
 
   /**
-   * Numer of kce we retain for sending the rekeying shared secret.
+   * Number of kce we retain for sending the rekeying shared secret.
    */
   int number_rekeying_kce;
 
@@ -1130,7 +1130,7 @@ sender_destroy (struct SenderAddress *sender)
  *
  * @param msec master secret for calculation
  * @param serial number for the @a smac calculation
- * @param key[out] where to write the decrption key
+ * @param key[out] where to write the decryption key
  * @param iv[out] where to write the IV
  */
 static void
@@ -1235,7 +1235,7 @@ check_timeouts (void *cls)
 
 
 /**
- * Calcualte cmac from master in @a ss.
+ * Calculate cmac from master in @a ss.
  *
  * @param ss[in,out] data structure to complete
  */
@@ -1811,7 +1811,7 @@ kce_generate_rekey_cb (void *cls)
  * recently).
  *
  * @param ss shared secret to generate ACKs for
- * @param intial The SharedSecret came with initial KX.
+ * @param initial The SharedSecret came with initial KX.
  */
 static void
 consider_ss_ack (struct SharedSecret *ss, int initial)
@@ -1866,7 +1866,7 @@ consider_ss_ack (struct SharedSecret *ss, int initial)
     ack.acks_available = ss->sender->acks_available;
     ack.cmac = ss_tell->cmac;
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                "Notifying transport of UDPAck %s with intial %u and master %s\n",
+                "Notifying transport of UDPAck %s with initial %u and master %s\n",
                 GNUNET_i2s_full (&ss_tell->sender->target),
                 initial,
                 GNUNET_h2s (&(ss_tell->master)));
@@ -2486,7 +2486,7 @@ udp_address_to_sockaddr (const char *bindto, socklen_t *sock_len)
   colon = strrchr (cp, ':');
   if (NULL != colon)
   {
-    /* interpet value after colon as port */
+    /* interpret value after colon as port */
     *colon = '\0';
     colon++;
     if (1 == sscanf (colon, "%u%1s", &port, dummy))

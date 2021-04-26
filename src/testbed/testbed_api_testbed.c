@@ -135,7 +135,7 @@ enum State
 
 
 /**
- * Context for host compability checks
+ * Context for host compatibility checks
  */
 struct CompatibilityCheckContext
 {
@@ -145,7 +145,7 @@ struct CompatibilityCheckContext
   struct GNUNET_TESTBED_RunHandle *rc;
 
   /**
-   * Handle for the compability check
+   * Handle for the compatibility check
    */
   struct GNUNET_TESTBED_HostHabitableCheckHandle *h;
 
@@ -307,7 +307,7 @@ struct GNUNET_TESTBED_RunHandle
   unsigned int num_peers;
 
   /**
-   * Expected overlay connects. Should be zero if no topology is relavant
+   * Expected overlay connects. Should be zero if no topology is relevant
    */
   unsigned int num_oc;
 
@@ -1043,12 +1043,12 @@ register_hosts (void *cls)
 
 
 /**
- * Callback to signal successfull startup of the controller process
+ * Callback to signal successful startup of the controller process
  *
  * @param cls the closure from GNUNET_TESTBED_controller_start()
  * @param cfg the configuration with which the controller has been started;
  *          NULL if status is not GNUNET_OK
- * @param status GNUNET_OK if the startup is successfull; GNUNET_SYSERR if not,
+ * @param status GNUNET_OK if the startup is successful; GNUNET_SYSERR if not,
  *          GNUNET_TESTBED_controller_stop() shouldn't be called in this case
  */
 static void

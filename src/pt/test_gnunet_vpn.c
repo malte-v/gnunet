@@ -120,7 +120,7 @@ mhd_ahc (void *cls,
   }
   *unused = NULL;
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "MHD sends respose for request to URL `%s'\n", url);
+              "MHD sends response for request to URL `%s'\n", url);
   response =
     MHD_create_response_from_buffer (strlen (url), (void *) url,
                                      MHD_RESPMEM_MUST_COPY);

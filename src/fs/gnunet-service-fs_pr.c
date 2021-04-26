@@ -49,7 +49,7 @@
 /**
  * Bandwidth value of a 0-priority content (must be fairly high
  * compared to query since content is typically significantly larger
- * -- and more valueable since it can take many queries to get one
+ * -- and more valuable since it can take many queries to get one
  * piece of content).
  */
 #define CONTENT_BANDWIDTH_VALUE 800
@@ -60,7 +60,7 @@
 #define MAX_RESULTS (100 * 1024)
 
 /**
- * Collect an instane number of statistics?  May cause excessive IPC.
+ * Collect an instance number of statistics?  May cause excessive IPC.
  */
 #define INSANE_STATISTICS GNUNET_NO
 
@@ -241,7 +241,7 @@ static unsigned long long max_pending_requests = (32 * 1024);
  * will create a new bloom filter from scratch, so it should only be
  * called if we have no bloomfilter at all (and hence can create a
  * fresh one of minimal size without problems) OR if our peer is the
- * initiator (in which case we may resize to larger than mimimum size).
+ * initiator (in which case we may resize to larger than minimum size).
  *
  * @param type type of the request
  * @param pr request for which the BF is to be recomputed
@@ -287,7 +287,7 @@ refresh_bloomfilter (enum GNUNET_BLOCK_Type type, struct GSF_PendingRequest *pr)
  * @param bf_size number of bytes in @a bf_data
  * @param mingle mingle value for bf
  * @param anonymity_level desired anonymity level
- * @param priority maximum outgoing cummulative request priority to use
+ * @param priority maximum outgoing cumulative request priority to use
  * @param ttl current time-to-live for the request
  * @param sender_pid peer ID to use for the sender when forwarding, 0 for none
  * @param origin_pid peer ID of origin of query (do not loop back)

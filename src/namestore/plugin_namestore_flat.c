@@ -57,7 +57,7 @@ struct FlatFileEntry
   struct GNUNET_IDENTITY_PrivateKey private_key;
 
   /**
-   * Record cound
+   * Record count.
    */
   uint32_t record_count;
 

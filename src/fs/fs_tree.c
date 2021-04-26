@@ -434,7 +434,7 @@ GNUNET_FS_tree_encoder_get_uri (struct GNUNET_FS_TreeEncoder *te)
  * about possible errors.
  *
  * @param te the tree encoder to clean up
- * @param emsg set to an error message (if an error occured
+ * @param emsg set to an error message (if an error occurred
  *        within the tree encoder; if this function is called
  *        prior to completion and prior to an internal error,
  *        both "*emsg" will be set to NULL).

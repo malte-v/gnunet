@@ -95,16 +95,16 @@ hello_world_birth_run (void *cls,
                        struct GNUNET_TESTING_Interpreter *is)
 {
   struct HelloWorldBirthState *hbs = cls;
-  struct GNUNET_TIME_Relative relativ;
+  struct GNUNET_TIME_Relative relative;
 
-  relativ = GNUNET_TIME_absolute_get_difference (*hbs->date,
+  relative = GNUNET_TIME_absolute_get_difference (*hbs->date,
                                                  GNUNET_TIME_absolute_get ());
 
-  if (0 == relativ.rel_value_us % 10)
+  if (0 == relative.rel_value_us % 10)
   {
     hbs->what_am_i = "creature!";
   }
-  else if (0 == relativ.rel_value_us % 2)
+  else if (0 == relative.rel_value_us % 2)
   {
     hbs->what_am_i = "girl!";
   }

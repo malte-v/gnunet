@@ -907,7 +907,7 @@ handle_ticket_result (void *cls, const struct TicketResultMessage *msg)
   struct GNUNET_RECLAIM_Handle *handle = cls;
   struct GNUNET_RECLAIM_Operation *op;
   struct GNUNET_RECLAIM_TicketIterator *it;
-  struct GNUNET_RECLAIM_PresentationList *pres;
+  struct GNUNET_RECLAIM_PresentationList *presentation;
   uint32_t r_id = ntohl (msg->id);
   static const struct GNUNET_RECLAIM_Ticket ticket;
   uint32_t pres_len = ntohs (msg->presentations_len);
@@ -923,8 +923,9 @@ handle_ticket_result (void *cls, const struct TicketResultMessage *msg)
   if (NULL != op)
   {
     if (0 < pres_len)
-      pres = GNUNET_RECLAIM_presentation_list_deserialize ((char*) &msg[1],
-                                                           pres_len);
+      presentation = GNUNET_RECLAIM_presentation_list_deserialize (
+        (char*) &msg[1],
+        pres_len);
     GNUNET_CONTAINER_DLL_remove (handle->op_head, handle->op_tail, op);
     if (0 ==
         memcmp (&msg->ticket, &ticket, sizeof(struct GNUNET_RECLAIM_Ticket)))
@@ -937,10 +938,10 @@ handle_ticket_result (void *cls, const struct TicketResultMessage *msg)
       if (NULL != op->ti_cb)
         op->ti_cb (op->cls,
                    &msg->ticket,
-                   (0 < pres_len) ? pres : NULL);
+                   (0 < pres_len) ? presentation : NULL);
     }
     if (0 < pres_len)
-      GNUNET_RECLAIM_presentation_list_destroy (pres);
+      GNUNET_RECLAIM_presentation_list_destroy (presentation);
     free_op (op);
     return;
   }

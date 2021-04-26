@@ -78,7 +78,7 @@ test_proof (const char *regex)
  * @param count number of random regular expressions to test.
  * @param rx_length length of the random regular expressions.
  *
- * @return 0 on succes, number of failures otherwise.
+ * @return 0 on success, number of failures otherwise.
  */
 static unsigned int
 test_proofs_random (unsigned int count, size_t rx_length)

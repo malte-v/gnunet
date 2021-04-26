@@ -417,7 +417,7 @@ GNUNET_SCALARPRODUCT_start_computation (
                                  h);
   if (NULL == h->mq)
   {
-    /* missconfigured scalarproduct service */
+    /* misconfigured scalarproduct service */
     GNUNET_break (0);
     GNUNET_free (h);
     return NULL;

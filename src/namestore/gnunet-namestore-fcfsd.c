@@ -194,7 +194,7 @@ struct ZoneinfoRequest
 };
 
 /**
- * MHD deamon reference.
+ * MHD daemon reference.
  */
 static struct MHD_Daemon *httpd;
 

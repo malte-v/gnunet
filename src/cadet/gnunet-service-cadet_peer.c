@@ -304,8 +304,8 @@ GCP_get_desirability_of_path (struct CadetPeer *cp,
 #endif
   avg_sum = off_sum * 1.0 / cp->path_dll_length;
   path_delta = off - avg_sum;
-  /* path_delta positiv: path off of peer above average (bad path for peer),
-     path_delta negativ: path off of peer below average (good path for peer) */
+  /* path_delta positive: path off of peer above average (bad path for peer),
+     path_delta negative: path off of peer below average (good path for peer) */
   if (path_delta <= -1.0)
     weight_alts = -num_alts / path_delta;  /* discount alternative paths */
   else if (path_delta >= 1.0)
@@ -405,7 +405,7 @@ consider_peer_activate (struct CadetPeer *cp)
        (NULL == cp->core_mq) ? "" : " with CORE link");
   if (NULL != cp->destroy_task)
   {
-    /* It's active, do not destory! */
+    /* It's active, do not destroy! */
     GNUNET_SCHEDULER_cancel (cp->destroy_task);
     cp->destroy_task = NULL;
   }
@@ -946,7 +946,7 @@ path_heap_cleanup (void *cls)
          2 * DESIRED_CONNECTIONS_PER_TUNNEL)
   {
     /* Now we have way too many, drop least desirable UNLESS it is in use!
-       (Note that this intentionally keeps highly desireable, but currently
+       (Note that this intentionally keeps highly desirable, but currently
        unused paths around in the hope that we might be able to switch, even
        if the number of paths exceeds the threshold.) */
     root = GNUNET_CONTAINER_heap_peek (cp->path_heap);
@@ -1056,7 +1056,7 @@ GCP_detach_path (struct CadetPeer *cp,
                  struct GNUNET_CONTAINER_HeapNode *hn)
 {
   LOG (GNUNET_ERROR_TYPE_DEBUG,
-       "Detatching path %s from peer %s\n",
+       "Detaching path %s from peer %s\n",
        GCPP_2s (path),
        GCP_2s (cp));
   GNUNET_assert (path ==
@@ -1117,7 +1117,7 @@ GCP_remove_connection (struct CadetPeer *cp,
 
 
 /**
- * Retrieve the CadetPeer stucture associated with the
+ * Retrieve the CadetPeer structure associated with the
  * peer. Optionally create one and insert it in the appropriate
  * structures if the peer is not known yet.
  *

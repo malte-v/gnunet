@@ -55,7 +55,7 @@ get_random_literal ()
  * @param matching_str (optional) pointer to a string that will contain a string
  *                     that will be matched by the generated regex, if
  *                     'matching_str' pointer was not NULL. Make sure you
- *                     allocated at least rx_length+1 bytes for this sting.
+ *                     allocated at least rx_length+1 bytes for this string.
  *
  * @return NULL if 'rx_length' is 0, a random regex of length 'rx_length', which
  *         needs to be freed, otherwise.

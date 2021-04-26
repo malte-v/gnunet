@@ -24,7 +24,7 @@
  * @author Christian Grothoff
  *
  * TODO:
- * - test that metatdata, etc. are all correct (for example,
+ * - test that metadata, etc. are all correct (for example,
  *   there is a known bug with dirname never being set that is
  *   not detected!)
  * - need to iterate over file-information structure

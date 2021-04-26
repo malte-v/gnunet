@@ -704,7 +704,7 @@ GNUNET_ATS_address_add_session (struct GNUNET_ATS_AddressRecord *ar,
 /**
  * A session was destroyed, disassociate it from the
  * given address record.  If this was an incoming
- * addess, destroy the address as well.
+ * address, destroy the address as well.
  *
  * @param ar address record to update information for
  * @param session session handle

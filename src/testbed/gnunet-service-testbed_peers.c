@@ -227,7 +227,7 @@ peer_create_forward_timeout (void *cls)
 
 
 /**
- * Callback to be called when forwarded peer create operation is successfull. We
+ * Callback to be called when forwarded peer create operation is successful. We
  * have to relay the reply msg back to the client
  *
  * @param cls ForwardedOperationContext
@@ -387,7 +387,7 @@ GST_notify_client_disconnect_peers (struct GNUNET_SERVICE_Client *client)
 
 
 /**
- * Callback to be called when forwarded peer destroy operation is successfull. We
+ * Callback to be called when forwarded peer destroy operation is successful. We
  * have to relay the reply msg back to the client
  *
  * @param cls ForwardedOperationContext
@@ -576,7 +576,7 @@ handle_peer_destroy (void *cls,
   uint32_t peer_id;
 
   peer_id = ntohl (msg->peer_id);
-  LOG_DEBUG ("Received peer destory on peer: %u and operation id: %llu\n",
+  LOG_DEBUG ("Received peer destroy on peer: %u and operation id: %llu\n",
              (unsigned int) peer_id,
              (unsigned long long) GNUNET_ntohll (msg->operation_id));
   if (! VALID_PEER_ID (peer_id))
@@ -592,7 +592,7 @@ handle_peer_destroy (void *cls,
   peer = GST_peer_list[peer_id];
   if (GNUNET_YES == peer->is_remote)
   {
-    /* Forward the destory message to sub controller */
+    /* Forward the destroy message to sub controller */
     fopc = GNUNET_new (struct ForwardedOperationContext);
     fopc->client = client;
     fopc->cls = peer;
@@ -986,7 +986,7 @@ check_peer_reconfigure (void *cls,
 
 /**
  * Handler for #GNUNET_MESSAGE_TYPDE_TESTBED_RECONFIGURE_PEER type messages.
- * Should stop the peer asyncronously, destroy it and create it again with the
+ * Should stop the peer asynchronously, destroy it and create it again with the
  * new configuration.
  *
  * @param cls identification of the client
@@ -1342,7 +1342,7 @@ handle_manage_peer_service (void *cls,
   }
   if (GNUNET_YES == peer->is_remote)
   {
-    /* Forward the destory message to sub controller */
+    /* Forward the destroy message to sub controller */
     fopc = GNUNET_new (struct ForwardedOperationContext);
     fopc->client = client;
     fopc->cls = peer;

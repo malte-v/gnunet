@@ -88,13 +88,13 @@ struct ZoneIteration
    * Last sequence number in the zone iteration used to address next
    * result of the zone iteration in the store
    *
-   * Initialy set to 0.
+   * Initially set to 0.
    * Updated in #zone_iterate_proc()
    */
   uint64_t seq;
 
   /**
-   * The operation id fot the zone iteration in the response for the client
+   * The operation id for the zone iteration in the response for the client
    */
   uint32_t request_id;
 
@@ -102,7 +102,7 @@ struct ZoneIteration
    * Offset of the zone iteration used to address next result of the zone
    * iteration in the store
    *
-   * Initialy set to 0 in #handle_iteration_start
+   * Initially set to 0 in #handle_iteration_start
    * Incremented with by every call to #handle_iteration_next
    */
   uint32_t offset;
@@ -195,7 +195,7 @@ struct ZoneMonitor
    * Last sequence number in the zone iteration used to address next
    * result of the zone iteration in the store
    *
-   * Initialy set to 0.
+   * Initially set to 0.
    * Updated in #monitor_iterate_cb()
    */
   uint64_t seq;
@@ -1821,7 +1821,8 @@ run_zone_iteration_round (struct ZoneIteration *zi, uint64_t limit)
   start = GNUNET_TIME_absolute_get ();
   GNUNET_break (GNUNET_SYSERR !=
                 GSN_database->iterate_records (GSN_database->cls,
-                                               (GNUNET_YES == GNUNET_is_zero (&zi->zone))
+                                               (GNUNET_YES == GNUNET_is_zero (
+                                                  &zi->zone))
                                                ? NULL
                                                : &zi->zone,
                                                zi->seq,
@@ -2095,7 +2096,8 @@ monitor_iteration_next (void *cls)
   else
     zm->iteration_cnt = zm->limit; /* use it all */
   ret = GSN_database->iterate_records (GSN_database->cls,
-                                       (GNUNET_YES == GNUNET_is_zero (&zm->zone))
+                                       (GNUNET_YES == GNUNET_is_zero (
+                                          &zm->zone))
                                        ? NULL
                                        : &zm->zone,
                                        zm->seq,

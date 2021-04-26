@@ -1562,7 +1562,7 @@ automaton_create_proofs_simplify (const struct StringBuffer *R_last_ij,
 
 /**
  * Create proofs for all states in the given automaton. Implementation of the
- * algorithm descriped in chapter 3.2.1 of "Automata Theory, Languages, and
+ * algorithm described in chapter 3.2.1 of "Automata Theory, Languages, and
  * Computation 3rd Edition" by Hopcroft, Motwani and Ullman.
  *
  * Each state in the automaton gets assigned 'proof' and 'hash' (hash of the
@@ -1796,7 +1796,7 @@ dfa_state_create (struct REGEX_INTERNAL_Context *ctx,
 
 /**
  * Move from the given state 's' to the next state on transition 'str'. Consumes
- * as much of the given 'str' as possible (usefull for strided DFAs). On return
+ * as much of the given 'str' as possible (useful for strided DFAs). On return
  * 's' will point to the next state, and the length of the substring used for
  * this transition will be returned. If no transition possible 0 is returned and
  * 's' points to NULL.
@@ -1805,7 +1805,7 @@ dfa_state_create (struct REGEX_INTERNAL_Context *ctx,
  * transition possible)
  * @param str edge label to follow (will match longest common prefix)
  *
- * @return length of the substring comsumed from 'str'
+ * @return length of the substring consumed from 'str'
  */
 static unsigned int
 dfa_move (struct REGEX_INTERNAL_State **s, const char *str)
@@ -3055,7 +3055,7 @@ construct_dfa_states (struct REGEX_INTERNAL_Context *ctx,
  * @param len length of the regular expression.
  * @param max_path_len limit the path compression length to the
  *        given value. If set to 1, no path compression is applied. Set to 0 for
- *        maximal possible path compression (generally not desireable).
+ *        maximal possible path compression (generally not desirable).
  * @return DFA, needs to be freed using REGEX_INTERNAL_automaton_destroy.
  */
 struct REGEX_INTERNAL_Automaton *
@@ -3525,7 +3525,7 @@ REGEX_INTERNAL_iterate_all_edges (struct REGEX_INTERNAL_Automaton *a,
 /**
  * Struct to hold all the relevant state information in the HashMap.
  *
- * Contains the same info as the Regex Iterator parametes except the key,
+ * Contains the same info as the Regex Iterator parameters except the key,
  * which comes directly from the HashMap iterator.
  */
 struct temporal_state_store

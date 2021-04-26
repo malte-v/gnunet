@@ -135,7 +135,6 @@ RECLAIM_CREDENTIAL_fini ()
 }
 
 
-
 /**
  * Convert an credential type name to the corresponding number
  *
@@ -1030,6 +1029,7 @@ GNUNET_RECLAIM_presentation_get_expiration (const struct
   return GNUNET_SYSERR;
 }
 
+
 /**
  * Create a presentation from a credential and a lift of (selected)
  * attributes in the credential.
@@ -1042,9 +1042,9 @@ GNUNET_RECLAIM_presentation_get_expiration (const struct
  */
 int
 GNUNET_RECLAIM_credential_get_presentation (
-                              const struct GNUNET_RECLAIM_Credential *cred,
-                              const struct GNUNET_RECLAIM_AttributeList *attrs,
-                              struct GNUNET_RECLAIM_Presentation **pres)
+  const struct GNUNET_RECLAIM_Credential *cred,
+  const struct GNUNET_RECLAIM_AttributeList *attrs,
+  struct GNUNET_RECLAIM_Presentation **presentation)
 {
   unsigned int i;
   struct Plugin *plugin;
@@ -1055,13 +1055,10 @@ GNUNET_RECLAIM_credential_get_presentation (
     if (GNUNET_OK !=  plugin->api->create_presentation (plugin->api->cls,
                                                         cred,
                                                         attrs,
-                                                        pres))
+                                                        presentation))
       continue;
-    (*pres)->credential_id = cred->id;
+    (*presentation)->credential_id = cred->id;
     return GNUNET_OK;
   }
   return GNUNET_SYSERR;
 }
-
-
-

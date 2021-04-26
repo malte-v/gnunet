@@ -237,7 +237,7 @@ generate_userinfo_json (const struct GNUNET_IDENTITY_PublicKey *sub_key,
                                                   le->attribute->data,
                                                   le->attribute->data_size);
       /**
-       * There is this wierd quirk that the individual address claim(s) must be
+       * There is this weird quirk that the individual address claim(s) must be
        * inside a JSON object of the "address" claim.
        */
       if (GNUNET_YES == is_claim_in_address_scope (le->attribute->name))
@@ -287,7 +287,7 @@ generate_userinfo_json (const struct GNUNET_IDENTITY_PublicKey *sub_key,
         continue;
       }
       /**
-       * There is this wierd quirk that the individual address claim(s) must be
+       * There is this weird quirk that the individual address claim(s) must be
        * inside a JSON object of the "address" claim.
        */
       if (GNUNET_YES == is_claim_in_address_scope (le->attribute->name))

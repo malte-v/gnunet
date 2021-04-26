@@ -174,7 +174,7 @@ custom_shutdown (void *cls)
   unsigned long long rate;
   int ok;
 
-  /* Calculcate statistics   */
+  /* Calculate statistics   */
   delta = GNUNET_TIME_absolute_get_duration (start_time).rel_value_us;
   if (0 == delta)
     delta = 1;

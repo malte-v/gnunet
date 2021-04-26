@@ -36,7 +36,7 @@
 #define ADAPTIVE_QUEUE_DEFAULT_HISTORY 40
 
 /**
- * The number of parallel opeartions we start with by default for adaptive
+ * The number of parallel operations we start with by default for adaptive
  * queues
  */
 #define ADAPTIVE_QUEUE_DEFAULT_MAX_ACTIVE 4
@@ -213,7 +213,7 @@ struct OperationQueue
   struct FeedbackCtx *fctx;
 
   /**
-   * The type of this opeartion queue
+   * The type of this operation queue
    */
   enum OperationQueueType type;
 
@@ -232,7 +232,7 @@ struct OperationQueue
 
   /**
    * The number of resources occupied by failed operations in the current shot.
-   * This is only relavant if the operation queue is of type
+   * This is only relevant if the operation queue is of type
    * #OPERATION_QUEUE_TYPE_ADAPTIVE
    */
   unsigned int overload;
@@ -1272,7 +1272,7 @@ GNUNET_TESTBED_operation_inactivate_ (struct GNUNET_TESTBED_Operation *op)
 
 
 /**
- * Marks and inactive operation as active.  This fuction should be called to
+ * Marks and inactive operation as active.  This function should be called to
  * ensure that the oprelease callback will not be called until it is either
  * marked as inactive or released.
  *

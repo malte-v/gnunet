@@ -357,7 +357,7 @@ static struct TransportClient *sync_client;
 
 /**
  * Peer identity that is all zeros, used as a way to indicate
- * "all peers".  Used for comparissons.
+ * "all peers".  Used for comparisons.
  */
 static struct GNUNET_PeerIdentity all_zeros;
 
@@ -830,7 +830,7 @@ handle_client_send (void *cls, const struct OutboundMessage *obm)
 
 /**
  * Take the given address and append it to the set of results sent back to
- * the client.  This function may be called serveral times for a single
+ * the client.  This function may be called several times for a single
  * conversion.   The last invocation will be with a @a address of
  * NULL and a @a res of #GNUNET_OK.  Thus, to indicate conversion
  * errors, the callback might be called first with @a address NULL and
@@ -877,7 +877,7 @@ transmit_address_to_client (void *cls, const char *buf, int res)
     }
   }
   GNUNET_assert (GNUNET_OK == res);
-  /* succesful conversion, append*/
+  /* successful conversion, append*/
   slen = strlen (buf) + 1;
   env =
     GNUNET_MQ_msg_extra (atsm,
@@ -1545,7 +1545,7 @@ kill_session (const char *plugin_name, struct GNUNET_ATS_Session *session)
 
 /**
  * Black list check result for try_connect call
- * If connection to the peer is allowed request adddress and ???
+ * If connection to the peer is allowed request address and ???
  *
  * @param cls the message
  * @param peer the peer
@@ -1782,7 +1782,7 @@ plugin_env_address_change_notification (
  *
  * @param cls closure
  * @param address which address was the session for
- * @param session which session is being destoyed
+ * @param session which session is being destroyed
  */
 static void
 plugin_env_session_end (void *cls,

@@ -395,7 +395,7 @@ tokenizer_cb (void *cls, const struct GNUNET_MessageHeader *message)
 
     GNUNET_asprintf (&evar, GNUNET_TESTING_PREFIX "=%s", evstr);
     GNUNET_assert (0 == putenv (evar)); /* consumes 'evar',
-                                           see putenv(): becomes part of envrionment! */
+                                           see putenv(): becomes part of environment! */
     GNUNET_free (evstr);
     evstr = NULL;
   }
@@ -426,7 +426,7 @@ tokenizer_cb (void *cls, const struct GNUNET_MessageHeader *message)
     /* expose testbed configuration through env variable */
     GNUNET_asprintf (&evar, "%s=%s", ENV_TESTBED_CONFIG, config);
     GNUNET_assert (0 == putenv (evar));   /* consumes 'evar',
-                                            see putenv(): becomes part of envrionment! */
+                                            see putenv(): becomes part of environment! */
     evstr = NULL;
   }
   testbed = GNUNET_OS_start_process (GNUNET_OS_INHERIT_STD_ERR /*verbose? */,

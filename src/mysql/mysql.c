@@ -209,7 +209,7 @@ get_my_cnf_path (const struct GNUNET_CONFIGURATION_Handle *cfg,
  * Open the connection with the database (and initialize
  * our default options).
  *
- * @param mc database context to initialze
+ * @param mc database context to initialize
  * @return #GNUNET_OK on success
  */
 static int

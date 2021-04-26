@@ -250,9 +250,9 @@ static struct GNUNET_SCHEDULER_Task *round_task;
  * START THE TEST ITSELF, AS WE ARE CONNECTED TO THE CADET SERVICES.
  *
  * Testcase continues when the root receives confirmation of connected peers,
- * on callback funtion ch.
+ * on callback function ch.
  *
- * @param cls Closure (unsued).
+ * @param cls Closure (unused).
  */
 static void
 start_test (void *cls);
@@ -290,7 +290,7 @@ get_index (struct CadetPeer *peer)
 
 
 /**
- * Show the results of the test (banwidth acheived) and log them to GAUGER
+ * Show the results of the test (banwidth achieved) and log them to GAUGER
  */
 static void
 show_end_data (void)
@@ -594,7 +594,7 @@ next_rnd (void *cls)
  * Transmit ping callback.
  *
  * @param cls Closure (peer for PING, NULL for PONG).
- * @param size Size of the tranmist buffer.
+ * @param size Size of the transmit buffer.
  * @param buf Pointer to the beginning of the buffer.
  *
  * @return Number of bytes written to buf.
@@ -911,9 +911,9 @@ select_random_peer (struct CadetPeer *peer)
  * START THE TEST ITSELF, AS WE ARE CONNECTED TO THE CADET SERVICES.
  *
  * Testcase continues when the root receives confirmation of connected peers,
- * on callback funtion ch.
+ * on callback function ch.
  *
- * @param cls Closure (unsued).
+ * @param cls Closure (unused).
  */
 static void
 start_test (void *cls)
@@ -993,7 +993,7 @@ warmup (void)
  * @param op the operation this callback corresponds to
  * @param pinfo the result; will be NULL if the operation has failed
  * @param emsg error message if the operation has failed;
- *             NULL if the operation is successfull
+ *             NULL if the operation is successful
  */
 static void
 peer_id_cb (void *cls,

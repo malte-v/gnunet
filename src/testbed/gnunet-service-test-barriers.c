@@ -66,7 +66,7 @@ do_shutdown (void *cls)
 
 
 /**
- * Functions of this type are to be given as acallback argumetn to
+ * Functions of this type are to be given as acallback argument to
  * GNUNET_TESTBED_barrier_wait().  The callback will be called when the barrier
  * corresponding given in GNUNET_TESTBED_barrier_wait() is crossed or cancelled.
  *

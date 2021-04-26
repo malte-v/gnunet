@@ -77,7 +77,7 @@ struct PeerStats
 
 static struct PeerStats stats[2];
 
-/* Amount of data transfered since last switch attempt */
+/* Amount of data transferred since last switch attempt */
 static unsigned long long bytes_sent_after_switch;
 
 static unsigned long long bytes_recv_after_switch;

@@ -177,7 +177,7 @@ service_connect_comp_cb (void *cls,
   if (NULL != emsg)
   {
     LOG (GNUNET_ERROR_TYPE_DEBUG,
-         "An error occured connecting to service %s\n",
+         "An error occurred connecting to service %s\n",
          emsg);
     GNUNET_TESTBED_operation_done (ts->operation);
   }
@@ -191,7 +191,7 @@ service_connect_comp_cb (void *cls,
  * @param op the operation this callback corresponds to
  * @param pinfo the result; will be NULL if the operation has failed
  * @param emsg error message if the operation has failed;
- *             NULL if the operation is successfull
+ *             NULL if the operation is successful
  */
 static void
 pi_cb (void *cls,

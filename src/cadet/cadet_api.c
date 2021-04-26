@@ -230,7 +230,7 @@ destroy_channel (struct GNUNET_CADET_Channel *ch)
 
 
 /**
- * Reconnect to the service, retransmit all infomation to try to restore the
+ * Reconnect to the service, retransmit all information to try to restore the
  * original state.
  *
  * @param h handle to the cadet
@@ -265,8 +265,8 @@ open_port_cb (void *cls, const struct GNUNET_HashCode *id, void *value)
 
 
 /**
- * Reconnect callback: tries to reconnect again after a failer previous
- * reconnecttion
+ * Reconnect callback: tries to reconnect again after a failed previous
+ * connection
  *
  * @param cls closure (cadet handle)
  */
@@ -706,7 +706,7 @@ handle_mq_error (void *cls, enum GNUNET_MQ_Error error)
 
 
 /**
- * Reconnect to the service, retransmit all infomation to try to restore the
+ * Reconnect to the service, retransmit all information to try to restore the
  * original state.
  *
  * @param h handle to the cadet
@@ -858,7 +858,7 @@ GNUNET_CADET_channel_destroy (struct GNUNET_CADET_Channel *channel)
  *
  * @param channel Channel handle.
  * @param option Query (GNUNET_CADET_OPTION_*).
- * @param ... dependant on option, currently not used
+ * @param ... dependent on option, currently not used
  *
  * @return Union with an answer to the query.
  */
@@ -955,7 +955,7 @@ return_agpl (void *cls, const struct GNUNET_MessageHeader *msg)
 
 
 /**
- * Open a port to receive incomming MQ-based channels.
+ * Open a port to receive incoming MQ-based channels.
  *
  * @param h CADET handle.
  * @param port Hash identifying the port.

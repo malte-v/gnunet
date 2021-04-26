@@ -32,7 +32,7 @@
 
 /**
  * Entry for each unique keyword to track how often
- * it occured.  Contains the keyword and the counter.
+ * it occurred.  Contains the keyword and the counter.
  */
 struct KeywordCounter
 {

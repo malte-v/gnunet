@@ -29,7 +29,7 @@
 
 
 /**
- * FIXME: the defaul ticket iteration interval should probably
+ * FIXME: the default ticket iteration interval should probably
  * be the minimim attribute expiration.
  */
 #define DEFAULT_TICKET_REFRESH_INTERVAL GNUNET_TIME_UNIT_HOURS
@@ -129,7 +129,7 @@ struct RECLAIM_TICKETS_ConsumeHandle
   RECLAIM_TICKETS_ConsumeCallback cb;
 
   /**
-   * Callbacl closure
+   * Callback closure
    */
   void *cb_cls;
 };
@@ -1319,31 +1319,32 @@ issue_ticket (struct TicketIssueHandle *ih)
     {
       GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                   "Attribute is backed by credential. Adding...\n");
-      struct GNUNET_RECLAIM_Presentation *pres = NULL;
+      struct GNUNET_RECLAIM_Presentation *presentation = NULL;
       for (j = 0; j < i; j++)
       {
         if (attrs_record[j].record_type
             != GNUNET_GNSRECORD_TYPE_RECLAIM_PRESENTATION)
           continue;
-        pres = GNUNET_RECLAIM_presentation_deserialize (attrs_record[j].data,
-                                                        attrs_record[j].
-                                                        data_size);
-        if (NULL == pres)
+        presentation = GNUNET_RECLAIM_presentation_deserialize (
+          attrs_record[j].data,
+          attrs_record[j].
+          data_size);
+        if (NULL == presentation)
         {
           GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
                       "Failed to deserialize presentation\n");
           continue;
         }
-        if (0 == memcmp (&pres->credential_id,
+        if (0 == memcmp (&presentation->credential_id,
                          &le->attribute->credential,
                          sizeof (le->attribute->credential)))
           break;
-        GNUNET_free (pres);
-        pres = NULL;
+        GNUNET_free (presentation);
+        presentation = NULL;
       }
-      if (NULL != pres)
+      if (NULL != presentation)
       {
-        GNUNET_free (pres);
+        GNUNET_free (presentation);
         continue; // Skip as we have already added this credential presentation.
       }
       for (ple = ih->presentations->list_head; NULL != ple; ple = ple->next)
@@ -1361,6 +1362,7 @@ issue_ticket (struct TicketIssueHandle *ih)
         }
         char *pres_buf;
         size_t pres_size;
+
         pres_size =
           GNUNET_RECLAIM_presentation_serialize_get_size (ple->presentation);
         pres_buf = GNUNET_malloc (pres_size);
@@ -1457,7 +1459,7 @@ filter_tickets_cb (void *cls,
 {
   struct TicketIssueHandle *tih = cls;
   struct GNUNET_RECLAIM_Ticket *ticket = NULL;
-  struct GNUNET_RECLAIM_Presentation *pres;
+  struct GNUNET_RECLAIM_Presentation *presentation;
   struct GNUNET_RECLAIM_PresentationList *ticket_presentations;
   struct GNUNET_RECLAIM_Credential *cred;
   struct GNUNET_RECLAIM_PresentationListEntry *ple;
@@ -1526,7 +1528,7 @@ filter_tickets_cb (void *cls,
         if (GNUNET_OK != GNUNET_RECLAIM_credential_get_presentation (
               cred,
               tih->attrs,
-              &pres))
+              &presentation))
         {
           GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                       "Unable to retrieve presentation from credential\n");
@@ -1534,7 +1536,7 @@ filter_tickets_cb (void *cls,
           continue;
         }
         ple = GNUNET_new (struct GNUNET_RECLAIM_PresentationListEntry);
-        ple->presentation = pres;
+        ple->presentation = presentation;
         GNUNET_CONTAINER_DLL_insert (tih->presentations->list_head,
                                      tih->presentations->list_tail,
                                      ple);
@@ -1546,20 +1548,21 @@ filter_tickets_cb (void *cls,
     {
       for (le = tih->attrs->list_head; NULL != le; le = le->next)
       {
-        pres = GNUNET_RECLAIM_presentation_deserialize (rd[i].data,
-                                                        rd[i].data_size);
-        if (NULL == pres)
+        presentation = GNUNET_RECLAIM_presentation_deserialize (rd[i].data,
+                                                                rd[i].data_size);
+        if (NULL == presentation)
         {
           GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
                       "Failed to deserialize presentation\n");
           continue;
         }
-        if (GNUNET_YES == GNUNET_RECLAIM_id_is_equal (&pres->credential_id,
-                                                      &le->attribute->credential))
+        if (GNUNET_YES == GNUNET_RECLAIM_id_is_equal (
+              &presentation->credential_id,
+              &le->attribute->credential))
         {
           found_pres_cnt++;
           ple = GNUNET_new (struct GNUNET_RECLAIM_PresentationListEntry);
-          ple->presentation = pres;
+          ple->presentation = presentation;
           GNUNET_CONTAINER_DLL_insert (ticket_presentations->list_head,
                                        ticket_presentations->list_tail,
                                        ple);

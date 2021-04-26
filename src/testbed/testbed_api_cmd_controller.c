@@ -126,12 +126,12 @@ registration_comp (void *cls,
 
 
 /**
- * Callback to signal successfull startup of the controller process
+ * Callback to signal successful startup of the controller process
  *
  * @param cls the closure from GNUNET_TESTBED_controller_start()
  * @param cfg the configuration with which the controller has been started;
  *          NULL if status is not #GNUNET_OK
- * @param status #GNUNET_OK if the startup is successfull; #GNUNET_SYSERR if not,
+ * @param status #GNUNET_OK if the startup is successful; #GNUNET_SYSERR if not,
  *          GNUNET_TESTBED_controller_stop() shouldn't be called in this case
  */
 static void

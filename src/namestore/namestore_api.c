@@ -324,7 +324,7 @@ free_ze (struct GNUNET_NAMESTORE_ZoneIterator *ze)
 
 
 /**
- * Check that @a rd_buf of lenght @a rd_len contains
+ * Check that @a rd_buf of length @a rd_len contains
  * @a rd_count records.
  *
  * @param rd_len length of @a rd_buf
@@ -557,7 +557,7 @@ handle_record_result (void *cls, const struct RecordResultMessage *msg)
     return; /* rid not found */
   if ((NULL != ze) && (NULL != qe))
   {
-    GNUNET_break (0);  /* rid ambigous */
+    GNUNET_break (0);  /* rid ambiguous */
     force_reconnect (h);
     return;
   }
@@ -614,7 +614,7 @@ handle_record_result_end (void *cls, const struct GNUNET_NAMESTORE_Header *msg)
     return; /* rid not found */
   if ((NULL != ze) && (NULL != qe))
   {
-    GNUNET_break (0);  /* rid ambigous */
+    GNUNET_break (0);  /* rid ambiguous */
     force_reconnect (h);
     return;
   }

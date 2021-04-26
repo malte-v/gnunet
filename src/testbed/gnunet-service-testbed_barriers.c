@@ -458,7 +458,7 @@ disconnect_cb (void *cls,
 
 
 /**
- * Function to initialise barrriers component
+ * Function to initialise barriers component
  *
  * @param cfg the configuration to use for initialisation
  */
@@ -538,7 +538,7 @@ GST_barriers_destroy ()
  * @param status status of the barrier; #GNUNET_OK if the barrier is crossed;
  *   #GNUNET_SYSERR upon error
  * @param emsg if the status were to be #GNUNET_SYSERR, this parameter has the
- *   error messsage
+ *   error message
  */
 static void
 wbarrier_status_cb (void *cls,

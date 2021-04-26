@@ -998,7 +998,7 @@ static void
 do_shutdown (void *cls)
 {
   LOG (GNUNET_ERROR_TYPE_DEBUG,
-       "shuting down test.\n");
+       "shutting down test.\n");
 
   for (unsigned int i = 0; i < NUM_PEERS; i++)
   {

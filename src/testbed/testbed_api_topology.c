@@ -639,7 +639,7 @@ gen_topo_ring (struct TopologyContext *tc)
 
 /**
  * Returns the number of links that are required to generate a 2d torus for the
- * given number of peers. Also returns the arrangment (number of rows and the
+ * given number of peers. Also returns the arrangement (number of rows and the
  * length of each row)
  *
  * @param num_peers number of peers

@@ -248,7 +248,7 @@ zone_proc (void *cls,
   off++;
   left_until_next--;
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "Obtained record %u, expecting %u more until asking for mor explicitly\n",
+              "Obtained record %u, expecting %u more until asking for more explicitly\n",
               off,
               left_until_next);
   if (0 == left_until_next)

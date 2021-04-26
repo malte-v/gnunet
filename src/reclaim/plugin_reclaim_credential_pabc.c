@@ -154,7 +154,7 @@ inspect_attrs (char const *const key,
   if (NULL == value)
     return;
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "Found attribue in PABC credential: `%s': `%s'\n",
+              "Found attribute in PABC credential: `%s': `%s'\n",
               key, value);
   if (0 == strcmp (key, "expiration"))
     return;
@@ -362,7 +362,7 @@ int
 pabc_create_presentation (void *cls,
                           const struct GNUNET_RECLAIM_Credential *credential,
                           const struct GNUNET_RECLAIM_AttributeList *attrs,
-                          struct GNUNET_RECLAIM_Presentation **pres)
+                          struct GNUNET_RECLAIM_Presentation **presentation)
 {
   struct pabc_context *ctx = NULL;
   struct pabc_user_context *usr_ctx = NULL;
@@ -508,9 +508,10 @@ pabc_create_presentation (void *cls,
   GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
               "Presentation: %s\n", json_enc);
   // clean up
-  *pres = GNUNET_RECLAIM_presentation_new (GNUNET_RECLAIM_CREDENTIAL_TYPE_PABC,
-                                           json_enc,
-                                           strlen (json_enc) + 1);
+  *presentation = GNUNET_RECLAIM_presentation_new (
+    GNUNET_RECLAIM_CREDENTIAL_TYPE_PABC,
+    json_enc,
+    strlen (json_enc) + 1);
   GNUNET_free (json_enc);
   PABC_FREE_NULL (json);
   pabc_free_proof (ctx, pp, &proof);

@@ -168,7 +168,7 @@ evaluate_block_regex (void *cls,
     return GNUNET_BLOCK_EVALUATION_RESULT_INVALID;
 
   case GNUNET_NO:
-    /* xquery missmatch, can happen */
+    /* xquery mismatch, can happen */
     return GNUNET_BLOCK_EVALUATION_RESULT_IRRELEVANT;
 
   default:

@@ -508,7 +508,7 @@ uri_ksk_continuation (void *cls,
  * Iterate over the results from the directory scan and extract
  * the desired information for the publishing operation.
  *
- * @param item root with the data from the directroy scan
+ * @param item root with the data from the directory scan
  * @return handle with the information for the publishing operation
  */
 static struct GNUNET_FS_FileInformation *

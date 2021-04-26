@@ -120,7 +120,7 @@ struct AddressProbe
   struct GNUNET_CONNECTION_Handle *connection;
 
   /**
-   * Lenth of addr.
+   * Length of addr.
    */
   socklen_t addrlen;
 
@@ -538,7 +538,7 @@ signal_transmit_error (struct GNUNET_CONNECTION_Handle *connection, int ecode)
   GNUNET_CONNECTION_TransmitReadyNotify notify;
 
   LOG (GNUNET_ERROR_TYPE_DEBUG,
-       "Transmission encounterd error (%s), connection closed (%p)\n",
+       "Transmission encountered error (%s), connection closed (%p)\n",
        strerror (ecode),
        connection);
   if (NULL != connection->sock)

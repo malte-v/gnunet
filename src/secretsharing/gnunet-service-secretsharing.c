@@ -241,7 +241,7 @@ struct DecryptSession
 
   /**
    * Share of the local peer.
-   * Containts other important information, such as
+   * Contains other important information, such as
    * the list of other peers.
    */
   struct GNUNET_SECRETSHARING_Share *share;
@@ -379,7 +379,7 @@ time_between (struct GNUNET_TIME_Absolute start,
 
 
 /**
- * Compare two peer identities.  Indended to be used with qsort or bsearch.
+ * Compare two peer identities.  Intended to be used with qsort or bsearch.
  *
  * @param p1 Some peer identity.
  * @param p2 Some peer identity.
@@ -1931,9 +1931,9 @@ decrypt_new_element (void *cls,
   gcry_mpi_t w;
   /* ciphertext component #1 */
   gcry_mpi_t c1;
-  /* temporary variable (for comparision) #1 */
+  /* temporary variable (for comparison) #1 */
   gcry_mpi_t tmp1;
-  /* temporary variable (for comparision) #2 */
+  /* temporary variable (for comparison) #2 */
   gcry_mpi_t tmp2;
 
   if (NULL == element)

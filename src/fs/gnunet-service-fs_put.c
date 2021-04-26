@@ -66,7 +66,7 @@ struct PutOperator
   struct GNUNET_SCHEDULER_Task *dht_task;
 
   /**
-   * How many entires with zero anonymity of our type do we currently
+   * How many entries with zero anonymity of our type do we currently
    * estimate to have in the database?
    */
   uint64_t zero_anonymity_count_estimate;

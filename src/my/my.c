@@ -32,7 +32,7 @@
  * Run a prepared SELECT statement.
  *
  * @param mc mysql context
- * @param sh handle to SELECT statment
+ * @param sh handle to SELECT statement
  * @param params parameters to the statement
  * @return
  #GNUNET_YES if we can prepare all statement

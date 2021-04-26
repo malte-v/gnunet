@@ -584,7 +584,7 @@ GNUNET_FS_data_reader_copy_ (void *cls,
  *
  * @param h master context
  * @param ext component of the path
- * @param ent entity identifier (or emtpy string for the directory)
+ * @param ent entity identifier (or empty string for the directory)
  * @return NULL on error
  */
 static char *
@@ -624,7 +624,7 @@ get_serialization_file_name (struct GNUNET_FS_Handle *h,
  * @param h master context
  * @param ext component of the path
  * @param uni name of the parent operation
- * @param ent entity identifier (or emtpy string for the directory)
+ * @param ent entity identifier (or empty string for the directory)
  * @return NULL on error
  */
 static char *
@@ -664,7 +664,7 @@ get_serialization_file_name_in_dir (struct GNUNET_FS_Handle *h,
  *
  * @param h master context
  * @param ext component of the path
- * @param ent entity identifier (or emtpy string for the directory)
+ * @param ent entity identifier (or empty string for the directory)
  * @return NULL on error
  */
 static struct GNUNET_BIO_ReadHandle *
@@ -687,7 +687,7 @@ get_read_handle (struct GNUNET_FS_Handle *h, const char *ext, const char *ent)
  *
  * @param h master context
  * @param ext component of the path
- * @param ent entity identifier (or emtpy string for the directory)
+ * @param ent entity identifier (or empty string for the directory)
  * @return NULL on error
  */
 static struct GNUNET_BIO_WriteHandle *
@@ -712,7 +712,7 @@ get_write_handle (struct GNUNET_FS_Handle *h, const char *ext, const char *ent)
  * @param h master context
  * @param ext component of the path
  * @param uni name of parent
- * @param ent entity identifier (or emtpy string for the directory)
+ * @param ent entity identifier (or empty string for the directory)
  * @return NULL on error
  */
 static struct GNUNET_BIO_WriteHandle *
@@ -877,7 +877,7 @@ read_start_time (struct GNUNET_BIO_ReadHandle *rh,
  *
  * @param h master context
  * @param filename name of the file (without directory) with
- *        the infromation
+ *        the information
  * @return NULL on error
  */
 static struct GNUNET_FS_FileInformation *
@@ -890,7 +890,7 @@ deserialize_file_information (struct GNUNET_FS_Handle *h, const char *filename);
  *
  * @param h master context
  * @param fn name of the file (without directory) with
- *        the infromation
+ *        the information
  * @param rh handle for reading
  * @return NULL on error
  */
@@ -1152,7 +1152,7 @@ cleanup:
  *
  * @param h master context
  * @param filename name of the file (without directory) with
- *        the infromation
+ *        the information
  * @return NULL on error
  */
 static struct GNUNET_FS_FileInformation *
@@ -1230,7 +1230,7 @@ get_serialization_short_name (const char *fullname)
  *
  * @param h master context
  * @param ext component of the path
- * @return NULL on errror
+ * @return NULL on error
  */
 static char *
 make_serialization_file_name (struct GNUNET_FS_Handle *h, const char *ext)
@@ -1266,7 +1266,7 @@ make_serialization_file_name (struct GNUNET_FS_Handle *h, const char *ext)
  * @param h master context
  * @param ext component of the path
  * @param uni name of parent
- * @return NULL on errror
+ * @return NULL on error
  */
 static char *
 make_serialization_file_name_in_dir (struct GNUNET_FS_Handle *h,
@@ -2535,7 +2535,7 @@ static int
 deserialize_search_result (void *cls, const char *filename)
 {
   struct GNUNET_FS_SearchContext *sc = cls;
-  char *ser;
+  char *serialized;
   char *uris;
   char *emsg;
   char *download;
@@ -2544,19 +2544,19 @@ deserialize_search_result (void *cls, const char *filename)
   struct GNUNET_BIO_ReadHandle *drh;
   struct GNUNET_FS_SearchResult *sr;
 
-  ser = get_serialization_short_name (filename);
+  serialized = get_serialization_short_name (filename);
   rh = GNUNET_BIO_read_open_file (filename);
   if (NULL == rh)
   {
-    if (NULL != ser)
+    if (NULL != serialized)
     {
       remove_sync_file_in_dir (sc->h,
                                (NULL == sc->psearch_result)
                                ? GNUNET_FS_SYNC_PATH_MASTER_SEARCH
                                : GNUNET_FS_SYNC_PATH_CHILD_SEARCH,
                                sc->serialization,
-                               ser);
-      GNUNET_free (ser);
+                               serialized);
+      GNUNET_free (serialized);
     }
     return GNUNET_OK;
   }
@@ -2567,7 +2567,7 @@ deserialize_search_result (void *cls, const char *filename)
   sr = GNUNET_new (struct GNUNET_FS_SearchResult);
   sr->h = sc->h;
   sr->sc = sc;
-  sr->serialization = ser;
+  sr->serialization = serialized;
   if ((GNUNET_OK !=
        GNUNET_BIO_read_string (rh, "result-uri", &uris, 10 * 1024)) ||
       (NULL == (sr->uri = GNUNET_FS_uri_parse (uris, &emsg))) ||
@@ -2850,32 +2850,32 @@ static int
 deserialize_subdownload (void *cls, const char *filename)
 {
   struct GNUNET_FS_DownloadContext *parent = cls;
-  char *ser;
+  char *serialized;
   char *emsg;
   struct GNUNET_BIO_ReadHandle *rh;
 
-  ser = get_serialization_short_name (filename);
+  serialized = get_serialization_short_name (filename);
   rh = GNUNET_BIO_read_open_file (filename);
   if (NULL == rh)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
                 _ (
                   "Failed to resume sub-download `%s': could not open file `%s'\n"),
-                ser,
+                serialized,
                 filename);
-    GNUNET_free (ser);
+    GNUNET_free (serialized);
     return GNUNET_OK;
   }
-  deserialize_download (parent->h, rh, parent, NULL, ser);
+  deserialize_download (parent->h, rh, parent, NULL, serialized);
   if (GNUNET_OK != GNUNET_BIO_read_close (rh, &emsg))
   {
     GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
                 _ ("Failed to resume sub-download `%s': %s\n"),
-                ser,
+                serialized,
                 emsg);
     GNUNET_free (emsg);
   }
-  GNUNET_free (ser);
+  GNUNET_free (serialized);
   return GNUNET_OK;
 }
 
@@ -3146,7 +3146,7 @@ static int
 deserialize_search_file (void *cls, const char *filename)
 {
   struct GNUNET_FS_Handle *h = cls;
-  char *ser;
+  char *set;
   char *emsg;
   struct GNUNET_BIO_ReadHandle *rh;
   struct GNUNET_FS_SearchContext *sc;
@@ -3159,21 +3159,21 @@ deserialize_search_file (void *cls, const char *filename)
   }
   if (S_ISDIR (buf.st_mode))
     return GNUNET_OK; /* skip directories */
-  ser = get_serialization_short_name (filename);
+  set = get_serialization_short_name (filename);
   rh = GNUNET_BIO_read_open_file (filename);
   if (NULL == rh)
   {
-    if (NULL != ser)
+    if (NULL != set)
     {
-      GNUNET_FS_remove_sync_file_ (h, GNUNET_FS_SYNC_PATH_MASTER_SEARCH, ser);
-      GNUNET_free (ser);
+      GNUNET_FS_remove_sync_file_ (h, GNUNET_FS_SYNC_PATH_MASTER_SEARCH, set);
+      GNUNET_free (set);
     }
     return GNUNET_OK;
   }
-  sc = deserialize_search (h, rh, NULL, ser);
+  sc = deserialize_search (h, rh, NULL, set);
   if (NULL != sc)
     sc->top = GNUNET_FS_make_top (h, &GNUNET_FS_search_signal_suspend_, sc);
-  GNUNET_free (ser);
+  GNUNET_free (set);
   if (GNUNET_OK != GNUNET_BIO_read_close (rh, &emsg))
   {
     GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
@@ -3198,21 +3198,21 @@ static int
 deserialize_download_file (void *cls, const char *filename)
 {
   struct GNUNET_FS_Handle *h = cls;
-  char *ser;
+  char *set;
   char *emsg;
   struct GNUNET_BIO_ReadHandle *rh;
 
-  ser = get_serialization_short_name (filename);
+  set = get_serialization_short_name (filename);
   rh = GNUNET_BIO_read_open_file (filename);
   if (NULL == rh)
   {
     if (0 != unlink (filename))
       GNUNET_log_strerror_file (GNUNET_ERROR_TYPE_WARNING, "unlink", filename);
-    GNUNET_free (ser);
+    GNUNET_free (set);
     return GNUNET_OK;
   }
-  deserialize_download (h, rh, NULL, NULL, ser);
-  GNUNET_free (ser);
+  deserialize_download (h, rh, NULL, NULL, set);
+  GNUNET_free (set);
   if (GNUNET_OK != GNUNET_BIO_read_close (rh, &emsg))
   {
     GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
@@ -3226,7 +3226,7 @@ deserialize_download_file (void *cls, const char *filename)
 
 
 /**
- * Deserialize informatin about pending operations.
+ * Deserialize information about pending operations.
  *
  * @param master_path which master directory should be scanned
  * @param proc function to call for each entry (will get @a h for 'cls')

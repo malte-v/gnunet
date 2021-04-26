@@ -254,7 +254,7 @@ REGEX_INTERNAL_announce_cancel (struct REGEX_INTERNAL_Announcement *h)
 
 /**
  * Struct to keep state of running searches that have consumed a part of
- * the inital string.
+ * the initial string.
  */
 struct RegexSearchContext
 {
@@ -374,7 +374,7 @@ regex_next_edge (const struct RegexBlock *block,
  * @param exp When will this value expire.
  * @param key Key of the result.
  * @param get_path Path of the get request.
- * @param get_path_length Lenght of get_path.
+ * @param get_path_length Length of get_path.
  * @param put_path Path of the put request.
  * @param put_path_length Length of the put_path.
  * @param type Type of the result.
@@ -551,7 +551,7 @@ regex_result_iterator (void *cls,
  *
  * @param cls Closure (context of the search).
  * @param token Token that follows to next state.
- * @param len Lenght of token.
+ * @param len Length of token.
  * @param key Hash of next state.
  * @return #GNUNET_YES if should keep iterating, #GNUNET_NO otherwise.
  */
