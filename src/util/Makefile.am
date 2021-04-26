@@ -25,10 +25,8 @@ if ENABLE_BENCHMARK
   PTHREAD = -lpthread
 endif
 
-if HAVE_NOLIBGCRYPT19
-  DLOG = crypto_ecc_dlog.c
-  DLOG_TEST = test_crypto_ecc_dlog
-endif
+DLOG = crypto_ecc_dlog.c
+DLOG_TEST = test_crypto_ecc_dlog
 
 gnunet_config_diff_SOURCES = \
  gnunet-config-diff.c
@@ -259,11 +257,8 @@ if HAVE_BENCHMARKS
   perf_crypto_asymmetric \
   perf_malloc \
   perf_mq \
-  perf_scheduler
-
-if HAVE_NOLIBGCRYPT19
-  BENCHMARKS += perf_crypto_ecc_dlog
-endif
+  perf_scheduler \
+  perf_crypto_ecc_dlog
 endif
 
 if HAVE_SSH_KEY
@@ -456,14 +451,12 @@ test_crypto_eddsa_LDADD = \
  libgnunetutil.la \
  $(LIBGCRYPT_LIBS)
 
-if HAVE_NOLIBGCRYPT19
 test_crypto_ecc_dlog_SOURCES = \
  test_crypto_ecc_dlog.c
 test_crypto_ecc_dlog_LDADD = \
  -lsodium \
  libgnunetutil.la \
  $(LIBGCRYPT_LIBS)
-endif
 
 test_crypto_ecdhe_SOURCES = \
  test_crypto_ecdhe.c
@@ -606,13 +599,11 @@ perf_crypto_hash_SOURCES = \
 perf_crypto_hash_LDADD = \
  libgnunetutil.la
 
-if HAVE_NOLIBGCRYPT19
 perf_crypto_ecc_dlog_SOURCES = \
  perf_crypto_ecc_dlog.c
 perf_crypto_ecc_dlog_LDADD = \
  libgnunetutil.la \
  -lsodium
-endif
 
 perf_crypto_rsa_SOURCES = \
  perf_crypto_rsa.c
