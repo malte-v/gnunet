@@ -19,9 +19,9 @@
 # Process this file with autoconf to produce a configure script.
 #
 #
-AC_PREREQ(2.61)
+AC_PREREQ([2.71])
 # Checks for programs.
-AC_INIT([gnunet], [0.14.1], [bug-gnunet@gnu.org])
+AC_INIT([gnunet],[0.14.1],[bug-gnunet@gnu.org])
 AC_CONFIG_AUX_DIR([build-aux])
 
 # check for legacy option that is no longer supported (#5627) and fail hard
@@ -35,14 +35,13 @@ AC_ARG_WITH(nssdir,
 
 AC_CANONICAL_TARGET
 AC_CANONICAL_HOST
-AC_CANONICAL_SYSTEM
 AM_INIT_AUTOMAKE
 m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])], [AM_DEFAULT_VERBOSITY=1 AC_SUBST(AM_DEFAULT_VERBOSITY)])
 AC_CONFIG_HEADERS([gnunet_config.h])
 AH_TOP([#define _GNU_SOURCE  1])
 AC_CONFIG_MACRO_DIR([m4])
 AC_PROG_AWK
-AC_PROG_CC_C99
+AC_PROG_CC
 AC_PROG_OBJC
 AC_PROG_INSTALL
 AC_PROG_LN_S
@@ -416,16 +415,7 @@ gcrypt=0
 NEED_LIBGCRYPT_API=1
 NEED_LIBGCRYPT_VERSION=1.6.0
 
-# Check if we have libgcrypt >= 1.9. Some things do not work with it
-gcrypt19=0
-AM_PATH_LIBGCRYPT("$NEED_LIBGCRYPT_API:1.9.0",
-  [AC_MSG_WARN(["Some subsystems do not work with gcrypt >=1.9.0"])
-   gcrypt=1
-   gcrypt19=1],
-  [AM_PATH_LIBGCRYPT("$NEED_LIBGCRYPT_API:$NEED_LIBGCRYPT_VERSION", gcrypt=1)]
-)
-AM_CONDITIONAL(HAVE_NOLIBGCRYPT19,
-               [test "$gcrypt19" = 0])
+AM_PATH_LIBGCRYPT("$NEED_LIBGCRYPT_API:$NEED_LIBGCRYPT_VERSION", gcrypt=1)
 AC_CHECK_DECLS([gcry_mpi_set_opaque_copy], [], [], [[#include <gcrypt.h>]])
 
 AS_IF([test $gcrypt = 0],
@@ -1323,7 +1313,6 @@ LIBS=$SAVE_LIBS
 
 # Checks for standard header files.
 AC_HEADER_DIRENT
-AC_HEADER_STDC
 
 # Check for headers that are ALWAYS required
 AC_CHECK_HEADERS([fcntl.h math.h errno.h ctype.h limits.h stdio.h stdlib.h string.h unistd.h stdarg.h signal.h locale.h sys/stat.h sys/types.h],,AC_MSG_ERROR([Compiling GNUnet requires standard UNIX headers files: fcntl.h math.h errno.h ctype.h limits.h stdio.h stdlib.h string.h unistd.h stdarg.h signal.h locale.h sys/stat.h sys/types.h]))
@@ -1544,7 +1533,8 @@ AM_GNU_GETTEXT_VERSION([0.18.1])
 AC_TYPE_PID_T
 AC_TYPE_SIZE_T
 AC_TYPE_MODE_T
-AC_HEADER_TIME
+AC_CHECK_HEADERS_ONCE([sys/time.h])
+
 AC_HEADER_STAT
 AC_HEADER_STDBOOL
 AC_STRUCT_TM
@@ -1580,7 +1570,6 @@ AC_FUNC_MEMCMP
 AC_FUNC_SELECT_ARGTYPES
 AC_FUNC_CHOWN
 
-AC_TYPE_SIGNAL
 AC_FUNC_STAT
 AC_FUNC_STRFTIME
 AC_FUNC_VPRINTF
