@@ -19,7 +19,7 @@
 # Process this file with autoconf to produce a configure script.
 #
 #
-AC_PREREQ([2.71])
+AC_PREREQ([2.69])
 # Checks for programs.
 AC_INIT([gnunet],[0.14.1],[bug-gnunet@gnu.org])
 AC_CONFIG_AUX_DIR([build-aux])
