@@ -299,7 +299,8 @@ run (void *cls,
     }
     GNUNET_free (cfg_fn);
   }
-  GNUNET_CONFIGURATION_destroy (out);
+  if (NULL != out)
+    GNUNET_CONFIGURATION_destroy (out);
 }
 
 
