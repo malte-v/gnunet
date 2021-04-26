@@ -61,7 +61,7 @@ Build tools for compiling GNUnet from source:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 - gcc or clang
-- autoconf           >= 2.59        (building from git)
+- autoconf           >= 2.69        (building from git)
 - automake           >= 1.11.1      (building from git)
 - libtool            >= 2.2
 - makeinfo           >= 4.8
@@ -130,6 +130,9 @@ Dependencies of optional components/functionality:
 - Attribute-Based Encryption (experimental):
   * libpbc             >= 0.5.14
   * libgabe
+- PABC credential support
+  * libpabc            any            (for re:claimID zero-knowledge privacy
+                                      credentials)
 
 
 
