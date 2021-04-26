@@ -282,7 +282,7 @@ struct GNUNET_TESTBED_Barrier
   struct GNUNET_HashCode key;
 
   /**
-   * The controller handle given while initalising this barrier
+   * The controller handle given while initialising this barrier
    */
   struct GNUNET_TESTBED_Controller *c;
 
