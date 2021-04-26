@@ -1,5 +1,5 @@
 .\" This file is part of GNUnet.
-.\" Copyright (C) 2001-2019 GNUnet e.V.
+.\" Copyright (C) 2001-2021 GNUnet e.V.
 .\"
 .\" Permission is granted to copy, distribute and/or modify this document
 .\" under the terms of the GNU Free Documentation License, Version 1.3 or
@@ -39,7 +39,8 @@
 .Op Fl s Ar SECTION | Fl -section= Ns Ar SECTION
 .Op Fl V Ar VALUE | Fl -value Ar VALUE
 .Op Fl v | -version
-.Op Fl w | -rewrite
+.Op Fl r | -rewrite
+.Op Fl F | -full
 .Sh DESCRIPTION
 .Nm
 can be used to read or modify GNUnet configuration files.
@@ -69,8 +70,10 @@ Configuration value to store in the given section under the given option.
 Must only be given together with -s and -o options.
 .It Fl v | -version
 Print GNUnet version number.
-.It Fl w | -rewrite
-Write to file the full configuration, including default values, instead of just the differences.
+.It Fl r | -rewrite
+Write the configuration to file, even if it did not change.
+.It Fl F | -full
+Write the full configuration, not just the deltas to the defaults.
 .El
 .Sh SEE ALSO
 The full documentation for gnunet is maintained as a Texinfo manual.

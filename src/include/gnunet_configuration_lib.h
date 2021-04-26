@@ -177,11 +177,10 @@ GNUNET_CONFIGURATION_write (struct GNUNET_CONFIGURATION_Handle *cfg,
  * @return #GNUNET_OK on success, #GNUNET_SYSERR on error
  */
 enum GNUNET_GenericReturnValue
-GNUNET_CONFIGURATION_write_diffs (const struct
-                                  GNUNET_CONFIGURATION_Handle *cfg_default,
-                                  const struct
-                                  GNUNET_CONFIGURATION_Handle *cfg_new,
-                                  const char *filename);
+GNUNET_CONFIGURATION_write_diffs (
+  const struct GNUNET_CONFIGURATION_Handle *cfg_default,
+  const struct GNUNET_CONFIGURATION_Handle *cfg_new,
+  const char *filename);
 
 
 /**
@@ -192,10 +191,9 @@ GNUNET_CONFIGURATION_write_diffs (const struct
  * @return configuration with only the differences, never NULL
  */
 struct GNUNET_CONFIGURATION_Handle *
-GNUNET_CONFIGURATION_get_diff (const struct
-                               GNUNET_CONFIGURATION_Handle *cfg_default,
-                               const struct
-                               GNUNET_CONFIGURATION_Handle *cfg_new);
+GNUNET_CONFIGURATION_get_diff (
+  const struct GNUNET_CONFIGURATION_Handle *cfg_default,
+  const struct GNUNET_CONFIGURATION_Handle *cfg_new);
 
 
 /**
