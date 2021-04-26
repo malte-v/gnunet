@@ -228,6 +228,12 @@ test_testbed_api_operations_LDADD = \
  $(top_builddir)/src/util/libgnunetutil.la \
  libgnunettestbed.la
 
+test_testbed_api_hosts_SOURCES = \
+ test_testbed_api_hosts.c
+test_testbed_api_hosts_LDADD = \
+ $(top_builddir)/src/util/libgnunetutil.la \
+ libgnunettestbed.la
+
 test_testbed_api_controllerlink_SOURCES = \
  test_testbed_api_controllerlink.c
 test_testbed_api_controllerlink_LDADD = \
