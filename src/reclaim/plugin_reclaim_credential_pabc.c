@@ -228,50 +228,6 @@ pabc_parse_attributes_p (void *cls,
   return pabc_parse_attributes (cls, cred->data, cred->data_size);
 }
 
-struct Finder
-{
-  const char* target;
-  char *result;
-};
-
-static void
-find_attr (char const *const key,
-                char const *const value,
-                void *ctx)
-{
-  struct Finder *fdr = ctx;
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "Found `%s', looking for `%s'\n",
-              key, fdr->target);
-  if (0 == strcmp (key, fdr->target))
-    fdr->result = GNUNET_strdup (value);
-}
-
-
-
-/**
- * Parse a pabc and return an attribute value.
- *
- * @param cls the plugin
- * @param data the pabc credential data
- * @param data_size the pabc credential size
- * @param skey the attribute key to look for.
- * @return a string, containing the isser
- */
-char *
-pabc_get_attribute (void *cls,
-                    const char *data,
-                    size_t data_size,
-                    const char *skey)
-{
-
-  struct Finder fdr;
-  memset (&fdr, 0, sizeof (fdr));
-  fdr.target = skey;
-  pabc_cred_inspect_credential (data, &find_attr, &fdr);
-  return fdr.result;
-}
-
 
 /**
  * Parse a pabc and return the issuer
@@ -291,22 +247,6 @@ pabc_get_issuer (void *cls,
                                                        &res))
     return NULL;
   return res;
-}
-
-
-/**
- * Parse a pabc and return the issuer
- *
- * @param cls the plugin
- * @param cred the pabc credential
- * @return a string, containing the isser
- */
-char*
-pabc_get_issuer (void *cls,
-                 const char *data,
-                 size_t data_size)
-{
-  return pabc_get_attribute (cls, data, data_size, "issuer");
 }
 
 
@@ -351,27 +291,19 @@ pabc_get_issuer_p (void *cls,
  * @param cred the pabc credential
  * @return a string, containing the isser
  */
-int
+enum GNUNET_GenericReturnValue
 pabc_get_expiration (void *cls,
                      const char *data,
                      size_t data_size,
                      struct GNUNET_TIME_Absolute *exp)
 {
-  json_t *json_root;
-  json_t *json_attrs;
-  json_t *value;
-  json_t *exp_j;
-  json_error_t *json_err = NULL;
-  const char*key;
+  char *exp_str;
+  uint64_t exp_i;
 
-  json_root = json_loads (data, JSON_DECODE_ANY, json_err);
-  if ((NULL == json_root) ||
-      (! json_is_object (json_root)))
-  {
-    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                "Unable to retrive expiration from credential\n");
+  if (PABC_OK != pabc_cred_get_attr_by_name_from_cred (data,
+                                                       "expiration",
+                                                       &exp_str))
     return GNUNET_SYSERR;
-  }
 
   if (1 != sscanf (exp_str, "%llu", &exp_i))
   {
