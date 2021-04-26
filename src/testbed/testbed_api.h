@@ -156,7 +156,7 @@ struct OperationContext
   void *data;
 
   /**
-   * The id of the opearation
+   * The id of the operation
    */
   uint64_t id;
 
@@ -282,7 +282,7 @@ struct GNUNET_TESTBED_Barrier
   struct GNUNET_HashCode key;
 
   /**
-   * The controller handle given while initiliasing this barrier
+   * The controller handle given while initalising this barrier
    */
   struct GNUNET_TESTBED_Controller *c;
 

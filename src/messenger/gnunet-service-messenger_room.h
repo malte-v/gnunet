@@ -132,7 +132,7 @@ get_room_operation_store (struct GNUNET_MESSENGER_SrvRoom *room);
  *
  * Calling this method should result in joining a room and sending a peer message as well for this peer.
  *
- * If the function returns #GNUNET_YES the port for this room is guranteed to be open for incoming connections.
+ * If the function returns #GNUNET_YES the port for this room is guaranteed to be open for incoming connections.
  *
  * @param[in/out] room Room
  * @param[in/out] handle Handle
@@ -160,7 +160,7 @@ enter_room_at (struct GNUNET_MESSENGER_SrvRoom *room, struct GNUNET_MESSENGER_Sr
  * timestamp of the message, the sender id and the previous messages hash automatically before packing. The message
  * will be signed by the handles EGO.
  *
- * If the optional <i>hash</i> parameter is a valid pointer, its value will be overriden by the signed messages hash.
+ * If the optional <i>hash</i> parameter is a valid pointer, its value will be overridden by the signed messages hash.
  *
  * If <i>mode</i> is set to #GNUNET_MESSENGER_PACK_MODE_ENVELOPE, the function returns a valid envelope to send
  * through a message queue, otherwise NULL.

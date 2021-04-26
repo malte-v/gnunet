@@ -82,7 +82,7 @@ GSF_cadet_release_clients (void *cls,
 
 /**
  * Cancel an active request; must not be called after 'proc'
- * was calld.
+ * was called.
  *
  * @param sr request to cancel
  */

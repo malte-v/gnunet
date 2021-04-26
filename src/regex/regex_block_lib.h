@@ -58,7 +58,7 @@ struct REGEX_BLOCK_Edge
   const char *label;
 
   /**
-   * Destionation of the edge.
+   * Destination of the edge.
    */
   struct GNUNET_HashCode destination;
 };

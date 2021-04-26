@@ -23,7 +23,7 @@
  * @file nat/nat_stun.h
  * @brief Testcase for STUN library
  * @author Bruno Souza Cabral
- * @autor Mark Spencer (Original code borrowed from Asterisk)
+ * @author Mark Spencer (Original code borrowed from Asterisk)
  * @author Christian Grothoff
  */
 

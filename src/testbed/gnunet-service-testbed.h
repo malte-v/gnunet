@@ -488,7 +488,7 @@ extern char *GST_stats_dir;
  * @param ptr the array pointer to grow
  * @param size the size of array
  * @param accommodate_size the size which the array has to accommdate; after
- *          this call the array will be big enough to accommdate sizes upto
+ *          this call the array will be big enough to accommdate sizes up to
  *          accommodate_size
  */
 #define GST_array_grow_large_enough(ptr, size, accommodate_size) \
@@ -772,7 +772,7 @@ check_peer_reconfigure (void *cls,
 
 /**
  * Handler for #GNUNET_MESSAGE_TYPDE_TESTBED_RECONFIGURE_PEER type messages.
- * Should stop the peer asyncronously, destroy it and create it again with the
+ * Should stop the peer asynchronously, destroy it and create it again with the
  * new configuration.
  *
  * @param cls identification of the client

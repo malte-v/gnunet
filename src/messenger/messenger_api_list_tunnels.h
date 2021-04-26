@@ -75,7 +75,7 @@ add_to_list_tunnels (struct GNUNET_MESSENGER_ListTunnels *tunnels, const struct 
  *
  * If no matching element is found, NULL gets returned.
  *
- * If <i>index</i> is not NULL, <i>index</i> will be overriden with the numeric index of
+ * If <i>index</i> is not NULL, <i>index</i> will be overridden with the numeric index of
  * the found element in the list. If no matching element is found, <i>index</i> will
  * contain the total amount of elements in the list.
  *

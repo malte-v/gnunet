@@ -57,7 +57,7 @@
  *
  *    ATS specifies a fix set of networks an address can belong to. For each
  *    network an inbound and outbound quota will be specified. The available
- *    networks and addtional helper varaibles are defined in
+ *    networks and additional helper variables are defined in
  *    gnunet_ats_service.h. At the moment 5 networks are defined:
  *      * GNUNET_NT_UNSPECIFIED
  *      * GNUNET_NT_LOOPBACK
@@ -123,7 +123,7 @@
  *      * s_init: init the solver with required information
  *      * s_add: add a new address
  *      * s_update: update ATS values or session for an address
- *      * s_get: get prefered address for a peer
+ *      * s_get: get preferred address for a peer
  *      * s_del: delete an address
  *      * s_pref: change preference value for a peer
  *      * s_done: shutdown solver
@@ -180,7 +180,7 @@
  *    The address client issues a request address message to be notified about
  *    address suggestions for a specific peer. Addresses asks the solver with
  *    s_get. If no address is available, it will not send a response, otherwise
- *    it will respond with the choosen address.
+ *    it will respond with the chosen address.
  *
  *       1.7.5 Address suggestions
  *
@@ -213,7 +213,7 @@
  *     1.9 Changing peer preferences
  *
  *    The bandwidth assigned to a peer can be influenced by setting a preference
- *    for a peer. The prefernce will be given to to the solver with s_pref which
+ *    for a peer. The preference will be given to to the solver with s_pref which
  *    has to take care of the preference value
  */
 

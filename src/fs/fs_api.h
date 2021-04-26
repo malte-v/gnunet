@@ -35,7 +35,7 @@
 #include "fs.h"
 
 /**
- * Pick a multiple of 2 here to achive 8-byte alignment!  We also
+ * Pick a multiple of 2 here to achieve 8-byte alignment!  We also
  * probably want DBlocks to have (roughly) the same size as IBlocks.
  * With SHA-512, the optimal value is 32768 byte / 128 byte = 256 (128
  * byte = 2 * 512 bits).  DO NOT CHANGE!
@@ -1141,7 +1141,7 @@ struct GNUNET_FS_Handle
 
   /**
    * Average time we take for a single request to be satisfied.
-   * FIXME: not yet calcualted properly...
+   * FIXME: not yet calculated properly...
    */
   struct GNUNET_TIME_Relative avg_block_latency;
 

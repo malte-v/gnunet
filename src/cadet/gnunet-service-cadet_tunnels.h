@@ -101,7 +101,7 @@ GCT_2s (const struct CadetTunnel *t);
 
 
 /**
- * Create a tunnel to @a destionation.  Must only be called
+ * Create a tunnel to @a destination.  Must only be called
  * from within #GCP_get_tunnel().
  *
  * @param destination where to create the tunnel to
@@ -124,7 +124,7 @@ GCT_destroy_tunnel_now (struct CadetTunnel *t);
  * Add a @a connection to the @a tunnel.
  *
  * @param t a tunnel
- * @param cid connection identifer to use for the connection
+ * @param cid connection identifier to use for the connection
  * @param path path to use for the connection
  * @return #GNUNET_OK on success,
  *         #GNUNET_SYSERR on failure (duplicate connection)

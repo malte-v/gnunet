@@ -64,7 +64,7 @@
   GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_MINUTES, 1)
 
 /**
- * Similiar to GNUNET_TRANSPORT_NotifyDisconnect but in and out quotas are
+ * Similar to GNUNET_TRANSPORT_NotifyDisconnect but in and out quotas are
  * included here. These values are not required outside transport_api
  *
  * @param cls closure
@@ -428,7 +428,7 @@ struct ValidationIterateResponseMessage
 
   /**
    * Until when is the address believed to be valid.
-   * Will be ZERO if the address is not belived to be valid.
+   * Will be ZERO if the address is not believed to be valid.
    */
   struct GNUNET_TIME_AbsoluteNBO valid_until;
 
@@ -452,7 +452,7 @@ struct ValidationMonitorMessage
   struct GNUNET_MessageHeader header;
 
   /**
-   * One shot call or continous replies?
+   * One shot call or continuous replies?
    */
   uint32_t one_shot GNUNET_PACKED;
 
@@ -475,7 +475,7 @@ struct PeerMonitorMessage
   struct GNUNET_MessageHeader header;
 
   /**
-   * One shot call or continous replies?
+   * One shot call or continuous replies?
    */
   uint32_t one_shot GNUNET_PACKED;
 

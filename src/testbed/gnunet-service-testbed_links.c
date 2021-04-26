@@ -155,7 +155,7 @@ struct NeighbourConnectNotification
   /**
    * The notification callback to call when we are connect to neighbour
    */
-  GST_NeigbourConnectNotifyCallback cb;
+  GST_NeighbourConnectNotifyCallback cb;
 
   /**
    * The closure for the above callback
@@ -925,7 +925,7 @@ trigger_notifications (struct Neighbour *n)
 
 /**
  * Callback to be called when the neighbour connect operation is started.  The
- * connection to the neigbour is opened here and any pending notifications are
+ * connection to the neighbour is opened here and any pending notifications are
  * trigger.
  *
  * @param cls the neighbour
@@ -971,7 +971,7 @@ oprelease_neighbour_conn (void *cls)
 
 
 /**
- * Try to open a connection to the given neigbour.  If the connection is open
+ * Try to open a connection to the given neighbour.  If the connection is open
  * already, then it is re-used.  If not, the request is queued in the operation
  * queues responsible for bounding the total number of file descriptors.  The
  * actual connection will happen when the operation queue marks the
@@ -983,7 +983,7 @@ oprelease_neighbour_conn (void *cls)
  */
 struct NeighbourConnectNotification *
 GST_neighbour_get_connection (struct Neighbour *n,
-                              GST_NeigbourConnectNotifyCallback cb,
+                              GST_NeighbourConnectNotifyCallback cb,
                               void *cb_cls)
 {
   struct NeighbourConnectNotification *h;
@@ -1179,7 +1179,7 @@ neighbour_connect_cb (void *cls,
 
 
 /**
- * Function to create a neigbour and add it into the neighbour list
+ * Function to create a neighbour and add it into the neighbour list
  *
  * @param host the host of the neighbour
  */

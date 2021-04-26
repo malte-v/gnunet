@@ -112,7 +112,7 @@ change_handle_member_id (struct GNUNET_MESSENGER_SrvHandle *handle, const struct
  * Sets the EGO used by a given <i>handle</i>.
  *
  * @param[in/out] handle Handle
- * @param[in] ego EGO keypair
+ * @param[in] ego EGO key pair
  */
 void
 set_handle_ego (struct GNUNET_MESSENGER_SrvHandle *handle, const struct GNUNET_MESSENGER_Ego *ego);
@@ -121,7 +121,7 @@ set_handle_ego (struct GNUNET_MESSENGER_SrvHandle *handle, const struct GNUNET_M
  * Returns the EGO used by a given <i>handle</i>.
  *
  * @param[in] handle Handle
- * @return EGO keypair
+ * @return EGO key pair
  */
 const struct GNUNET_MESSENGER_Ego*
 get_handle_ego (const struct GNUNET_MESSENGER_SrvHandle *handle);
@@ -136,7 +136,7 @@ void
 setup_handle_name (struct GNUNET_MESSENGER_SrvHandle *handle, const char *name);
 
 /**
- * Tries to change the keypair of an EGO of a <i>handle</i> under the same name and informs all rooms
+ * Tries to change the key pair of an EGO of a <i>handle</i> under the same name and informs all rooms
  * about the change automatically.
  *
  * @param[in/out] handle Handle

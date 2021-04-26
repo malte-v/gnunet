@@ -197,7 +197,7 @@ struct GNUNET_TRANSPORT_TESTING_ConnectRequest
   struct GNUNET_SCHEDULER_Task *tct;
 
   /**
-   * Handle by which we ask ATS to faciliate the connection.
+   * Handle by which we ask ATS to facilitate the connection.
    */
   struct GNUNET_ATS_ConnectivitySuggestHandle *ats_sh;
 
@@ -358,7 +358,7 @@ GNUNET_TRANSPORT_TESTING_connect_peers (
 /**
  * Cancel the request to connect two peers.  You MUST cancel the
  * request if you stop the peers before the peers connected
- * succesfully.
+ * successfully.
  *
  * @param cc a connect request handle
  */
@@ -912,7 +912,7 @@ GNUNET_TRANSPORT_TESTING_get_test_plugin_name (const char *executable,
 
 /**
  * Extracts the filename from an absolute file name and removes the
- * extenstion
+ * extension
  *
  * @param file absolute file name
  * @return the source name

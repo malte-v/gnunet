@@ -37,7 +37,7 @@
 
 
 /**
- * Function called to notify tunnel about change in our readyness.
+ * Function called to notify tunnel about change in our readiness.
  *
  * @param cls closure
  * @param is_ready #GNUNET_YES if the connection is now ready for transmission,

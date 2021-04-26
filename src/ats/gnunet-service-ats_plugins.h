@@ -34,7 +34,7 @@
  * Initialize address subsystem. The addresses subsystem manages the addresses
  * known and current performance information. It has a solver component
  * responsible for the resource allocation. It tells the solver about changes
- * and receives updates when the solver changes the ressource allocation.
+ * and receives updates when the solver changes the resource allocation.
  *
  * @param cfg configuration to use
  * @return #GNUNET_OK on success, #GNUNET_SYSERR on error (failed to load

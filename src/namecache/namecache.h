@@ -94,7 +94,7 @@ struct LookupBlockResponseMessage
    */
   struct GNUNET_IDENTITY_PublicKey derived_key;
 
-  /* follwed by encrypted block data */
+  /* followed by encrypted block data */
 };
 
 
@@ -123,7 +123,7 @@ struct BlockCacheMessage
    */
   struct GNUNET_IDENTITY_PublicKey derived_key;
 
-  /* follwed by encrypted block data */
+  /* followed by encrypted block data */
 };
 
 

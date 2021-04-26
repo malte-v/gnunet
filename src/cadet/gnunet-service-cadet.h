@@ -181,7 +181,7 @@ struct CadetConnection;
 struct CadetRoute;
 
 /**
- * Logical end-to-end conenction between clients.  There can be
+ * Logical end-to-end connection between clients.  There can be
  * any number of channels between clients.
  */
 struct CadetChannel;

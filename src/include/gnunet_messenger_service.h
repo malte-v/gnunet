@@ -172,7 +172,7 @@ GNUNET_MESSENGER_name_of_kind (enum GNUNET_MESSENGER_MessageKind kind);
 
 /**
  * The header of a #GNUNET_MESSENGER_Message.
- * This allows authentification of the sender, temporal ordering and finding potentially missed messages.
+ * This allows authentication of the sender, temporal ordering and finding potentially missed messages.
  *
  * Message-header-size: 40+ bytes
  */

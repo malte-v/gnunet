@@ -129,13 +129,13 @@ struct NeighbourConnectNotification;
  * @param controller the controller handle to the neighbour
  */
 typedef void
-(*GST_NeigbourConnectNotifyCallback) (void *cls,
-                                      struct GNUNET_TESTBED_Controller *
-                                      controller);
+(*GST_NeighbourConnectNotifyCallback) (void *cls,
+                                       struct GNUNET_TESTBED_Controller *
+                                       controller);
 
 
 /**
- * Try to open a connection to the given neigbour.  If the connection is open
+ * Try to open a connection to the given neighbour.  If the connection is open
  * already, then it is re-used.  If not, the request is queued in the operation
  * queues responsible for bounding the total number of file descriptors.  The
  * actual connection will happen when the operation queue marks the
@@ -147,7 +147,7 @@ typedef void
  */
 struct NeighbourConnectNotification *
 GST_neighbour_get_connection (struct Neighbour *n,
-                              GST_NeigbourConnectNotifyCallback cb,
+                              GST_NeighbourConnectNotifyCallback cb,
                               void *cb_cls);
 
 
@@ -172,7 +172,7 @@ GST_neighbour_release_connection (struct Neighbour *n);
 
 
 /**
- * Function to create a neigbour and add it into the neighbour list
+ * Function to create a neighbour and add it into the neighbour list
  *
  * @param host the host of the neighbour
  */

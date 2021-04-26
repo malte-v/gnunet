@@ -203,7 +203,7 @@ struct REGEX_INTERNAL_State
   struct GNUNET_HashCode hash;
 
   /**
-   * Linear state ID accquired by depth-first-search. This ID should be used for
+   * Linear state ID acquired by depth-first-search. This ID should be used for
    * storing information about the state in an array, because the 'id' of the
    * state is not guaranteed to be linear. The 'dfs_id' is guaranteed to be > 0
    * and < 'state_count'.
@@ -329,7 +329,7 @@ REGEX_INTERNAL_construct_nfa (const char *regex, const size_t len);
 
 
 /**
- * Function that get's passed to automaton traversal and is called before each
+ * Function that gets passed to automaton traversal and is called before each
  * next traversal from state 's' using transition 't' to check if traversal
  * should proceed. Return GNUNET_NO to stop traversal or GNUNET_YES to continue.
  *

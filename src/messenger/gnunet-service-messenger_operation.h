@@ -102,7 +102,7 @@ save_operation (const struct GNUNET_MESSENGER_Operation *op, const char *path);
 /**
  * Starts an inactive operation with a given <i>delay</i> in a
  * specific operation <i>store</i>. The method will replace the
- * operations type to process it correctly. An opeation can't be
+ * operations type to process it correctly. An operation can't be
  * started twice, it has to be stopped or fully processed first.
  *
  * @param[in/out] op Operation

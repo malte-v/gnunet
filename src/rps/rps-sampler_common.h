@@ -363,7 +363,7 @@ RPS_sampler_count_id (struct RPS_Sampler *sampler,
 
 
 /**
- * Cancle a request issued through #RPS_sampler_n_rand_peers_ready_cb.
+ * Cancel a request issued through #RPS_sampler_n_rand_peers_ready_cb.
  *
  * @param req_handle the handle to the request
  */
@@ -372,7 +372,7 @@ RPS_sampler_request_cancel (struct RPS_SamplerRequestHandle *req_handle);
 
 
 /**
- * Cancle a request issued through #RPS_sampler_n_rand_peers_ready_cb.
+ * Cancel a request issued through #RPS_sampler_n_rand_peers_ready_cb.
  *
  * @param req_handle the handle to the request
  */

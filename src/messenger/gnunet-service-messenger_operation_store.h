@@ -79,7 +79,7 @@ save_operation_store (const struct GNUNET_MESSENGER_OperationStore *store,
                       const char *directory);
 
 /**
- * Retruns the type of the active operation under a given <i>hash</i> in
+ * Returns the type of the active operation under a given <i>hash</i> in
  * a specific operation <i>store</i>. If there is no active operation under
  * the given <i>hash</i>, #GNUNET_MESSENGER_OP_UNKNOWN gets returned instead.
  *

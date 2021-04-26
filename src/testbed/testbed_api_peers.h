@@ -247,7 +247,7 @@ struct OverlayConnectData
 
   /**
    * OperationContext for forwarded operations generated when peer1's controller doesn't have the
-   * configuration of peer2's controller for linking laterally to attemp an
+   * configuration of peer2's controller for linking laterally to attempt an
    * overlay connection between peer 1 and peer 2.
    */
   struct OperationContext *sub_opc;

@@ -122,7 +122,7 @@ struct GNUNET_SECRETSHARING_DecryptData
    */
   struct GNUNET_SECRETSHARING_FieldElement nizk_commit2;
   /**
-   * Reponse to the challenge computed from the protocol transcript.
+   * Response to the challenge computed from the protocol transcript.
    * r = \beta + challenge \cdot share_i
    */
   struct GNUNET_SECRETSHARING_FieldElement nizk_response;
@@ -133,7 +133,7 @@ struct GNUNET_SECRETSHARING_FairEncryption
 {
   struct GNUNET_CRYPTO_PaillierCiphertext c;
   /**
-   * h = g^x, where x is the fairly encrypte secret.
+   * h = g^x, where x is the fairly encrypted secret.
    */
   char h[GNUNET_SECRETSHARING_ELGAMAL_BITS / 8];
   char t1[GNUNET_SECRETSHARING_ELGAMAL_BITS / 8];

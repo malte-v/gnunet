@@ -34,7 +34,7 @@
 
 /**
  * A channel is a bidirectional connection between two CADET
- * clients.  Communiation can be reliable, unreliable, in-order
+ * clients.  Communication can be reliable, unreliable, in-order
  * or out-of-order.  One client is the "local" client, this
  * one initiated the connection.   The other client is the
  * "incoming" client, this one listened on a port to accept

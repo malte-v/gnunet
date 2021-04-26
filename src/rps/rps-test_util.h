@@ -20,7 +20,7 @@
 
 /**
  * @file rps/rps-test_util.h
- * @brief Some utils faciliating the view into the internals for the sampler
+ * @brief Some utils facilitating the view into the internals for the sampler
  *        needed for evaluation
  * @author Julius Bünger
  */

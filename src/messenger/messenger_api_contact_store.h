@@ -79,7 +79,7 @@ get_store_contact_raw (struct GNUNET_MESSENGER_ContactStore *store, const struct
  * In case there is no contact stored which uses the given key or context,
  * a new contact will be created automatically.
  *
- * The function returns NULL if an error occures during allocation
+ * The function returns NULL if an error occurs during allocation
  * or validation of the contacts key.
  *
  * @param[in/out] store Contact store

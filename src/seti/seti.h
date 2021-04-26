@@ -212,7 +212,7 @@ struct GNUNET_SETI_ResultMessage
   uint16_t result_status GNUNET_PACKED;
 
   /**
-   * Type of the element attachted to the message, if any.
+   * Type of the element attached to the message, if any.
    */
   uint16_t element_type GNUNET_PACKED;
 

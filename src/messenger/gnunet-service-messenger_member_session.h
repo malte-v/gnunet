@@ -188,7 +188,7 @@ const struct GNUNET_HashCode*
 get_member_session_context (const struct GNUNET_MESSENGER_MemberSession* session);
 
 /**
- * Retruns the contact which is connected to a given member <i>session</i>.
+ * Returns the contact which is connected to a given member <i>session</i>.
  *
  * @param[in] session Member session
  * @return Contact

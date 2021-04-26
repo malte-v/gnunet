@@ -98,7 +98,7 @@ struct GNUNET_RPS_CS_ActMaliciousMessage
   /**
    * Type of malicious behaviour.
    *
-   * 0 No malicious bahaviour at all
+   * 0 No malicious behaviour at all
    * 1 Try to maximise representation
    * 2 Try to partition the network
    */

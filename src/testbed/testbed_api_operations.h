@@ -163,7 +163,7 @@ typedef void (*OperationStart) (void *cls);
  * "GNUNET_TESTBED_operation_cancel" (before the operation generated
  * an event) or AFTER the operation generated an event due to a call
  * to "GNUNET_TESTBED_operation_done".  Thus it is not guaranteed that
- * a callback to the 'OperationStart' preceeds the call to
+ * a callback to the 'OperationStart' precedes the call to
  * 'OperationRelease'.  Implementations of this function are expected
  * to clean up whatever state is in 'cls' and release all resources
  * associated with the operation.
@@ -210,7 +210,7 @@ GNUNET_TESTBED_operation_inactivate_ (struct GNUNET_TESTBED_Operation *op);
 
 
 /**
- * Marks and inactive operation as active.  This fuction should be called to
+ * Marks and inactive operation as active.  This function should be called to
  * ensure that the oprelease callback will not be called until it is either
  * marked as inactive or released.
  *

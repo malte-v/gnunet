@@ -48,7 +48,7 @@ struct GNUNET_TESTBED_HostRegistrationHandle
   struct GNUNET_TESTBED_Controller *c;
 
   /**
-   * The Registartion completion callback
+   * The Registration completion callback
    */
   GNUNET_TESTBED_HostRegistrationCompletion cc;
 

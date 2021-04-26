@@ -124,13 +124,13 @@ struct GNUNET_ARM_ServiceInfoMessage
   uint32_t status;
 
   /**
-   * Time when the sevice will be restarted, if applicable
+   * Time when the service will be restarted, if applicable
    * to the current status.
    */
   struct GNUNET_TIME_AbsoluteNBO restart_at;
 
   /**
-   * Time when the sevice was first started, if applicable.
+   * Time when the service was first started, if applicable.
    */
   struct GNUNET_TIME_AbsoluteNBO last_started_at;
 };

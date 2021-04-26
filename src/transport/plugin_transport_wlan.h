@@ -109,7 +109,7 @@ struct GNUNET_TRANSPORT_WLAN_Ieee80211Frame
 {
   /**
    * 802.11 Frame Control field.  A bitmask.  The overall field is a
-   * 16-bit mask of the respecitve fields.  The lowest two bits should
+   * 16-bit mask of the respective fields.  The lowest two bits should
    * be 0, then comes the "type" (2 bits, see IEEE80211_FC0_TYPE_*
    * constants), followed by 4-bit subtype (all zeros for ad-hoc),
    * followed by various flags (to DS, from DS, more frag, retry,

@@ -125,7 +125,7 @@ RPS_sampler_get_n_rand_peers (struct RPS_Sampler *sampler,
                               void *cls);
 
 /**
- * Cancle a request issued through #RPS_sampler_n_rand_peers_ready_cb.
+ * Cancel a request issued through #RPS_sampler_n_rand_peers_ready_cb.
  *
  * @param req_handle the handle to the request
  */
@@ -136,9 +136,8 @@ RPS_sampler_request_cancel (struct RPS_SamplerRequestHandle *req_handle);
 /**
  * Counts how many Samplers currently hold a given PeerID.
  *
- * @param sampler the sampler to cound ids in.
+ * @param sampler the sampler to count ids in.
  * @param id the PeerID to count.
- *
  * @return the number of occurrences of id.
  */
 uint32_t

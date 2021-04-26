@@ -28,7 +28,7 @@
 #define GNUNET_SERVER_TESTBED_BARRIERS_H_
 
 /**
- * Function to initialise barrriers component
+ * Function to initialise barriers component
  *
  * @param cfg the configuration to use for initialisation
  */

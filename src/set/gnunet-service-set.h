@@ -135,7 +135,7 @@ typedef struct OperationState *
                    const struct GNUNET_MessageHeader *opaque_context);
 
 /**
- * Signature of functions that implement operation cancelation.
+ * Signature of functions that implement operation cancellation.
  * This includes notifying the client about the operation's final
  * state.
  *

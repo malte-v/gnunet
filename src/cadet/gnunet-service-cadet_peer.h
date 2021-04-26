@@ -43,7 +43,7 @@ GCP_2s (const struct CadetPeer *peer);
 
 
 /**
- * Retrieve the CadetPeer stucture associated with the
+ * Retrieve the CadetPeer structure associated with the
  * peer. Optionally create one and insert it in the appropriate
  * structures if the peer is not known yet.
  *

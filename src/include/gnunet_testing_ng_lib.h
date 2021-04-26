@@ -161,7 +161,7 @@ struct GNUNET_TESTING_Command
 
   /**
    * How often did we try to execute this command? (In case it is a request
-   * that is repated.)  Note that a command must have some build-in retry
+   * that is repated.)  Note that a command must have some built-in retry
    * mechanism for this value to be useful.
    */
   unsigned int num_tries;

@@ -116,7 +116,7 @@ struct GNUNET_TRANSPORT_CommunicatorGenericFCLimits
   uint64_t bytes_window_size;
 
   /**
-   * Cummulative acknowledgement for number of bytes received.
+   * Cumulative acknowledgement for number of bytes received.
    */
   uint64_t bytes_cummulative_ack;
 

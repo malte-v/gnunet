@@ -207,7 +207,7 @@ typedef void
  * @param bf_size number of bytes in bf_data
  * @param mingle mingle value for bf
  * @param anonymity_level desired anonymity level
- * @param priority maximum outgoing cummulative request priority to use
+ * @param priority maximum outgoing cumulative request priority to use
  * @param ttl current time-to-live for the request
  * @param sender_pid peer ID to use for the sender when forwarding, 0 for none;
  *                   reference counter is taken over by this function

@@ -503,7 +503,7 @@ GNUNET_DISK_pipe_handle (const struct GNUNET_DISK_PipeHandle *p,
 
 
 /**
- * Update POSIX permissions mask of a file on disk.  If both argumets
+ * Update POSIX permissions mask of a file on disk.  If both arguments
  * are #GNUNET_NO, the file is made world-read-write-executable (777).
  * Does nothing on W32.
  *

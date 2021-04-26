@@ -60,7 +60,7 @@ struct REGEX_INTERNAL_Automaton;
  * @param len length of the regular expression.
  * @param max_path_len limit the path compression length to the
  *        given value. If set to 1, no path compression is applied. Set to 0 for
- *        maximal possible path compression (generally not desireable).
+ *        maximal possible path compression (generally not desirable).
  * @return DFA, needs to be freed using #REGEX_INTERNAL_automaton_destroy().
  */
 struct REGEX_INTERNAL_Automaton *

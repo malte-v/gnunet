@@ -161,7 +161,7 @@ get_benchmark_data (void);
 
 /**
  * Get benchmark data for a URL.  If the URL is too long, it's truncated
- * before looking up the correspoding benchmark data.
+ * before looking up the corresponding benchmark data.
  *
  * Statistics are bucketed by URL and status code.
  *

@@ -248,7 +248,7 @@ enum ieee80211_radiotap_type
 #define IEEE80211_RADIOTAP_F_TX_RTS     0x0004  /* used rts/cts handshake */
 
 /* Ugly macro to convert literal channel numbers into their mhz equivalents
- * There are certianly some conditions that will break this (like feeding it '30')
+ * There are certainly some conditions that will break this (like feeding it '30')
  * but they shouldn't arise since nothing talks on channel 30. */
 #define ieee80211chan2mhz(x) \
   (((x) <= 14) ? \

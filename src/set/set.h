@@ -265,7 +265,7 @@ struct GNUNET_SET_ResultMessage
   uint16_t result_status GNUNET_PACKED;
 
   /**
-   * Type of the element attachted to the message, if any.
+   * Type of the element attached to the message, if any.
    */
   uint16_t element_type GNUNET_PACKED;
 
@@ -329,13 +329,13 @@ struct GNUNET_SET_IterResponseMessage
   struct GNUNET_MessageHeader header;
 
   /**
-   * To which set iteration does this reponse belong to?  First
+   * To which set iteration does this response belong to?  First
    * iteration (per client) has counter zero. Wraps around.
    */
   uint16_t iteration_id GNUNET_PACKED;
 
   /**
-   * Type of the element attachted to the message,
+   * Type of the element attached to the message,
    * if any.
    */
   uint16_t element_type GNUNET_PACKED;

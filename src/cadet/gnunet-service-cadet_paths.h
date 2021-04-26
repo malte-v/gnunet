@@ -37,7 +37,7 @@
  * if applicable.
  *
  * @param get_path path of the get request
- * @param get_path_length lenght of @a get_path
+ * @param get_path_length length of @a get_path
  * @param put_path path of the put request
  * @param put_path_length length of the @a put_path
  */
@@ -130,7 +130,7 @@ GCPP_find_peer (struct CadetPeerPath *path,
 /**
  * Return how much we like keeping the path.  This is an aggregate
  * score based on various factors, including the age of the path
- * (older == better), and the value of this path to all of its ajacent
+ * (older == better), and the value of this path to all of its adjacent
  * peers.  For example, long paths that end at a peer that we have no
  * shorter way to reach are very desirable, while long paths that end
  * at a peer for which we have a shorter way as well are much less

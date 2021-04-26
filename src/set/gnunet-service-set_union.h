@@ -154,7 +154,7 @@ handle_union_p2p_inquiry (void *cls,
 /**
  * Handle a request for full set transmission.
  *
- * @parem cls closure, a set union operation
+ * @param cls closure, a set union operation
  * @param mh the demand message
  */
 void
@@ -165,7 +165,7 @@ handle_union_p2p_request_full (void *cls,
 /**
  * Handle a "full done" message.
  *
- * @parem cls closure, a set union operation
+ * @param cls closure, a set union operation
  * @param mh the demand message
  */
 void
@@ -177,7 +177,7 @@ handle_union_p2p_full_done (void *cls,
  * Check a demand by the other peer for elements based on a list
  * of `struct GNUNET_HashCode`s.
  *
- * @parem cls closure, a set union operation
+ * @param cls closure, a set union operation
  * @param mh the demand message
  * @return #GNUNET_OK if @a mh is well-formed
  */
@@ -190,7 +190,7 @@ check_union_p2p_demand (void *cls,
  * Handle a demand by the other peer for elements based on a list
  * of `struct GNUNET_HashCode`s.
  *
- * @parem cls closure, a set union operation
+ * @param cls closure, a set union operation
  * @param mh the demand message
  */
 void
