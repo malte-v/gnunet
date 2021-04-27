@@ -58,7 +58,7 @@ END_ATTR="end"
 
 gnunet-identity -d
 
-# FORWARD, subject side stored (different constallations)
+# FORWARD, subject side stored (different constellations)
 SIGNED=`$DO_TIMEOUT gnunet-abd --signSubjectSide --ego=a --attribute="a" --subject="$AKEY b.c" --ttl="2019-12-12 10:00:00"`
 gnunet-abd --createSubjectSide --ego=a --import="$SIGNED"
 gnunet-namestore -D -z a
@@ -137,4 +137,3 @@ else
   echo "FAIL: Failed to verify credential."
   exit 1
 fi
-

@@ -65,7 +65,7 @@ III. Concerns (of team members)
 (if there are concerns of team members, write them down here to later
 review)
 
-I disagree that "bugs tend to accumulate until they are not managable".
+I disagree that "bugs tend to accumulate until they are not manageable".
 The real issue is that neither writing testcases nor fixing bugs are
 fun tasks volunteers like to do. As you write yourself: you want a
 sense of achievement, recognition, "new features".  So as long as that

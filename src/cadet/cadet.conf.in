@@ -19,7 +19,7 @@ REFRESH_CONNECTION_TIME = 5 min
 # Percentage of packets CADET is artificially dropping. Used for testing only!
 # DROP_PERCENT =
 
-# How frequently do we usually anounce our presence in the DHT?
+# How frequently do we usually announce our presence in the DHT?
 ID_ANNOUNCE_TIME = 1 h
 
 # FIXME: document

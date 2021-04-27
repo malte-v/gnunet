@@ -12,7 +12,7 @@ PORT = 12366
 [test-barriers]
 START_ON_DEMAND = NO
 PORT = 12114
-BINARY = /will/be/overwriten/in/test_testbed_api_barriers/
+BINARY = /will/be/overwritten/in/test_testbed_api_barriers/
 IMMEDIATE_START = YES
 
 [fs]

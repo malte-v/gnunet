@@ -27,7 +27,7 @@ FILENAME_VALID_PEERS = $GNUNET_DATA_HOME/rps/valid_peers.txt
 # So, 50 is enough for a network of size 50^3 = 125000
 MINSIZE = 10
 
-# The probability whith which we want a sampler element to have observed all
+# The probability with which we want a sampler element to have observed all
 # peer ids in the network at least
 DESIRED_PROBABILITY = 0.9
 

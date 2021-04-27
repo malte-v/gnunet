@@ -2,11 +2,11 @@
 # Owen Taylor     1997-2001
 
 dnl AM_PATH_GLIB_2_0([MINIMUM-VERSION, [ACTION-IF-FOUND [, ACTION-IF-NOT-FOUND [, MODULES]]]])
-dnl Test for GLIB, and define GLIB_CFLAGS and GLIB_LIBS, if gmodule, gobject or 
+dnl Test for GLIB, and define GLIB_CFLAGS and GLIB_LIBS, if gmodule, gobject or
 dnl gthread is specified in MODULES, pass to pkg-config
 dnl
 AC_DEFUN([AM_PATH_GLIB_2_0],
-[dnl 
+[dnl
 dnl Get the cflags and libraries from pkg-config
 dnl
 AC_ARG_ENABLE(glibtest, [  --disable-glibtest      do not try to compile and run a test GLIB program],
@@ -16,13 +16,13 @@ AC_ARG_ENABLE(glibtest, [  --disable-glibtest      do not try to compile and run
   for module in . $4
   do
       case "$module" in
-         gmodule) 
+         gmodule)
              pkg_config_args="$pkg_config_args gmodule-2.0"
          ;;
-         gobject) 
+         gobject)
              pkg_config_args="$pkg_config_args gobject-2.0"
          ;;
-         gthread) 
+         gthread)
              pkg_config_args="$pkg_config_args gthread-2.0"
          ;;
       esac
@@ -89,7 +89,7 @@ dnl
 #include <stdio.h>
 #include <stdlib.h>
 
-int 
+int
 main ()
 {
   int major, minor, micro;
@@ -108,17 +108,17 @@ main ()
       (glib_minor_version != $glib_config_minor_version) ||
       (glib_micro_version != $glib_config_micro_version))
     {
-      printf("\n*** 'pkg-config --modversion glib-2.0' returned %d.%d.%d, but GLIB (%d.%d.%d)\n", 
+      printf("\n*** 'pkg-config --modversion glib-2.0' returned %d.%d.%d, but GLIB (%d.%d.%d)\n",
              $glib_config_major_version, $glib_config_minor_version, $glib_config_micro_version,
              glib_major_version, glib_minor_version, glib_micro_version);
       printf ("*** was found! If pkg-config was correct, then it is best\n");
       printf ("*** to remove the old version of GLib. You may also be able to fix the error\n");
-      printf("*** by modifying your LD_LIBRARY_PATH enviroment variable, or by editing\n");
+      printf("*** by modifying your LD_LIBRARY_PATH environment variable, or by editing\n");
       printf("*** /etc/ld.so.conf. Make sure you have run ldconfig if that is\n");
       printf("*** required on your system.\n");
       printf("*** If pkg-config was wrong, set the environment variable PKG_CONFIG_PATH\n");
       printf("*** to point to the correct configuration files\n");
-    } 
+    }
   else if ((glib_major_version != GLIB_MAJOR_VERSION) ||
 	   (glib_minor_version != GLIB_MINOR_VERSION) ||
            (glib_micro_version != GLIB_MICRO_VERSION))
@@ -149,7 +149,7 @@ main ()
         printf("*** being found. The easiest way to fix this is to remove the old version\n");
         printf("*** of GLIB, but you can also set the PKG_CONFIG environment to point to the\n");
         printf("*** correct copy of pkg-config. (In this case, you will have to\n");
-        printf("*** modify your LD_LIBRARY_PATH enviroment variable, or edit /etc/ld.so.conf\n");
+        printf("*** modify your LD_LIBRARY_PATH environment variable, or edit /etc/ld.so.conf\n");
         printf("*** so that the correct libraries are found at run-time))\n");
       }
     }
@@ -162,7 +162,7 @@ main ()
   fi
   if test "x$no_glib" = x ; then
      AC_MSG_RESULT(yes (version $glib_config_major_version.$glib_config_minor_version.$glib_config_micro_version))
-     ifelse([$2], , :, [$2])     
+     ifelse([$2], , :, [$2])
   else
      AC_MSG_RESULT(no)
      if test "$PKG_CONFIG" = "no" ; then
@@ -191,7 +191,7 @@ main ()
           echo "*** If you have an old version installed, it is best to remove it, although"
           echo "*** you may also be able to get things to work by modifying LD_LIBRARY_PATH" ],
         [ echo "*** The test program failed to compile or link. See the file config.log for the"
-          echo "*** exact error that occured. This usually means GLIB is incorrectly installed."])
+          echo "*** exact error that occurred. This usually means GLIB is incorrectly installed."])
           CFLAGS="$ac_save_CFLAGS"
           LIBS="$ac_save_LIBS"
        fi

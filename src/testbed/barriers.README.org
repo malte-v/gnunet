@@ -11,7 +11,7 @@ the barrier.  A barrier which is reached is deemed as crossed after all the
 peers waiting on it are notified.
 
 The barriers API provides the following functions:
-1) GNUNET_TESTBED_barrier_init(): function to initialse a barrier in the
+1) GNUNET_TESTBED_barrier_init(): function to initialise a barrier in the
    experiment
 2) GNUNET_TESTBED_barrier_cancel(): function to cancel a barrier which has been
    initialised before

@@ -162,7 +162,7 @@ main()
   The FreeType test program failed to run.  If your system uses
   shared libraries and they are installed outside the normal
   system library path, make sure the variable LD_LIBRARY_PATH
-  (or whatever is appropiate for your system) is correctly set.
+  (or whatever is appropriate for your system) is correctly set.
          ])
        fi
      fi

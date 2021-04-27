@@ -41,10 +41,10 @@ cn = "GNS Proxy CA"
 # An alternative way to set the certificate's distinguished name directly
 # is with the "dn" option. The attribute names allowed are:
 # C (country), street, O (organization), OU (unit), title, CN (common name),
-# L (locality), ST (state), placeOfBirth, gender, countryOfCitizenship, 
-# countryOfResidence, serialNumber, telephoneNumber, surName, initials, 
-# generationQualifier, givenName, pseudonym, dnQualifier, postalCode, name, 
-# businessCategory, DC, UID, jurisdictionOfIncorporationLocalityName, 
+# L (locality), ST (state), placeOfBirth, gender, countryOfCitizenship,
+# countryOfResidence, serialNumber, telephoneNumber, surName, initials,
+# generationQualifier, givenName, pseudonym, dnQualifier, postalCode, name,
+# businessCategory, DC, UID, jurisdictionOfIncorporationLocalityName,
 # jurisdictionOfIncorporationStateOrProvinceName,
 # jurisdictionOfIncorporationCountryName, XmppAddr, and numeric OIDs.
 
@@ -59,7 +59,7 @@ cn = "GNS Proxy CA"
 # Use -1 if there is no expiration date.
 expiration_days = 3650
 
-# Alternatively you may set concrete dates and time. The GNU date string 
+# Alternatively you may set concrete dates and time. The GNU date string
 # formats are accepted. See:
 # https://www.gnu.org/software/tar/manual/html_node/Date-input-formats.html
 
@@ -226,7 +226,7 @@ tls_www_server
 #honor_crq_ext = 2.5.29.17
 #honor_crq_ext = 2.5.29.15
 
-# Path length contraint. Sets the maximum number of
+# Path length constraint. Sets the maximum number of
 # certificates that can be used to certify this certificate.
 # (i.e. the certificate chain length)
 #path_len = -1

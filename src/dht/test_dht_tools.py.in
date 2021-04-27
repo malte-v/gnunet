@@ -72,10 +72,10 @@ def fail(result):
     cleanup(1)
 
 
-def r_something(to_run, extra_args, failer=None, normal=True, **kw):
+def r_something(to_run, extra_args, failure=None, normal=True, **kw):
     rc, stdo, stde = sub_run(to_run + extra_args, nofail=True, **kw)
-    if failer is not None:
-        failer(to_run + extra_args, rc, stdo, stde, normal)
+    if failure is not None:
+        failure(to_run + extra_args, rc, stdo, stde, normal)
     return (rc, stdo, stde)
 
 
@@ -91,7 +91,7 @@ def r_put(extra_args, **kw):
     return r_something(run_put, extra_args, **kw)
 
 
-def end_arm_failer(command, rc, stdo, stde, normal):
+def end_arm_failure(command, rc, stdo, stde, normal):
     if normal:
         if rc != 0:
             fail(
@@ -107,7 +107,7 @@ def end_arm_failer(command, rc, stdo, stde, normal):
             )
 
 
-def print_only_failer(command, rc, stdo, stde, normal):
+def print_only_failure(command, rc, stdo, stde, normal):
     if normal:
         if rc != 0:
             print(
@@ -126,19 +126,19 @@ def print_only_failer(command, rc, stdo, stde, normal):
 
 
 print("TEST: Starting ARM...", end='')
-r_arm(['-s'], failer=end_arm_failer, want_stdo=False, want_stde=False)
+r_arm(['-s'], failure=end_arm_failure, want_stdo=False, want_stde=False)
 print("PASS")
 time.sleep(1)
 
 print("TEST: Testing put...", end='')
-r_put(['-k', 'testkey', '-d', 'testdata', '-t', '8'], failer=end_arm_failer)
+r_put(['-k', 'testkey', '-d', 'testdata', '-t', '8'], failure=end_arm_failure)
 print("PASS")
 time.sleep(1)
 
 print("TEST: Testing get...", end='')
 rc, stdo, stde = r_get(['-k', 'testkey', '-T', '50 ms', '-t', '8'],
                        want_stdo=True,
-                       failer=end_arm_failer)
+                       failure=end_arm_failure)
 stdo = stdo.decode('utf-8').replace('\r', '').splitlines()
 expect = "Result 0, type 8:\ntestdata".splitlines()
 if len(stdo) != 2 or len(expect
@@ -146,4 +146,4 @@ if len(stdo) != 2 or len(expect
     fail("output `{}' differs from expected `{}'".format(stdo, expect))
 print("PASS")
 
-r_arm(['-e', '-d'], failer=print_only_failer)
+r_arm(['-e', '-d'], failure=print_only_failure)

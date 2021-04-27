@@ -53,7 +53,7 @@ def fail(result):
     sys.exit(1)
 
 
-def end_arm_failer(command, rc, stdo, stde, normal):
+def end_arm_failure(command, rc, stdo, stde, normal):
     if normal:
         if rc != 0:
             fail(
@@ -69,7 +69,7 @@ def end_arm_failer(command, rc, stdo, stde, normal):
             )
 
 
-def print_only_failer(command, rc, stdo, stde, normal):
+def print_only_failure(command, rc, stdo, stde, normal):
     if normal:
         if rc != 0:
             print(
@@ -87,12 +87,12 @@ def print_only_failer(command, rc, stdo, stde, normal):
             sys.exit(1)
 
 
-def r_something(to_run, extra_args, failer=None, normal=True, **kw):
+def r_something(to_run, extra_args, failure=None, normal=True, **kw):
     rc, stdo, stde = sub_run(
         to_run + extra_args, nofail=True, want_stde=True, **kw
     )
-    if failer is not None:
-        failer(to_run + extra_args, rc, stdo, stde, normal)
+    if failure is not None:
+        failure(to_run + extra_args, rc, stdo, stde, normal)
     return (rc, stdo, stde)
 
 
@@ -103,26 +103,26 @@ def r_arm(extra_args, **kw):
 cleanup()
 
 print("TEST: Bad argument checking...", end='')
-r_arm(['-x'], normal=False, failer=print_only_failer)
+r_arm(['-x'], normal=False, failure=print_only_failure)
 print("PASS")
 
 print("TEST: Start ARM...", end='')
-r_arm(['-s'], failer=print_only_failer)
+r_arm(['-s'], failure=print_only_failure)
 time.sleep(1)
 print("PASS")
 
 print("TEST: Start another service...", end='')
-r_arm(['-i', 'resolver'], failer=end_arm_failer)
+r_arm(['-i', 'resolver'], failure=end_arm_failure)
 time.sleep(1)
 print("PASS")
 
 print("TEST: Stop a service...", end='')
-r_arm(['-k', 'resolver'], failer=end_arm_failer)
+r_arm(['-k', 'resolver'], failure=end_arm_failure)
 time.sleep(1)
 print("PASS")
 
 print("TEST: Stop ARM...", end='')
-r_arm(['-e'], failer=print_only_failer)
+r_arm(['-e'], failure=print_only_failure)
 time.sleep(1)
 print("PASS")
 

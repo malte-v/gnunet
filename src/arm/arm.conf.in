@@ -33,7 +33,7 @@ OPTIONS = -l $GNUNET_CACHE_HOME/gnunet-%Y-%m-%d.log
 # If set to YES, ARM will only start services that are marked as
 # per-user services (and we'll expect a system user to run ARM to
 # provide system-level services).  Per-user services enable
-# better personalization and  priviledge separation and in particular
+# better personalization and  privilege separation and in particular
 # ensures that personal data is stored under $HOME, which might
 # be important in a multi-user system (or if $HOME is encrypted
 # and /var/ is not).

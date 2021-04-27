@@ -730,7 +730,7 @@
 /* Define for large files, on AIX-style hosts. */
 #undef _LARGE_FILES
 
-/* Need with solaris or errno doesnt work */
+/* Need with solaris or errno doesn't work */
 #undef _REENTRANT
 
 /* This is a Windows system */
