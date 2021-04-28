@@ -1163,6 +1163,11 @@ Preferably, you would then...
 @item (optional) Delete the branch.
 @end itemize
 
+In general, you may want to follow the rule "commit often, push tidy":
+You can create smaller, succinct commits with limited meaning on the commit
+messages. In the end and before you push or merge your branch, you
+can then squash the commits or rename them.
+
 @c ***********************************************************************
 @node Build-system
 @section Build-system
