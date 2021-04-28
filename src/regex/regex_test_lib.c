@@ -93,6 +93,7 @@ c2i (char c, int size)
 }
 
 
+#if DEBUG_REGEX
 /**
  * Printf spaces to indent the regex tree
  *
@@ -104,6 +105,9 @@ space (int n)
   for (int i = 0; i < n; i++)
     fprintf (stderr, "| ");
 }
+
+
+#endif
 
 
 /**
