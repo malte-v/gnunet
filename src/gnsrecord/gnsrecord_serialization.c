@@ -124,7 +124,8 @@ GNUNET_GNSRECORD_records_get_size (unsigned int rd_count,
     return -1;
   }
   // Do not pad PKEY
-  if (GNUNET_GNSRECORD_TYPE_PKEY == rd->record_type)
+  if ((GNUNET_GNSRECORD_TYPE_PKEY == rd->record_type) ||
+      (GNUNET_GNSRECORD_TYPE_EDKEY == rd->record_type))
     return ret;
   /**
    * Efficiently round up to the next

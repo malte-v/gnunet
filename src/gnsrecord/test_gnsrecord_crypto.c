@@ -92,29 +92,22 @@ rd_decrypt_cb (void *cls,
   res = 0;
 }
 
-
 static void
-run (void *cls,
-     char *const *args,
-     const char *cfgfile,
-     const struct GNUNET_CONFIGURATION_Handle *cfg)
+test_with_type (struct GNUNET_IDENTITY_PrivateKey *privkey)
 {
   struct GNUNET_GNSRECORD_Block *block;
   struct GNUNET_IDENTITY_PublicKey pubkey;
   struct GNUNET_HashCode query_pub;
   struct GNUNET_HashCode query_priv;
   struct GNUNET_TIME_Absolute expire = GNUNET_TIME_absolute_get ();
-  struct GNUNET_IDENTITY_PrivateKey privkey;
 
 
-  privkey.type = htonl (GNUNET_GNSRECORD_TYPE_PKEY);
-  GNUNET_CRYPTO_ecdsa_key_create (&privkey.ecdsa_key);
   /* get public key */
-  GNUNET_IDENTITY_key_get_public (&privkey,
+  GNUNET_IDENTITY_key_get_public (privkey,
                                   &pubkey);
 
   /* test query derivation */
-  GNUNET_GNSRECORD_query_from_private_key (&privkey,
+  GNUNET_GNSRECORD_query_from_private_key (privkey,
                                            "testlabel",
                                            &query_priv);
   GNUNET_GNSRECORD_query_from_public_key (&pubkey,
@@ -129,7 +122,7 @@ run (void *cls,
 
   /* Create block */
   GNUNET_assert (NULL != (block =
-                            GNUNET_GNSRECORD_block_create (&privkey,
+                            GNUNET_GNSRECORD_block_create (privkey,
                                                            expire,
                                                            s_name,
                                                            s_rd,
@@ -143,6 +136,27 @@ run (void *cls,
                                                  &rd_decrypt_cb,
                                                  s_name));
   GNUNET_free (block);
+}
+
+
+
+static void
+run (void *cls,
+     char *const *args,
+     const char *cfgfile,
+     const struct GNUNET_CONFIGURATION_Handle *cfg)
+{
+  struct GNUNET_IDENTITY_PrivateKey privkey;
+  struct GNUNET_IDENTITY_PrivateKey privkey_ed;
+
+
+  privkey.type = htonl (GNUNET_GNSRECORD_TYPE_PKEY);
+  GNUNET_CRYPTO_ecdsa_key_create (&privkey.ecdsa_key);
+  test_with_type (&privkey);
+
+  privkey_ed.type = htonl (GNUNET_GNSRECORD_TYPE_EDKEY);
+  GNUNET_CRYPTO_eddsa_key_create (&privkey_ed.eddsa_key);
+  test_with_type(&privkey_ed);
 }
 
 

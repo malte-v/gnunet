@@ -197,6 +197,37 @@ struct GNUNET_GNSRECORD_EcdsaBlock
   /* followed by encrypted data */
 };
 
+
+/**
+ * Information we have in an encrypted block with record data (i.e. in the DHT).
+ */
+struct GNUNET_GNSRECORD_EddsaBlock
+{
+  /**
+   * Derived key used for signing; hash of this is the query.
+   */
+  struct GNUNET_CRYPTO_EddsaPublicKey derived_key;
+
+  /**
+   * Signature of the block.
+   */
+  struct GNUNET_CRYPTO_EddsaSignature signature;
+
+  /**
+   * Number of bytes signed; also specifies the number of bytes
+   * of encrypted data that follow.
+   */
+  struct GNUNET_CRYPTO_EccSignaturePurpose purpose;
+
+  /**
+   * Expiration time of the block.
+   */
+  struct GNUNET_TIME_AbsoluteNBO expiration_time;
+
+  /* followed by encrypted data */
+};
+
+
 struct GNUNET_GNSRECORD_Block
 {
   uint32_t type;
@@ -204,7 +235,7 @@ struct GNUNET_GNSRECORD_Block
   union
   {
     struct GNUNET_GNSRECORD_EcdsaBlock ecdsa_block;
-    //struct GNUNET_GNSRECORD_EddsaBlock eddsa_block;
+    struct GNUNET_GNSRECORD_EddsaBlock eddsa_block;
   };
 };
 

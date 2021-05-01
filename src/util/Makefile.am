@@ -61,6 +61,7 @@ libgnunetutil_la_SOURCES = \
   crypto_symmetric.c \
   crypto_crc.c \
   crypto_ecc.c \
+  crypto_ecc_gnsrecord.c \
   $(DLOG) \
   crypto_ecc_setup.c \
   crypto_hash.c \

@@ -313,6 +313,7 @@ src/reclaim/plugin_rest_reclaim.c
 src/reclaim/reclaim_api.c
 src/reclaim/reclaim_attribute.c
 src/reclaim/reclaim_credential.c
+src/reclaim/test.c
 src/regex/gnunet-daemon-regexprofiler.c
 src/regex/gnunet-regex-profiler.c
 src/regex/gnunet-regex-simulation-profiler.c
@@ -517,6 +518,7 @@ src/util/crypto_abe.c
 src/util/crypto_crc.c
 src/util/crypto_ecc.c
 src/util/crypto_ecc_dlog.c
+src/util/crypto_ecc_gnsrecord.c
 src/util/crypto_ecc_setup.c
 src/util/crypto_hash.c
 src/util/crypto_hash_file.c

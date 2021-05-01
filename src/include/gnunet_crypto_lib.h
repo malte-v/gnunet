@@ -275,6 +275,19 @@ struct GNUNET_CRYPTO_EddsaPrivateKey
 
 
 /**
+ * Private ECC scalar encoded for transmission.  To be used only for EdDSA
+ * signatures.
+ */
+struct GNUNET_CRYPTO_EddsaPrivateScalar
+{
+  /**
+   * s is the expandedprivate 512-bit scalar of a private key.
+   */
+  unsigned char s[512 / 8];
+};
+
+
+/**
  * @brief type for session keys
  */
 struct GNUNET_CRYPTO_SymmetricSessionKey
@@ -1904,6 +1917,71 @@ GNUNET_CRYPTO_ecdsa_public_key_derive (
   const char *label,
   const char *context,
   struct GNUNET_CRYPTO_EcdsaPublicKey *result);
+
+
+/**
+ * @ingroup crypto
+ * Derive a private scalar from a given private key and a label.
+ * Essentially calculates a private key 'h = H(l,P) * d mod n'
+ * where n is the size of the ECC group and P is the public
+ * key associated with the private key 'd'.
+ * The result is the derived private _scalar_, not the private
+ * key as for EdDSA we cannot derive before we hash the
+ * private key.
+ *
+ * @param priv original private key
+ * @param label label to use for key deriviation
+ * @param context additional context to use for HKDF of 'h';
+ *        typically the name of the subsystem/application
+ * @param result derived private scalar
+ */
+void
+GNUNET_CRYPTO_eddsa_private_key_derive (
+  const struct GNUNET_CRYPTO_EddsaPrivateKey *priv,
+  const char *label,
+  const char *context,
+  struct GNUNET_CRYPTO_EddsaPrivateScalar *result);
+
+
+/**
+ * @ingroup crypto
+ * Derive a public key from a given public key and a label.
+ * Essentially calculates a public key 'V = H(l,P) * P'.
+ *
+ * @param pub original public key
+ * @param label label to use for key deriviation
+ * @param context additional context to use for HKDF of 'h'.
+ *        typically the name of the subsystem/application
+ * @param result where to write the derived public key
+ */
+void
+GNUNET_CRYPTO_eddsa_public_key_derive (
+  const struct GNUNET_CRYPTO_EddsaPublicKey *pub,
+  const char *label,
+  const char *context,
+  struct GNUNET_CRYPTO_EddsaPublicKey *result);
+
+
+/**
+ * This is a signature function for EdDSA which takes the
+ * secret scalar sk instead of the private seed which is
+ * usually the case for crypto APIs. We require this functionality
+ * in order to use derived private keys for signatures we
+ * cannot calculate the inverse of a sk to find the seed
+ * efficiently.
+ *
+ * The resulting signature is a standard EdDSA signature
+ * which can be verified using the usual APIs.
+ *
+ * @param sk the secret scalar
+ * @param purp the signature purpose
+ * @param sig the resulting signature
+ */
+void
+GNUNET_CRYPTO_eddsa_sign_with_scalar (
+  const struct GNUNET_CRYPTO_EddsaPrivateScalar *priv,
+  const struct GNUNET_CRYPTO_EccSignaturePurpose *purpose,
+  struct GNUNET_CRYPTO_EddsaSignature *sig);
 
 
 /**
