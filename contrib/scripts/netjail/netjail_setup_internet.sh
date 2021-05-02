@@ -9,16 +9,19 @@ export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
 LOCAL_M=$1
 GLOBAL_N=$2
 
-# TODO: stunserver? ..and globally known peer?
+# TODO: globally known peer?
 
 shift 2
 
 netjail_check $(($LOCAL_M * $GLOBAL_N))
 
+# Starts optionally 'stunserver' on "92.68.150.$(($GLOBAL_N + 1))":
+STUN=$(netjail_opt '--stun' $@)
+
 LOCAL_GROUP="192.168.15"
 GLOBAL_GROUP="92.68.150"
 
-echo "Start [local: $LOCAL_GROUP.0/24, global: $GLOBAL_GROUP.0/24]"
+echo "Start [local: $LOCAL_GROUP.0/24, global: $GLOBAL_GROUP.0/24, stun: $STUN]"
 
 NETWORK_NET=$(netjail_print_name "n" $GLOBAL_N $LOCAL_M)
 
@@ -53,6 +56,22 @@ for N in $(seq $GLOBAL_N); do
 	done
 done
 
+WAITING=""
+KILLING=""
+
+if [ $STUN -gt 0 ]; then
+	shift 1
+	
+	S=$(($GLOBAL_N + 1))
+	STUN_NODE=$(netjail_print_name "S" $S)
+
+	netjail_node $STUN_NODE
+	netjail_node_link_bridge $STUN_NODE $NETWORK_NET "$GLOBAL_GROUP.$S" 24
+
+	netjail_node_exec $STUN_NODE 0 1 stunserver &
+	KILLING="$!"
+fi
+
 for N in $(seq $GLOBAL_N); do
 	for M in $(seq $LOCAL_M); do
 		NODE=$(netjail_print_name "N" $N $M)
@@ -62,10 +81,20 @@ for N in $(seq $GLOBAL_N); do
 		FD_Y=$(($INDEX * 2 + 3 + 1))
 
 		netjail_node_exec $NODE $FD_X $FD_Y $@ &
+		WAITING="$! $WAITING"
 	done
 done
 
+for PID in $WAITING; do wait $PID; done
+for PID in $KILLING; do kill $PID; done
 wait
+
+if [ $STUN -gt 0 ]; then
+	STUN_NODE=$(netjail_print_name "S" $(($GLOBAL_N + 1)))
+
+	netjail_node_unlink_bridge $STUN_NODE $NETWORK_NET
+	netjail_node_clear $STUN_NODE
+fi
 
 for N in $(seq $GLOBAL_N); do
 	for M in $(seq $LOCAL_M); do

@@ -9,6 +9,25 @@ JAILOR=${SUDO_USER:?must run in sudo}
 
 export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
 
+netjail_opt() {
+	OPT=$1
+	shift 1
+
+	INDEX=1
+
+	while [ $# -gt 0 ]; do
+		if [ "$1" = "$OPT" ]; then
+			printf "%d" $INDEX
+			return
+		fi
+
+		INDEX=$(($INDEX + 1))
+		shift 1
+	done
+
+	printf "%d" 0
+}
+
 netjail_check() {
 	NODE_COUNT=$1
 
@@ -74,6 +93,15 @@ netjail_node_link_bridge() {
 	ip link set $LINK_BR up
 }
 
+netjail_node_unlink_bridge() {
+	NODE=$1
+	BRIDGE=$2
+	
+	LINK_BR="$NODE-$BRIDGE-1"
+
+	ip link delete $LINK_BR
+}
+
 netjail_node_add_nat() {
 	NODE=$1
 	ADDRESS=$2
@@ -97,4 +125,5 @@ netjail_node_exec() {
 
 	unshare -fp --kill-child -- ip netns exec $NODE sudo -u $JAILOR -- $@ 1>& $FD_OUT 0<& $FD_IN
 }
+
 
