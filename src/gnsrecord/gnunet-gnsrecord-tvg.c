@@ -81,10 +81,7 @@ print_record (const struct GNUNET_GNSRECORD_Data *rd)
  * @param cfg configuration
  */
 static void
-run (void *cls,
-     char *const *args,
-     const char *cfgfile,
-     const struct GNUNET_CONFIGURATION_Handle *cfg)
+run_pkey (void)
 {
   struct GNUNET_GNSRECORD_Data rd[2];
   struct GNUNET_TIME_Absolute exp_abs = GNUNET_TIME_absolute_get ();
@@ -104,8 +101,9 @@ run (void *cls,
   GNUNET_CRYPTO_ecdsa_key_create (&id_priv.ecdsa_key);
   GNUNET_IDENTITY_key_get_public (&id_priv,
                                   &id_pub);
-  fprintf (stdout, "Zone private key (d, little-endian, with ztype prepended):\n");
-  print_bytes (&id_priv, GNUNET_IDENTITY_key_get_length (&id_pub), 8); //FIXME length for privkey?
+  fprintf (stdout,
+           "Zone private key (d, little-endian, with ztype prepended):\n");
+  print_bytes (&id_priv, GNUNET_IDENTITY_key_get_length (&id_pub), 8); // FIXME length for privkey?
   fprintf (stdout, "\n");
   fprintf (stdout, "Zone identifier (zid):\n");
   print_bytes (&id_pub, GNUNET_IDENTITY_key_get_length (&id_pub), 8);
@@ -173,6 +171,127 @@ run (void *cls,
   print_bytes (rrblock, block_size, 8);
   fprintf (stdout, "\n");
   GNUNET_free (rdata);
+}
+
+
+/**
+ * Main function that will be run.
+ *
+ * @param cls closure
+ * @param args remaining command-line arguments
+ * @param cfgfile name of the configuration file used (for saving, can be NULL!)
+ * @param cfg configuration
+ */
+static void
+run_edkey (void)
+{
+  struct GNUNET_GNSRECORD_Data rd[2];
+  struct GNUNET_TIME_Absolute exp_abs = GNUNET_TIME_absolute_get ();
+  struct GNUNET_GNSRECORD_Block *rrblock;
+  char *bdata;
+  struct GNUNET_IDENTITY_PrivateKey id_priv;
+  struct GNUNET_IDENTITY_PublicKey id_pub;
+  struct GNUNET_IDENTITY_PrivateKey pkey_data_p;
+  struct GNUNET_IDENTITY_PublicKey pkey_data;
+  void *data;
+  size_t data_size;
+  char *rdata;
+  size_t rdata_size;
+  char ztld[128];
+
+  id_priv.type = htonl (GNUNET_IDENTITY_TYPE_EDDSA);
+  GNUNET_CRYPTO_eddsa_key_create (&id_priv.eddsa_key);
+  GNUNET_IDENTITY_key_get_public (&id_priv,
+                                  &id_pub);
+  fprintf (stdout,
+           "Zone private key (d, little-endian, with ztype prepended):\n");
+  print_bytes (&id_priv, GNUNET_IDENTITY_key_get_length (&id_pub), 8); // FIXME length for privkey?
+  fprintf (stdout, "\n");
+  fprintf (stdout, "Zone identifier (zid):\n");
+  print_bytes (&id_pub, GNUNET_IDENTITY_key_get_length (&id_pub), 8);
+  GNUNET_STRINGS_data_to_string (&id_pub,
+                                 GNUNET_IDENTITY_key_get_length (&id_pub),
+                                 ztld,
+                                 sizeof (ztld));
+  fprintf (stdout, "\n");
+  fprintf (stdout, "Encoded zone identifier (zkl = zTLD):\n");
+  fprintf (stdout, "%s\n", ztld);
+  fprintf (stdout, "\n");
+
+  pkey_data_p.type = htonl (GNUNET_GNSRECORD_TYPE_EDKEY);
+  GNUNET_CRYPTO_eddsa_key_create (&pkey_data_p.eddsa_key);
+  GNUNET_IDENTITY_key_get_public (&pkey_data_p,
+                                  &pkey_data);
+  fprintf (stdout,
+           "Label: %s\nRRCOUNT: %d\n\n", TEST_RECORD_LABEL, TEST_RRCOUNT);
+  memset (rd, 0, sizeof (struct GNUNET_GNSRECORD_Data) * 2);
+  GNUNET_assert (GNUNET_OK == GNUNET_GNSRECORD_string_to_value (
+                   GNUNET_DNSPARSER_TYPE_A, TEST_RECORD_A, &data, &data_size));
+  rd[0].data = data;
+  rd[0].data_size = data_size;
+  rd[0].expiration_time = exp_abs.abs_value_us;
+  rd[0].record_type = GNUNET_DNSPARSER_TYPE_A;
+  fprintf (stdout, "Record #0\n");
+  print_record (&rd[0]);
+
+  rd[1].data = &pkey_data;
+  rd[1].data_size = sizeof (struct GNUNET_CRYPTO_EddsaPublicKey);
+  rd[1].expiration_time = exp_abs.abs_value_us;
+  rd[1].record_type = GNUNET_GNSRECORD_TYPE_EDKEY;
+  rd[1].flags = GNUNET_GNSRECORD_RF_PRIVATE;
+  fprintf (stdout, "Record #1\n");
+  print_record (&rd[1]);
+
+  rdata_size = GNUNET_GNSRECORD_records_get_size (2,
+                                                  rd);
+  rdata = GNUNET_malloc (rdata_size);
+  GNUNET_GNSRECORD_records_serialize (2,
+                                      rd,
+                                      rdata_size,
+                                      rdata);
+  fprintf (stdout, "RDATA:\n");
+  print_bytes (rdata, rdata_size, 8);
+  fprintf (stdout, "\n");
+  rrblock = GNUNET_GNSRECORD_block_create (&id_priv,
+                                           exp_abs,
+                                           TEST_RECORD_LABEL,
+                                           rd,
+                                           TEST_RRCOUNT);
+  size_t bdata_size = ntohl (rrblock->eddsa_block.purpose.size)
+                      - sizeof(struct GNUNET_CRYPTO_EccSignaturePurpose)
+                      - sizeof(struct GNUNET_TIME_AbsoluteNBO);
+  size_t ecblock_size = ntohl (rrblock->eddsa_block.purpose.size)
+                        + sizeof(struct GNUNET_CRYPTO_EddsaPublicKey)
+                        + sizeof(struct GNUNET_CRYPTO_EddsaSignature);
+  size_t block_size = ecblock_size + sizeof (uint32_t);
+
+  bdata = (char*) &(&rrblock->eddsa_block)[1];
+  fprintf (stdout, "BDATA:\n");
+  print_bytes (bdata, bdata_size, 8);
+  fprintf (stdout, "\n");
+  fprintf (stdout, "RRBLOCK:\n");
+  print_bytes (rrblock, block_size, 8);
+  fprintf (stdout, "\n");
+  GNUNET_free (rdata);
+}
+
+
+/**
+ * Main function that will be run.
+ *
+ * @param cls closure
+ * @param args remaining command-line arguments
+ * @param cfgfile name of the configuration file used (for saving, can be NULL!)
+ * @param cfg configuration
+ */
+static void
+run (void *cls,
+     char *const *args,
+     const char *cfgfile,
+     const struct GNUNET_CONFIGURATION_Handle *cfg)
+{
+  run_pkey();
+  run_edkey();
 }
 
 
