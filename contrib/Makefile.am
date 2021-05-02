@@ -11,6 +11,9 @@ dist_pkgdata_DATA = \
  gns/def.tex \
  gns/gns-form-fields.xml \
  gns/gns-form.xslt \
+ fcfsd/fcfsd-index.html \
+ fcfsd/fcfsd-notfound.html \
+ fcfsd/fcfsd-forbidden.html \
  branding/logo/gnunet-logo.pdf \
  branding/logo/gnunet-logo.png \
  branding/logo/gnunet-logo-color.png \
