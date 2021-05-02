@@ -86,7 +86,7 @@ for N in $(seq $GLOBAL_N); do
 done
 
 for PID in $WAITING; do wait $PID; done
-for PID in $KILLING; do kill $PID; done
+for PID in $KILLING; do netjail_kill $PID; done
 wait
 
 if [ $STUN -gt 0 ]; then

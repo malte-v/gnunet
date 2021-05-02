@@ -126,4 +126,13 @@ netjail_node_exec() {
 	unshare -fp --kill-child -- ip netns exec $NODE sudo -u $JAILOR -- $@ 1>& $FD_OUT 0<& $FD_IN
 }
 
+netjail_kill() {
+	PID=$1
+
+	for CHILD in $(ps -o pid,ppid -ax | awk "{ if ( \$2 == $PID ) { print \$1 } }"); do
+		netjail_kill $CHILD
+	done
+
+	kill $PID
+}
 
