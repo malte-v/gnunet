@@ -19,7 +19,7 @@
  */
 
 /**
- * @file include/anastasis_util_lib.h
+ * @file include/gnunet_child_management_lib.h
  * @brief GNUnet child management api
  * @author Christian Grothoff
  * @author Dominik Meister

@@ -43,6 +43,7 @@ libgnunetutil_la_SOURCES = \
   $(BENCHMARK) \
   bio.c \
   buffer.c \
+  child_management.c \
   client.c \
   common_allocation.c \
   common_endian.c \
@@ -271,6 +272,7 @@ check_SCRIPTS = \
 
 check_PROGRAMS = \
  test_bio \
+ test_child_management \
  test_client.nc \
  $(TEST_CLIENT_UNIX_NC) \
  test_common_allocation \
@@ -321,6 +323,14 @@ check_PROGRAMS = \
  $(BENCHMARKS) \
  test_os_start_process \
  test_common_logging_runtime_loglevels
+
+
+test_child_management_SOURCES = \
+  test_child_management.c
+test_child_management_LDADD = \
+  libgnunetutil.la \
+  $(XLIB)
+
 
 
 # Declare .nc (NO-CONCURRENCY) as a test extension so that we can impart
@@ -650,4 +660,5 @@ EXTRA_DIST = \
   test_program_data.conf \
   test_resolver_api_data.conf \
   test_service_data.conf \
-  test_speedup_data.conf
+  test_speedup_data.conf \
+  child_management_test.sh
