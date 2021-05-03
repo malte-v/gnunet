@@ -94,52 +94,94 @@ GNUNET_CRYPTO_eddsa_sign_with_scalar (
 {
 
   crypto_hash_sha512_state hs;
-  unsigned char az[64];
-  unsigned char nonce[64];
+  unsigned char sk[64];
+  unsigned char r[64];
   unsigned char hram[64];
   unsigned char R[32];
-  unsigned char pk[32];
+  unsigned char zk[32];
+  unsigned char tmp[32];
 
   crypto_hash_sha512_init (&hs);
 
-  // crypto_hash_sha512 (az, sk, 32); DO NOT EXPAND, WE HAVE A KEY
-  memcpy (az, priv->s, 64);
-  crypto_scalarmult_ed25519_base_noclamp (pk,
+  /**
+   * Instead of expanding the private here, we already
+   * have the secret scalar as input. Use it.
+   * Note that sk is not plain SHA512 (d).
+   * sk[0..31] contains the derived private scalar
+   * sk[0..31] = h * SHA512 (d)[0..31]
+   * sk[32..63] = SHA512 (d)[32..63]
+   */
+  memcpy (sk, priv->s, 64);
+
+  /**
+   * Calculate the derived zone key zk' from the
+   * derived private scalar.
+   */
+  crypto_scalarmult_ed25519_base_noclamp (zk,
                                           priv->s);
-  crypto_hash_sha512_update (&hs, az + 32, 32);
 
+  /**
+   * Calculate r:
+   * r = SHA512 (sk[32..63] | M)
+   * where M is our message (purpose).
+   * Note that sk[32..63] is the other half of the
+   * expansion from the original, non-derived private key
+   * "d".
+   */
+  crypto_hash_sha512_update (&hs, sk + 32, 32);
   crypto_hash_sha512_update (&hs, (uint8_t*) purpose, ntohl (purpose->size));
-  crypto_hash_sha512_final (&hs, nonce);
+  crypto_hash_sha512_final (&hs, r);
 
-  // This effectively creates R || A in sig
-  memcpy (sig->s, pk, 32);
+  /**
+   * Temporarily put zk into S
+   */
+  memcpy (sig->s, zk, 32);
 
-  unsigned char nonce_mod[64];
-  crypto_core_ed25519_scalar_reduce (nonce_mod, nonce);
-  // nonce == r; r * G == R
-  crypto_scalarmult_ed25519_base_noclamp (R, nonce_mod);
+  /**
+   * Reduce the scalar value r
+   */
+  unsigned char r_mod[64];
+  crypto_core_ed25519_scalar_reduce (r_mod, r);
+
+  /**
+   * Calculate R := r * G of the signature
+   */
+  crypto_scalarmult_ed25519_base_noclamp (R, r_mod);
   memcpy (sig->r, R, sizeof (R));
 
-  // SHA512 (R | A | M) == k
+  /**
+   * Calculate
+   * hram := SHA512 (R | zk' | M)
+   */
   crypto_hash_sha512_init (&hs);
   crypto_hash_sha512_update (&hs, (uint8_t*) sig, 64);
   crypto_hash_sha512_update (&hs, (uint8_t*) purpose,
                              ntohl (purpose->size));
   crypto_hash_sha512_final (&hs, hram);
 
+  /**
+   * Reduce the resulting scalar value
+   */
   unsigned char hram_mod[64];
   crypto_core_ed25519_scalar_reduce (hram_mod, hram);
-  az[0] &= 248;
-  az[31] &= 127;
-  az[31] |= 64;
 
-  unsigned char tmp[32];
-  // r + k * s mod L == S
-  crypto_core_ed25519_scalar_mul (tmp, hram_mod, az);
-  crypto_core_ed25519_scalar_add (sig->s, tmp, nonce_mod);
+  /**
+   * Clamp the private scalar
+   */
+  sk[0] &= 248;
+  sk[31] &= 127;
+  sk[31] |= 64;
 
-  sodium_memzero (az, sizeof az);
-  sodium_memzero (nonce, sizeof nonce);
+  /**
+   * Calculate
+   * S := r + hram * s mod L
+   */
+  crypto_core_ed25519_scalar_mul (tmp, hram_mod, sk);
+  crypto_core_ed25519_scalar_add (sig->s, tmp, r_mod);
+
+  sodium_memzero (sk, sizeof (sk));
+  sodium_memzero (r, sizeof (r));
+  sodium_memzero (r_mod, sizeof (r_mod));
 }
 
 
