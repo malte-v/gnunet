@@ -42,20 +42,19 @@
  * @param label label for deriviation
  * @param context additional context to use for HKDF of 'h';
  *        typically the name of the subsystem/application
- * @return h value
+ * @param hc where to write the result
  */
-static gcry_mpi_t
+void
 derive_h (const void *pub,
           size_t pubsize,
           const char *label,
-          const char *context)
+          const char *context,
+          struct GNUNET_HashCode *hc)
 {
-  gcry_mpi_t h;
-  struct GNUNET_HashCode hc;
   static const char *const salt = "key-derivation";
 
-  GNUNET_CRYPTO_kdf (&hc,
-                     sizeof(hc),
+  GNUNET_CRYPTO_kdf (hc,
+                     sizeof(*hc),
                      salt,
                      strlen (salt),
                      pub,
@@ -66,8 +65,6 @@ derive_h (const void *pub,
                      strlen (context),
                      NULL,
                      0);
-  GNUNET_CRYPTO_mpi_scan_unsigned (&h, (unsigned char *) &hc, sizeof(hc));
-  return h;
 }
 
 
@@ -193,6 +190,7 @@ GNUNET_CRYPTO_ecdsa_private_key_derive (
 {
   struct GNUNET_CRYPTO_EcdsaPublicKey pub;
   struct GNUNET_CRYPTO_EcdsaPrivateKey *ret;
+  struct GNUNET_HashCode hc;
   uint8_t dc[32];
   gcry_mpi_t h;
   gcry_mpi_t x;
@@ -205,7 +203,9 @@ GNUNET_CRYPTO_ecdsa_private_key_derive (
   n = gcry_mpi_ec_get_mpi ("n", ctx, 1);
   GNUNET_CRYPTO_ecdsa_key_get_public (priv, &pub);
 
-  h = derive_h (&pub, sizeof (pub), label, context);
+  derive_h (&pub, sizeof (pub), label, context, &hc);
+  GNUNET_CRYPTO_mpi_scan_unsigned (&h, (unsigned char *) &hc, sizeof(hc));
+
   /* Convert to big endian for libgcrypt */
   for (size_t i = 0; i < 32; i++)
     dc[i] = priv->d[31 - i];
@@ -234,6 +234,7 @@ GNUNET_CRYPTO_ecdsa_public_key_derive (
   const char *context,
   struct GNUNET_CRYPTO_EcdsaPublicKey *result)
 {
+  struct GNUNET_HashCode hc;
   gcry_ctx_t ctx;
   gcry_mpi_t q_y;
   gcry_mpi_t h;
@@ -255,7 +256,8 @@ GNUNET_CRYPTO_ecdsa_public_key_derive (
   GNUNET_assert (q);
 
   /* calculate h_mod_n = h % n */
-  h = derive_h (pub, sizeof (pub), label, context);
+  derive_h (pub, sizeof (pub), label, context, &hc);
+  GNUNET_CRYPTO_mpi_scan_unsigned (&h, (unsigned char *) &hc, sizeof(hc));
   n = gcry_mpi_ec_get_mpi ("n", ctx, 1);
   h_mod_n = gcry_mpi_new (256);
   gcry_mpi_mod (h_mod_n, h, n);
@@ -286,6 +288,7 @@ GNUNET_CRYPTO_eddsa_private_key_derive (
   struct GNUNET_CRYPTO_EddsaPrivateScalar *result)
 {
   struct GNUNET_CRYPTO_EddsaPublicKey pub;
+  struct GNUNET_HashCode hc;
   uint8_t dc[32];
   unsigned char sk[64];
   gcry_mpi_t h;
@@ -297,20 +300,49 @@ GNUNET_CRYPTO_eddsa_private_key_derive (
   gcry_mpi_t a2;
   gcry_ctx_t ctx;
 
+  /**
+   * Libsodium does not offer an API with arbitrary arithmetic.
+   * Hence we have to use libgcrypt here.
+   */
   GNUNET_assert (0 == gcry_mpi_ec_new (&ctx, NULL, "Ed25519"));
 
+  /**
+   * Get our modulo
+   */
   n = gcry_mpi_ec_get_mpi ("n", ctx, 1);
   GNUNET_CRYPTO_eddsa_key_get_public (priv, &pub);
+
+  /**
+   * This is the standard private key expansion in Ed25519.
+   * The first 32 octets are used as a little-endian private
+   * scalar.
+   * We derive this scalar using our "h".
+   */
   crypto_hash_sha512 (sk, priv->d, 32);
   sk[0] &= 248;
   sk[31] &= 127;
   sk[31] |= 64;
-  h = derive_h (&pub, sizeof (pub), label, context);
+
+  /**
+   * Get h mod n
+   */
+  derive_h (&pub, sizeof (pub), label, context, &hc);
+  GNUNET_CRYPTO_mpi_scan_unsigned (&h, (unsigned char *) &hc, sizeof(hc));
+
   h_mod_n = gcry_mpi_new (256);
   gcry_mpi_mod (h_mod_n, h, n);
-  /* Convert to big endian for libgcrypt */
+  /* Convert scalar to big endian for libgcrypt */
   for (size_t i = 0; i < 32; i++)
     dc[i] = sk[31 - i];
+
+  /**
+   * dc now contains the private scalar "a".
+   * We carefully remove the clamping and derive a'.
+   * Calculate:
+   * a1 := a / 8
+   * a2 := h * a1 mod n
+   * a' := a2 * 8 mod n
+   */
   GNUNET_CRYPTO_mpi_scan_unsigned (&x, dc, sizeof(dc)); // a
   a1 = gcry_mpi_new (256);
   gcry_mpi_t eight = gcry_mpi_set_ui (NULL, 8);
@@ -318,7 +350,6 @@ GNUNET_CRYPTO_eddsa_private_key_derive (
   a2 = gcry_mpi_new (256);
   gcry_mpi_mulm (a2, h_mod_n, a1, n); // a2 := h * a1 mod n
   d = gcry_mpi_new (256);
-  // gcry_mpi_mulm (d, a2, eight, n); // a' := a2 * 8 mod n
   gcry_mpi_mul (d, a2, eight); // a' := a2 * 8
   gcry_mpi_release (h);
   gcry_mpi_release (x);
@@ -327,10 +358,19 @@ GNUNET_CRYPTO_eddsa_private_key_derive (
   gcry_mpi_release (a2);
   gcry_ctx_release (ctx);
   GNUNET_CRYPTO_mpi_print_unsigned (dc, sizeof(dc), d);
+  /**
+   * Note that we copy all of SHA512(d) into the result and
+   * then overrwrite the derived private scalar.
+   * This means that we re-use SHA512(d)[32..63]
+   * FIXME: Do we want to derive this part as well??
+   */
   memcpy (result->s, sk, sizeof (sk));
   /* Convert to little endian for libsodium */
   for (size_t i = 0; i < 32; i++)
     result->s[i] = dc[31 - i];
+  /**
+   * Clamp the scalar
+   */
   result->s[0] &= 248;
   result->s[31] &= 127;
   result->s[31] |= 64;
@@ -347,6 +387,7 @@ GNUNET_CRYPTO_eddsa_public_key_derive (
   const char *context,
   struct GNUNET_CRYPTO_EddsaPublicKey *result)
 {
+  struct GNUNET_HashCode hc;
   gcry_ctx_t ctx;
   gcry_mpi_t q_y;
   gcry_mpi_t h;
@@ -368,7 +409,9 @@ GNUNET_CRYPTO_eddsa_public_key_derive (
   GNUNET_assert (q);
 
   /* calculate h_mod_n = h % n */
-  h = derive_h (pub, sizeof (*pub), label, context);
+  derive_h (pub, sizeof (*pub), label, context, &hc);
+  GNUNET_CRYPTO_mpi_scan_unsigned (&h, (unsigned char *) &hc, sizeof(hc));
+
   n = gcry_mpi_ec_get_mpi ("n", ctx, 1);
   h_mod_n = gcry_mpi_new (256);
   gcry_mpi_mod (h_mod_n, h, n);
