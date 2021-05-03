@@ -44,6 +44,20 @@ netjail_check() {
 	fi
 }
 
+netjail_check_bin() {
+	PROGRAM=$1
+
+	MATCH=$(ls $(echo $PATH | tr ":" "\n") | grep "^$PROGRAM\$" | tr "\n" " " | awk '{ print $1 }')
+
+	# quit if the required binary $PROGRAM can not be
+	# found in the used $PATH.
+
+	if [ "$MATCH" != "$PROGRAM" ]; then
+		echo "Required binary not found: $PROGRAM" >&2
+		exit 1
+	fi
+}
+
 netjail_print_name() {
 	printf "%s%02x%02x" $1 $2 ${3:-0}
 }

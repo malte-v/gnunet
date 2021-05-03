@@ -18,6 +18,16 @@ netjail_check $(($LOCAL_M * $GLOBAL_N))
 # Starts optionally 'stunserver' on "92.68.150.$(($GLOBAL_N + 1))":
 STUN=$(netjail_opt '--stun' $@)
 
+if [ $STUN -gt 0 ]; then
+	netjail_check_bin stunserver
+	
+	shift 1
+	
+	STUN_NODE=$(netjail_print_name "S" 254)
+fi
+
+netjail_check_bin $1
+
 LOCAL_GROUP="192.168.15"
 GLOBAL_GROUP="92.68.150"
 
@@ -60,13 +70,8 @@ WAITING=""
 KILLING=""
 
 if [ $STUN -gt 0 ]; then
-	shift 1
-	
-	S=$(($GLOBAL_N + 1))
-	STUN_NODE=$(netjail_print_name "S" $S)
-
 	netjail_node $STUN_NODE
-	netjail_node_link_bridge $STUN_NODE $NETWORK_NET "$GLOBAL_GROUP.$S" 24
+	netjail_node_link_bridge $STUN_NODE $NETWORK_NET "$GLOBAL_GROUP.254" 24
 
 	netjail_node_exec $STUN_NODE 0 1 stunserver &
 	KILLING="$!"
@@ -90,7 +95,7 @@ for PID in $KILLING; do netjail_kill $PID; done
 wait
 
 if [ $STUN -gt 0 ]; then
-	STUN_NODE=$(netjail_print_name "S" $(($GLOBAL_N + 1)))
+	STUN_NODE=$(netjail_print_name "S" 254)
 
 	netjail_node_unlink_bridge $STUN_NODE $NETWORK_NET
 	netjail_node_clear $STUN_NODE
