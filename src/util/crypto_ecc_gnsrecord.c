@@ -114,8 +114,8 @@ GNUNET_CRYPTO_eddsa_sign_with_scalar (
    * Calculate the derived zone key zk' from the
    * derived private scalar.
    */
-  crypto_scalarmult_ed25519_base_noclamp (zk,
-                                          sk);
+  crypto_scalarmult_ed25519_base (zk,
+                                  sk);
 
   /**
    * Calculate r:
@@ -163,9 +163,9 @@ GNUNET_CRYPTO_eddsa_sign_with_scalar (
   crypto_core_ed25519_scalar_reduce (hram_mod, hram);
 
   /**
- * Calculate
- * S := r + hram * s mod L
- */
+   * Calculate
+   * S := r + hram * s mod L
+   */
   crypto_core_ed25519_scalar_mul (tmp, hram_mod, sk);
   crypto_core_ed25519_scalar_add (sig->s, tmp, r_mod);
 
@@ -249,7 +249,7 @@ GNUNET_CRYPTO_ecdsa_public_key_derive (
   GNUNET_assert (q);
 
   /* calculate h_mod_n = h % n */
-  derive_h (pub, sizeof (pub), label, context, &hc);
+  derive_h (pub, sizeof (*pub), label, context, &hc);
   GNUNET_CRYPTO_mpi_scan_unsigned (&h, (unsigned char *) &hc, sizeof(hc));
   n = gcry_mpi_ec_get_mpi ("n", ctx, 1);
   h_mod_n = gcry_mpi_new (256);
