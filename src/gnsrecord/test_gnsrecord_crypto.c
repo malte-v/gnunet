@@ -148,15 +148,29 @@ run (void *cls,
 {
   struct GNUNET_IDENTITY_PrivateKey privkey;
   struct GNUNET_IDENTITY_PrivateKey privkey_ed;
+  struct GNUNET_TIME_Absolute start;
+  struct GNUNET_TIME_Absolute end;
 
 
   privkey.type = htonl (GNUNET_GNSRECORD_TYPE_PKEY);
   GNUNET_CRYPTO_ecdsa_key_create (&privkey.ecdsa_key);
+  start = GNUNET_TIME_absolute_get ();
   test_with_type (&privkey);
+  end = GNUNET_TIME_absolute_get ();
+  printf ("Time: %llu ms\n", (unsigned long long)
+  GNUNET_TIME_absolute_get_difference (start,
+                                       end).rel_value_us);
 
   privkey_ed.type = htonl (GNUNET_GNSRECORD_TYPE_EDKEY);
   GNUNET_CRYPTO_eddsa_key_create (&privkey_ed.eddsa_key);
+  start = GNUNET_TIME_absolute_get ();
   test_with_type(&privkey_ed);
+  end = GNUNET_TIME_absolute_get ();
+  printf ("Time: %llu ms\n", (unsigned long long)
+  GNUNET_TIME_absolute_get_difference (start,
+                                       end).rel_value_us);
+
+
 }
 
 

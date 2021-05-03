@@ -115,7 +115,7 @@ GNUNET_CRYPTO_eddsa_sign_with_scalar (
    * derived private scalar.
    */
   crypto_scalarmult_ed25519_base_noclamp (zk,
-                                          priv->s);
+                                          sk);
 
   /**
    * Calculate r:
@@ -163,16 +163,9 @@ GNUNET_CRYPTO_eddsa_sign_with_scalar (
   crypto_core_ed25519_scalar_reduce (hram_mod, hram);
 
   /**
-   * Clamp the private scalar
-   */
-  sk[0] &= 248;
-  sk[31] &= 127;
-  sk[31] |= 64;
-
-  /**
-   * Calculate
-   * S := r + hram * s mod L
-   */
+ * Calculate
+ * S := r + hram * s mod L
+ */
   crypto_core_ed25519_scalar_mul (tmp, hram_mod, sk);
   crypto_core_ed25519_scalar_add (sig->s, tmp, r_mod);
 
@@ -328,7 +321,6 @@ GNUNET_CRYPTO_eddsa_private_key_derive (
    */
   derive_h (&pub, sizeof (pub), label, context, &hc);
   GNUNET_CRYPTO_mpi_scan_unsigned (&h, (unsigned char *) &hc, sizeof(hc));
-
   h_mod_n = gcry_mpi_new (256);
   gcry_mpi_mod (h_mod_n, h, n);
   /* Convert scalar to big endian for libgcrypt */
@@ -368,12 +360,6 @@ GNUNET_CRYPTO_eddsa_private_key_derive (
   /* Convert to little endian for libsodium */
   for (size_t i = 0; i < 32; i++)
     result->s[i] = dc[31 - i];
-  /**
-   * Clamp the scalar
-   */
-  result->s[0] &= 248;
-  result->s[31] &= 127;
-  result->s[31] |= 64;
 
   sodium_memzero (dc, sizeof(dc));
   gcry_mpi_release (d);
