@@ -377,7 +377,7 @@ GNUNET_GNSRECORD_query_from_block (const struct GNUNET_GNSRECORD_Block *block,
   switch (ntohl (block->type))
   {
   case GNUNET_GNSRECORD_TYPE_PKEY:
-    GNUNET_CRYPTO_hash (&block->ecdsa_block.derived_key,
+    GNUNET_CRYPTO_hash (&(block->ecdsa_block.derived_key),
                         sizeof (block->ecdsa_block.derived_key),
                         query);
     return GNUNET_OK;

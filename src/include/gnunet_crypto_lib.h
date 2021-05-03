@@ -1985,6 +1985,18 @@ GNUNET_CRYPTO_eddsa_sign_with_scalar (
 
 
 /**
+ * Extract the public key of the given private scalar.
+ *
+ * @param s the private scalar
+ * @param pkey the resulting public key
+ */
+void
+GNUNET_CRYPTO_eddsa_key_get_public_from_scalar (
+  const struct GNUNET_CRYPTO_EddsaPrivateScalar *s,
+  struct GNUNET_CRYPTO_EddsaPublicKey *pkey);
+
+
+/**
  * Output the given MPI value to the given buffer in network
  * byte order.  The MPI @a val may not be negative.
  *

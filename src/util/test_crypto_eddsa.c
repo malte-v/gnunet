@@ -100,6 +100,73 @@ testSignVerify (void)
 }
 
 
+static int
+testDeriveSignVerify (void)
+{
+  struct GNUNET_CRYPTO_EddsaSignature sig;
+  struct GNUNET_CRYPTO_EccSignaturePurpose purp;
+  struct GNUNET_CRYPTO_EddsaPrivateScalar dpriv;
+  struct GNUNET_CRYPTO_EddsaPublicKey pkey;
+  struct GNUNET_CRYPTO_EddsaPublicKey dpub;
+  struct GNUNET_CRYPTO_EddsaPublicKey dpub2;
+
+  GNUNET_CRYPTO_eddsa_private_key_derive (&key,
+                                          "test-derive",
+                                          "test-CTX",
+                                          &dpriv);
+  GNUNET_CRYPTO_eddsa_key_get_public (&key,
+                                      &pkey);
+  GNUNET_CRYPTO_eddsa_public_key_derive (&pkey,
+                                         "test-derive",
+                                         "test-CTX",
+                                         &dpub);
+  GNUNET_CRYPTO_eddsa_key_get_public_from_scalar (&dpriv, &dpub2);
+  purp.size = htonl (sizeof(struct GNUNET_CRYPTO_EccSignaturePurpose));
+  purp.purpose = htonl (GNUNET_SIGNATURE_PURPOSE_TEST);
+
+  if (0 != GNUNET_memcmp (&dpub.q_y, &dpub2.q_y))
+  {
+    fprintf (stderr, "%s", "key derivation failed\n");
+    return GNUNET_SYSERR;
+  }
+
+  GNUNET_CRYPTO_eddsa_sign_with_scalar (&dpriv,
+                                        &purp,
+                                        &sig);
+  if (GNUNET_SYSERR ==
+      GNUNET_CRYPTO_eddsa_verify_ (GNUNET_SIGNATURE_PURPOSE_TEST,
+                                   &purp,
+                                   &sig,
+                                   &dpub))
+  {
+    fprintf (stderr,
+             "GNUNET_CRYPTO_eddsa_verify failed!\n");
+    return GNUNET_SYSERR;
+  }
+  if (GNUNET_SYSERR !=
+      GNUNET_CRYPTO_eddsa_verify_ (GNUNET_SIGNATURE_PURPOSE_TEST,
+                                   &purp,
+                                   &sig,
+                                   &pkey))
+  {
+    fprintf (stderr,
+             "GNUNET_CRYPTO_eddsa_verify failed to fail!\n");
+    return GNUNET_SYSERR;
+  }
+  if (GNUNET_SYSERR !=
+      GNUNET_CRYPTO_eddsa_verify_ (GNUNET_SIGNATURE_PURPOSE_TRANSPORT_PONG_OWN,
+                                   &purp,
+                                   &sig,
+                                   &dpub))
+  {
+    fprintf (stderr,
+             "GNUNET_CRYPTO_eddsa_verify failed to fail!\n");
+    return GNUNET_SYSERR;
+  }
+  return GNUNET_OK;
+}
+
+
 #if PERF
 static int
 testSignPerformance ()
@@ -217,6 +284,13 @@ main (int argc, char *argv[])
                     "WARNING",
                     NULL);
   GNUNET_CRYPTO_eddsa_key_create (&key);
+  if (GNUNET_OK != testDeriveSignVerify ())
+  {
+    failure_count++;
+    fprintf (stderr,
+             "\n\n%d TESTS FAILED!\n\n", failure_count);
+    return -1;
+  }
 #if PERF
   if (GNUNET_OK != testSignPerformance ())
     failure_count++;

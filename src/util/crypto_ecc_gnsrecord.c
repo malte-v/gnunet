@@ -114,8 +114,8 @@ GNUNET_CRYPTO_eddsa_sign_with_scalar (
    * Calculate the derived zone key zk' from the
    * derived private scalar.
    */
-  crypto_scalarmult_ed25519_base (zk,
-                                  sk);
+  crypto_scalarmult_ed25519_base_noclamp (zk,
+                                          sk);
 
   /**
    * Calculate r:
@@ -352,7 +352,7 @@ GNUNET_CRYPTO_eddsa_private_key_derive (
   GNUNET_CRYPTO_mpi_print_unsigned (dc, sizeof(dc), d);
   /**
    * Note that we copy all of SHA512(d) into the result and
-   * then overrwrite the derived private scalar.
+   * then overwrite the derived private scalar.
    * This means that we re-use SHA512(d)[32..63]
    * FIXME: Do we want to derive this part as well??
    */
@@ -419,4 +419,22 @@ GNUNET_CRYPTO_eddsa_public_key_derive (
   gcry_mpi_release (q_y);
   gcry_ctx_release (ctx);
 
+}
+
+
+void
+GNUNET_CRYPTO_eddsa_key_get_public_from_scalar (
+  const struct GNUNET_CRYPTO_EddsaPrivateScalar *priv,
+  struct GNUNET_CRYPTO_EddsaPublicKey *pkey)
+{
+  unsigned char sk[32];
+
+  memcpy (sk, priv->s, 32);
+
+  /**
+   * Calculate the derived zone key zk' from the
+   * derived private scalar.
+   */
+  crypto_scalarmult_ed25519_base_noclamp (pkey->q_y,
+                                          sk);
 }

@@ -396,11 +396,8 @@ block_create_eddsa (const struct GNUNET_CRYPTO_EddsaPrivateKey *key,
                                             label,
                                             "gns",
                                             &dkey);
-    // FIXME: We may want a key_get_public_from_private_scalar function
-    struct GNUNET_CRYPTO_EddsaPublicKey test;
-    crypto_scalarmult_ed25519_base_noclamp (test.q_y,
-                                            dkey.s);
-    edblock->derived_key = test;
+    GNUNET_CRYPTO_eddsa_key_get_public_from_scalar (&dkey,
+                                                    &edblock->derived_key);
     derive_block_xsalsa_key (nonce,
                              skey,
                              label,
@@ -438,25 +435,21 @@ GNUNET_GNSRECORD_block_create (const struct GNUNET_IDENTITY_PrivateKey *key,
                                const struct GNUNET_GNSRECORD_Data *rd,
                                unsigned int rd_count)
 {
-  struct GNUNET_CRYPTO_EcdsaPublicKey pkey;
-  struct GNUNET_CRYPTO_EddsaPublicKey edkey;
-
+  struct GNUNET_IDENTITY_PublicKey pkey;
+  GNUNET_IDENTITY_key_get_public (key,
+                                  &pkey);
   switch (ntohl (key->type))
   {
   case GNUNET_GNSRECORD_TYPE_PKEY:
-    GNUNET_CRYPTO_ecdsa_key_get_public (&key->ecdsa_key,
-                                        &pkey);
     return block_create_ecdsa (&key->ecdsa_key,
-                               &pkey,
+                               &pkey.ecdsa_key,
                                expire,
                                label,
                                rd,
                                rd_count);
   case GNUNET_GNSRECORD_TYPE_EDKEY:
-    GNUNET_CRYPTO_eddsa_key_get_public (&key->eddsa_key,
-                                        &edkey);
     return block_create_eddsa (&key->eddsa_key,
-                               &edkey,
+                               &pkey.eddsa_key,
                                expire,
                                label,
                                rd,
@@ -930,7 +923,7 @@ GNUNET_GNSRECORD_query_from_public_key (const struct
     GNUNET_CRYPTO_eddsa_public_key_derive (&pub->eddsa_key,
                                            label,
                                            "gns",
-                                           &pd.eddsa_key);
+                                           &(pd.eddsa_key));
     GNUNET_CRYPTO_hash (&pd.eddsa_key,
                         sizeof (pd.eddsa_key),
                         query);

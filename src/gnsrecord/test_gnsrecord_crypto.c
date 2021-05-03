@@ -92,6 +92,7 @@ rd_decrypt_cb (void *cls,
   res = 0;
 }
 
+
 static void
 test_with_type (struct GNUNET_IDENTITY_PrivateKey *privkey)
 {
@@ -99,6 +100,7 @@ test_with_type (struct GNUNET_IDENTITY_PrivateKey *privkey)
   struct GNUNET_IDENTITY_PublicKey pubkey;
   struct GNUNET_HashCode query_pub;
   struct GNUNET_HashCode query_priv;
+  struct GNUNET_HashCode query_block;
   struct GNUNET_TIME_Absolute expire = GNUNET_TIME_absolute_get ();
 
 
@@ -117,7 +119,7 @@ test_with_type (struct GNUNET_IDENTITY_PrivateKey *privkey)
                               &query_pub,
                               sizeof(struct GNUNET_HashCode)));
   /* create record */
-  s_name = "DUMMY.dummy.gnunet";
+  s_name = "testlabel";
   s_rd = create_record (RECORDS);
 
   /* Create block */
@@ -128,6 +130,13 @@ test_with_type (struct GNUNET_IDENTITY_PrivateKey *privkey)
                                                            s_rd,
                                                            RECORDS)));
   GNUNET_assert (GNUNET_OK ==
+                 GNUNET_GNSRECORD_query_from_block (block,
+                                                    &query_block));
+  GNUNET_assert (0 == memcmp (&query_pub,
+                              &query_block,
+                              sizeof(struct GNUNET_HashCode)));
+
+  GNUNET_assert (GNUNET_OK ==
                  GNUNET_GNSRECORD_block_verify (block));
   GNUNET_assert (GNUNET_OK ==
                  GNUNET_GNSRECORD_block_decrypt (block,
@@ -137,7 +146,6 @@ test_with_type (struct GNUNET_IDENTITY_PrivateKey *privkey)
                                                  s_name));
   GNUNET_free (block);
 }
-
 
 
 static void
@@ -158,17 +166,17 @@ run (void *cls,
   test_with_type (&privkey);
   end = GNUNET_TIME_absolute_get ();
   printf ("Time: %llu ms\n", (unsigned long long)
-  GNUNET_TIME_absolute_get_difference (start,
-                                       end).rel_value_us);
+          GNUNET_TIME_absolute_get_difference (start,
+                                               end).rel_value_us);
 
   privkey_ed.type = htonl (GNUNET_GNSRECORD_TYPE_EDKEY);
   GNUNET_CRYPTO_eddsa_key_create (&privkey_ed.eddsa_key);
   start = GNUNET_TIME_absolute_get ();
-  test_with_type(&privkey_ed);
+  test_with_type (&privkey_ed);
   end = GNUNET_TIME_absolute_get ();
   printf ("Time: %llu ms\n", (unsigned long long)
-  GNUNET_TIME_absolute_get_difference (start,
-                                       end).rel_value_us);
+          GNUNET_TIME_absolute_get_difference (start,
+                                               end).rel_value_us);
 
 
 }
