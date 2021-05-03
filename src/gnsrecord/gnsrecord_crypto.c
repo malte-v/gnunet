@@ -99,7 +99,14 @@ eddsa_symmetric_decrypt (
   const unsigned char *nonce,
   void *result)
 {
-  if (0 != crypto_secretbox_open_easy (result, block, size, nonce, key))
+  ssize_t ctlen = size - crypto_secretbox_MACBYTES;
+  if (ctlen < 0)
+    return GNUNET_SYSERR;
+  if (0 != crypto_secretbox_open_detached (result,
+                                           block, // Ciphertext
+                                           ((unsigned char*)block) + ctlen, // TAG
+                                           ctlen,
+                                           nonce, key))
   {
     return GNUNET_SYSERR;
   }
@@ -115,7 +122,11 @@ eddsa_symmetric_encrypt (
   const unsigned char *nonce,
   void *result)
 {
-  crypto_secretbox_easy (result, block, size, nonce, key);
+  if (size > crypto_secretbox_MESSAGEBYTES_MAX)
+    return GNUNET_SYSERR;
+  crypto_secretbox_detached (result, // Ciphertext
+                             result + size, // TAG
+                             block, size, nonce, key);
   return GNUNET_OK;
 }
 
