@@ -31,6 +31,7 @@ netjail_check_bin $1
 LOCAL_GROUP="192.168.15"
 GLOBAL_GROUP="92.68.150"
 
+CLEANUP=0
 echo "Start [local: $LOCAL_GROUP.0/24, global: $GLOBAL_GROUP.0/24, stun: $STUN]"
 
 NETWORK_NET=$(netjail_print_name "n" $GLOBAL_N $LOCAL_M)
@@ -90,26 +91,47 @@ for N in $(seq $GLOBAL_N); do
 	done
 done
 
-for PID in $WAITING; do wait $PID; done
-for PID in $KILLING; do netjail_kill $PID; done
+cleanup() {
+	if [ $STUN -gt 0 ]; then
+		STUN_NODE=$(netjail_print_name "S" 254)
+
+		netjail_node_unlink_bridge $STUN_NODE $NETWORK_NET
+		netjail_node_clear $STUN_NODE
+	fi
+
+	for N in $(seq $GLOBAL_N); do
+		ROUTER_NET=$(netjail_print_name "r" $N)
+
+		for M in $(seq $LOCAL_M); do
+			NODE=$(netjail_print_name "N" $N $M)
+
+			netjail_node_unlink_bridge $NODE $ROUTER_NET
+			netjail_node_clear $NODE
+		done
+
+		ROUTER=$(netjail_print_name "R" $N)
+		
+		netjail_bridge_clear $ROUTER_NET
+		netjail_node_unlink_bridge $ROUTER $NETWORK_NET
+		netjail_node_clear $ROUTER
+	done
+
+	netjail_bridge_clear $NETWORK_NET
+}
+
+trapped_cleanup() {
+	netjail_killall $WAITING
+	netjail_killall $KILLING
+
+	cleanup
+}
+
+trap 'trapped_cleanup' 2
+
+netjail_waitall $WAITING
+netjail_killall $KILLING
 wait
 
-if [ $STUN -gt 0 ]; then
-	STUN_NODE=$(netjail_print_name "S" 254)
-
-	netjail_node_unlink_bridge $STUN_NODE $NETWORK_NET
-	netjail_node_clear $STUN_NODE
-fi
-
-for N in $(seq $GLOBAL_N); do
-	for M in $(seq $LOCAL_M); do
-		netjail_node_clear $(netjail_print_name "N" $N $M)
-	done
-	
-	netjail_bridge_clear $(netjail_print_name "r" $N)
-	netjail_node_clear $(netjail_print_name "R" $N)
-done
-
-netjail_bridge_clear $NETWORK_NET
+cleanup
 
 echo "Done"

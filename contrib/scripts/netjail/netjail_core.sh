@@ -10,7 +10,7 @@ JAILOR=${SUDO_USER:?must run in sudo}
 export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
 
 netjail_opt() {
-	OPT=$1
+	local OPT=$1
 	shift 1
 
 	INDEX=1
@@ -29,9 +29,8 @@ netjail_opt() {
 }
 
 netjail_check() {
-	NODE_COUNT=$1
-
-	FD_COUNT=$(($(ls /proc/self/fd | wc -w) - 4))
+	local NODE_COUNT=$1
+	local FD_COUNT=$(($(ls /proc/self/fd | wc -w) - 4))
 
 	# quit if `$FD_COUNT < ($LOCAL_M * $GLOBAL_N * 2)`:
 	# the script also requires `sudo -C ($FD_COUNT + 4)`
@@ -45,9 +44,8 @@ netjail_check() {
 }
 
 netjail_check_bin() {
-	PROGRAM=$1
-
-	MATCH=$(ls $(echo $PATH | tr ":" "\n") | grep "^$PROGRAM\$" | tr "\n" " " | awk '{ print $1 }')
+	local PROGRAM=$1
+	local MATCH=$(ls $(echo $PATH | tr ":" "\n") | grep "^$PROGRAM\$" | tr "\n" " " | awk '{ print $1 }')
 
 	# quit if the required binary $PROGRAM can not be
 	# found in the used $PATH.
@@ -63,38 +61,38 @@ netjail_print_name() {
 }
 
 netjail_bridge() {
-	BRIDGE=$1
+	local BRIDGE=$1
 
 	ip link add $BRIDGE type bridge
 	ip link set dev $BRIDGE up
 }
 
 netjail_bridge_clear() {
-	BRIDGE=$1
+	local BRIDGE=$1
 
 	ip link delete $BRIDGE
 }
 
 netjail_node() {
-	NODE=$1
+	local NODE=$1
 
 	ip netns add $NODE
 }
 
 netjail_node_clear() {
-	NODE=$1
+	local NODE=$1
 
 	ip netns delete $NODE
 }
 
 netjail_node_link_bridge() {
-	NODE=$1
-	BRIDGE=$2
-	ADDRESS=$3
-	MASK=$4
+	local NODE=$1
+	local BRIDGE=$2
+	local ADDRESS=$3
+	local MASK=$4
 	
-	LINK_IF="$NODE-$BRIDGE-0"
-	LINK_BR="$NODE-$BRIDGE-1"
+	local LINK_IF="$NODE-$BRIDGE-0"
+	local LINK_BR="$NODE-$BRIDGE-1"
 
 	ip link add $LINK_IF type veth peer name $LINK_BR
 	ip link set $LINK_IF netns $NODE
@@ -108,45 +106,70 @@ netjail_node_link_bridge() {
 }
 
 netjail_node_unlink_bridge() {
-	NODE=$1
-	BRIDGE=$2
+	local NODE=$1
+	local BRIDGE=$2
 	
-	LINK_BR="$NODE-$BRIDGE-1"
+	local LINK_BR="$NODE-$BRIDGE-1"
 
 	ip link delete $LINK_BR
 }
 
 netjail_node_add_nat() {
-	NODE=$1
-	ADDRESS=$2
-	MASK=$3
+	local NODE=$1
+	local ADDRESS=$2
+	local MASK=$3
 
 	ip netns exec $NODE iptables -t nat -A POSTROUTING -s "$ADDRESS/$MASK" -j MASQUERADE
 }
 
 netjail_node_add_default() {
-	NODE=$1
-	ADDRESS=$2
+	local NODE=$1
+	local ADDRESS=$2
 
 	ip -n $NODE route add default via $ADDRESS
 }
 
 netjail_node_exec() {
-	NODE=$1
-	FD_IN=$2
-	FD_OUT=$3
+	local NODE=$1
+	local FD_IN=$2
+	local FD_OUT=$3
 	shift 3
 
 	unshare -fp --kill-child -- ip netns exec $NODE sudo -u $JAILOR -- $@ 1>& $FD_OUT 0<& $FD_IN
 }
 
 netjail_kill() {
-	PID=$1
+	local PID=$1
+	local MATCH=$(ps --pid $PID | awk "{ if ( \$1 == $PID ) { print \$1 } }" | wc -l)
 
-	for CHILD in $(ps -o pid,ppid -ax | awk "{ if ( \$2 == $PID ) { print \$1 } }"); do
-		netjail_kill $CHILD
-	done
+	if [ $MATCH -gt 0 ]; then
+		kill -n 19 $PID
 
-	kill $PID
+		for CHILD in $(ps -o pid,ppid -ax | awk "{ if ( \$2 == $PID ) { print \$1 } }"); do
+			netjail_kill $CHILD
+		done
+
+		kill $PID
+	fi
+}
+
+netjail_killall() {
+	if [ $# -gt 0 ]; then
+		local PIDS=$1
+
+		for PID in $PIDS; do
+			netjail_kill $PID
+		done
+	fi
+}
+
+netjail_waitall() {
+	if [ $# -gt 0 ]; then
+		local PIDS=$1
+
+		for PID in $PIDS; do
+			wait $PID
+		done
+	fi
 }
 
