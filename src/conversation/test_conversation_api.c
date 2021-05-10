@@ -402,7 +402,9 @@ namestore_put_cont (void *cls, int32_t success, const char *emsg)
   GNUNET_assert (GNUNET_YES == success);
   GNUNET_assert (NULL == emsg);
   GNUNET_assert (NULL == op);
-  op = GNUNET_IDENTITY_create (id, "caller-ego", NULL, &caller_ego_create_cont,
+  op = GNUNET_IDENTITY_create (id, "caller-ego", NULL,
+                               GNUNET_IDENTITY_TYPE_ECDSA,
+                               &caller_ego_create_cont,
                                NULL);
 }
 
@@ -484,7 +486,9 @@ run (void *cls,
   cfg = c;
   GNUNET_SCHEDULER_add_delayed (TIMEOUT, &end_test, NULL);
   id = GNUNET_IDENTITY_connect (cfg, &identity_cb, NULL);
-  op = GNUNET_IDENTITY_create (id, "phone-ego", NULL, &phone_ego_create_cont,
+  op = GNUNET_IDENTITY_create (id, "phone-ego", NULL,
+                               GNUNET_IDENTITY_TYPE_ECDSA,
+                               &phone_ego_create_cont,
                                NULL);
   ns = GNUNET_NAMESTORE_connect (cfg);
 }
