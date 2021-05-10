@@ -351,12 +351,17 @@ GNUNET_CRYPTO_eddsa_private_key_derive (
   gcry_ctx_release (ctx);
   GNUNET_CRYPTO_mpi_print_unsigned (dc, sizeof(dc), d);
   /**
-   * Note that we copy all of SHA512(d) into the result and
-   * then overwrite the derived private scalar.
-   * This means that we re-use SHA512(d)[32..63]
-   * FIXME: Do we want to derive this part as well??
+   * We hash the derived "h" parameter with the
+   * other half of the expanded private key. This ensures
+   * that for signature generation, the "R" is derived from
+   * the same derivation path as "h" and is not reused.
    */
-  memcpy (result->s, sk, sizeof (sk));
+  crypto_hash_sha256_state hs;
+  crypto_hash_sha256_init (&hs);
+  crypto_hash_sha256_update (&hs, sk + 32, 32);
+  crypto_hash_sha256_update (&hs, (unsigned char*) &hc, sizeof (hc));
+  crypto_hash_sha256_final (&hs, result->s + 32);
+  //memcpy (result->s, sk, sizeof (sk));
   /* Convert to little endian for libsodium */
   for (size_t i = 0; i < 32; i++)
     result->s[i] = dc[31 - i];
