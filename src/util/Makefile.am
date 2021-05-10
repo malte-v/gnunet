@@ -661,4 +661,6 @@ EXTRA_DIST = \
   test_resolver_api_data.conf \
   test_service_data.conf \
   test_speedup_data.conf \
-  child_management_test.sh
+  child_management_test.sh \
+  test_crypto_vectors.sh \
+  crypto-test-vectors.json
