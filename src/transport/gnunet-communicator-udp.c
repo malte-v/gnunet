@@ -2691,8 +2691,8 @@ check_for_rekeying (struct ReceiverAddress *receiver, struct UDPBox *box)
   struct GNUNET_TIME_Relative rt;
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "Timeout is %lu\n.",
-              receiver->rekey_timeout.abs_value_us);
+              "Timeout is %llu\n.",
+              (unsigned long long) receiver->rekey_timeout.abs_value_us);
 
   if (0 == receiver->rekey_timeout.abs_value_us)
   {
@@ -2703,21 +2703,21 @@ check_for_rekeying (struct ReceiverAddress *receiver, struct UDPBox *box)
   {
     rt = GNUNET_TIME_absolute_get_remaining (receiver->rekey_timeout);
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                "Relative time is %lu and timeout is %lu\n.",
-                rt.rel_value_us,
-                receiver->rekey_timeout.abs_value_us);
+                "Relative time is %llu and timeout is %llu\n.",
+                (unsigned long long) rt.rel_value_us,
+                (unsigned long long) receiver->rekey_timeout.abs_value_us);
 
     if ((0 == rt.rel_value_us) || (receiver->rekey_send_bytes >
                                    rekey_max_bytes) )
     {
       GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                  "Bytes send %lu greater than %llu max bytes\n.",
-                  receiver->rekey_send_bytes,
+                  "Bytes send %llu greater than %llu max bytes\n.",
+                  (unsigned long long) receiver->rekey_send_bytes,
                   rekey_max_bytes);
       GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                  "Relative time is %lu and timeout is %lu\n.",
-                  rt.rel_value_us,
-                  receiver->rekey_timeout.abs_value_us);
+                  "Relative time is %llu and timeout is %llu\n.",
+                  (unsigned long long) rt.rel_value_us,
+                  (unsigned long long) receiver->rekey_timeout.abs_value_us);
 
       receiver->rekey_timeout.abs_value_us = 0;
       receiver->rekey_send_bytes = 0;

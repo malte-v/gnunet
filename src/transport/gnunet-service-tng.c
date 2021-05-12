@@ -9069,8 +9069,9 @@ handle_send_message_ack (void *cls,
          qep = qep->next)
     {
       GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                  "QueueEntry MID: %lu, Ack MID: %lu\n",
-                  qep->mid, sma->mid);
+                  "QueueEntry MID: %llu, Ack MID: %llu\n",
+                  (unsigned long long) qep->mid,
+                  (unsigned long long) sma->mid);
       if (qep->mid != sma->mid)
         continue;
       qe = qep;
