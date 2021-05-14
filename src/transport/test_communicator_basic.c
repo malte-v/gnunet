@@ -774,11 +774,18 @@ add_queue_cb (void *cls,
        "Queue established, starting test...\n");
   // start_short = GNUNET_TIME_absolute_get ();
   // my_tc = tc_h;
-  if (0 != mtu) /* Message header overhead */
+  LOG (GNUNET_ERROR_TYPE_DEBUG,
+       "MTU: %llu, Overhead: %llu\n",
+       mtu,
+       sizeof(struct GNUNET_TRANSPORT_SendMessageTo) +
+       sizeof(struct GNUNET_MessageHeader));
+  if (UINT32_MAX != mtu) /* Message header overhead */
     long_message_size = mtu - sizeof(struct GNUNET_TRANSPORT_SendMessageTo)
                         - sizeof(struct GNUNET_MessageHeader);
   else
     long_message_size = LONG_MESSAGE_SIZE;
+  LOG (GNUNET_ERROR_TYPE_DEBUG,
+       "Set message size to %llu\n", long_message_size);
   // phase = TP_BURST_SHORT;
   timeout[peer_nr] = GNUNET_TIME_relative_to_absolute (
     GNUNET_TIME_relative_multiply (
