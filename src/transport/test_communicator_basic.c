@@ -755,13 +755,11 @@ add_queue_cb (void *cls,
   unsigned int peer_nr;
 
   peer_nr = get_peer_nr (cls, GNUNET_NO);
-
   LOG (GNUNET_ERROR_TYPE_DEBUG,
        "Handle %p add %u %u\n",
        tc_h,
        peer_nr,
        get_peer_nr_from_tc (tc_h));
-
   if ((GNUNET_NO == bidirect)&&(0 != strcmp ((char*) cls, cfg_peers_name[0])))
   {
     LOG (GNUNET_ERROR_TYPE_DEBUG,
@@ -772,21 +770,11 @@ add_queue_cb (void *cls,
     return;
   LOG (GNUNET_ERROR_TYPE_DEBUG,
        "Queue established, starting test...\n");
-  // start_short = GNUNET_TIME_absolute_get ();
-  // my_tc = tc_h;
-  LOG (GNUNET_ERROR_TYPE_DEBUG,
-       "MTU: %llu, Overhead: %llu\n",
-       mtu,
-       sizeof(struct GNUNET_TRANSPORT_SendMessageTo) +
-       sizeof(struct GNUNET_MessageHeader));
   if (UINT32_MAX != mtu) /* Message header overhead */
     long_message_size = mtu - sizeof(struct GNUNET_TRANSPORT_SendMessageTo)
                         - sizeof(struct GNUNET_MessageHeader);
   else
     long_message_size = LONG_MESSAGE_SIZE;
-  LOG (GNUNET_ERROR_TYPE_DEBUG,
-       "Set message size to %llu\n", long_message_size);
-  // phase = TP_BURST_SHORT;
   timeout[peer_nr] = GNUNET_TIME_relative_to_absolute (
     GNUNET_TIME_relative_multiply (
       GNUNET_TIME_UNIT_SECONDS,
@@ -798,8 +786,6 @@ add_queue_cb (void *cls,
       TIMEOUT_MULTIPLIER),
     &latency_timeout,
     tc_h);
-  // prepare_test (NULL);
-  // short_test (NULL);
   choose_phase (tc_h);
 }
 
