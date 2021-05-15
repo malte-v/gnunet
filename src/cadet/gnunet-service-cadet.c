@@ -1137,13 +1137,13 @@ channel_destroy_iterator (void *cls,
        GCCH_2s (ch),
        GSC_2s (c));
   ccn.channel_of_client = htonl (key);
-  GCCH_channel_local_destroy (ch,
-                              c,
-                              ccn);
   GNUNET_assert (GNUNET_YES ==
                  GNUNET_CONTAINER_multihashmap32_remove (c->channels,
                                                          key,
                                                          ch));
+  GCCH_channel_local_destroy (ch,
+                              c,
+                              ccn);
   return GNUNET_OK;
 }
 
