@@ -403,7 +403,8 @@ register_error_cb (void *cls)
   MHD_resume_connection (rd->c);
   rd->searching = NULL;
   rd->body = make_json ("error", "true",
-                        "message", _ ("unable to scan namestore"));
+                        "message", _ ("unable to scan namestore"),
+                        NULL);
   rd->body_length = strlen (rd->body);
   rd->code = MHD_HTTP_INTERNAL_SERVER_ERROR;
   run_httpd_now ();
@@ -433,14 +434,16 @@ register_done_cb (void *cls,
                 rd->register_name,
                 emsg);
     rd->body = make_json ("error", "true",
-                          "message", emsg);
+                          "message", emsg,
+                          NULL);
     rd->body_length = strlen (rd->body);
     rd->code = MHD_HTTP_INTERNAL_SERVER_ERROR;
   }
   else
   {
     rd->body = make_json ("error", "false",
-                          "message", _ ("no errors"));
+                          "message", _ ("no errors"),
+                          NULL);
     rd->body_length = strlen (rd->body);
     rd->code = MHD_HTTP_OK;
   }
@@ -481,7 +484,8 @@ register_do_cb (void *cls,
     MHD_resume_connection (rd->c);
     rd->searching = NULL;
     rd->body = make_json ("error", "true",
-                          "message", _ ("key exists"));
+                          "message", _ ("key exists"),
+                          NULL);
     rd->body_length = strlen (rd->body);
     rd->code = MHD_HTTP_FORBIDDEN;
     run_httpd_now ();
@@ -501,7 +505,8 @@ register_do_cb (void *cls,
     MHD_resume_connection (rd->c);
     rd->searching = NULL;
     rd->body = make_json ("error", "true",
-                          "message", _ ("unable to store record"));
+                          "message", _ ("unable to store record"),
+                          NULL);
     rd->body_length = strlen (rd->body);
     rd->code = MHD_HTTP_INTERNAL_SERVER_ERROR;
     run_httpd_now ();
@@ -536,7 +541,8 @@ iterate_error_cb (void *cls)
   MHD_resume_connection (rd->c);
   rd->iterating = NULL;
   rd->body = make_json ("error", "true",
-                        "message", _ ("unable to scan namestore"));
+                        "message", _ ("unable to scan namestore"),
+                        NULL);
   rd->body_length = strlen (rd->body);
   rd->code = MHD_HTTP_INTERNAL_SERVER_ERROR;
   run_httpd_now ();
@@ -574,7 +580,8 @@ iterate_do_cb (void *cls,
 
     MHD_resume_connection (rd->c);
     rd->body = make_json ("error", "true",
-                          "message", _ ("name exists\n"));
+                          "message", _ ("name exists\n"),
+                          NULL);
     rd->body_length = strlen (rd->body);
     rd->code = MHD_HTTP_FORBIDDEN;
     GNUNET_NAMESTORE_zone_iteration_stop (rd->iterating);
@@ -756,13 +763,15 @@ create_response (void *cls,
       case GNUNET_JSON_PR_OUT_OF_MEMORY:
       case GNUNET_JSON_PR_REQUEST_TOO_LARGE:
         rd->body = make_json ("error", "true",
-                              "message", _ ("unable to process submitted data"));
+                              "message", _ ("unable to process submitted data"),
+                              NULL);
         rd->body_length = strlen (rd->body);
         rd->code = MHD_HTTP_PAYLOAD_TOO_LARGE;
         return MHD_YES;
       case GNUNET_JSON_PR_JSON_INVALID:
         rd->body = make_json ("error", "true",
-                              "message", _ ("the submitted data is invalid"));
+                              "message", _ ("the submitted data is invalid"),
+                              NULL);
         rd->body_length = strlen (rd->body);
         rd->code = MHD_HTTP_BAD_REQUEST;
         return MHD_YES;
@@ -778,7 +787,8 @@ create_response (void *cls,
       {
         json_decref (json);
         rd->body = make_json ("error", "true",
-                              "message", _ ("invalid parameters"));
+                              "message", _ ("invalid parameters"),
+                              NULL);
         rd->body_length = strlen (rd->body);
         rd->code = MHD_HTTP_BAD_REQUEST;
         return MHD_YES;
@@ -794,9 +804,11 @@ create_response (void *cls,
           NULL != strchr (rd->register_name, '+'))
       {
         rd->body = make_json ("error", "true",
-                              "message", _ ("invalid name"));
+                              "message", _ ("invalid name"),
+                              NULL);
         rd->body_length = strlen (rd->body);
         rd->code = MHD_HTTP_BAD_REQUEST;
+        return MHD_YES;
       }
 
       if (GNUNET_OK != GNUNET_IDENTITY_public_key_from_string (rd->register_key,
@@ -807,7 +819,8 @@ create_response (void *cls,
                     rd->register_key);
 
         rd->body = make_json ("error", "true",
-                              "message", _ ("unable to parse key"));
+                              "message", _ ("unable to parse key"),
+                              NULL);
         rd->body_length = strlen (rd->body);
         rd->code = MHD_HTTP_INTERNAL_SERVER_ERROR;
         return MHD_YES;
