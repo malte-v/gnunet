@@ -1258,14 +1258,35 @@ sqlite_plugin_estimate_size (void *cls, unsigned long long *estimate)
                                     NULL,
                                     NULL,
                                     ENULL));
-  CHECK (SQLITE_OK == sq_prepare (plugin->dbh, "PRAGMA page_count", &stmt));
+  if (SQLITE_OK != sq_prepare (plugin->dbh, "PRAGMA page_count", &stmt))
+  {
+    GNUNET_log_from (
+      GNUNET_ERROR_TYPE_WARNING,
+      "datastore-sqlite",
+      _("error preparing statement\n"));
+    return;
+  }
   if (SQLITE_ROW == sqlite3_step (stmt))
     pages = sqlite3_column_int64 (stmt, 0);
   else
     pages = 0;
   sqlite3_finalize (stmt);
-  CHECK (SQLITE_OK == sq_prepare (plugin->dbh, "PRAGMA page_size", &stmt));
-  CHECK (SQLITE_ROW == sqlite3_step (stmt));
+  if (SQLITE_OK != sq_prepare (plugin->dbh, "PRAGMA page_size", &stmt))
+  {
+    GNUNET_log_from (
+      GNUNET_ERROR_TYPE_WARNING,
+      "datastore-sqlite",
+      _("error preparing statement\n"));
+    return;
+  }
+  if (SQLITE_ROW != sqlite3_step (stmt))
+  {
+    GNUNET_log_from (
+      GNUNET_ERROR_TYPE_WARNING,
+      "datastore-sqlite",
+      _("error stepping\n"));
+    return;
+  }
   page_size = sqlite3_column_int64 (stmt, 0);
   sqlite3_finalize (stmt);
   GNUNET_log (
