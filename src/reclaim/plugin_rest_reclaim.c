@@ -1364,7 +1364,7 @@ list_ego (void *cls,
   struct EgoEntry *ego_entry;
   struct GNUNET_IDENTITY_PublicKey pk;
 
-  if ((NULL == ego) && (ID_REST_STATE_INIT == state))
+  if (NULL == ego)
   {
     state = ID_REST_STATE_POST_INIT;
     return;
