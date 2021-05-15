@@ -938,8 +938,7 @@ handle_dht_local_monitor_stop (void *cls,
       GNUNET_CONTAINER_DLL_remove (monitor_head,
                                    monitor_tail,
                                    r);
-      if (NULL != r->key)
-        GNUNET_free (r->key);
+      GNUNET_free (r->key);
       GNUNET_free (r);
       return;     /* Delete only ONE entry */
     }
@@ -1282,8 +1281,7 @@ GDS_CLIENTS_process_get (uint32_t options,
                       env);
     }
   }
-  if (NULL != cl)
-    GNUNET_free (cl);
+  GNUNET_free (cl);
 }
 
 
@@ -1365,8 +1363,7 @@ GDS_CLIENTS_process_get_resp (enum GNUNET_BLOCK_Type type,
                       env);
     }
   }
-  if (NULL != cl)
-    GNUNET_free (cl);
+  GNUNET_free (cl);
 }
 
 
@@ -1448,8 +1445,7 @@ GDS_CLIENTS_process_put (uint32_t options,
                       env);
     }
   }
-  if (NULL != cl)
-    GNUNET_free (cl);
+  GNUNET_free (cl);
 }
 
 

@@ -1436,8 +1436,7 @@ GDS_NEIGHBOURS_handle_get (enum GNUNET_BLOCK_Type type,
   if (msize + sizeof(struct PeerGetMessage) >= GNUNET_MAX_MESSAGE_SIZE)
   {
     GNUNET_break (0);
-    if (NULL != reply_bf)
-      GNUNET_free (reply_bf);
+    GNUNET_free (reply_bf);
     GNUNET_free (targets);
     return GNUNET_NO;
   }

@@ -1258,8 +1258,7 @@ GNUNET_DHT_monitor_stop (struct GNUNET_DHT_MonitorHandle *mh)
   }
   GNUNET_MQ_send (handle->mq,
                   env);
-  if (NULL != mh->key)
-    GNUNET_free (mh->key);
+  GNUNET_free (mh->key);
   GNUNET_free (mh);
 }
 
