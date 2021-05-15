@@ -943,9 +943,17 @@ run (void *cls,
     }
     struct GNUNET_REVOCATION_PowP *pow = (struct
                                           GNUNET_REVOCATION_PowP *) &rm[1];
+    ssize_t ksize;
     pk = (const struct GNUNET_IDENTITY_PublicKey *) &pow[1];
+    ksize = GNUNET_IDENTITY_key_get_length (pk);
+    if (0 > ksize)
+    {
+      GNUNET_break_op (0);
+      GNUNET_free (fn);
+      return;
+    }
     GNUNET_CRYPTO_hash (pk,
-                        GNUNET_IDENTITY_key_get_length (pk),
+                        ksize,
                         &hc);
     GNUNET_break (GNUNET_OK ==
                   GNUNET_CONTAINER_multihashmap_put (revocation_map,

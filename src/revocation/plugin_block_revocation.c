@@ -190,6 +190,7 @@ block_plugin_revocation_get_key (void *cls,
                                  struct GNUNET_HashCode *key)
 {
   const struct RevokeMessage *rm = block;
+  ssize_t ksize;
 
   if (block_size <= sizeof(*rm))
   {
@@ -199,8 +200,14 @@ block_plugin_revocation_get_key (void *cls,
   struct GNUNET_REVOCATION_PowP *pow = (struct GNUNET_REVOCATION_PowP *) &rm[1];
   const struct GNUNET_IDENTITY_PublicKey *pk;
   pk = (const struct GNUNET_IDENTITY_PublicKey *) &pow[1];
+  ksize = GNUNET_IDENTITY_key_get_length (pk);
+  if (0 > ksize)
+  {
+    GNUNET_break_op (0);
+    return GNUNET_SYSERR;
+  }
   GNUNET_CRYPTO_hash (pk,
-                      GNUNET_IDENTITY_key_get_length (pk),
+                      ksize,
                       key);
   return GNUNET_OK;
 }
