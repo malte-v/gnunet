@@ -1764,8 +1764,8 @@ recursive_gns2dns_resolution (struct GNS_ResolverHandle *rh,
       /**
        * Records other than GNS2DNS not allowed
        */
-      if (NULL != ns)
-        GNUNET_free (ns);
+      GNUNET_free (ns);
+      GNUNET_free (ac);
       return GNUNET_SYSERR;
     }
     off = 0;
@@ -1777,10 +1777,8 @@ recursive_gns2dns_resolution (struct GNS_ResolverHandle *rh,
         (NULL == ip))
     {
       GNUNET_break_op (0);
-      if (NULL != n)
-        GNUNET_free (n);
-      if (NULL != ip)
-        GNUNET_free (ip);
+      GNUNET_free (n);
+      GNUNET_free (ip);
       continue;
     }
 
@@ -1789,6 +1787,8 @@ recursive_gns2dns_resolution (struct GNS_ResolverHandle *rh,
     if (off != rd[i].data_size)
     {
       GNUNET_break_op (0);
+      GNUNET_free (n);
+      GNUNET_free (ip);
       continue;
     }
     /* resolve 'ip' to determine the IP(s) of the DNS

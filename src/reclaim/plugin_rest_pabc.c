@@ -282,6 +282,7 @@ set_attributes_from_idtoken (const struct pabc_context *ctx,
                   "Failed to set attribute `%s'.\n", key);
     }
   }
+  GNUNET_free (jwt_string);
   return PABC_OK;
 }
 

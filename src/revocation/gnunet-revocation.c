@@ -343,7 +343,13 @@ ego_callback (void *cls, struct GNUNET_IDENTITY_Ego *ego)
               GNUNET_DISK_fn_read (filename, proof_of_work,
                                    GNUNET_REVOCATION_MAX_PROOF_SIZE))))
   {
-    size_t ksize = GNUNET_IDENTITY_key_get_length (&key);
+    ssize_t ksize = GNUNET_IDENTITY_key_get_length (&key);
+    if (0 > ksize)
+    {
+      fprintf (stderr,
+               _ ("Error: Key is invalid\n"));
+      return;
+    }
     if (((psize - sizeof (*proof_of_work)) < ksize) || // Key too small
         (0 != memcmp (&proof_of_work[1], &key, ksize))) // Keys do not match
     {

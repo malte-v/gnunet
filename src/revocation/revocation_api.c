@@ -707,6 +707,7 @@ GNUNET_REVOCATION_pow_round (struct GNUNET_REVOCATION_PowCalculationHandle *pc)
   unsigned int zeros;
   int ret;
   uint64_t pow_nbo;
+  ssize_t ksize;
 
   pc->current_pow++;
   pk = (const struct GNUNET_IDENTITY_PublicKey *) &(pc->pow[1]);
@@ -722,9 +723,11 @@ GNUNET_REVOCATION_pow_round (struct GNUNET_REVOCATION_PowCalculationHandle *pc)
   GNUNET_memcpy (&buf[sizeof(uint64_t)],
                  &pc->pow->timestamp,
                  sizeof (uint64_t));
+  ksize = GNUNET_IDENTITY_key_get_length (pk);
+  GNUNET_assert (0 < ksize);
   GNUNET_memcpy (&buf[sizeof(uint64_t) * 2],
                  pk,
-                 GNUNET_IDENTITY_key_get_length (pk));
+                 ksize);
   GNUNET_CRYPTO_pow_hash (&salt,
                           buf,
                           sizeof(buf),
