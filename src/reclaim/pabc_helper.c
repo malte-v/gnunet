@@ -96,6 +96,7 @@ read_file (char const *const filename, char **buffer)
 
 fail:
   GNUNET_DISK_file_close (fh);
+  GNUNET_free (*buffer);
   return GNUNET_SYSERR;
 }
 
