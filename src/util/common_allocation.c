@@ -327,8 +327,12 @@ GNUNET_xrealloc_ (void *ptr, size_t n, const char *filename, int linenumber)
  * @param linenumber where in the code was the call to GNUNET_free()
  */
 void
-GNUNET_xfree_ (void *ptr, const char *filename, int linenumber)
+GNUNET_xfree_ (void *ptr,
+               const char *filename,
+               int linenumber)
 {
+  if (NULL == ptr)
+    return;
 #ifdef W32_MEM_LIMIT
   ptr = &((size_t *) ptr)[-1];
   mem_used -= *((size_t *) ptr);
