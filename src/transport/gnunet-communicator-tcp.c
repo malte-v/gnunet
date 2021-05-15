@@ -1158,10 +1158,10 @@ setup_cipher (const struct GNUNET_HashCode *dh,
   char key[256 / 8];
   char ctr[128 / 8];
 
-  gcry_cipher_open (cipher,
-                    GCRY_CIPHER_AES256 /* low level: go for speed */,
-                    GCRY_CIPHER_MODE_CTR,
-                    0 /* flags */);
+  GNUNET_assert (0 == gcry_cipher_open (cipher,
+                                        GCRY_CIPHER_AES256 /* low level: go for speed */,
+                                        GCRY_CIPHER_MODE_CTR,
+                                        0 /* flags */));
   GNUNET_assert (GNUNET_YES == GNUNET_CRYPTO_kdf (key,
                                                   sizeof(key),
                                                   "TCP-key",
@@ -1172,7 +1172,7 @@ setup_cipher (const struct GNUNET_HashCode *dh,
                                                   sizeof(*pid),
                                                   NULL,
                                                   0));
-  gcry_cipher_setkey (*cipher, key, sizeof(key));
+  GNUNET_assert (0 == gcry_cipher_setkey (*cipher, key, sizeof(key)));
   GNUNET_assert (GNUNET_YES == GNUNET_CRYPTO_kdf (ctr,
                                                   sizeof(ctr),
                                                   "TCP-ctr",
@@ -2115,6 +2115,7 @@ extract_address (const char *bindto)
   char *token;
   char *cp;
   char *rest = NULL;
+  char *res;
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "extract address with bindto %s\n",
@@ -2145,7 +2146,9 @@ extract_address (const char *bindto)
     else
     {
       token++;
-      return token;
+      res = GNUNET_strdup (token);
+      GNUNET_free (cp);
+      return res;
     }
   }
 
@@ -2155,7 +2158,7 @@ extract_address (const char *bindto)
               "extract address with start %s\n",
               start);
 
-  return start;
+  return GNUNET_strdup (start);
 }
 
 
@@ -2185,6 +2188,7 @@ extract_port (const char *addr_and_port)
       colon = strrchr (cp, ':');
       if (NULL == colon)
       {
+        GNUNET_free (cp);
         return 0;
       }
       addr = colon;
@@ -2195,6 +2199,7 @@ extract_port (const char *addr_and_port)
       token = strtok_r (NULL, "]", &rest);
       if (NULL == token)
       {
+        GNUNET_free (cp);
         return 0;
       }
       else
@@ -2213,7 +2218,7 @@ extract_port (const char *addr_and_port)
         GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                     "Port `%u' invalid: value too large for port\n",
                     port);
-        // GNUNET_free (cp);
+        GNUNET_free (cp);
         return 0;
       }
     }
@@ -2221,7 +2226,7 @@ extract_port (const char *addr_and_port)
     {
       GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                   "BINDTO specification invalid: last ':' not followed by number\n");
-      // GNUNET_free (cp);
+      GNUNET_free (cp);
       return 0;
     }
   }
@@ -2252,7 +2257,7 @@ tcp_address_to_sockaddr (const char *bindto, socklen_t *sock_len)
   unsigned int port;
   struct sockaddr_in v4;
   struct sockaddr_in6 v6;
-  const char *start;
+  char *start;
 
   // cp = GNUNET_strdup (bindto);
   start = extract_address (bindto);
@@ -2288,8 +2293,7 @@ tcp_address_to_sockaddr (const char *bindto, socklen_t *sock_len)
     GNUNET_assert (0);
   }
 
-  // GNUNET_free (start);
-
+  GNUNET_free (start);
   return in;
 }
 
@@ -2427,39 +2431,6 @@ boot_queue (struct Queue *queue)
                                              NULL,
                                              &mq_error,
                                              queue);
-  /* { */
-  /*   char *foreign_addr; */
-
-  /*   switch (queue->address->sa_family) */
-  /*   { */
-  /*   case AF_INET: */
-  /*     GNUNET_asprintf (&foreign_addr, */
-  /*                      "%s-%s", */
-  /*                      COMMUNICATOR_ADDRESS_PREFIX, */
-  /*                      GNUNET_a2s (queue->address, queue->address_len)); */
-  /*     break; */
-
-  /*   case AF_INET6: */
-  /*     GNUNET_asprintf (&foreign_addr, */
-  /*                      "%s-%s", */
-  /*                      COMMUNICATOR_ADDRESS_PREFIX, */
-  /*                      GNUNET_a2s (queue->address, queue->address_len)); */
-  /*     break; */
-
-  /*   default: */
-  /*     GNUNET_assert (0); */
-  /*   } */
-  /*   queue->qh = GNUNET_TRANSPORT_communicator_mq_add (ch, */
-  /*                                                     &queue->target, */
-  /*                                                     foreign_addr, */
-  /*                                                     0 /\* no MTU *\/, */
-  /*                                                     GNUNET_TRANSPORT_QUEUE_LENGTH_UNLIMITED, */
-  /*                                                     0, /\* Priority *\/ */
-  /*                                                     queue->nt, */
-  /*                                                     queue->cs, */
-  /*                                                     queue->mq); */
-  /*   GNUNET_free (foreign_addr); */
-  /* } */
 }
 
 
@@ -2600,8 +2571,8 @@ handshake_monotime_cb (void *cls,
                                                          pid,
                                                          GNUNET_PEERSTORE_TRANSPORT_TCP_COMMUNICATOR_HANDSHAKE,
                                                          handshake_monotonic_time,
-                                                         sizeof(
-                                                           handshake_monotonic_time),
+                                                         sizeof(*
+                                                                handshake_monotonic_time),
                                                          GNUNET_TIME_UNIT_FOREVER_ABS,
                                                          GNUNET_PEERSTORE_STOREOPTION_REPLACE,
                                                          &
@@ -2642,18 +2613,18 @@ decrypt_and_check_tc (struct Queue *queue,
   memcpy (&ths.ephemeral, ibuf, sizeof(struct GNUNET_CRYPTO_EcdhePublicKey));
   ths.monotonic_time = tc->monotonic_time;
   ths.challenge = tc->challenge;
+  queue->handshake_monotime_get =
+    GNUNET_PEERSTORE_iterate (peerstore,
+                              "transport_tcp_communicator",
+                              &queue->target,
+                              GNUNET_PEERSTORE_TRANSPORT_TCP_COMMUNICATOR_HANDSHAKE,
+                              &handshake_monotime_cb,
+                              queue);
   return GNUNET_CRYPTO_eddsa_verify (
     GNUNET_SIGNATURE_COMMUNICATOR_TCP_HANDSHAKE,
     &ths,
     &tc->sender_sig,
     &tc->sender.public_key);
-  queue->handshake_monotime_get = GNUNET_PEERSTORE_iterate (peerstore,
-                                                            "transport_tcp_communicator",
-                                                            &queue->target,
-                                                            GNUNET_PEERSTORE_TRANSPORT_TCP_COMMUNICATOR_HANDSHAKE,
-                                                            &
-                                                            handshake_monotime_cb,
-                                                            queue);
 }
 
 
@@ -2914,8 +2885,7 @@ queue_read_kx (void *cls)
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "cread_off set to %lu bytes\n",
               queue->cread_off);
-  if (0 <= queue->cread_off)
-    queue->read_task = GNUNET_SCHEDULER_add_now (&queue_read, queue);
+  queue->read_task = GNUNET_SCHEDULER_add_now (&queue_read, queue);
 }
 
 
@@ -3359,10 +3329,11 @@ init_socket (struct sockaddr *addr,
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "creating map entry\n");
-  GNUNET_CONTAINER_multihashmap_put (lt_map,
-                                     &h_sock,
-                                     lt,
-                                     GNUNET_CONTAINER_MULTIHASHMAPOPTION_UNIQUE_ONLY);
+  GNUNET_assert (GNUNET_OK ==
+                 GNUNET_CONTAINER_multihashmap_put (lt_map,
+                                                    &h_sock,
+                                                    lt,
+                                                    GNUNET_CONTAINER_MULTIHASHMAPOPTION_UNIQUE_ONLY));
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "map entry created\n");

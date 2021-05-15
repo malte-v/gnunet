@@ -337,7 +337,7 @@ hello_iter_cb (void *cb_cls,
                const char *emsg)
 {
   struct GNUNET_TRANSPORT_TESTING_PeerContext *p = cb_cls;
-  if ((NULL == record) && (NULL == emsg))
+  if (NULL == record)
   {
     p->pic = NULL;
     if (NULL != p->start_cb)

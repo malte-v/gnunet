@@ -4381,13 +4381,13 @@ dv_setup_key_state_from_km (const struct GNUNET_HashCode *km,
               "Deriving backchannel key based on KM %s and IV %s\n",
               GNUNET_h2s (km),
               GNUNET_sh2s (iv));
-  gcry_cipher_open (&key->cipher,
-                    GCRY_CIPHER_AES256 /* low level: go for speed */,
-                    GCRY_CIPHER_MODE_CTR,
-                    0 /* flags */);
-  gcry_cipher_setkey (key->cipher,
-                      &key->material.aes_key,
-                      sizeof(key->material.aes_key));
+  GNUNET_assert (0 == gcry_cipher_open (&key->cipher,
+                                        GCRY_CIPHER_AES256 /* low level: go for speed */,
+                                        GCRY_CIPHER_MODE_CTR,
+                                        0 /* flags */));
+  GNUNET_assert (0 == gcry_cipher_setkey (key->cipher,
+                                          &key->material.aes_key,
+                                          sizeof(key->material.aes_key)));
   gcry_cipher_setctr (key->cipher,
                       &key->material.aes_ctr,
                       sizeof(key->material.aes_ctr));
