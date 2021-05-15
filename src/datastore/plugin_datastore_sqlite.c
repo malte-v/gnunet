@@ -729,7 +729,8 @@ sqlite_plugin_put (void *cls,
   }
   GNUNET_SQ_reset (plugin->dbh, stmt);
   cont (cont_cls, key, size, ret, msg);
-  GNUNET_free (msg);
+  if (NULL != msg)
+    GNUNET_free (msg);
 }
 
 

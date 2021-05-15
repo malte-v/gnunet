@@ -1430,7 +1430,7 @@ GNUNET_DATASTORE_get_key (struct GNUNET_DATASTORE_Handle *h,
   {
     LOG (GNUNET_ERROR_TYPE_DEBUG,
          "Could not queue request for `%s'\n",
-         GNUNET_h2s (key));
+         (NULL == key) ? "NULL" : GNUNET_h2s (key));
     return NULL;
   }
 #if INSANE_STATISTICS

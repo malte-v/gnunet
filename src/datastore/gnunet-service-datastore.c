@@ -1556,7 +1556,8 @@ run (void *cls,
                                            5);    /* approx. 3% false positives at max use */
       refresh_bf = GNUNET_YES;
     }
-    GNUNET_free (pfn);
+    if (NULL != pfn)
+      GNUNET_free (pfn);
   }
   else
   {
@@ -1566,7 +1567,8 @@ run (void *cls,
                                          5);  /* approx. 3% false positives at max use */
     refresh_bf = GNUNET_YES;
   }
-  GNUNET_free (fn);
+  if (NULL != fn)
+    GNUNET_free (fn);
   if (NULL == filter)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
