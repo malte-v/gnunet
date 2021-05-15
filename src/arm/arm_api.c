@@ -433,12 +433,10 @@ handle_arm_list_result (void *cls,
     const char *name;
     const char *binary;
 
-    GNUNET_assert (NULL != (name = pool_get (pool_start,
-                                             pool_size,
-                                             name_index)));
-    GNUNET_assert (NULL != (binary = pool_get (pool_start,
-                                               pool_size,
-                                               binary_index)));
+    name = pool_get (pool_start, pool_size, name_index);
+    binary = pool_get (pool_start, pool_size, binary_index);
+    GNUNET_assert (NULL != name);
+    GNUNET_assert (NULL != binary);
     list[i] = (struct GNUNET_ARM_ServiceInfo) {
       .name = name,
       .binary = binary,
@@ -978,15 +976,16 @@ GNUNET_ARM_request_service_start (struct GNUNET_ARM_Handle *h,
   {
     GNUNET_log_strerror (GNUNET_ERROR_TYPE_WARNING,
                          "pipe");
-  }
-  wsig = GNUNET_DISK_pipe_detach_end (sig,
+  } else {
+    wsig = GNUNET_DISK_pipe_detach_end (sig,
                                       GNUNET_DISK_PIPE_END_WRITE);
-  ret = start_arm_service (h,
-                           std_inheritance,
-                           wsig);
-  GNUNET_DISK_file_close (wsig);
-  if (GNUNET_ARM_RESULT_STARTING == ret)
-    reconnect_arm (h);
+    ret = start_arm_service (h,
+                             std_inheritance,
+                             wsig);
+    GNUNET_DISK_file_close (wsig);
+    if (GNUNET_ARM_RESULT_STARTING == ret)
+      reconnect_arm (h);
+  }
   op = GNUNET_new (struct GNUNET_ARM_Operation);
   op->h = h;
   op->result_cont = cont;
