@@ -656,7 +656,10 @@ do_error (void *cls)
     handle->response_code = MHD_HTTP_BAD_REQUEST;
   resp = GNUNET_REST_create_response (json_error);
   if (MHD_HTTP_UNAUTHORIZED == handle->response_code)
-    MHD_add_response_header (resp, MHD_HTTP_HEADER_WWW_AUTHENTICATE, "Basic");
+    GNUNET_assert (MHD_NO !=
+                   MHD_add_response_header (resp,
+                                            MHD_HTTP_HEADER_WWW_AUTHENTICATE,
+                                            "Basic"));
   MHD_add_response_header (resp,
                            MHD_HTTP_HEADER_CONTENT_TYPE,
                            "application/json");
