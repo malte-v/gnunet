@@ -139,4 +139,5 @@ finally:
     else:
         shutil.rmtree("/tmp/gnunet-test-peerinfo", True)
     #Reset LANG
-    os.environ['LANG'] = mylang
+    if type(mylang) == str:
+      os.environ['LANG'] = mylang
