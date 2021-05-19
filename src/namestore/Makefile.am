@@ -182,7 +182,8 @@ gnunet_namestore_fcfsd_LDADD = $(MHD_LIBS) \
   $(top_builddir)/src/identity/libgnunetidentity.la \
   libgnunetnamestore.la \
   $(top_builddir)/src/util/libgnunetutil.la \
-  $(GN_LIBINTL)
+  $(top_builddir)/src/json/libgnunetjson.la \
+  $(GN_LIBINTL) -ljansson
 gnunet_namestore_fcfsd_CFLAGS = $(MHD_CFLAGS) $(AM_CFLAGS)
 
 

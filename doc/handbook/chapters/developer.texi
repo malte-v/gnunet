@@ -8224,6 +8224,7 @@ record types.
 * Hijacking the DNS-Traffic using gnunet-service-dns::
 @c * Serving DNS lookups via GNS on W32::
 * Importing DNS Zones into GNS::
+* Registering names using the FCFS daemon::
 @end menu
 
 @node libgnunetgns
@@ -8735,6 +8736,139 @@ In conclusion there are many bottlenecks still around in the program, namely the
 single threaded implementation and inefficient, sequential calls of
 gnunet-namestore. In the future a solution that uses the C API would be cleaner
 and better.
+
+@node Registering names using the FCFS daemon
+@subsection Registering names using the FCFS daemon
+
+This section describes FCFSD, a daemon used to associate names with PKEY
+records following a ``First Come, First Served'' policy.  This policy means
+that a certain name can not be registered again if someone registered it
+already.
+
+The daemon can be started by using @code{gnunet-namestore-fcfsd}, which will
+start a simple HTTP server on localhost, using a port specified by the
+@code{HTTPORT} value in its configuration.
+
+Communication is performed by sending GET or POST requests to specific paths
+(``endpoints''), as described in the following sections.
+
+The daemon will always respond with data structured using the JSON format.
+The fields to be expected will be listed for each endpoint.
+
+The only exceptions are for the ``root'' endpoint (i.e. @code{/}) which will
+return a HTML document, and two other HTML documents which will be served when
+certain errors are encountered, like when requesting an unknown endpoint.
+
+@menu
+* Obtaining informations from the daemon::
+* Submitting data to the daemon::
+* Customizing the HTML output::
+@end menu
+
+@cindex FCFSD GET requests
+@node Obtaining informations from the daemon
+@subsubsection Obtaining informations from the daemon
+
+To query the daemon, a GET request must be sent to these endpoints, placing
+parameters in the address as per the HTTP specification, like so:
+
+@example
+GET /endpoint?param1=value&param2=value
+@end example
+
+Each endpoint will be described using its name (@code{/endpoint} in the
+example above), followed by the name of each parameter (like @code{param1} and
+@code{param2}.)
+
+@deffn Endpoint /search name
+This endpoint is used to query about the state of @var{name}, that is, whether
+it is available for registration or not.
+
+The response JSON will contain two fields:
+
+@itemize @bullet
+@item error
+@item free
+@end itemize
+
+@code{error} can be either the string @code{"true"} or the string
+@code{"false"}: when @code{"true"}, it means there was an error within the
+daemon and the name could not be searched at all.
+
+@code{free} can be either the string @code{"true"} or the string
+@code{"false"}: when @code{"true"}, the requested name can be registered.
+@end deffn
+
+@cindex FCFSD POST requests
+@node Submitting data to the daemon
+@subsubsection Submitting data to the daemon
+
+To send data to the daemon, a POST request must be sent to these endpoints,
+placing the data to submit in the body of the request, structured using the
+JSON format, like so:
+
+@example
+POST /endpoint
+Content-Type: application/json
+...
+
+@{"param1": value1, "param2": value2, ...@}
+@end example
+
+Each endpoint will be described using its name (@code{/endpoint} in the
+example above), followed by the name of each JSON field (like @code{param1}
+and @code{param2}.)
+
+@deffn Endpoint /register name key
+This endpoint is used to register a new association between @var{name} and
+@var{key}.
+
+For this operation to succeed, both @var{NAME} and @var{KEY} @strong{must not}
+be registered already.
+
+The response JSON will contain two fields:
+
+@itemize @bullet
+@item error
+@item message
+@end itemize
+
+@code{error} can be either the string @code{"true"} or the string
+@code{"false"}: when @code{"true"}, it means the name could not be registered.
+Clients can get the reason of the failure from the HTTP response code or from
+the @code{message} field.
+
+@code{message} is a string which can be used by clients to let users know the
+result of the operation.  It might be localized to the daemon operator's
+locale.
+@end deffn
+
+@node Customizing the HTML output
+@subsubsection Customizing the HTML output
+
+In some situations, the daemon will serve HTML documents instead of JSON
+values.  It is possible to configure the daemon to serve custom documents
+instead of the ones provided with GNUnet, by setting the @code{HTMLDIR} value
+in its configuration to a directory path.
+
+Within the provided path, the daemon will search for these three files:
+
+@itemize @bullet
+@item fcfsd-index.html
+@item fcfsd-notfound.html
+@item fcfsd-forbidden.html
+@end itemize
+
+The @file{fcfsd-index.html} file is the daemon's ``homepage'': operators might
+want to provide informations about the service here, or provide a form with
+which it is possible to register a name.
+
+The @file{fcfsd-notfound.html} file is used primarily to let users know they
+tried to access an unknown endpoint.
+
+The @file{fcfsd-forbidden.html} file is served to users when they try to
+access an endpoint they should not access.  For example, sending an invalid
+request might result in this page being served.
 
 @cindex GNS Namecache
 @node GNS Namecache
