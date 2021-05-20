@@ -207,6 +207,7 @@ do_shutdown (void *cls)
   }
 }
 
+
 /**
  * Called when the HTTP server has some pending operations.
  *
@@ -259,6 +260,7 @@ run_httpd (void)
   GNUNET_NETWORK_fdset_destroy (ges);
 }
 
+
 /**
  * Called when the HTTP server has some pending operations.
  *
@@ -272,6 +274,7 @@ do_httpd (void *cls)
   run_httpd ();
 }
 
+
 static void
 run_httpd_now (void)
 {
@@ -282,6 +285,7 @@ run_httpd_now (void)
   }
   httpd_task = GNUNET_SCHEDULER_add_now (&do_httpd, NULL);
 }
+
 
 /**
  * Generate a JSON object.
@@ -295,12 +299,12 @@ static char *
 make_json (const char *key, const char *value, ...)
 {
   va_list args;
-  va_start(args, value);
+  va_start (args, value);
 
   json_t *obj = NULL;
 
   obj = json_object ();
-  if (NULL == key || NULL == value)
+  if ((NULL == key) || (NULL == value))
   {
     va_end (args);
     return json_dumps (obj, JSON_COMPACT);
@@ -339,6 +343,7 @@ make_json (const char *key, const char *value, ...)
   return json;
 }
 
+
 /**
  * The namestore search task failed.
  *
@@ -357,6 +362,7 @@ search_error_cb (void *cls)
   rd->code = MHD_HTTP_INTERNAL_SERVER_ERROR;
   run_httpd_now ();
 }
+
 
 /**
  * The lookup terminated with some results.
@@ -390,6 +396,7 @@ search_done_cb (void *cls,
   run_httpd_now ();
 }
 
+
 /**
  * An error occurred while registering a name.
  *
@@ -410,6 +417,7 @@ register_error_cb (void *cls)
   run_httpd_now ();
 }
 
+
 /**
  * A name/key pair has been successfully registered, or maybe not.
  *
@@ -427,7 +435,7 @@ register_done_cb (void *cls,
   MHD_resume_connection (rd->c);
   rd->searching = NULL;
 
-  if (GNUNET_SYSERR == status || GNUNET_NO == status)
+  if ((GNUNET_SYSERR == status) || (GNUNET_NO == status))
   {
     GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
                 _ ("Failed to create record for `%s': %s\n"),
@@ -450,6 +458,7 @@ register_done_cb (void *cls,
 
   run_httpd_now ();
 }
+
 
 /**
  * Attempt to register the requested name.
@@ -528,6 +537,7 @@ register_do_cb (void *cls,
   GNUNET_free (gdraw);
 }
 
+
 /**
  * An error occurred while iterating the namestore.
  *
@@ -547,6 +557,7 @@ iterate_error_cb (void *cls)
   rd->code = MHD_HTTP_INTERNAL_SERVER_ERROR;
   run_httpd_now ();
 }
+
 
 /**
  * A block was received from the namestore.
@@ -592,6 +603,7 @@ iterate_do_cb (void *cls,
   GNUNET_NAMESTORE_zone_iterator_next (rd->iterating, 1);
 }
 
+
 /**
  * All entries in the namestore have been iterated over.
  *
@@ -613,6 +625,7 @@ iterate_done_cb (void *cls)
                                                  &register_do_cb,
                                                  rd);
 }
+
 
 /**
  * Generate a response containing JSON and send it to the client.
@@ -637,6 +650,7 @@ serve_json (struct MHD_Connection *c,
   MHD_destroy_response (response);
   return r;
 }
+
 
 /**
  * Send a response back to a connected client.
@@ -732,7 +746,7 @@ create_response (void *cls,
     if (0 == strcmp ("/register", url))
     {
       /* Handle a previously suspended request */
-      if (NULL != rd && NULL != rd->body)
+      if ((NULL != rd) && (NULL != rd->body))
       {
         return serve_json (rd->c, rd->body, rd->body_length, rd->code);
       }
@@ -781,9 +795,11 @@ create_response (void *cls,
 
       /* POST data has been read in its entirety */
 
-      const char *name = json_string_value(json_object_get(json, "name"));
-      const char *key = json_string_value(json_object_get(json, "key"));
-      if (NULL == name || NULL == key || 0 == strlen (name) || 0 == strlen (key))
+      const char *name = json_string_value (json_object_get (json, "name"));
+      const char *key = json_string_value (json_object_get (json, "key"));
+      if ((NULL == name) || (NULL == key) || (0 == strlen (name)) || (0 ==
+                                                                      strlen (
+                                                                        key)))
       {
         json_decref (json);
         rd->body = make_json ("error", "true",
@@ -800,8 +816,8 @@ create_response (void *cls,
       json_decref (json);
       GNUNET_JSON_post_parser_cleanup (rd->ptr);
 
-      if (NULL != strchr (rd->register_name, '.') ||
-          NULL != strchr (rd->register_name, '+'))
+      if ((NULL != strchr (rd->register_name, '.')) ||
+          (NULL != strchr (rd->register_name, '+')))
       {
         rd->body = make_json ("error", "true",
                               "message", _ ("invalid name"),
@@ -849,6 +865,7 @@ create_response (void *cls,
                              MHD_HTTP_NOT_IMPLEMENTED,
                              forbidden_page->response);
 }
+
 
 /**
  * Called when a request is completed.
@@ -903,6 +920,7 @@ completed_cb (void *cls,
   GNUNET_free (rd);
 }
 
+
 /**
  * Called for each ego provided by the identity service.
  *
@@ -920,7 +938,7 @@ identity_cb (void *cls,
   (void) cls;
   (void) ctx;
 
-  if (NULL == name || 0 != strcmp (name, zone))
+  if ((NULL == name) || (0 != strcmp (name, zone)))
   {
     return;
   }
@@ -960,6 +978,7 @@ identity_cb (void *cls,
 
   run_httpd ();
 }
+
 
 /**
  * Open a file on disk and generate a response object for it.
@@ -1008,6 +1027,7 @@ open_static_page (const char *name, const char *basedir)
   page->response = response;
   return page;
 }
+
 
 /**
  * Called after the service is up.
@@ -1073,7 +1093,8 @@ run_service (void *cls,
 
   GNUNET_free (basedir);
 
-  if (NULL == main_page || NULL == notfound_page || NULL == forbidden_page)
+  if ((NULL == main_page) || (NULL == notfound_page) || (NULL ==
+                                                         forbidden_page) )
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                 _ ("Unable to set up the daemon\n"));
@@ -1082,11 +1103,12 @@ run_service (void *cls,
   }
 }
 
+
 /**
  * The main function of the fcfs daemon.
  *
  * @param argc number of arguments from the command line
- * @parsm argv the command line argumens
+ * @parsm argv the command line arguments
  * @return 0 successful exit, a different value otherwise
  */
 int
@@ -1094,18 +1116,20 @@ main (int argc, char *const *argv)
 {
   struct GNUNET_GETOPT_CommandLineOption options[] = {
     GNUNET_GETOPT_option_mandatory
-    (GNUNET_GETOPT_option_string ('z',
-                                  "zone",
-                                  "EGO",
-                                  gettext_noop ("name of the zone managed by FCFSD"),
-                                  &zone)),
+      (GNUNET_GETOPT_option_string ('z',
+                                    "zone",
+                                    "EGO",
+                                    gettext_noop (
+                                      "name of the zone managed by FCFSD"),
+                                    &zone)),
     GNUNET_GETOPT_OPTION_END
   };
 
   return ((GNUNET_OK == GNUNET_PROGRAM_run (argc,
                                             argv,
                                             "gnunet-namestore-fcfsd",
-                                            _ ("GNU Name System First-Come-First-Served name registration service"),
+                                            _ (
+                                              "GNU Name System First-Come-First-Served name registration service"),
                                             options,
                                             &run_service,
                                             NULL)) ?

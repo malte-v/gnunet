@@ -8760,14 +8760,14 @@ return a HTML document, and two other HTML documents which will be served when
 certain errors are encountered, like when requesting an unknown endpoint.
 
 @menu
-* Obtaining informations from the daemon::
+* Obtaining information from the daemon::
 * Submitting data to the daemon::
 * Customizing the HTML output::
 @end menu
 
 @cindex FCFSD GET requests
-@node Obtaining informations from the daemon
-@subsubsection Obtaining informations from the daemon
+@node Obtaining information from the daemon
+@subsubsection Obtaining information from the daemon
 
 To query the daemon, a GET request must be sent to these endpoints, placing
 parameters in the address as per the HTTP specification, like so:
@@ -8860,7 +8860,7 @@ Within the provided path, the daemon will search for these three files:
 @end itemize
 
 The @file{fcfsd-index.html} file is the daemon's ``homepage'': operators might
-want to provide informations about the service here, or provide a form with
+want to provide information about the service here, or provide a form with
 which it is possible to register a name.
 
 The @file{fcfsd-notfound.html} file is used primarily to let users know they
