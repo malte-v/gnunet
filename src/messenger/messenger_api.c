@@ -574,6 +574,50 @@ GNUNET_MESSENGER_close_room (struct GNUNET_MESSENGER_Room *room)
   send_close_room (room->handle, room);
 }
 
+struct GNUNET_MESSENGER_RoomFind
+{
+  struct GNUNET_MESSENGER_Contact *contact;
+  GNUNET_MESSENGER_MemberCallback callback;
+  size_t counter;
+  void *cls;
+};
+
+static int
+iterate_find_room (void* cls, const struct GNUNET_HashCode *key, void *value)
+{
+  struct GNUNET_MESSENGER_RoomFind *find = cls;
+  struct GNUNET_MESSENGER_Room *room = value;
+
+  if ((find->counter > 0) && ((!find->contact) || (GNUNET_YES == find_room_member(room, find->contact))))
+  {
+    find->counter--;
+
+    if (!find->callback)
+      return GNUNET_YES;
+
+    return find->callback(find->cls, room, find->contact);
+  }
+  else
+    return GNUNET_NO;
+}
+
+int
+GNUNET_MESSENGER_find_rooms (const struct GNUNET_MESSENGER_Handle *handle, const struct GNUNET_MESSENGER_Contact *contact,
+                             GNUNET_MESSENGER_MemberCallback callback, void *cls)
+{
+  if (!handle)
+    return GNUNET_SYSERR;
+
+  struct GNUNET_MESSENGER_RoomFind find;
+
+  find.contact = contact;
+  find.callback = callback;
+  find.counter = (contact? contact->rc : SIZE_MAX);
+  find.cls = cls;
+
+  return GNUNET_CONTAINER_multihashmap_iterate(handle->rooms, iterate_find_room, &find);
+}
+
 struct GNUNET_MESSENGER_Contact*
 GNUNET_MESSENGER_get_sender (const struct GNUNET_MESSENGER_Room *room, const struct GNUNET_HashCode *hash)
 {
@@ -693,7 +737,7 @@ GNUNET_MESSENGER_get_message (const struct GNUNET_MESSENGER_Room *room, const st
 
 int
 GNUNET_MESSENGER_iterate_members (struct GNUNET_MESSENGER_Room *room, GNUNET_MESSENGER_MemberCallback callback,
-                                  void* cls)
+                                  void *cls)
 {
   if (!room)
     return GNUNET_SYSERR;

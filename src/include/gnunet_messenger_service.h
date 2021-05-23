@@ -50,6 +50,8 @@ extern "C" {
 
 /**
  * Version number of GNUnet Messenger API.
+ *
+ * Current version of the Messenger: 0.1
  */
 #define GNUNET_MESSENGER_VERSION 0x00000001
 
@@ -219,6 +221,10 @@ struct GNUNET_MESSENGER_MessageInfo
 
   /**
    * The version of GNUnet Messenger API.
+   *
+   * The sixteen lower bits represent the lower version number while the sixteen higher bits
+   * represent the higher version number. A different higher version number implies imcompatibility
+   * to lower versions while differences in the lower version can still be supported potentially.
    */
   uint32_t messenger_version;
 };
@@ -670,6 +676,21 @@ GNUNET_MESSENGER_enter_room (struct GNUNET_MESSENGER_Handle *handle, const struc
  */
 void
 GNUNET_MESSENGER_close_room (struct GNUNET_MESSENGER_Room *room);
+
+/**
+ * Searches for a specific <i>contact</i> in a given <i>room</i> and calls a selected <i>callback</i> with a given
+ * closure for each of them containing the contact as a member. The callback will receive a room matching the condition
+ * and the given contact. The function returns the amount of rooms iterated with the given callback.
+ *
+ * @param[in] handle Messenger handle to use
+ * @param[in] contact Contact handle
+ * @param[in] callback Function called for each room
+ * @param[in] cls Closure for the <i>callback</i> handler
+ * @return Amount of rooms iterated
+ */
+int
+GNUNET_MESSENGER_find_rooms (const struct GNUNET_MESSENGER_Handle *handle, const struct GNUNET_MESSENGER_Contact *contact,
+                             GNUNET_MESSENGER_MemberCallback callback, void *cls);
 
 /**
  * Get the contact of a member in a <i>room</i> which sent a specific message identified with a given <i>hash</i>.
