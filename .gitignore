@@ -76,3 +76,4 @@ CMakeFiles.txt
 
 # Prevent cache files from IDEA from being commited
 .idea/
+src/util/test_child_management
