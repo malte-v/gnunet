@@ -97,7 +97,7 @@ the peer identity.  The IDENTITY service essentially stores the
 private keys under human-readable names, and keeps a mapping of which
 private key should be used for particular important system functions.
 The existing identities can be listed using the command
-@command{gnunet-identity -d}
+@command{gnunet-identity --display}
 
 @example
 gnu - JTDVJC69NHU6GQS4B5721MV8VM7J6G2DVRGJV0ONIT6QH7OI6D50
@@ -1098,7 +1098,7 @@ selection is simply random.
 @subsection Namespace Management
 
 The @code{gnunet-identity} tool can be used to create egos.
-By default, @code{gnunet-identity -D} simply
+By default, @code{gnunet-identity --display} simply
 lists all locally available egos.
 
 
@@ -1110,13 +1110,18 @@ lists all locally available egos.
 @node Creating Egos
 @subsubsection Creating Egos
 
-With the @command{-C NICK} option it can also be used to create a new
+With the @command{--create=NICK} option it can also be used to create a new
 ego. An ego is the virtual identity of the entity in control of a
 namespace or GNS zone. Anyone can create any number of egos.  The
 provided NICK name automatically corresponds to a GNU Name System
 domain name.  Thus, henceforth name resolution for any name ending in
 ``.NICK'' will use the NICK's zone.  You should avoid using NICKs that
 collide with well-known DNS names.
+
+Currently, the IDENTITY subsystem supports two types of identity keys:
+ECDSA and EdDSA. By default, ECDSA identities are creates with ECDSA keys.
+In order to create an identity with EdDSA keys, you can use the
+@command{--eddsa} flag.
 
 @node Deleting Egos
 @subsubsection Deleting Egos
@@ -1409,7 +1414,7 @@ You can create any number of zones using the gnunet-identity tool
 using:
 
 @example
-$ gnunet-identity -C "myzone"
+$ gnunet-identity --create="myzone"
 @end example
 
 Henceforth, on your system you control the TLD ``myzone''.
@@ -1418,7 +1423,7 @@ All of your zones can be listed (displayed) using the
 @command{gnunet-identity} command line tool as well:
 
 @example
-$ gnunet-identity -d
+$ gnunet-identity --display
 @end example
 
 @node Maintaining your own Zones
@@ -1929,7 +1934,7 @@ integrate reclaimID as an Identity Provider with little effort.
 Before adding attributes to an identity, you must first create an ego:
 
 @example
-$ gnunet-identity -C "user"
+$ gnunet-identity --create="user"
 @end example
 
 Henceforth, you can manage a new user profile of the user ``user''.

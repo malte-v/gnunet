@@ -39,6 +39,7 @@
 .Op Fl q | -quiet
 .Op Fl s Ar SUBSYSTEM | Fl -set= Ns Ar SUBSYSTEM
 .Op Fl V | -verbose
+.Op Fl X | -eddsa
 .Sh DESCRIPTION
 .Nm
 is a tool for managing egos.
@@ -94,6 +95,8 @@ This will fail if
 does not yet exist.
 .It Fl V | -verbose
 Be verbose, in particular outputs the public key of freshly created egos.
+.It Fl X | -eddsa
+Use EdDSA instead of ECDSA.
 .El
 .Sh FILES
 .Pa ~/.local/share/gnunet/identity/egos
