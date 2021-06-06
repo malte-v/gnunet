@@ -1244,7 +1244,7 @@ GNUNET_IDENTITY_public_key_from_string (const char *str,
   if (GNUNET_OK != ret)
     return GNUNET_SYSERR;
   ktype = ntohl (key->type);
-  return (GNUNET_IDENTITY_TYPE_ECDSA == ktype) ? GNUNET_OK : GNUNET_SYSERR; // FIXME other keys, cleaner way?
+  return GNUNET_OK;
 
 }
 
@@ -1262,7 +1262,7 @@ GNUNET_IDENTITY_private_key_from_string (const char *str,
   if (GNUNET_OK != ret)
     return GNUNET_SYSERR;
   ktype = ntohl (key->type);
-  return (GNUNET_IDENTITY_TYPE_ECDSA == ktype) ? GNUNET_OK : GNUNET_SYSERR; // FIXME other keys, cleaner way?
+  return GNUNET_OK;
 }
 
 
