@@ -32,6 +32,7 @@
 #include "gnunet_crypto_lib.h"
 #include "gnunet_disk_lib.h"
 #include "gnunet_identity_service.h"
+#include "gnunet_messenger_service.h"
 
 /**
  * Starts an urgent task to close a CADET channel asynchronously.
@@ -60,5 +61,18 @@ generate_free_member_id (struct GNUNET_ShortHashCode *id, const struct GNUNET_CO
  */
 const struct GNUNET_IDENTITY_PublicKey*
 get_anonymous_public_key ();
+
+/**
+ * Converts a Messenger service key of a room to the specific port which
+ * gets used for the CADET channels.
+ *
+ * The port includes upper bits of the #GNUNET_MESSENGER_VERSION to
+ * reduce the chance of incompatible connections.
+ *
+ * @param[in] key Messenger service room key
+ * @param[out] port CADET service port
+ */
+void
+convert_messenger_key_to_port(const struct GNUNET_HashCode *key, struct GNUNET_HashCode *port);
 
 #endif //GNUNET_SERVICE_MESSENGER_UTIL_H

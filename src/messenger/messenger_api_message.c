@@ -373,11 +373,14 @@ static void
 encode_message_body (enum GNUNET_MESSENGER_MessageKind kind, const struct GNUNET_MESSENGER_MessageBody *body,
                      uint16_t length, char *buffer, uint16_t offset)
 {
+  uint32_t version;
   switch (kind)
   {
   case GNUNET_MESSENGER_KIND_INFO:
+    version = GNUNET_htobe32(body->info.messenger_version);
+
     encode_step_key(buffer, offset, &(body->info.host_key), length);
-    encode_step(buffer, offset, &(body->info.messenger_version));
+    encode_step(buffer, offset, &version);
     break;
   case GNUNET_MESSENGER_KIND_JOIN:
     encode_step_key(buffer, offset, &(body->join.key), length);
@@ -452,7 +455,7 @@ encode_message (const struct GNUNET_MESSENGER_Message *message, uint16_t length,
   if (GNUNET_YES == include_signature)
     encode_step_signature(buffer, offset, &(message->header.signature), length);
 
-  const kind_t kind = (kind_t) message->header.kind;
+  const kind_t kind = GNUNET_htobe32((kind_t) message->header.kind);
 
   encode_step(buffer, offset, &(message->header.timestamp));
   encode_step(buffer, offset, &(message->header.sender_id));
@@ -468,7 +471,7 @@ encode_short_message (const struct GNUNET_MESSENGER_ShortMessage *message, uint1
   struct GNUNET_HashCode hash;
   uint16_t offset = sizeof(hash);
 
-  const kind_t kind = (kind_t) message->kind;
+  const kind_t kind = GNUNET_htobe32((kind_t) message->kind);
 
   encode_step(buffer, offset, &kind);
 
@@ -526,11 +529,14 @@ decode_message_body (enum GNUNET_MESSENGER_MessageKind *kind, struct GNUNET_MESS
 
   length -= padding;
 
+  uint32_t version;
   switch (*kind)
   {
   case GNUNET_MESSENGER_KIND_INFO: {
     decode_step_key(buffer, offset, &(body->info.host_key), length);
-    decode_step(buffer, offset, &(body->info.messenger_version));
+    decode_step(buffer, offset, &version);
+
+    body->info.messenger_version = GNUNET_be32toh(version);
     break;
   } case GNUNET_MESSENGER_KIND_JOIN: {
     decode_step_key(buffer, offset, &(body->join.key), length);
@@ -618,7 +624,7 @@ decode_message (struct GNUNET_MESSENGER_Message *message, uint16_t length, const
   decode_step(buffer, offset, &(message->header.previous));
   decode_step(buffer, offset, &kind);
 
-  message->header.kind = (enum GNUNET_MESSENGER_MessageKind) kind;
+  message->header.kind = (enum GNUNET_MESSENGER_MessageKind) GNUNET_be32toh(kind);
 
   if (count < get_message_kind_size (message->header.kind))
     return GNUNET_NO;
@@ -655,7 +661,7 @@ decode_short_message (struct GNUNET_MESSENGER_ShortMessage *message, uint16_t le
 
   decode_step(buffer, offset, &kind);
 
-  message->kind = (enum GNUNET_MESSENGER_MessageKind) kind;
+  message->kind = (enum GNUNET_MESSENGER_MessageKind) GNUNET_be32toh(kind);
 
   if (length < get_short_message_size (message, GNUNET_NO))
     return GNUNET_NO;

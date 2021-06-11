@@ -8,8 +8,7 @@ endif
 
 if HAVE_EXPERIMENTAL
  EXP_DIR = \
-  rps \
-  messenger
+  rps
   #abd FTBFS
 if HAVE_ABE
  EXP_DIR += \
@@ -101,5 +100,6 @@ SUBDIRS = \
   pt \
   secretsharing \
   reclaim \
+  messenger \
   $(EXP_DIR) \
   integration-tests

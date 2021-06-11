@@ -329,7 +329,9 @@ open_room (struct GNUNET_MESSENGER_SrvRoom *room, struct GNUNET_MESSENGER_SrvHan
                                                                        struct GNUNET_MessageHeader, NULL),
                                                  GNUNET_MQ_handler_end() };
 
-  room->port = GNUNET_CADET_open_port (cadet, key, callback_room_connect, room, NULL, callback_tunnel_disconnect,
+  struct GNUNET_HashCode port;
+  convert_messenger_key_to_port(key, &port);
+  room->port = GNUNET_CADET_open_port (cadet, &port, callback_room_connect, room, NULL, callback_tunnel_disconnect,
                                        handlers);
 
   if (room->port)

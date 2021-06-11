@@ -82,3 +82,19 @@ get_anonymous_public_key ()
 
   return &public_key;
 }
+
+void
+convert_messenger_key_to_port(const struct GNUNET_HashCode *key, struct GNUNET_HashCode *port)
+{
+  static uint32_t version_value = 0;
+  static struct GNUNET_HashCode version;
+
+  if (!version_value) {
+    version_value = (uint32_t) (GNUNET_MESSENGER_VERSION);
+    version_value = ((version_value >> 16) & 0xFFFF);
+    version_value = GNUNET_htole32(version_value);
+    GNUNET_CRYPTO_hash(&version_value, sizeof(version_value), &version);
+  }
+
+  GNUNET_CRYPTO_hash_sum(key, &version, port);
+}

@@ -305,3 +305,39 @@ iterate_room_members (struct GNUNET_MESSENGER_Room *room, GNUNET_MESSENGER_Membe
 
   return GNUNET_CONTAINER_multishortmap_iterate(room->members, iterate_local_members, &call);
 }
+
+struct GNUNET_MESSENGER_MemberFind
+{
+  struct GNUNET_MESSENGER_Contact *contact;
+  int result;
+};
+
+static int
+iterate_find_member (void* cls, const struct GNUNET_ShortHashCode *key, void *value)
+{
+  struct GNUNET_MESSENGER_MemberFind *find = cls;
+  struct GNUNET_MESSENGER_Contact *contact = value;
+
+  if (contact == find->contact)
+  {
+    find->result = GNUNET_YES;
+    return GNUNET_NO;
+  }
+
+  return GNUNET_YES;
+}
+
+int
+find_room_member (const struct GNUNET_MESSENGER_Room *room, const struct GNUNET_MESSENGER_Contact *contact)
+{
+  GNUNET_assert(room);
+
+  struct GNUNET_MESSENGER_MemberFind find;
+
+  find.contact = contact;
+  find.result = GNUNET_NO;
+
+  GNUNET_CONTAINER_multishortmap_iterate(room->members, iterate_find_member, &find);
+
+  return find.result;
+}

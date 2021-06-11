@@ -104,6 +104,6 @@ load_list_messages (struct GNUNET_MESSENGER_ListMessages *messages, const char *
  * @param[in] path Path of file
  */
 void
-save_list_messages (struct GNUNET_MESSENGER_ListMessages *messages, const char *path);
+save_list_messages (const struct GNUNET_MESSENGER_ListMessages *messages, const char *path);
 
 #endif //GNUNET_SERVICE_MESSENGER_LIST_MESSAGES_H

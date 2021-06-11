@@ -125,7 +125,7 @@ load_list_messages (struct GNUNET_MESSENGER_ListMessages *messages, const char *
 }
 
 void
-save_list_messages (struct GNUNET_MESSENGER_ListMessages *messages, const char *path)
+save_list_messages (const struct GNUNET_MESSENGER_ListMessages *messages, const char *path)
 {
   GNUNET_assert((messages) && (path));
 

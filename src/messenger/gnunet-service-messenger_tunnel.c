@@ -235,7 +235,9 @@ connect_tunnel (struct GNUNET_MESSENGER_SrvTunnel *tunnel)
                                                                        struct GNUNET_MessageHeader, NULL),
                                                  GNUNET_MQ_handler_end() };
 
-  tunnel->channel = GNUNET_CADET_channel_create (cadet, tunnel, door, key, NULL, callback_tunnel_disconnect, handlers);
+  struct GNUNET_HashCode port;
+  convert_messenger_key_to_port(key, &port);
+  tunnel->channel = GNUNET_CADET_channel_create (cadet, tunnel, door, &port, NULL, callback_tunnel_disconnect, handlers);
 
   return GNUNET_YES;
 }

@@ -126,4 +126,15 @@ int
 iterate_room_members (struct GNUNET_MESSENGER_Room *room, GNUNET_MESSENGER_MemberCallback callback,
                       void* cls);
 
+/**
+ * Checks through all members of a given <i>room</i> if a specific <i>contact</i> is found and
+ * returns a result depending on that.
+ *
+ * @param[in] room Room
+ * @param[in] contact
+ * @return #GNUNET_YES if found, otherwise #GNUNET_NO
+ */
+int
+find_room_member (const struct GNUNET_MESSENGER_Room *room, const struct GNUNET_MESSENGER_Contact *contact);
+
 #endif //GNUNET_MESSENGER_API_ROOM_H
