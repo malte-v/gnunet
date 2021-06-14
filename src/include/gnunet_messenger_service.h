@@ -223,7 +223,7 @@ struct GNUNET_MESSENGER_MessageInfo
    * The version of GNUnet Messenger API.
    *
    * The sixteen lower bits represent the lower version number while the sixteen higher bits
-   * represent the higher version number. A different higher version number implies imcompatibility
+   * represent the higher version number. A different higher version number implies incompatibility
    * to lower versions while differences in the lower version can still be supported potentially.
    */
   uint32_t messenger_version;
