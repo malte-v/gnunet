@@ -128,9 +128,11 @@ GNUNET_PQ_extract_result (PGresult *result,
                           struct GNUNET_PQ_ResultSpec *rs,
                           int row)
 {
+  unsigned int i;
+
   if (NULL == result)
     return GNUNET_SYSERR;
-  for (unsigned int i = 0; NULL != rs[i].conv; i++)
+  for (i = 0; NULL != rs[i].conv; i++)
   {
     struct GNUNET_PQ_ResultSpec *spec;
     enum GNUNET_GenericReturnValue ret;
@@ -156,18 +158,24 @@ GNUNET_PQ_extract_result (PGresult *result,
           *spec->is_null = true;
         continue;
       }
-    /* intentional fall-through: NULL value for field that is NOT nullable */
+      GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                  "NULL field encountered for `%s' where non-NULL was required\n",
+                  spec->fname);
+      goto cleanup;
     case GNUNET_SYSERR:
-      for (unsigned int j = 0; j < i; j++)
-        if (NULL != rs[j].cleaner)
-          rs[j].cleaner (rs[j].cls,
-                         rs[j].dst);
-      return GNUNET_SYSERR;
+      GNUNET_break (0);
+      goto cleanup;
     }
     if (NULL != spec->result_size)
       *spec->result_size = spec->dst_size;
   }
   return GNUNET_OK;
+cleanup:
+  for (unsigned int j = 0; j < i; j++)
+    if (NULL != rs[j].cleaner)
+      rs[j].cleaner (rs[j].cls,
+                     rs[j].dst);
+  return GNUNET_SYSERR;
 }
 
 
