@@ -245,15 +245,16 @@ GNUNET_PQ_query_param_uint64 (const uint64_t *x);
  * @param[out] dst where to store the result
  * @return
  *   #GNUNET_YES if all results could be extracted
- *   #GNUNET_SYSERR if a result was invalid (non-existing field or NULL)
+ *   #GNUNET_NO if the field was NULL
+ *   #GNUNET_SYSERR if a result was invalid (non-existing field)
  */
-typedef int
-(*GNUNET_PQ_ResultConverter) (void *cls,
-                              PGresult *result,
-                              int row,
-                              const char *fname,
-                              size_t *dst_size,
-                              void *dst);
+typedef enum GNUNET_GenericReturnValue
+(*GNUNET_PQ_ResultConverter)(void *cls,
+                             PGresult *result,
+                             int row,
+                             const char *fname,
+                             size_t *dst_size,
+                             void *dst);
 
 
 /**
@@ -310,7 +311,7 @@ struct GNUNET_PQ_ResultSpec
    * Where to store actual size of the result.
    */
   size_t *result_size;
-  
+
   /**
    * True if NULL is allowed for a value in the database.
    */

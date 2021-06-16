@@ -133,34 +133,31 @@ GNUNET_PQ_extract_result (PGresult *result,
   for (unsigned int i = 0; NULL != rs[i].conv; i++)
   {
     struct GNUNET_PQ_ResultSpec *spec;
-    int ret;
+    enum GNUNET_GenericReturnValue ret;
 
     spec = &rs[i];
-    if (spec->is_nullable)
-    {
-      int fnum;
-
-      fnum = PQfnumber (result,
-                        spec->fname);
-      if (PQgetisnull (result,
-                       row,
-                       fnum))
-      {
-        if (NULL != spec->is_null)
-          *spec->is_null = true;
-        continue;
-      }
-      if (NULL != spec->is_null)
-        *spec->is_null = false;
-    }
     ret = spec->conv (spec->cls,
                       result,
                       row,
                       spec->fname,
                       &spec->dst_size,
                       spec->dst);
-    if (GNUNET_OK != ret)
+    switch (ret)
     {
+    case GNUNET_OK:
+      /* canonical case, continue below */
+      if (NULL != spec->is_null)
+        *spec->is_null = false;
+      break;
+    case GNUNET_NO:
+      if (spec->is_nullable)
+      {
+        if (NULL != spec->is_null)
+          *spec->is_null = true;
+        continue;
+      }
+    /* intentional fall-through: NULL value for field that is NOT nullable */
+    case GNUNET_SYSERR:
       for (unsigned int j = 0; j < i; j++)
         if (NULL != rs[j].cleaner)
           rs[j].cleaner (rs[j].cls,
