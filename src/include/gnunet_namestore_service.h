@@ -127,8 +127,7 @@ typedef void
  */
 struct GNUNET_NAMESTORE_QueueEntry *
 GNUNET_NAMESTORE_records_store (struct GNUNET_NAMESTORE_Handle *h,
-                                const struct
-                                GNUNET_IDENTITY_PrivateKey *pkey,
+                                const struct GNUNET_IDENTITY_PrivateKey *pkey,
                                 const char *label,
                                 unsigned int rd_count,
                                 const struct GNUNET_GNSRECORD_Data *rd,
@@ -314,17 +313,16 @@ struct GNUNET_NAMESTORE_ZoneMonitor;
  * @return handle to stop monitoring
  */
 struct GNUNET_NAMESTORE_ZoneMonitor *
-GNUNET_NAMESTORE_zone_monitor_start (const struct
-                                     GNUNET_CONFIGURATION_Handle *cfg,
-                                     const struct
-                                     GNUNET_IDENTITY_PrivateKey *zone,
-                                     int iterate_first,
-                                     GNUNET_SCHEDULER_TaskCallback error_cb,
-                                     void *error_cb_cls,
-                                     GNUNET_NAMESTORE_RecordMonitor monitor,
-                                     void *monitor_cls,
-                                     GNUNET_SCHEDULER_TaskCallback sync_cb,
-                                     void *sync_cb_cls);
+GNUNET_NAMESTORE_zone_monitor_start (
+  const struct GNUNET_CONFIGURATION_Handle *cfg,
+  const struct GNUNET_IDENTITY_PrivateKey *zone,
+  int iterate_first,
+  GNUNET_SCHEDULER_TaskCallback error_cb,
+  void *error_cb_cls,
+  GNUNET_NAMESTORE_RecordMonitor monitor,
+  void *monitor_cls,
+  GNUNET_SCHEDULER_TaskCallback sync_cb,
+  void *sync_cb_cls);
 
 
 /**

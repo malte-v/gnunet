@@ -601,7 +601,8 @@ GNUNET_GNSRECORD_block_get_size (const struct GNUNET_GNSRECORD_Block *block);
  * @return the block expiration.
  */
 struct GNUNET_TIME_Absolute
-GNUNET_GNSRECORD_block_get_expiration (const struct GNUNET_GNSRECORD_Block *block);
+GNUNET_GNSRECORD_block_get_expiration (const struct
+                                       GNUNET_GNSRECORD_Block *block);
 
 
 /**
@@ -643,7 +644,8 @@ GNUNET_GNSRECORD_identity_from_data (const char *data,
  * @return GNUNET_OK if successful.
  */
 enum GNUNET_GenericReturnValue
-GNUNET_GNSRECORD_data_from_identity (const struct GNUNET_IDENTITY_PublicKey *key,
+GNUNET_GNSRECORD_data_from_identity (const struct
+                                     GNUNET_IDENTITY_PublicKey *key,
                                      char **data,
                                      size_t *data_size,
                                      uint32_t *type);
