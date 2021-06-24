@@ -139,8 +139,6 @@ handle_leave_message (struct GNUNET_MESSENGER_Room *room, struct GNUNET_MESSENGE
   struct GNUNET_HashCode context;
   get_context_from_member(&(room->key), &(message->header.sender_id), &context);
 
-  struct GNUNET_MESSENGER_ContactStore *store = get_handle_contact_store(room->handle);
-
   if (GNUNET_YES == decrease_contact_rc(sender))
     GNUNET_log(GNUNET_ERROR_TYPE_DEBUG, "A contact does not share any room with you anymore!\n");
 }
@@ -308,7 +306,7 @@ iterate_room_members (struct GNUNET_MESSENGER_Room *room, GNUNET_MESSENGER_Membe
 
 struct GNUNET_MESSENGER_MemberFind
 {
-  struct GNUNET_MESSENGER_Contact *contact;
+  const struct GNUNET_MESSENGER_Contact *contact;
   int result;
 };
 

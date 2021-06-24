@@ -576,7 +576,7 @@ GNUNET_MESSENGER_close_room (struct GNUNET_MESSENGER_Room *room)
 
 struct GNUNET_MESSENGER_RoomFind
 {
-  struct GNUNET_MESSENGER_Contact *contact;
+  const struct GNUNET_MESSENGER_Contact *contact;
   GNUNET_MESSENGER_MemberCallback callback;
   size_t counter;
   void *cls;
