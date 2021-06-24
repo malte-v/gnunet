@@ -759,7 +759,6 @@ GNUNET_CURL_download_get_result_ (struct GNUNET_CURL_DownloadBuffer *db,
               "Downloaded body: %.*s\n",
               (int) db->buf_size,
               (char *) db->buf);
-
   if ((CURLE_OK !=
        curl_easy_getinfo (eh,
                           CURLINFO_CONTENT_TYPE,

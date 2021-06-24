@@ -190,7 +190,8 @@ struct GNUNET_CONTAINER_MultiPeerMapIterator
  * @return NULL on error
  */
 struct GNUNET_CONTAINER_MultiPeerMap *
-GNUNET_CONTAINER_multipeermap_create (unsigned int len, int do_not_copy_keys)
+GNUNET_CONTAINER_multipeermap_create (unsigned int len,
+                                      int do_not_copy_keys)
 {
   struct GNUNET_CONTAINER_MultiPeerMap *map;
 
