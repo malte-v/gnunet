@@ -3,6 +3,7 @@ usr/lib/*/libgnunetcurl.so.*
 usr/lib/*/libgnunetjson.so.*
 usr/lib/*/libgnunetpq.so.*
 usr/lib/*/libgnunetsq.so.*
+usr/lib/*/libgnunetrest.so.*
 usr/lib/*/libgnunetutil.so.*
 usr/share/locale/
 usr/share/gnunet/config.d/util.conf
