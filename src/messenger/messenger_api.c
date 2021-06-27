@@ -618,7 +618,7 @@ GNUNET_MESSENGER_find_rooms (const struct GNUNET_MESSENGER_Handle *handle, const
   return GNUNET_CONTAINER_multihashmap_iterate(handle->rooms, iterate_find_room, &find);
 }
 
-struct GNUNET_MESSENGER_Contact*
+const struct GNUNET_MESSENGER_Contact*
 GNUNET_MESSENGER_get_sender (const struct GNUNET_MESSENGER_Room *room, const struct GNUNET_HashCode *hash)
 {
   if ((!room) || (!hash))

@@ -701,7 +701,7 @@ GNUNET_MESSENGER_find_rooms (const struct GNUNET_MESSENGER_Handle *handle, const
  * @param[in] hash Hash identifying a message
  * @return Contact handle, NULL otherwise
  */
-struct GNUNET_MESSENGER_Contact*
+const struct GNUNET_MESSENGER_Contact*
 GNUNET_MESSENGER_get_sender (const struct GNUNET_MESSENGER_Room *room, const struct GNUNET_HashCode *hash);
 
 /**
