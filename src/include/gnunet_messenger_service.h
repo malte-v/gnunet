@@ -666,8 +666,8 @@ GNUNET_MESSENGER_enter_room (struct GNUNET_MESSENGER_Handle *handle, const struc
                              const struct GNUNET_HashCode *key);
 
 /**
- * Close a room which was entered, opened or both in various order and variety. Closing a room will destroy all connections
- * from your peer to another and the other way around.
+ * Close a <i>room</i> which was entered, opened or both in various order and variety. Closing a room will destroy all
+ * connections from your peer to another and the other way around.
  *
  * ( After a member closes a <b>door</b>, all members entered through that specific <b>door</b> have to use another one
  * or open the room on their own. )
@@ -691,6 +691,15 @@ GNUNET_MESSENGER_close_room (struct GNUNET_MESSENGER_Room *room);
 int
 GNUNET_MESSENGER_find_rooms (const struct GNUNET_MESSENGER_Handle *handle, const struct GNUNET_MESSENGER_Contact *contact,
                              GNUNET_MESSENGER_MemberCallback callback, void *cls);
+
+/**
+ * Get the key of a given <i>room</i>.
+ *
+ * @param[in] room Room handle
+ * @return Hash identifying the port or NULL on failure
+ */
+const struct GNUNET_HashCode*
+GNUNET_MESSENGER_room_get_key (const struct GNUNET_MESSENGER_Room *room);
 
 /**
  * Get the contact of a member in a <i>room</i> which sent a specific message identified with a given <i>hash</i>.
