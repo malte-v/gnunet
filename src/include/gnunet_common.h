@@ -143,36 +143,36 @@ enum GNUNET_GenericReturnValue
  */
 
 #if __BYTE_ORDER == __LITTLE_ENDIAN
-#define GNUNET_htobe16(x) __bswap_16 (x)
+#define GNUNET_htobe16(x) BYTE_SWAP_16 (x)
 #define GNUNET_htole16(x) (x)
-#define GNUNET_be16toh(x) __bswap_16 (x)
+#define GNUNET_be16toh(x) BYTE_SWAP_16 (x)
 #define GNUNET_le16toh(x) (x)
 
-#define GNUNET_htobe32(x) __bswap_32 (x)
+#define GNUNET_htobe32(x) BYTE_SWAP_32 (x)
 #define GNUNET_htole32(x) (x)
-#define GNUNET_be32toh(x) __bswap_32 (x)
+#define GNUNET_be32toh(x) BYTE_SWAP_32 (x)
 #define GNUNET_le32toh(x) (x)
 
-#define GNUNET_htobe64(x) __bswap_64 (x)
+#define GNUNET_htobe64(x) BYTE_SWAP_64 (x)
 #define GNUNET_htole64(x) (x)
-#define GNUNET_be64toh(x) __bswap_64 (x)
+#define GNUNET_be64toh(x) BYTE_SWAP_64 (x)
 #define GNUNET_le64toh(x) (x)
 #endif
 #if __BYTE_ORDER == __BIG_ENDIAN
 #define GNUNET_htobe16(x) (x)
-#define GNUNET_htole16(x) __bswap_16 (x)
+#define GNUNET_htole16(x) BYTE_SWAP_16 (x)
 #define GNUNET_be16toh(x) (x)
-#define GNUNET_le16toh(x) __bswap_16 (x)
+#define GNUNET_le16toh(x) BYTE_SWAP_16 (x)
 
 #define GNUNET_htobe32(x) (x)
-#define GNUNET_htole32(x) __bswap_32 (x)
+#define GNUNET_htole32(x) BYTE_SWAP_32 (x)
 #define GNUNET_be32toh(x) (x)
-#define GNUNET_le32toh(x) __bswap_32 (x)
+#define GNUNET_le32toh(x) BYTE_SWAP_32 (x)
 
 #define GNUNET_htobe64(x) (x)
-#define GNUNET_htole64(x) __bswap_64 (x)
+#define GNUNET_htole64(x) BYTE_SWAP_64 (x)
 #define GNUNET_be64toh(x) (x)
-#define GNUNET_le64toh(x) __bswap_64 (x)
+#define GNUNET_le64toh(x) BYTE_SWAP_64 (x)
 #endif
 
 
