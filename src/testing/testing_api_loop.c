@@ -30,6 +30,9 @@
 #include "gnunet_testing_ng_lib.h"
 #include "testing.h"
 
+#define CHECK_FINISHED_PERIOD \
+  GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_SECONDS, 1)
+
 struct GNUNET_TESTING_Interpreter *is;
 
 /**
@@ -188,14 +191,20 @@ run_finish_task_next (void *cls)
   struct FinishTaskClosure *ftc = cls;
   const struct GNUNET_TESTING_Command *cmd = ftc->cmd;
   struct GNUNET_TESTING_Interpreter *is = ftc->is;
+  unsigned int finished = cmd->finish (cmd->cls, &interpreter_next, is);
 
-  if (cmd->finish (cmd->cls, &interpreter_next, is))
+  if (GNUNET_YES == finished)
   {
-    is->finish_task = GNUNET_SCHEDULER_add_now (&run_finish_task_next, ftc);
+    is->finish_task = NULL;
+  }
+  else if (GNUNET_NO == finished)
+  {
+    is->finish_task = GNUNET_SCHEDULER_add_delayed (CHECK_FINISHED_PERIOD,
+                                                    &run_finish_task_next, ftc);
   }
   else
   {
-    is->finish_task = NULL;
+    GNUNET_TESTING_interpreter_fail (is);
   }
 
 }
@@ -210,6 +219,7 @@ run_finish_task_sync (void *cls)
   struct FinishTaskClosure *ftc;
   struct SyncState *sync_state = sync_cmd->cls;
   struct GNUNET_SCHEDULER_Task *finish_task = sync_state->finish_task;
+  unsigned int finished = cmd->finish (cmd->cls, &interpreter_next, is);
 
   GNUNET_assert (NULL != finish_task);
   ftc = GNUNET_new (struct FinishTaskClosure);
@@ -222,17 +232,21 @@ run_finish_task_sync (void *cls)
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                 "The command with label %s did not finish its asynchronous task in time.\n",
                 cmd->label);
-    is->result = GNUNET_SYSERR;
-    GNUNET_SCHEDULER_shutdown ();
+    GNUNET_TESTING_interpreter_fail (is);
   }
 
-  if (cmd->finish (cmd->cls, run_finish_task_next, ftc))
+  if (GNUNET_YES == finished)
   {
-    finish_task = GNUNET_SCHEDULER_add_now (&run_finish_task_sync, stc);
+    finish_task = NULL;
+  }
+  else if (GNUNET_NO == finished)
+  {
+    finish_task = GNUNET_SCHEDULER_add_delayed (CHECK_FINISHED_PERIOD,
+                                                &run_finish_task_sync, stc);
   }
   else
   {
-    finish_task = NULL;
+    GNUNET_TESTING_interpreter_fail (is);
   }
 }
 
@@ -252,8 +266,10 @@ start_finish_on_ref (void *cls,
   stc->sync_cmd = cmd;
   stc->is = is;
   sync_state->start_finish_time = GNUNET_TIME_absolute_get ();
-  sync_state->finish_task = GNUNET_SCHEDULER_add_now (&run_finish_task_sync,
-                                                      stc);
+  sync_state->finish_task = GNUNET_SCHEDULER_add_delayed (
+    CHECK_FINISHED_PERIOD,
+    &run_finish_task_sync,
+    stc);
 }
 
 
@@ -281,7 +297,7 @@ GNUNET_TESTING_cmd_finish (const char *finish_label,
 
 
 const struct GNUNET_TESTING_Command
-GNUNET_TESTING_cmd_make_asynchronous (const struct GNUNET_TESTING_Command cmd)
+GNUNET_TESTING_cmd_make_unblocking (const struct GNUNET_TESTING_Command cmd)
 {
 
   GNUNET_assert (NULL != cmd.finish);
@@ -375,10 +391,12 @@ interpreter_run (void *cls)
     GNUNET_SCHEDULER_shutdown ();
     return;
   }
-
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "Running command `%s'\n",
-              cmd->label);
+  else if (NULL != cmd)
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "Running command `%s'\n",
+                cmd->label);
+  }
   cmd->start_time
     = cmd->last_req_time
       = GNUNET_TIME_absolute_get ();
@@ -388,10 +406,14 @@ interpreter_run (void *cls)
             is);
   if ((NULL != cmd->finish) && (GNUNET_NO == cmd->asynchronous_finish))
   {
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "Next task will not be called directly!\n");
     ftc = GNUNET_new (struct FinishTaskClosure);
     ftc->cmd = cmd;
     ftc->is = is;
-    cmd->finish_task = GNUNET_SCHEDULER_add_now (run_finish_task_next, ftc);
+    cmd->finish_task = GNUNET_SCHEDULER_add_delayed (CHECK_FINISHED_PERIOD,
+                                                     &run_finish_task_next,
+                                                     ftc);
   }
   else
   {

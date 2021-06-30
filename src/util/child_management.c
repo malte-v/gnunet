@@ -86,6 +86,10 @@ maint_child_death (void *cls)
 
   (void) cls;
   sig_task = NULL;
+
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "Received SIGCHLD.\n");
+
   /* drain pipe */
   pr = GNUNET_DISK_pipe_handle (sigpipe,
                                 GNUNET_DISK_PIPE_END_READ);
@@ -150,17 +154,37 @@ sighandler_child_death (void)
 }
 
 
-void __attribute__ ((constructor))
+// void __attribute__ ((constructor))
+static void
 child_management_start ()
 {
+  GNUNET_log (GNUNET_ERROR_TYPE_INFO,
+              "Trying to start child management.\n");
   if (NULL != sigpipe)
     return; /* already initialized */
   sigpipe = GNUNET_DISK_pipe (GNUNET_DISK_PF_NONE);
   GNUNET_assert (sigpipe != NULL);
   shc_chld =
     GNUNET_SIGNAL_handler_install (GNUNET_SIGCHLD, &sighandler_child_death);
+  GNUNET_log (GNUNET_ERROR_TYPE_INFO,
+              "Child management started.\n");
 }
 
+/**
+ * Clean up.
+ */
+// void __attribute__ ((destructor))
+static void
+child_management_done ()
+{
+  GNUNET_assert (NULL == sig_task);
+  GNUNET_SIGNAL_handler_uninstall (shc_chld);
+  shc_chld = NULL;
+  GNUNET_DISK_pipe_close (sigpipe);
+  sigpipe = NULL;
+  GNUNET_log (GNUNET_ERROR_TYPE_INFO,
+              "Child management stopped.\n");
+}
 
 struct GNUNET_ChildWaitHandle *
 GNUNET_wait_child (struct GNUNET_OS_Process *proc,
@@ -189,7 +213,6 @@ GNUNET_wait_child (struct GNUNET_OS_Process *proc,
   return cwh;
 }
 
-
 void
 GNUNET_wait_child_cancel (struct GNUNET_ChildWaitHandle *cwh)
 {
@@ -198,22 +221,9 @@ GNUNET_wait_child_cancel (struct GNUNET_ChildWaitHandle *cwh)
                                cwh);
   if (NULL == cwh_head)
   {
+    child_management_done ();
     GNUNET_SCHEDULER_cancel (sig_task);
     sig_task = NULL;
   }
   GNUNET_free (cwh);
-}
-
-
-/**
- * Clean up.
- */
-void __attribute__ ((destructor))
-GNUNET_CM_done ()
-{
-  GNUNET_assert (NULL == sig_task);
-  GNUNET_SIGNAL_handler_uninstall (shc_chld);
-  shc_chld = NULL;
-  GNUNET_DISK_pipe_close (sigpipe);
-  sigpipe = NULL;
 }

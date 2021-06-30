@@ -213,4 +213,43 @@ GNUNET_TESTBED_shutdown_peer (struct PeerCmdState *ps);
 void
 GNUNET_TESTBED_shutdown_service (struct TngState *ss);
 
+/**
+ * Create command.
+ *
+ * @param label name for command.
+ * @param binaryname to start.
+ * @return command.
+ */
+struct GNUNET_TESTING_Command
+GNUNET_TESTBED_cmd_netjail_start (const char *label,
+                                  char *local_m,
+                                  char *global_n);
+
+/**
+ * Create command.
+ *
+ * @param label name for command.
+ * @param binaryname to exec.
+ * @return command.
+ */
+struct GNUNET_TESTING_Command
+GNUNET_TESTBED_cmd_netjail_start_testbed (const char *label,
+                                          char *const binary_argv[],
+                                          char *local_m,
+                                          char *global_n,
+                                          GNUNET_MessageTokenizerCallback cb,
+                                          GNUNET_HELPER_ExceptionCallback exp_cb);
+
+/**
+ * Create command.
+ *
+ * @param label name for command.
+ * @param binaryname to stop.
+ * @return command.
+ */
+struct GNUNET_TESTING_Command
+GNUNET_TESTBED_cmd_netjail_stop (const char *label,
+                                 char *local_m,
+                                 char *global_n);
+
 #endif

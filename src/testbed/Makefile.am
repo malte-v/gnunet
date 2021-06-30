@@ -92,6 +92,9 @@ lib_LTLIBRARIES = \
   libgnunettestbed.la
 
 libgnunettestbed_la_SOURCES = \
+  testbed_api_cmd_netjail_start.c \
+  testbed_api_cmd_netjail_start_testbed.c \
+  testbed_api_cmd_netjail_stop.c \
   testbed_api.c testbed_api.h testbed.h \
   testbed_api_hosts.c testbed_api_hosts.h testbed_helper.h \
   testbed_api_cmd_controller.c \
@@ -131,6 +134,7 @@ generate_underlay_topology_LDADD = $(XLIB) \
  $(LTLIBINTL) -lsqlite3
 
 check_PROGRAMS = \
+  test_testbed_api_cmd_netjail \
   test_testbed_api_hosts \
   test_gnunet_helper_testbed \
   test_testbed_api_controllerlink \
@@ -165,6 +169,7 @@ check_PROGRAMS = \
 if ENABLE_TEST_RUN
  AM_TESTS_ENVIRONMENT=export GNUNET_PREFIX=$${GNUNET_PREFIX:-@libdir@};export PATH=$${GNUNET_PREFIX:-@prefix@}/bin:$$PATH;unset XDG_DATA_HOME;unset XDG_CONFIG_HOME;
  TESTS = \
+  test_testbed_api_cmd_netjail \
   test_testbed_api \
   test_testbed_api_sd \
   test_testbed_api_operations \
@@ -194,6 +199,13 @@ if ENABLE_TEST_RUN
   test_testbed_api_barriers \
   $(underlay_testcases)
 endif
+
+test_testbed_api_cmd_netjail_SOURCES = \
+ test_testbed_api_cmd_netjail.c
+test_testbed_api_cmd_netjail_LDADD = \
+ $(top_builddir)/src/testing/libgnunettesting.la \
+ $(top_builddir)/src/util/libgnunetutil.la \
+ libgnunettestbed.la
 
 test_testbed_api_SOURCES = \
  test_testbed_api.c

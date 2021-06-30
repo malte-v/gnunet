@@ -101,7 +101,7 @@ struct GNUNET_TESTING_Command
    * @param cont function to call upon completion, can be NULL
    * @param cont_cls closure for @a cont
    */
-  bool
+  int
   (*finish)(void *cls,
             GNUNET_SCHEDULER_TaskCallback cont,
             void *cont_cls);
