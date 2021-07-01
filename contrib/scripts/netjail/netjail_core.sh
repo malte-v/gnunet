@@ -28,6 +28,23 @@ netjail_opt() {
 	printf "%d" 0
 }
 
+netjail_opts() {
+	local OPT=$1
+	local DEF=$2
+	shift 2
+	
+	while [ $# -gt 0 ]; do
+		if [ "$1" = "$OPT" ]; then
+			printf "$2"
+			return
+		fi
+
+		shift 1
+	done
+	
+	printf "$DEF"
+}
+
 netjail_check() {
 	local NODE_COUNT=$1
 	local FD_COUNT=$(($(ls /proc/self/fd | wc -w) - 4))
