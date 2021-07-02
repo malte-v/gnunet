@@ -1,6 +1,6 @@
 /*
      This file is part of GNUnet.
-     Copyright (C) 2009-2017 GNUnet e.V.
+     Copyright (C) 2009-2017, 2021 GNUnet e.V.
 
      GNUnet is free software: you can redistribute it and/or modify it
      under the terms of the GNU Affero General Public License as published
@@ -877,63 +877,36 @@ get_forward_count (uint32_t hop_count,
 
 
 /**
- * Compute the distance between have and target as a 32-bit value.
+ * Compute the distance between have and target as a 64-bit value.
  * Differences in the lower bits must count stronger than differences
  * in the higher bits.
  *
  * @param target
  * @param have
+ * @param bucket up to which offset are @a target and @a have identical and thus those bits should not be considered
  * @return 0 if have==target, otherwise a number
  *           that is larger as the distance between
  *           the two hash codes increases
  */
-static unsigned int
+static uint64_t
 get_distance (const struct GNUNET_HashCode *target,
-              const struct GNUNET_HashCode *have)
+              const struct GNUNET_HashCode *have,
+              unsigned int bucket)
 {
-  unsigned int bucket;
-  unsigned int msb;
-  unsigned int lsb;
-  unsigned int i;
-
-  /* We have to represent the distance between two 2^9 (=512)-bit
-   * numbers as a 2^5 (=32)-bit number with "0" being used for the
-   * two numbers being identical; furthermore, we need to
-   * guarantee that a difference in the number of matching
-   * bits is always represented in the result.
-   *
-   * We use 2^32/2^9 numerical values to distinguish between
-   * hash codes that have the same LSB bit distance and
-   * use the highest 2^9 bits of the result to signify the
-   * number of (mis)matching LSB bits; if we have 0 matching
-   * and hence 512 mismatching LSB bits we return -1 (since
-   * 512 itself cannot be represented with 9 bits) *//* first, calculate the most significant 9 bits of our
-   * result, aka the number of LSBs */bucket = GNUNET_CRYPTO_hash_matching_bits (target,
-                                             have);
-  /* bucket is now a value between 0 and 512 */
-  if (bucket == 512)
-    return 0;                   /* perfect match */
-  if (bucket == 0)
-    return (unsigned int) -1;   /* LSB differs; use max (if we did the bit-shifting
-                                 * below, we'd end up with max+1 (overflow)) */
-
-  /* calculate the most significant bits of the final result */
-  msb = (512 - bucket) << (32 - 9);
-  /* calculate the 32-9 least significant bits of the final result by
-   * looking at the differences in the 32-9 bits following the
-   * mismatching bit at 'bucket' */
-  lsb = 0;
-  for (i = bucket + 1;
-       (i < sizeof(struct GNUNET_HashCode) * 8) && (i < bucket + 1 + 32 - 9);
+  uint64_t lsb = 0;
+  
+  for (unsigned int i = bucket + 1;
+       (i < sizeof(struct GNUNET_HashCode) * 8) &&
+       (i < bucket + 1 + 64);
        i++)
   {
     if (GNUNET_CRYPTO_hash_get_bit_rtl (target, i) !=
         GNUNET_CRYPTO_hash_get_bit_rtl (have, i))
-      lsb |= (1 << (bucket + 32 - 9 - i));      /* first bit set will be 10,
-                                                 * last bit set will be 31 -- if
-                                                 * i does not reach 512 first... */
+      lsb |= (1LLU << (bucket + 64 - i));      /* first bit set will be 1,
+                                             * last bit set will be 63 -- if
+                                             * i does not reach 512 first... */
   }
-  return msb | lsb;
+  return lsb;
 }
 
 
@@ -1013,33 +986,42 @@ select_peer (const struct GNUNET_HashCode *key,
   unsigned int count;
   unsigned int selected;
   struct PeerInfo *pos;
-  unsigned int dist;
-  unsigned int smallest_distance;
   struct PeerInfo *chosen;
 
   if (hops >= GDS_NSE_get ())
   {
     /* greedy selection (closest peer that is not in bloomfilter) */
-    smallest_distance = UINT_MAX;
+    unsigned int best_bucket = 0;
+    uint64_t best_in_bucket = UINT64_MAX;
+
     chosen = NULL;
     for (bc = 0; bc <= closest_bucket; bc++)
     {
       pos = k_buckets[bc].head;
       count = 0;
-      while ((pos != NULL) && (count < bucket_size))
+      while ( (pos != NULL) &&
+              (count < bucket_size) )
       {
-        if ((NULL == bloom) ||
-            (GNUNET_NO ==
-             GNUNET_CONTAINER_bloomfilter_test (bloom,
-                                                &pos->phash)))
+        unsigned int bucket;
+        uint64_t dist;
+        
+        bucket = GNUNET_CRYPTO_hash_matching_bits (key,
+                                                   &pos->phash);
+        dist = get_distance (key,
+                             &pos->phash,
+                             bucket);
+        if (bucket < best_bucket)
+          continue;
+        if (dist > best_in_bucket)
+          continue;
+        best_bucket = bucket;
+        best_in_bucket = dist;
+        if ( (NULL == bloom) ||
+             (GNUNET_NO ==
+              GNUNET_CONTAINER_bloomfilter_test (bloom,
+                                                 &pos->phash)) )
         {
-          dist = get_distance (key,
-                               &pos->phash);
-          if (dist < smallest_distance)
-          {
-            chosen = pos;
-            smallest_distance = dist;
-          }
+          chosen = pos;
         }
         else
         {
@@ -1052,13 +1034,7 @@ select_peer (const struct GNUNET_HashCode *key,
                                       "# Peers excluded from routing due to Bloomfilter"),
                                     1,
                                     GNUNET_NO);
-          dist = get_distance (key,
-                               &pos->phash);
-          if (dist < smallest_distance)
-          {
-            chosen = NULL;
-            smallest_distance = dist;
-          }
+          chosen = NULL;
         }
         count++;
         pos = pos->next;
