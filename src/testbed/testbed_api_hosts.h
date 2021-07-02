@@ -218,6 +218,10 @@ GNUNET_TESTBED_controller_destroy_ (struct GNUNET_TESTBED_ControllerProc
 void
 GNUNET_TESTBED_host_resolve_ (struct GNUNET_TESTBED_Host *host);
 
+void
+GNUNET_TESTBED_extract_cfg (struct GNUNET_TESTBED_Host *host, const struct
+                            GNUNET_MessageHeader *message);
+
 
 #endif
 /* end of testbed_api_hosts.h */

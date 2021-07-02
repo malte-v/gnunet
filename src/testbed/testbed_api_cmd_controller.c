@@ -39,26 +39,6 @@
 
 
 /**
- * abort task to run on test timed out
- *
- * @param cls NULL
- * @param tc the task context
- */
-static void
-do_abort (void *cls)
-{
-  struct ControllerState *cs = cls;
-
-  if (GNUNET_NO == cs->host_ready)
-  {
-    LOG (GNUNET_ERROR_TYPE_WARNING, "Test timedout -- Aborting\n");
-    cs->abort_task = NULL;
-    GNUNET_TESTBED_shutdown_controller (cs);
-  }
-}
-
-
-/**
 *
 *
 * @param cls closure
@@ -98,64 +78,6 @@ controller_cb (void *cls,
 }
 
 
-/**
- * Callback which will be called to after a host registration succeeded or failed
- *
- * @param cls the host which has been registered
- * @param emsg the error message; NULL if host registration is successful
- */
-static void
-registration_comp (void *cls,
-                   const char *emsg)
-{
-  struct ControllerState *cs = cls;
-
-  if (NULL != emsg)
-  {
-    LOG (GNUNET_ERROR_TYPE_ERROR,
-         "There was an error during host registration: %s\n",
-         emsg);
-    GNUNET_TESTBED_shutdown_controller (cs);
-  }
-  else
-  {
-    cs->reg_handle = NULL;
-    cs->host_ready = GNUNET_YES;
-  }
-}
-
-
-/**
- * Callback to signal successful startup of the controller process
- *
- * @param cls the closure from GNUNET_TESTBED_controller_start()
- * @param cfg the configuration with which the controller has been started;
- *          NULL if status is not #GNUNET_OK
- * @param status #GNUNET_OK if the startup is successful; #GNUNET_SYSERR if not,
- *          GNUNET_TESTBED_controller_stop() shouldn't be called in this case
- */
-static void
-controller_status_cb (void *cls,
-                      const struct GNUNET_CONFIGURATION_Handle *cfg_,
-                      int status)
-{
-  struct ControllerState *cs = cls;
-
-  if (GNUNET_OK != status)
-  {
-    cs->cp = NULL;
-    return;
-  }
-
-  cs->controller =
-    GNUNET_TESTBED_controller_connect (cs->host, cs->event_mask, &controller_cb,
-                                       cs);
-  cs->reg_handle =
-    GNUNET_TESTBED_register_host (cs->controller, cs->host, &registration_comp,
-                                  cs);
-}
-
-
 static void
 controller_run (void *cls,
                 const struct GNUNET_TESTING_Command *cmd,
@@ -164,17 +86,12 @@ controller_run (void *cls,
   struct ControllerState *cs = cls;
 
   cs->is = is;
-  cs->host = GNUNET_TESTBED_host_create (cs->hostname, cs->username, cs->cfg,
-                                         cs->port);
-  cs->cp = GNUNET_TESTBED_controller_start (cs->trusted_ip,
-                                            cs->host,
-                                            &controller_status_cb,
-                                            cs);
-  cs->abort_task =
-    GNUNET_SCHEDULER_add_delayed (GNUNET_TIME_relative_multiply
-                                    (GNUNET_TIME_UNIT_MINUTES, 5),
-                                  &do_abort,
-                                  cs);
+
+  cs->controller =
+    GNUNET_TESTBED_controller_connect (cs->host, cs->event_mask, &controller_cb,
+                                       cs);
+
+
 }
 
 /**
@@ -264,22 +181,15 @@ GNUNET_TESTBED_shutdown_controller (struct ControllerState *cs)
 
 struct GNUNET_TESTING_Command
 GNUNET_TESTBED_cmd_controller (const char *label,
-                               const char *trusted_ip,
-                               const char *hostname,
-                               const char *username,
-                               uint16_t port,
-                               struct GNUNET_CONFIGURATION_Handle *cfg,
+                               const char *host,
                                uint64_t event_mask)
 {
   struct ControllerState *cs;
 
   cs = GNUNET_new (struct ControllerState);
   cs->event_mask = event_mask;
-  cs->trusted_ip = trusted_ip;
-  cs->hostname = hostname;
-  cs->username = username;
-  cs->port = port;
-  cs->cfg = cfg;
+  cs->hostname = host;
+
 
   struct GNUNET_TESTING_Command cmd = {
     .cls = cs,

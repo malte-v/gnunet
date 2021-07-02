@@ -94,6 +94,7 @@ lib_LTLIBRARIES = \
 libgnunettestbed_la_SOURCES = \
   testbed_api_cmd_netjail_start.c \
   testbed_api_cmd_netjail_start_testbed.c \
+  testbed_api_cmd_netjail_stop_testbed.c \
   testbed_api_cmd_netjail_stop.c \
   testbed_api.c testbed_api.h testbed.h \
   testbed_api_hosts.c testbed_api_hosts.h testbed_helper.h \

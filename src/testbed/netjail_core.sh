@@ -99,8 +99,8 @@ netjail_node_exec() {
 }
 
 netjail_node_exec_without_fds() {
-	local NODE=$1
-	shift 3
+	NODE=$1
+	shift 1
 
 	unshare -fp --kill-child -- ip netns exec $NODE sudo -u $JAILOR -- $@
 }

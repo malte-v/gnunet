@@ -240,7 +240,7 @@ GNUNET_TESTING_interpreter_get_current_label (
  * @param is interpreter state.
  */
 void
-GNUNET_TESTING_interpreter_fail (struct GNUNET_TESTING_Interpreter *is);
+GNUNET_TESTING_interpreter_fail ();
 
 
 /**

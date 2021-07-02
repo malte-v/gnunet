@@ -222,6 +222,9 @@ GNUNET_wait_child_cancel (struct GNUNET_ChildWaitHandle *cwh)
   if (NULL == cwh_head)
   {
     child_management_done ();
+  }
+  if (NULL != sig_task)
+  {
     GNUNET_SCHEDULER_cancel (sig_task);
     sig_task = NULL;
   }

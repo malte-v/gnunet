@@ -28,22 +28,6 @@
 #include "gnunet_testbed_ng_service.h"
 #include "gnunet_util_lib.h"
 
-#define HELPER_TESTBED_BINARY "../testbed/gnunet-helper-testbed"
-
-static int
-tokenizer_cb (void *cls, const struct GNUNET_MessageHeader *message)
-{
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Called tokenizer.\n");
-  return GNUNET_OK;
-}
-
-
-static void
-exp_cb (void *cls)
-{
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Called exp_cb.\n");
-}
-
 
 /**
  * Main function to run the test cases.
@@ -54,20 +38,19 @@ exp_cb (void *cls)
 static void
 run (void *cls)
 {
-  char *const binary_argv[3] = {HELPER_TESTBED_BINARY, NULL};
-
   struct GNUNET_TESTING_Command commands[] = {
     GNUNET_TESTBED_cmd_netjail_start ("netjail-start-1",
-                                      "1",
+                                      "2",
                                       "2"),
-    GNUNET_TESTBED_cmd_netjail_start_testbed ("netjail-exec-1",
-                                              binary_argv,
-                                              "1",
+    GNUNET_TESTBED_cmd_netjail_start_testbed ("netjail-start-testbed-1",
                                               "2",
-                                              &tokenizer_cb,
-                                              &exp_cb),
+                                              "2"),
+    GNUNET_TESTBED_cmd_stop_testbed ("stop-testbed",
+                                     "netjail-start-testbed-1",
+                                     "2",
+                                     "2"),
     GNUNET_TESTBED_cmd_netjail_stop ("netjail-stop-1",
-                                     "1",
+                                     "2",
                                      "2"),
     GNUNET_TESTING_cmd_end ()
   };
@@ -90,5 +73,7 @@ main (int argc,
   GNUNET_SCHEDULER_run (&run,
                         NULL);
 
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "Test finished!\n");
   return rv;
 }

@@ -204,7 +204,7 @@ run_finish_task_next (void *cls)
   }
   else
   {
-    GNUNET_TESTING_interpreter_fail (is);
+    GNUNET_TESTING_interpreter_fail ();
   }
 
 }
@@ -232,7 +232,7 @@ run_finish_task_sync (void *cls)
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                 "The command with label %s did not finish its asynchronous task in time.\n",
                 cmd->label);
-    GNUNET_TESTING_interpreter_fail (is);
+    GNUNET_TESTING_interpreter_fail ();
   }
 
   if (GNUNET_YES == finished)
@@ -246,7 +246,7 @@ run_finish_task_sync (void *cls)
   }
   else
   {
-    GNUNET_TESTING_interpreter_fail (is);
+    GNUNET_TESTING_interpreter_fail ();
   }
 }
 
@@ -321,7 +321,7 @@ GNUNET_TESTING_cmd_make_unblocking (const struct GNUNET_TESTING_Command cmd)
  * @param is interpreter of the test
  */
 void
-GNUNET_TESTING_interpreter_fail (struct GNUNET_TESTING_Interpreter *is)
+GNUNET_TESTING_interpreter_fail ()
 {
   struct GNUNET_TESTING_Command *cmd = &is->commands[is->ip];
 
@@ -411,9 +411,9 @@ interpreter_run (void *cls)
     ftc = GNUNET_new (struct FinishTaskClosure);
     ftc->cmd = cmd;
     ftc->is = is;
-    cmd->finish_task = GNUNET_SCHEDULER_add_delayed (CHECK_FINISHED_PERIOD,
-                                                     &run_finish_task_next,
-                                                     ftc);
+    is->finish_task = GNUNET_SCHEDULER_add_delayed (CHECK_FINISHED_PERIOD,
+                                                    &run_finish_task_next,
+                                                    ftc);
   }
   else
   {
@@ -448,11 +448,12 @@ do_shutdown (void *cls)
        j++) {
     cmd->cleanup (cmd->cls,
                   cmd);
-    if (NULL != cmd->finish_task)
-    {
-      GNUNET_SCHEDULER_cancel (cmd->finish_task);
-      cmd->finish_task = NULL;
-    }
+  }
+
+  if (NULL != is->finish_task)
+  {
+    GNUNET_SCHEDULER_cancel (is->finish_task);
+    cmd->finish_task = NULL;
   }
 
   if (NULL != is->task)

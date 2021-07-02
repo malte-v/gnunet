@@ -197,11 +197,7 @@ GNUNET_TESTBED_get_trait_controller (const struct GNUNET_TESTING_Command *cmd,
 
 struct GNUNET_TESTING_Command
 GNUNET_TESTBED_cmd_controller (const char *label,
-                               const char *trusted_ip,
-                               const char *hostname,
-                               const char *username,
-                               uint16_t port,
-                               struct GNUNET_CONFIGURATION_Handle *cfg,
+                               const char *host,
                                uint64_t event_mask);
 
 void
@@ -225,6 +221,7 @@ GNUNET_TESTBED_cmd_netjail_start (const char *label,
                                   char *local_m,
                                   char *global_n);
 
+
 /**
  * Create command.
  *
@@ -234,11 +231,9 @@ GNUNET_TESTBED_cmd_netjail_start (const char *label,
  */
 struct GNUNET_TESTING_Command
 GNUNET_TESTBED_cmd_netjail_start_testbed (const char *label,
-                                          char *const binary_argv[],
                                           char *local_m,
-                                          char *global_n,
-                                          GNUNET_MessageTokenizerCallback cb,
-                                          GNUNET_HELPER_ExceptionCallback exp_cb);
+                                          char *global_n);
+
 
 /**
  * Create command.
@@ -252,4 +247,22 @@ GNUNET_TESTBED_cmd_netjail_stop (const char *label,
                                  char *local_m,
                                  char *global_n);
 
+
+struct GNUNET_TESTING_Command
+GNUNET_TESTBED_cmd_stop_testbed (const char *label,
+                                 const char *helper_start_label,
+                                 char *local_m,
+                                 char *global_n);
+
+
+int
+GNUNET_TESTBED_get_trait_helper_handles (const struct
+                                         GNUNET_TESTING_Command *cmd,
+                                         struct GNUNET_HELPER_Handle ***helper);
+
+
+int
+GNUNET_TESTBED_get_trait_hosts (const struct
+                                GNUNET_TESTING_Command *cmd,
+                                struct GNUNET_TESTBED_Host ***hosts);
 #endif
