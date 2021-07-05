@@ -251,6 +251,9 @@ run (void *cls,
   {
     char *cfg_fn = NULL;
 
+    if (NULL == out)
+      out = GNUNET_CONFIGURATION_dup (cfg);
+
     if (NULL == cfgfile)
     {
       const char *xdg = getenv ("XDG_CONFIG_HOME");
