@@ -27,6 +27,8 @@
 #include "platform.h"
 #include "gnunet_dhtu_plugin.h"
 
+#define SCAN_FREQ GNUNET_TIME_UNIT_MINUTES
+
 /**
  * Opaque handle that the underlay offers for our address to be used when
  * sending messages to another peer.
@@ -35,9 +37,45 @@ struct GNUNET_DHTU_Source
 {
 
   /**
+   * Kept in a DLL.
+   */
+  struct GNUNET_DHTU_Source *next;
+
+  /**
+   * Kept in a DLL.
+   */
+  struct GNUNET_DHTU_Source *prev;
+
+  /**
    * Application context for this source.
    */
   void *app_ctx;
+
+  /**
+   * Address in URL form ("ip+udp://$IP:$PORT")
+   */
+  char *address;
+  
+  /**
+   * Hash of the IP address.
+   */
+  struct GNUNET_DHTU_Hash id;
+  
+  /**
+   * My actual address.
+   */
+  struct sockaddr_storage addr;
+
+  /**
+   * Number of bytes in @a addr.
+   */
+  socklen_t addrlen;
+  
+  /**
+   * Last generation this address was observed.
+   */
+  unsigned int scan_generation;
+  
 };
 
 
@@ -62,7 +100,17 @@ struct GNUNET_DHTU_Target
    * Tail of preferences expressed for this target.
    */
   struct GNUNET_DHTU_PreferenceHandle *ph_tail;
+  
+  /**
+   * Target IP address.
+   */
+  struct sockaddr_storage addr;
 
+  /**
+   * Number of bytes in @a addr.
+   */
+  socklen_t addrlen;
+  
   /**
    * Preference counter, length of the @a ph_head DLL.
    */
@@ -94,15 +142,6 @@ struct GNUNET_DHTU_PreferenceHandle
 
 
 /**
- * Opaque handle for a private key used by this underlay.
- */
-struct GNUNET_DHTU_PrivateKey
-{
-  /* we are IP, we do not do crypto */
-};
-
-
-/**
  * Closure for all plugin functions.
  */
 struct Plugin
@@ -113,9 +152,34 @@ struct Plugin
   struct GNUNET_DHTU_PluginEnvironment *env;
 
   /**
+   * Head of sources where we receive traffic.
+   */
+  struct GNUNET_DHTU_Source *src_head;
+
+  /**
+   * Tail of sources where we receive traffic.
+   */
+  struct GNUNET_DHTU_Source *src_tail;
+
+  /**
+   * Task that scans for IP address changes.
+   */
+  struct GNUNET_SCHEDULER_Task *scan_task;
+
+  /**
    * Port we bind to. FIXME: initialize...
    */
   char *my_port;
+
+  /**
+   * How often have we scanned for IPs?
+   */
+  unsigned int scan_generation;
+
+  /**
+   * My UDP socket.
+   */
+  int sock;
 };
 
 
@@ -293,7 +357,120 @@ ip_send (void *cls,
          GNUNET_SCHEDULER_TaskCallback finished_cb,
          void *finished_cb_cls)
 {
-  GNUNET_break (0);
+  struct Plugin *plugin = cls;
+
+  sendto (plugin->sock,
+          msg,
+          msg_size,
+          0,
+          (const struct sockaddr *) &target->addr,
+          target->addrlen);
+  finished_cb (finished_cb_cls);
+}
+
+
+/**
+ * Callback function invoked for each interface found.
+ *
+ * @param cls closure
+ * @param name name of the interface (can be NULL for unknown)
+ * @param isDefault is this presumably the default interface
+ * @param addr address of this interface (can be NULL for unknown or unassigned)
+ * @param broadcast_addr the broadcast address (can be NULL for unknown or unassigned)
+ * @param netmask the network mask (can be NULL for unknown or unassigned)
+ * @param addrlen length of the address
+ * @return #GNUNET_OK to continue iteration, #GNUNET_SYSERR to abort
+ */
+static int
+process_ifcs (void *cls,
+              const char *name,
+              int isDefault,
+              const struct sockaddr *addr,
+              const struct sockaddr *broadcast_addr,
+              const struct sockaddr *netmask,
+              socklen_t addrlen)
+{
+  struct Plugin *plugin = cls;
+  struct GNUNET_DHTU_Source *src;
+
+  for (src = plugin->src_head;
+       NULL != src;
+       src = src->next)
+  {
+    if ( (addrlen == src->addrlen) &&
+         (0 == memcmp (addr,
+                       &src->addr,
+                       addrlen)) )
+    {
+      src->scan_generation = plugin->scan_generation;
+      return GNUNET_OK;
+    }
+  }
+  src = GNUNET_new (struct GNUNET_DHTU_Source);
+  src->addrlen = addrlen;
+  memcpy (&src->addr,
+          addr,
+          addrlen);
+  src->scan_generation = plugin->scan_generation;
+  switch (addr->sa_family)
+  {
+    case AF_INET:
+      // hash v4 address
+      // convert address to src->address
+      break;
+    case AF_INET6:
+      // hash v6 address
+      // convert address to src->address
+      break;
+    default:
+      GNUNET_break (0);
+      GNUNET_free (src);
+      return GNUNET_OK;
+  }
+  GNUNET_CONTAINER_DLL_insert (plugin->src_head,
+                               plugin->src_tail,
+                               src);
+  plugin->env->address_add_cb (plugin->env->cls,
+                               &src->id,
+                               NULL, /* no key */
+                               src->address,
+                               src,
+                               &src->app_ctx);
+  return GNUNET_OK;
+}
+
+
+/**
+ * Scan network interfaces for IP address changes.
+ *
+ * @param cls a `struct Plugin`
+ */
+static void
+scan (void *cls)
+{
+  struct Plugin *plugin = cls;
+  struct GNUNET_DHTU_Source *next;
+
+  plugin->scan_generation++;
+  GNUNET_OS_network_interfaces_list (&process_ifcs,
+                                     plugin);
+  for (struct GNUNET_DHTU_Source *src = plugin->src_head;
+       NULL != src;
+       src = next)
+  {
+    next = src->next;
+    if (src->scan_generation == plugin->scan_generation)
+      continue;
+    GNUNET_CONTAINER_DLL_remove (plugin->src_head,
+                                 plugin->src_tail,
+                                 src);
+    plugin->env->address_del_cb (src->app_ctx);
+    GNUNET_free (src->address);
+    GNUNET_free (src);
+  }
+  plugin->scan_task = GNUNET_SCHEDULER_add_delayed (SCAN_FREQ,
+                                                    &scan,
+                                                    plugin);
 }
 
 
@@ -312,9 +489,11 @@ libgnunet_plugin_dhtu_ip_init (void *cls)
 
   plugin = GNUNET_new (struct Plugin);
   plugin->env = env;
-  // FIXME: port configuration?
-  // FIXME: figure out our own IP addresses...
+  // FIXME: get port configuration!
+  plugin->scan_task = GNUNET_SCHEDULER_add_now (&scan,
+                                                plugin);
   // FIXME: bind, start receive loop
+  // FIXME: deal with NSE callback...
   api = GNUNET_new (struct GNUNET_DHTU_PluginFunctions);
   api->cls = plugin;
   api->sign = &ip_sign;
@@ -339,6 +518,7 @@ libgnunet_plugin_dhtu_ip_done (void *cls)
   struct GNUNET_DHTU_PluginFunctions *api = cls;
   struct Plugin *plugin = api->cls;
 
+  GNUNET_SCHEDULER_cancel (plugin->scan_task);
   GNUNET_free (plugin);
   GNUNET_free (api);
   return NULL;
