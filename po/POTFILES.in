@@ -115,6 +115,8 @@ src/dht/gnunet-service-dht_nse.c
 src/dht/gnunet-service-dht_routing.c
 src/dht/gnunet_dht_profiler.c
 src/dht/plugin_block_dht.c
+src/dhtu/plugin_dhtu_gnunet.c
+src/dhtu/plugin_dhtu_ip.c
 src/dns/dns_api.c
 src/dns/gnunet-dns-monitor.c
 src/dns/gnunet-dns-redirector.c
@@ -313,7 +315,6 @@ src/reclaim/plugin_rest_reclaim.c
 src/reclaim/reclaim_api.c
 src/reclaim/reclaim_attribute.c
 src/reclaim/reclaim_credential.c
-src/reclaim/test.c
 src/regex/gnunet-daemon-regexprofiler.c
 src/regex/gnunet-regex-profiler.c
 src/regex/gnunet-regex-simulation-profiler.c
@@ -413,6 +414,10 @@ src/testbed/gnunet_testbed_mpi_spawn.c
 src/testbed/testbed_api.c
 src/testbed/testbed_api_barriers.c
 src/testbed/testbed_api_cmd_controller.c
+src/testbed/testbed_api_cmd_netjail_start.c
+src/testbed/testbed_api_cmd_netjail_start_testbed.c
+src/testbed/testbed_api_cmd_netjail_stop.c
+src/testbed/testbed_api_cmd_netjail_stop_testbed.c
 src/testbed/testbed_api_cmd_peer.c
 src/testbed/testbed_api_cmd_peer_store.c
 src/testbed/testbed_api_cmd_tng_connect.c

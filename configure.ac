@@ -1,5 +1,5 @@
 # This file is part of GNUnet.
-# (C) 2001--2020 GNUnet e.V.
+# (C) 2001--2021 GNUnet e.V.
 #
 # GNUnet is free software: you can redistribute it and/or modify it
 # under the terms of the GNU Affero General Public License as published
@@ -1937,6 +1937,7 @@ src/datastore/Makefile
 src/datastore/datastore.conf
 src/dht/Makefile
 src/dht/dht.conf
+src/dhtu/Makefile
 src/dns/Makefile
 src/dns/dns.conf
 src/exit/Makefile

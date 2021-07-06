@@ -74,6 +74,7 @@ SUBDIRS = \
   $(TESTBED) \
   $(ATS_TESTS) \
   nse \
+  dhtu \
   dht \
   hostlist \
   topology \

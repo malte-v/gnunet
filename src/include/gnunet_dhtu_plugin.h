@@ -27,6 +27,9 @@
 #ifndef PLUGIN_DHTU_H
 #define PLUGIN_DHTU_H
 
+#include "gnunet_util_lib.h"
+
+
 #ifdef __cplusplus
 extern "C"
 {
@@ -270,7 +273,6 @@ struct GNUNET_DHTU_PluginFunctions
    * Request creation of a session with a peer at the given @a address.
    *
    * @param cls closure (internal context for the plugin)
-   * @param pk public key of the target
    * @param address target address to connect to
    */
   void
