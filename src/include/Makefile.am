@@ -42,6 +42,7 @@ gnunetinclude_HEADERS = \
   gnunet_datastore_plugin.h \
   gnunet_db_lib.h \
   gnunet_dht_service.h \
+  gnunet_dhtu_plugin.h \
   gnunet_disk_lib.h \
   gnunet_dnsparser_lib.h \
   gnunet_dnsstub_lib.h \
