@@ -111,6 +111,11 @@ struct Plugin
    * Callbacks into the DHT.
    */
   struct GNUNET_DHTU_PluginEnvironment *env;
+
+  /**
+   * Port we bind to. FIXME: initialize...
+   */
+  char *my_port;
 };
 
 
@@ -166,7 +171,59 @@ static void
 ip_try_connect (void *cls,
                 const char *address)
 {
-  GNUNET_break (0);
+  struct Plugin *plugin = cls;
+  char *colon;
+  const char *port;
+  char *addr;
+  struct addrinfo hints = {
+    .ai_flags = AI_NUMERICHOST | AI_NUMERICSERV
+  };
+  struct addrinfo *result = NULL;
+  
+  if (0 !=
+      strncmp (address,
+               "ip+",
+               strlen ("ip+")))
+  {
+    GNUNET_break (0);
+    return;
+  }
+  address += strlen ("ip+");
+  if (0 !=
+      strncmp (address,
+               "udp://",
+               strlen ("udp://")))
+  {
+    GNUNET_break (0);
+    return;
+  }
+  address += strlen ("udp://");
+  addr = GNUNET_strdup (address);
+  colon = strchr (addr, ':');
+  if (NULL == colon)
+  {
+    port = plugin->my_port;
+  }
+  else
+  {
+    *colon = '\0';
+    port = colon + 1;
+  }
+  if (0 !=
+      getaddrinfo (addr,
+                   port,
+                   &hints,
+                   &result))
+  {
+    GNUNET_break (0);
+    GNUNET_free (addr);
+    return;
+  }
+  GNUNET_free (addr);
+  (void) result->ai_addr; // FIXME: use!
+
+  // FIXME: create target, etc.
+  freeaddrinfo (result);
 }
 
 
@@ -255,6 +312,9 @@ libgnunet_plugin_dhtu_ip_init (void *cls)
 
   plugin = GNUNET_new (struct Plugin);
   plugin->env = env;
+  // FIXME: port configuration?
+  // FIXME: figure out our own IP addresses...
+  // FIXME: bind, start receive loop
   api = GNUNET_new (struct GNUNET_DHTU_PluginFunctions);
   api->cls = plugin;
   api->sign = &ip_sign;
