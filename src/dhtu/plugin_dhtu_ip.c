@@ -167,9 +167,14 @@ struct Plugin
   struct GNUNET_SCHEDULER_Task *scan_task;
 
   /**
-   * Port we bind to. FIXME: initialize...
+   * Task that reads incoming UDP packets.
    */
-  char *my_port;
+  struct GNUNET_SCHEDULER_Task *read_task;
+
+  /**
+   * Port we bind to. 
+   */
+  char *port;
 
   /**
    * How often have we scanned for IPs?
@@ -179,7 +184,7 @@ struct Plugin
   /**
    * My UDP socket.
    */
-  int sock;
+  struct GNUNET_NETWORK_Handle *sock;
 };
 
 
@@ -266,7 +271,7 @@ ip_try_connect (void *cls,
   colon = strchr (addr, ':');
   if (NULL == colon)
   {
-    port = plugin->my_port;
+    port = plugin->port;
   }
   else
   {
@@ -359,13 +364,89 @@ ip_send (void *cls,
 {
   struct Plugin *plugin = cls;
 
-  sendto (plugin->sock,
-          msg,
-          msg_size,
-          0,
-          (const struct sockaddr *) &target->addr,
-          target->addrlen);
+  GNUNET_NETWORK_socket_sendto (plugin->sock,
+                                msg,
+                                msg_size,
+                                (const struct sockaddr *) &target->addr,
+                                target->addrlen);
   finished_cb (finished_cb_cls);
+}
+
+
+/**
+ * Create a new source on which we may be receiving traffic.
+ *
+ * @param plugin our plugin
+ * @param addr our address
+ * @param addrlen number of bytes in @a addr
+ * @return new source object
+ */
+static struct GNUNET_DHTU_Source *
+create_source (struct Plugin *plugin,
+               const struct sockaddr *addr,
+               socklen_t addrlen)
+{
+  struct GNUNET_DHTU_Source *src;
+  
+  src = GNUNET_new (struct GNUNET_DHTU_Source);
+  src->addrlen = addrlen;
+  memcpy (&src->addr,
+          addr,
+          addrlen);
+  src->scan_generation = plugin->scan_generation;
+  switch (addr->sa_family)
+  {
+  case AF_INET:
+    {
+      const struct sockaddr_in *s4 = (const struct sockaddr_in *) addr;
+      char buf[INET_ADDRSTRLEN];
+
+      GNUNET_assert (sizeof (struct sockaddr_in) == addrlen);
+      GNUNET_CRYPTO_hash (&s4->sin_addr,
+                          sizeof (struct in_addr),
+                          &src->id.hc);
+      GNUNET_asprintf (&src->address,
+                       "ip+udp://%s:%u",
+                       inet_ntop (AF_INET,
+                                  &s4->sin_addr,
+                                  buf,
+                                  sizeof (buf)),
+                       ntohs (s4->sin_port));
+    }
+    break;
+  case AF_INET6:
+    {
+      const struct sockaddr_in6 *s6 = (const struct sockaddr_in6 *) addr;
+      char buf[INET6_ADDRSTRLEN];
+
+      GNUNET_assert (sizeof (struct sockaddr_in6) == addrlen);
+      GNUNET_CRYPTO_hash (&s6->sin6_addr,
+                          sizeof (struct in6_addr),
+                          &src->id.hc);
+      GNUNET_asprintf (&src->address,
+                       "ip+udp://[%s]:%u",
+                       inet_ntop (AF_INET6,
+                                  &s6->sin6_addr,
+                                  buf,
+                                  sizeof (buf)),
+                       ntohs (s6->sin6_port));
+    }
+    break;
+  default:
+    GNUNET_break (0);
+    GNUNET_free (src);
+    return NULL;
+  }
+  GNUNET_CONTAINER_DLL_insert (plugin->src_head,
+                               plugin->src_tail,
+                               src);
+  plugin->env->address_add_cb (plugin->env->cls,
+                               &src->id,
+                               NULL, /* no key */
+                               src->address,
+                               src,
+                               &src->app_ctx);
+  return src;
 }
 
 
@@ -406,36 +487,9 @@ process_ifcs (void *cls,
       return GNUNET_OK;
     }
   }
-  src = GNUNET_new (struct GNUNET_DHTU_Source);
-  src->addrlen = addrlen;
-  memcpy (&src->addr,
-          addr,
-          addrlen);
-  src->scan_generation = plugin->scan_generation;
-  switch (addr->sa_family)
-  {
-    case AF_INET:
-      // hash v4 address
-      // convert address to src->address
-      break;
-    case AF_INET6:
-      // hash v6 address
-      // convert address to src->address
-      break;
-    default:
-      GNUNET_break (0);
-      GNUNET_free (src);
-      return GNUNET_OK;
-  }
-  GNUNET_CONTAINER_DLL_insert (plugin->src_head,
-                               plugin->src_tail,
-                               src);
-  plugin->env->address_add_cb (plugin->env->cls,
-                               &src->id,
-                               NULL, /* no key */
-                               src->address,
-                               src,
-                               &src->app_ctx);
+  (void) create_source (plugin,
+                        addr,
+                        addrlen);
   return GNUNET_OK;
 }
 
@@ -475,6 +529,186 @@ scan (void *cls)
 
 
 /**
+ * Find our source matching @a addr. If none exists,
+ * create one!
+ *
+ * @param plugin the plugin handle
+ * @param addr IP address to find
+ * @param addrlen number of bytes in @a addr
+ * @return matching source object
+ */
+static struct GNUNET_DHTU_Source *
+find_source (struct Plugin *plugin,
+             const void *addr,
+             size_t addrlen)
+{
+  for (struct GNUNET_DHTU_Source *src = plugin->src_head;
+       NULL != src;
+       src = src->next)
+  {
+    if ( (addrlen == sizeof (struct in_addr)) &&
+         (src->addrlen == sizeof (struct sockaddr_in)) )
+    {
+      const struct sockaddr_in *sa =
+        (const struct sockaddr_in *) &src->addr;
+      if (0 == memcmp (addr,
+                       &sa->sin_addr,
+                       addrlen))
+        return src;
+    }
+    if ( (addrlen == sizeof (struct in6_addr)) &&
+         (src->addrlen == sizeof (struct sockaddr_in6)) )
+    {
+      const struct sockaddr_in6 *sa =
+        (const struct sockaddr_in6 *) &src->addr;
+      if (0 == memcmp (addr,
+                       &sa->sin6_addr,
+                       addrlen))
+        return src;
+    }
+  }
+
+  {
+    struct sockaddr_storage sa;
+    socklen_t salen;
+
+    memset (&sa,
+            0,
+            sizeof (sa));
+    if (addrlen == sizeof (struct in_addr)) 
+    {
+      struct sockaddr_in *s4 =
+        (struct sockaddr_in *) &sa;
+      
+      s4->sin_family = AF_INET;
+      memcpy (&s4->sin_addr,
+              addr,
+              addrlen);
+      salen = sizeof (*s4);
+    }
+    if (addrlen == sizeof (struct in6_addr)) 
+    {
+      struct sockaddr_in6 *s6 =
+        (struct sockaddr_in6 *) &sa;
+      
+      s6->sin6_family = AF_INET6;
+      memcpy (&s6->sin6_addr,
+              addr,
+              addrlen);
+      salen = sizeof (*s6);
+    }    
+    return create_source (plugin,
+                          (const struct sockaddr *) &sa,
+                          salen);
+  }
+}
+
+
+/**
+ * UDP socket is ready to receive. Read.
+ *
+ * @param cls our `struct Plugin *`
+ */
+static void
+read_cb (void *cls)
+{
+  struct Plugin *plugin = cls;
+  ssize_t ret;
+  char buf[65536];
+  struct sockaddr_storage sa;
+  struct iovec iov = {
+    .iov_base = buf,
+    .iov_len = sizeof (buf)
+  };
+  char ctl[1024];
+  struct msghdr mh = {
+    .msg_name = &sa,
+    .msg_namelen = sizeof (sa),
+    .msg_iov = &iov,
+    .msg_iovlen = 1,
+    .msg_control = ctl,
+    .msg_controllen = sizeof (ctl)
+  };
+  
+  ret = recvmsg  (GNUNET_NETWORK_get_fd (plugin->sock),
+                  &mh,
+                  MSG_DONTWAIT);
+  if (ret >= 0)
+  {
+    struct GNUNET_DHTU_Target *dst = NULL;
+    struct GNUNET_DHTU_Source *src = NULL;
+    struct cmsghdr *cmsg;
+    struct msghdr *msh = mh.msg_control;
+
+    /* find IP where we received message */
+    for (cmsg = CMSG_FIRSTHDR (msh);
+         NULL != cmsg;
+         cmsg = CMSG_NXTHDR (msh,
+                             cmsg))
+    {
+      if ( (cmsg->cmsg_level == IPPROTO_IP) &&
+           (cmsg->cmsg_type == IP_ORIGDSTADDR) )
+      {
+        if (CMSG_LEN (sizeof (struct in_addr)) ==
+            cmsg->cmsg_len)
+        {
+          struct in6_addr ia;
+          
+          memcpy (&ia,
+                  CMSG_DATA (cmsg),
+                  sizeof (ia));
+          src = find_source (plugin,
+                             &ia,
+                             sizeof (ia));
+          break;
+        }
+        else
+          GNUNET_break (0);
+      }
+      if ( (cmsg->cmsg_level == IPPROTO_IPV6) &&
+           (cmsg->cmsg_type == IP_ORIGDSTADDR) )
+      {
+        if (CMSG_LEN (sizeof (struct in6_addr)) ==
+                 cmsg->cmsg_len)
+        {
+          struct in6_addr ia;
+          
+          memcpy (&ia,
+                  CMSG_DATA (cmsg),
+                  sizeof (ia));
+          src = find_source (plugin,
+                             &ia,
+                             sizeof (ia));
+          break;
+        }
+        else
+          GNUNET_break (0);
+      }   
+    }
+    // FIXME: find or create 'dst'!
+    if ( (NULL == src) ||
+         (NULL == dst) )
+    {
+      GNUNET_break (0);
+    }
+    else
+    {
+      plugin->env->receive_cb (plugin->env->cls,
+                               dst->app_ctx,
+                               src->app_ctx,
+                               buf,
+                               ret);
+    }
+  }
+  plugin->read_task = GNUNET_SCHEDULER_add_read_net (
+    GNUNET_TIME_UNIT_FOREVER_REL,
+    plugin->sock,
+    &read_cb,
+    plugin);
+}
+
+
+/**
  * Entry point for the plugin.
  *
  * @param cls closure (the `struct GNUNET_DHTU_PluginEnvironment`)
@@ -486,14 +720,81 @@ libgnunet_plugin_dhtu_ip_init (void *cls)
   struct GNUNET_DHTU_PluginEnvironment *env = cls;
   struct GNUNET_DHTU_PluginFunctions *api;
   struct Plugin *plugin;
+  char *port;
+  unsigned int nport;
+  int sock;
 
+  if (GNUNET_OK !=
+      GNUNET_CONFIGURATION_get_value_string (env->cfg,
+                                             "DHTU-IP",
+                                             "UDP_PORT",
+                                             &port))
+  {
+    GNUNET_log_config_missing (GNUNET_ERROR_TYPE_ERROR,
+                               "DHTU-IP",
+                               "UDP_PORT");
+    return NULL;
+  }
+  {
+    char dummy;
+
+    if ( (1 != sscanf (port,
+                       "%u%c",
+                       &nport,
+                       &dummy)) ||
+         (nport > UINT16_MAX) )
+    {
+      GNUNET_log_config_invalid (GNUNET_ERROR_TYPE_ERROR,
+                                 "DHTU-IP",
+                                 "UDP_PORT",
+                                 "must be number below 65536");
+      GNUNET_free (port);
+      return NULL;
+    }
+  }
   plugin = GNUNET_new (struct Plugin);
   plugin->env = env;
-  // FIXME: get port configuration!
+  plugin->port = port;
+  sock = socket (AF_INET6,
+                 SOCK_DGRAM,
+                 IPPROTO_UDP);
+  if (-1 == sock)
+  {
+    GNUNET_log_strerror (GNUNET_ERROR_TYPE_ERROR,
+                         "socket");
+    GNUNET_free (plugin->port);
+    GNUNET_free (plugin);
+    return NULL;
+  }
+  {
+    struct sockaddr_in6 sa = {
+      .sin6_family = AF_INET6,
+      .sin6_port = htons ((uint16_t) nport)
+    };
+
+    if (0 !=
+        bind (sock,
+              &sa,
+              sizeof (sa)))
+    {
+      GNUNET_log_strerror (GNUNET_ERROR_TYPE_ERROR,
+                           "socket");
+      GNUNET_break (0 ==
+                    close (sock));
+      GNUNET_free (plugin->port);
+      GNUNET_free (plugin);
+      return NULL;
+    }
+  }
+  plugin->sock = GNUNET_NETWORK_socket_box_native (sock);
+  plugin->read_task = GNUNET_SCHEDULER_add_read_net (
+    GNUNET_TIME_UNIT_FOREVER_REL,
+    plugin->sock,
+    &read_cb,
+    plugin);
+  // FIXME: deal with NSE callback...
   plugin->scan_task = GNUNET_SCHEDULER_add_now (&scan,
                                                 plugin);
-  // FIXME: bind, start receive loop
-  // FIXME: deal with NSE callback...
   api = GNUNET_new (struct GNUNET_DHTU_PluginFunctions);
   api->cls = plugin;
   api->sign = &ip_sign;
@@ -519,6 +820,9 @@ libgnunet_plugin_dhtu_ip_done (void *cls)
   struct Plugin *plugin = api->cls;
 
   GNUNET_SCHEDULER_cancel (plugin->scan_task);
+  GNUNET_break (0 ==
+                GNUNET_NETWORK_socket_close (plugin->sock));
+  GNUNET_free (plugin->port);
   GNUNET_free (plugin);
   GNUNET_free (api);
   return NULL;
