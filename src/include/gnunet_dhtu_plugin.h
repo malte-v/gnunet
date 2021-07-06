@@ -168,7 +168,7 @@ struct GNUNET_DHTU_PluginEnvironment
    * @param std_dev standard deviation for the estimate
    */
   void
-  (*network_size_cb)(void *ctx,
+  (*network_size_cb)(void *cls,
                      struct GNUNET_TIME_Absolute timestamp,
                      double logestimate,
                      double std_dev);
@@ -184,7 +184,6 @@ struct GNUNET_DHTU_PluginEnvironment
    *    pointer will remain valid until @e disconnect_cb is called
    * @param target handle to the target,
    *    pointer will remain valid until @e disconnect_cb is called
-   * @param sctx context of the source address on which the connection happened
    * @param[out] ctx storage space for DHT to use in association with this target
    */
   void
@@ -192,7 +191,6 @@ struct GNUNET_DHTU_PluginEnvironment
                 const struct GNUNET_DHTU_PublicKey *pk,
                 const struct GNUNET_DHTU_Hash *peer_id,
                 struct GNUNET_DHTU_Target *target,
-                void *sctx,
                 void **ctx);
 
   /**
