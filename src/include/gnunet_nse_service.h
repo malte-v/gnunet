@@ -66,11 +66,12 @@ struct GNUNET_NSE_Handle;
  * @param timestamp time when the estimate was received from the server (or created by the server)
  * @param logestimate the log(Base 2) value of the current network size estimate
  * @param std_dev standard deviation for the estimate
- *
  */
-typedef void (*GNUNET_NSE_Callback) (void *cls,
-                                     struct GNUNET_TIME_Absolute timestamp,
-                                     double logestimate, double std_dev);
+typedef void
+(*GNUNET_NSE_Callback) (void *cls,
+                        struct GNUNET_TIME_Absolute timestamp,
+                        double logestimate,
+                        double std_dev);
 
 
 /**
@@ -93,7 +94,8 @@ typedef void (*GNUNET_NSE_Callback) (void *cls,
  */
 struct GNUNET_NSE_Handle *
 GNUNET_NSE_connect (const struct GNUNET_CONFIGURATION_Handle *cfg,
-                    GNUNET_NSE_Callback func, void *func_cls);
+                    GNUNET_NSE_Callback func,
+                    void *func_cls);
 
 
 /**
