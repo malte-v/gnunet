@@ -23,16 +23,20 @@
  *
  * @file plugin_dhtu_ip.c
  * @brief plain IP based DHT network underlay
- *
- * TODO:
- * - call NSE callback
- * - expire destination addresses 
- * - faster lookup of destinations
  */
 #include "platform.h"
 #include "gnunet_dhtu_plugin.h"
 
+/**
+ * How frequently should we re-scan our local interfaces for IPs?
+ */
 #define SCAN_FREQ GNUNET_TIME_UNIT_MINUTES
+
+/**
+ * Maximum number of concurrently active destinations to support.
+ */
+#define MAX_DESTS 256
+
 
 /**
  * Opaque handle that the underlay offers for our address to be used when
@@ -90,7 +94,7 @@ struct GNUNET_DHTU_Source
  */
 struct GNUNET_DHTU_Target
 {
-  // FIXME: add mechanism for targets to expire
+
   /**
    * Kept in a DLL.
    */
@@ -182,7 +186,8 @@ struct Plugin
   struct GNUNET_DHTU_Source *src_tail;
 
   /**
-   * Head of destinations that are active.
+   * Head of destinations that are active. Sorted by
+   * last use, with latest used at the head.
    */
   struct GNUNET_DHTU_Target *dst_head;
 
@@ -191,6 +196,11 @@ struct Plugin
    */
   struct GNUNET_DHTU_Target *dst_tail;
 
+  /**
+   * Map from hashes of sockaddrs to targets.
+   */
+  struct GNUNET_CONTAINER_MultiHashMap *dsts;
+  
   /**
    * Task that scans for IP address changes.
    */
@@ -276,6 +286,36 @@ create_target (struct Plugin *plugin,
   static struct GNUNET_DHTU_PublicKey pk;
   struct GNUNET_DHTU_Target *dst;
 
+  if (MAX_DESTS >
+      GNUNET_CONTAINER_multihashmap_size (plugin->dsts))
+  {
+    struct GNUNET_HashCode key;
+    
+    dst = NULL;
+    for (struct GNUNET_DHTU_Target *pos = plugin->dst_head;
+         NULL != pos;
+         pos = pos->next)
+    {
+      /* >= here assures we remove oldest entries first */
+      if ( (NULL == dst) ||
+           (dst->ph_count >= pos->ph_count) )
+        dst = pos;
+    }
+    GNUNET_assert (NULL != dst);
+    plugin->env->disconnect_cb (dst->app_ctx);
+    GNUNET_CRYPTO_hash (&dst->addr,
+                        dst->addrlen,
+                        &key);
+    GNUNET_assert (GNUNET_YES ==
+                   GNUNET_CONTAINER_multihashmap_remove (plugin->dsts,
+                                                         &key,
+                                                         dst));
+    GNUNET_CONTAINER_DLL_remove (plugin->dst_head,
+                                 plugin->dst_tail,
+                                 dst);
+    GNUNET_assert (NULL == dst->ph_head);
+    GNUNET_free (dst);
+  }
   pk.size = htons (sizeof (pk));  
   dst = GNUNET_new (struct GNUNET_DHTU_Target);
   dst->addrlen = addrlen;
@@ -336,20 +376,38 @@ find_target (struct Plugin *plugin,
              const void *addr,
              size_t addrlen)
 {
-  // FIXME-OPTIMIZE: use hash map instead of linear search
-  for (struct GNUNET_DHTU_Target *dst = plugin->dst_head;
-       NULL != dst;
-       dst = dst->next)
+  struct GNUNET_HashCode key;
+  struct GNUNET_DHTU_Target *dst;
+
+  GNUNET_CRYPTO_hash (addr,
+                      addrlen,
+                      &key);
+  dst = GNUNET_CONTAINER_multihashmap_get (plugin->dsts,
+                                           &key);
+  if (NULL == dst)
   {
-    if ( (addrlen == dst->addrlen) &&
-         (0 == memcmp (addr,
-                       &dst->addr,
-                       addrlen)) )
-        return dst;
+    dst = create_target (plugin,
+                         (const struct sockaddr *) addr,
+                         addrlen);
+    GNUNET_assert (GNUNET_YES ==
+                   GNUNET_CONTAINER_multihashmap_put (
+                                                      plugin->dsts,
+                                                      &key,
+                                                      dst,
+                                                      GNUNET_CONTAINER_MULTIHASHMAPOPTION_UNIQUE_ONLY));
   }
-  return create_target (plugin,
-                        (const struct sockaddr *) addr,
-                        addrlen);
+  else
+  {
+    /* move to head of DLL */
+    GNUNET_CONTAINER_DLL_remove (plugin->dst_head,
+                                 plugin->dst_tail,
+                                 dst);
+    GNUNET_CONTAINER_DLL_insert (plugin->dst_head,
+                                 plugin->dst_tail,
+                                 dst);
+
+  }
+  return dst;
 }
 
 
@@ -818,7 +876,19 @@ libgnunet_plugin_dhtu_ip_init (void *cls)
   unsigned int nport;
   int sock;
   int af;
+  unsigned long long nse;
 
+  if (GNUNET_OK !=
+      GNUNET_CONFIGURATION_get_value_number (env->cfg,
+                                             "DHTU-IP",
+                                             "NSE",
+                                             &nse))
+  {
+    GNUNET_log_config_missing (GNUNET_ERROR_TYPE_ERROR,
+                               "DHTU-IP",
+                               "NSE");
+    return NULL;
+  }
   if (GNUNET_OK !=
       GNUNET_CONFIGURATION_get_value_string (env->cfg,
                                              "DHTU-IP",
@@ -936,13 +1006,18 @@ libgnunet_plugin_dhtu_ip_init (void *cls)
     }
     break;
   }
+  plugin->dsts = GNUNET_CONTAINER_multihashmap_create (128,
+                                                       GNUNET_NO);
   plugin->sock = GNUNET_NETWORK_socket_box_native (sock);
   plugin->read_task = GNUNET_SCHEDULER_add_read_net (
     GNUNET_TIME_UNIT_FOREVER_REL,
     plugin->sock,
     &read_cb,
     plugin);
-  // FIXME: deal with NSE callback...
+  env->network_size_cb (env->cls,
+                        GNUNET_TIME_UNIT_ZERO_ABS,
+                        log (nse) / log (2),
+                        -1.0 /* stddev */);
   plugin->scan_task = GNUNET_SCHEDULER_add_now (&scan,
                                                 plugin);
   api = GNUNET_new (struct GNUNET_DHTU_PluginFunctions);
@@ -974,6 +1049,7 @@ libgnunet_plugin_dhtu_ip_done (void *cls)
   while (NULL != (dst = plugin->dst_head))
   {
     plugin->env->disconnect_cb (dst->app_ctx);
+    GNUNET_assert (NULL == dst->ph_head);
     GNUNET_CONTAINER_DLL_remove (plugin->dst_head,
                                  plugin->dst_tail,
                                  dst);
@@ -988,7 +1064,7 @@ libgnunet_plugin_dhtu_ip_done (void *cls)
     GNUNET_free (src->address);
     GNUNET_free (src);
   }
-
+  GNUNET_CONTAINER_multihashmap_destroy (plugin->dsts);
   GNUNET_SCHEDULER_cancel (plugin->scan_task);
   GNUNET_break (0 ==
                 GNUNET_NETWORK_socket_close (plugin->sock));

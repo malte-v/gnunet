@@ -165,7 +165,7 @@ struct GNUNET_DHTU_PluginEnvironment
    * @param cls closure
    * @param timestamp time when the estimate was received from the server (or created by the server)
    * @param logestimate the log(Base 2) value of the current network size estimate
-   * @param std_dev standard deviation for the estimate
+   * @param std_dev standard deviation for the estimate, negative if unavailable
    */
   void
   (*network_size_cb)(void *cls,
