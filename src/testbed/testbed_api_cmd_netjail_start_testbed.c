@@ -248,7 +248,7 @@ start_testbed (struct NetJailState *ns, struct
                                m_char,
                                n_char,
                                GNUNET_OS_get_libexec_binary_path (
-                                 HELPER_TESTBED_BINARY),
+                                 HELPER_CMDS_BINARY),
                                NULL};
   unsigned int m = atoi (m_char);
   unsigned int n = atoi (n_char);
@@ -285,9 +285,8 @@ start_testbed (struct NetJailState *ns, struct
                          GNUNET_YES,
                          NETJAIL_EXEC_SCRIPT,
                          script_argv,
-                         &
-                         helper_mst,
-                         exp_cb,
+                         &helper_mst,
+                         &exp_cb,
                          tbc));
 
   struct GNUNET_HELPER_Handle *helper = ns->helper[tbc->count - 1];

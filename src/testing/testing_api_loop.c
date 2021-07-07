@@ -204,6 +204,8 @@ run_finish_task_next (void *cls)
   }
   else
   {
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "Next task finished with an error.\n");
     GNUNET_TESTING_interpreter_fail ();
   }
 
@@ -246,6 +248,8 @@ run_finish_task_sync (void *cls)
   }
   else
   {
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "Sync task finished with an error.\n");
     GNUNET_TESTING_interpreter_fail ();
   }
 }
@@ -325,16 +329,39 @@ GNUNET_TESTING_interpreter_fail ()
 {
   struct GNUNET_TESTING_Command *cmd = &is->commands[is->ip];
 
-  GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-              "Failed at command `%s'\n",
-              cmd->label);
-  while (GNUNET_TESTING_cmd_is_batch (cmd))
+  if (GNUNET_SYSERR == is->result)
+    return; /* ignore, we already failed! */
+
+  if (NULL != cmd)
   {
-    cmd = GNUNET_TESTING_cmd_batch_get_current (cmd);
-    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                "Batch is at command `%s'\n",
-                cmd->label);
+    while (GNUNET_TESTING_cmd_is_batch (cmd))
+    {
+      cmd = GNUNET_TESTING_cmd_batch_get_current (cmd);
+      GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                  "Batch is at command `%s'\n",
+                  cmd->label);
+    }
+
   }
+  else
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                "cmd is NULL.\n");
+  }
+
+  if (NULL == cmd->label)
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                "Failed at command `%s'\n",
+                cmd->label);
+
+  }
+  else
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "cmd->label is NULL.\n");
+  }
+
   is->result = GNUNET_SYSERR;
   GNUNET_SCHEDULER_shutdown ();
 }
@@ -386,7 +413,8 @@ interpreter_run (void *cls)
   {
 
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                "Running command END\n");
+                "Running command END %p\n",
+                is);
     is->result = GNUNET_OK;
     GNUNET_SCHEDULER_shutdown ();
     return;
@@ -394,8 +422,9 @@ interpreter_run (void *cls)
   else if (NULL != cmd)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                "Running command `%s'\n",
-                cmd->label);
+                "Running command `%s' %p\n",
+                cmd->label,
+                is);
   }
   cmd->start_time
     = cmd->last_req_time

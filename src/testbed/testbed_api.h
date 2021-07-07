@@ -37,6 +37,11 @@
  */
 #define HELPER_TESTBED_BINARY "gnunet-helper-testbed"
 
+/**
+ * Cmds Helper binary name
+ */
+#define HELPER_CMDS_BINARY "gnunet-helper-cmds"
+
 
 /**
  * Enumeration of operations

@@ -6,6 +6,8 @@ if USE_COVERAGE
   XLIB = -lgcov
 endif
 
+plugindir = $(libdir)/gnunet
+
 libexecdir= $(pkglibdir)/libexec/
 
 pkgcfgdir= $(pkgdatadir)/config.d/
@@ -21,6 +23,8 @@ if HAVE_SQLITE
 endif
 
 libexec_PROGRAMS = \
+  gnunet-cmd \
+  gnunet-helper-cmds \
   gnunet-service-testbed \
   gnunet-helper-testbed \
   gnunet-daemon-testbed-blacklist \
@@ -32,6 +36,18 @@ bin_PROGRAMS = \
 
 noinst_PROGRAMS = \
   $(generate_underlay)
+
+plugin_LTLIBRARIES = \
+  libgnunet_plugin_testcmd.la
+
+libgnunet_plugin_testcmd_la_SOURCES = \
+  plugin_testcmd.c
+libgnunet_plugin_testcmd_la_LIBADD = \
+  $(top_builddir)/src/util/libgnunetutil.la \
+  $(top_builddir)/src/testing/libgnunettesting.la \
+  $(LTLIBINTL)
+libgnunet_plugin_testcmd_la_LDFLAGS = \
+ $(GN_PLUGIN_LDFLAGS)
 
 gnunet_service_testbed_SOURCES = \
   gnunet-service-testbed.c gnunet-service-testbed.h \
@@ -65,6 +81,22 @@ gnunet_testbed_profiler_LDFLAGS = \
 gnunet_helper_testbed_SOURCES = \
   gnunet-helper-testbed.c
 gnunet_helper_testbed_LDADD = $(XLIB) \
+ $(top_builddir)/src/util/libgnunetutil.la \
+ $(top_builddir)/src/testing/libgnunettesting.la \
+ libgnunettestbed.la \
+ $(LTLIBINTL) $(Z_LIBS)
+
+gnunet_cmd_SOURCES = \
+  gnunet-cmd.c
+gnunet_cmd_LDADD = $(XLIB) \
+ $(top_builddir)/src/util/libgnunetutil.la \
+ $(top_builddir)/src/testing/libgnunettesting.la \
+ libgnunettestbed.la \
+ $(LTLIBINTL) $(Z_LIBS)
+
+gnunet_helper_cmds_SOURCES = \
+  gnunet-helper-cmds.c
+gnunet_helper_cmds_LDADD = $(XLIB) \
  $(top_builddir)/src/util/libgnunetutil.la \
  $(top_builddir)/src/testing/libgnunettesting.la \
  libgnunettestbed.la \
