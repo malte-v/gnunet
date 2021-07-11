@@ -614,8 +614,10 @@ parse_abs_time (void *cls,
   {
     tval = json_integer_value (json_t_ms);
     /* Time is in milliseconds in JSON, but in microseconds in GNUNET_TIME_Absolute */
-    abs->abs_value_us = tval * 1000LL;
-    if ((abs->abs_value_us) / 1000LL != tval)
+    abs->abs_value_us = tval * GNUNET_TIME_UNIT_MILLISECONDS.rel_value_us;
+    if ((abs->abs_value_us)
+        / GNUNET_TIME_UNIT_MILLISECONDS.rel_value_us
+        != tval)
     {
       /* Integer overflow */
       GNUNET_break_op (0);
@@ -626,6 +628,7 @@ parse_abs_time (void *cls,
   if (json_is_string (json_t_ms))
   {
     const char *val;
+
     val = json_string_value (json_t_ms);
     if ((0 == strcasecmp (val, "never")))
     {

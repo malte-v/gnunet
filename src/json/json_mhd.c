@@ -328,15 +328,25 @@ GNUNET_JSON_post_parser (size_t buffer_max,
     }
   }
 
-  *json = json_loadb (r->data, r->fill, 0, NULL);
-  if (NULL == *json)
   {
-    GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
-                "Failed to parse JSON request body\n");
-    buffer_deinit (r);
-    GNUNET_free (r);
-    *con_cls = NULL;
-    return GNUNET_JSON_PR_JSON_INVALID;
+    json_error_t err;
+
+    *json = json_loadb (r->data,
+                        r->fill,
+                        0,
+                        &err);
+    if (NULL == *json)
+    {
+      GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
+                  "Failed to parse JSON request body of %u byte at offset %d: %s\n",
+                  (unsigned int) r->fill,
+                  err.position,
+                  err.text);
+      buffer_deinit (r);
+      GNUNET_free (r);
+      *con_cls = NULL;
+      return GNUNET_JSON_PR_JSON_INVALID;
+    }
   }
   buffer_deinit (r);
   GNUNET_free (r);
