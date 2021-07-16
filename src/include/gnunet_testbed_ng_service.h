@@ -265,4 +265,13 @@ int
 GNUNET_TESTBED_get_trait_hosts (const struct
                                 GNUNET_TESTING_Command *cmd,
                                 struct GNUNET_TESTBED_Host ***hosts);
+
+struct GNUNET_TESTING_Command
+GNUNET_TESTING_cmd_block_until_all_peers_started (const char *label,
+                                                  unsigned int *
+                                                  all_peers_started);
+
+struct GNUNET_TESTING_Command
+GNUNET_TESTING_cmd_send_peer_ready (const char *label,
+                                    TESTBED_CMD_HELPER_write_cb write_message);
 #endif

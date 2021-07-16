@@ -59,6 +59,9 @@ netjail_start_cleanup (void *cls,
 {
   struct NetJailState *ns = cls;
 
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "netjail_start_cleanup!\n");
+
   if (NULL != ns->cwh)
   {
     GNUNET_wait_child_cancel (ns->cwh);
@@ -74,6 +77,7 @@ netjail_start_cleanup (void *cls,
     GNUNET_OS_process_destroy (ns->start_proc);
     ns->start_proc = NULL;
   }
+  GNUNET_free (ns);
 }
 
 
@@ -108,6 +112,8 @@ child_completed_callback (void *cls,
   }
   else
   {
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                "Child completed with an error!\n");
     ns->finished = GNUNET_SYSERR;
   }
   GNUNET_OS_process_destroy (ns->start_proc);

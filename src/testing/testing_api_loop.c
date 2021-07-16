@@ -332,6 +332,9 @@ GNUNET_TESTING_interpreter_fail ()
   if (GNUNET_SYSERR == is->result)
     return; /* ignore, we already failed! */
 
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "interpreter_fail!\n");
+
   if (NULL != cmd)
   {
     while (GNUNET_TESTING_cmd_is_batch (cmd))

@@ -3549,6 +3549,26 @@ extern "C" {
 
 /*********************************************************************************/
 
+/*********************************************************************************/
+/**********************************  Cmd Testing  **********************************/
+/*********************************************************************************/
+
+/**
+ * The initialization message towards gnunet-cmds-helper
+ */
+#define GNUNET_MESSAGE_TYPE_CMDS_HELPER_INIT 1700
+
+/**
+ * The reply message from gnunet-cmds-helper
+ */
+#define GNUNET_MESSAGE_TYPE_CMDS_HELPER_REPLY 1701
+
+#define GNUNET_MESSAGE_TYPE_CMDS_HELPER_PEER_STARTED 1702
+
+#define GNUNET_MESSAGE_TYPE_CMDS_HELPER_ALL_PEERS_STARTED 1703
+
+/*********************************************************************************/
+
 /**
  * Type used to match 'all' message types.
  */

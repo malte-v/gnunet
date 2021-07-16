@@ -19,7 +19,7 @@
  */
 
 /**
- * @file testbed/gnunet-helper-cmds.c
+ * @file testbed/gnunet-cmds-helper.c
  * @brief Helper binary that is started from a remote interpreter loop to start
  *        a local interpreter loop.
  *
@@ -42,7 +42,9 @@
 #include "gnunet_testbed_service.h"
 #include "testbed_helper.h"
 #include "testbed_api.h"
+#include "gnunet_testing_plugin.h"
 #include <zlib.h>
+#include "execinfo.h"
 
 /**
  * Generic logging shortcut
@@ -54,6 +56,50 @@
  */
 #define LOG_DEBUG(...) LOG (GNUNET_ERROR_TYPE_DEBUG, __VA_ARGS__)
 
+#define NODE_BASE_IP "192.168.15."
+
+#define ROUTER_BASE_IP "92.68.150."
+
+#define MAX_TRACE_DEPTH 50
+
+/**
+ * Handle for a plugin.
+ */
+struct Plugin
+{
+  /**
+   * Name of the shared library.
+   */
+  char *library_name;
+
+  /**
+   * Plugin API.
+   */
+  struct GNUNET_TESTING_PluginFunctions *api;
+
+  char *node_ip;
+
+  char *plugin_name;
+
+  char *global_n;
+
+  char *local_m;
+
+  char *n;
+
+  char *m;
+};
+
+struct NodeIdentifier
+{
+  char *n;
+
+  char *m;
+
+  char *global_n;
+
+  char *local_m;
+};
 
 /**
  * Context for a single write on a chunk of memory
@@ -75,6 +121,8 @@ struct WriteContext
    */
   size_t pos;
 };
+
+struct Plugin *plugin;
 
 /**
  * The process handle to the testbed service
@@ -132,6 +180,61 @@ static int done_reading;
 static int status;
 
 
+struct BacktraceInfo
+{
+  /**
+   * Array of strings which make up a backtrace from the point when this
+   * task was scheduled (essentially, who scheduled the task?)
+   */
+  char **backtrace_strings;
+
+  /**
+   * Size of the backtrace_strings array
+   */
+  int num_backtrace_strings;
+};
+
+/**
+ * Output stack trace of task @a t.
+ *
+ * @param t task to dump stack trace of
+ */
+static void
+dump_backtrace (struct BacktraceInfo *t)
+{
+
+  for (unsigned int i = 0; i < t->num_backtrace_strings; i++)
+    LOG (GNUNET_ERROR_TYPE_ERROR,
+         "Task %p trace %u: %s\n",
+         t,
+         i,
+         t->backtrace_strings[i]);
+
+}
+
+
+/**
+ * Initialize backtrace data for task @a t
+ *
+ * @param t task to initialize
+ */
+static void
+init_backtrace ()
+{
+  struct BacktraceInfo *t;
+  void *backtrace_array[MAX_TRACE_DEPTH];
+
+  t = GNUNET_new (struct BacktraceInfo);
+  t->num_backtrace_strings
+    = backtrace (backtrace_array, MAX_TRACE_DEPTH);
+  t->backtrace_strings =
+    backtrace_symbols (backtrace_array,
+                       t->num_backtrace_strings);
+  dump_backtrace (t);
+
+}
+
+
 /**
  * Task to shut down cleanly
  *
@@ -140,7 +243,11 @@ static int status;
 static void
 shutdown_task (void *cls)
 {
-  LOG_DEBUG ("Shutting down\n");
+
+  init_backtrace ();
+  LOG_DEBUG ("Shutting down.\n");
+  LOG (GNUNET_ERROR_TYPE_ERROR,
+       "Shutting down tokenizer!\n");
 
   if (NULL != read_task_id)
   {
@@ -176,6 +283,8 @@ shutdown_task (void *cls)
 }
 
 
+
+
 /**
  * Task to write to the standard out
  *
@@ -187,6 +296,9 @@ write_task (void *cls)
   struct WriteContext *wc = cls;
   ssize_t bytes_wrote;
 
+  LOG (GNUNET_ERROR_TYPE_ERROR,
+       "Writing data!\n");
+
   GNUNET_assert (NULL != wc);
   write_task_id = NULL;
   bytes_wrote = GNUNET_DISK_file_write (stdout_fd,
@@ -194,7 +306,8 @@ write_task (void *cls)
                                         wc->length - wc->pos);
   if (GNUNET_SYSERR == bytes_wrote)
   {
-    LOG (GNUNET_ERROR_TYPE_WARNING, "Cannot reply back configuration\n");
+    LOG (GNUNET_ERROR_TYPE_WARNING,
+         "Cannot reply back successful initialization\n");
     GNUNET_free (wc->data);
     GNUNET_free (wc);
     return;
@@ -204,8 +317,12 @@ write_task (void *cls)
   {
     GNUNET_free (wc->data);
     GNUNET_free (wc);
+    LOG (GNUNET_ERROR_TYPE_ERROR,
+         "Written successfully!\n");
     return;
   }
+  LOG (GNUNET_ERROR_TYPE_ERROR,
+       "Written data!\n");
   write_task_id = GNUNET_SCHEDULER_add_write_file (GNUNET_TIME_UNIT_FOREVER_REL,
                                                    stdout_fd,
                                                    &write_task,
@@ -240,6 +357,52 @@ child_death_task (void *cls)
 }
 
 
+static void
+write_message (struct GNUNET_MessageHeader *message, size_t msg_length)
+{
+  struct WriteContext *wc;
+
+  LOG (GNUNET_ERROR_TYPE_ERROR,
+       "enter write_message!\n");
+  wc = GNUNET_new (struct WriteContext);
+  wc->length = msg_length;
+  wc->data = message;
+  write_task_id = GNUNET_SCHEDULER_add_write_file (
+    GNUNET_TIME_UNIT_FOREVER_REL,
+    stdout_fd,
+    &write_task,
+    wc);
+  LOG (GNUNET_ERROR_TYPE_ERROR,
+       "leave write_message!\n");
+}
+
+
+/**
+ * Function to run the test cases.
+ *
+ * @param cls plugin to use.
+ *
+ */
+static void
+run_plugin (void *cls)
+{
+  struct Plugin *plugin = cls;
+  char *router_ip;
+  char *node_ip;
+
+  router_ip = GNUNET_malloc (strlen (ROUTER_BASE_IP) + strlen (plugin->m) + 1);
+  strcpy (router_ip, ROUTER_BASE_IP);
+  strcat (router_ip, plugin->m);
+
+  node_ip = GNUNET_malloc (strlen (NODE_BASE_IP) + strlen (plugin->n) + 1);
+  strcat (node_ip, NODE_BASE_IP);
+  strcat (node_ip, plugin->n);
+
+  plugin->api->start_testcase (&write_message, router_ip, node_ip);
+
+}
+
+
 /**
  * Functions with this signature are called whenever a
  * complete message is received by the tokenizer.
@@ -255,191 +418,140 @@ child_death_task (void *cls)
 static int
 tokenizer_cb (void *cls, const struct GNUNET_MessageHeader *message)
 {
-  const struct GNUNET_TESTBED_HelperInit *msg;
-  struct GNUNET_TESTBED_HelperReply *reply;
-  struct GNUNET_CONFIGURATION_Handle *cfg;
-  struct WriteContext *wc;
+  struct NodeIdentifier *ni = cls;
+  const struct GNUNET_CMDS_HelperInit *msg;
+  struct GNUNET_CMDS_HelperReply *reply;
   char *binary;
-  char *trusted_ip;
-  char *hostname;
-  char *config;
-  char *xconfig;
-  char *evstr;
-  // char *str;
-  size_t config_size;
-  uLongf ul_config_size;
-  size_t xconfig_size;
-  uint16_t trusted_ip_size;
-  uint16_t hostname_size;
+  char *plugin_name;
+  size_t plugin_name_size;
   uint16_t msize;
+  size_t msg_length;
+  char *router_ip;
+  char *node_ip;
+
+  LOG (GNUNET_ERROR_TYPE_ERROR,
+       "tokenizer \n");
 
   msize = ntohs (message->size);
-  if ((sizeof(struct GNUNET_TESTBED_HelperInit) >= msize) ||
-      (GNUNET_MESSAGE_TYPE_TESTBED_HELPER_INIT != ntohs (message->type)))
+  if (GNUNET_MESSAGE_TYPE_CMDS_HELPER_ALL_PEERS_STARTED == ntohs (
+        message->type))
   {
-    LOG (GNUNET_ERROR_TYPE_WARNING, "Received unexpected message -- exiting\n");
-    goto error;
+    plugin->api->all_peers_started ();
   }
-  msg = (const struct GNUNET_TESTBED_HelperInit *) message;
-  trusted_ip_size = ntohs (msg->trusted_ip_size);
-  trusted_ip = (char *) &msg[1];
-  if ('\0' != trusted_ip[trusted_ip_size])
+  else if (GNUNET_MESSAGE_TYPE_CMDS_HELPER_INIT == ntohs (message->type))
   {
-    LOG (GNUNET_ERROR_TYPE_WARNING, "Trusted IP cannot be empty -- exiting\n");
-    goto error;
-  }
-  hostname_size = ntohs (msg->hostname_size);
-  if ((sizeof(struct GNUNET_TESTBED_HelperInit) + trusted_ip_size + 1
-       + hostname_size) >= msize)
-  {
-    GNUNET_break (0);
-    LOG (GNUNET_ERROR_TYPE_WARNING, "Received unexpected message -- exiting\n");
-    goto error;
-  }
-  ul_config_size = (uLongf) ntohs (msg->config_size);
-  config = GNUNET_malloc (ul_config_size);
-  xconfig_size = msize - (trusted_ip_size + 1 + hostname_size
-                          + sizeof(struct GNUNET_TESTBED_HelperInit));
-  int ret = uncompress ((Bytef *) config,
-                        &ul_config_size,
-                        (const Bytef *) (trusted_ip + trusted_ip_size + 1
-                                         + hostname_size),
-                        (uLongf) xconfig_size);
-  if (Z_OK != ret)
-  {
-    switch (ret)
+    msg = (const struct GNUNET_CMDS_HelperInit *) message;
+    plugin_name_size = ntohs (msg->plugin_name_size);
+    if ((sizeof(struct GNUNET_CMDS_HelperInit) + plugin_name_size) > msize)
     {
-    case Z_MEM_ERROR:
-      LOG (GNUNET_ERROR_TYPE_ERROR, "Not enough memory for decompression\n");
-      break;
-
-    case Z_BUF_ERROR:
-      LOG (GNUNET_ERROR_TYPE_ERROR, "Output buffer too small\n");
-      break;
-
-    case Z_DATA_ERROR:
-      LOG (GNUNET_ERROR_TYPE_ERROR, "Data corrupted/incomplete\n");
-      break;
-
-    default:
       GNUNET_break (0);
+      LOG (GNUNET_ERROR_TYPE_WARNING,
+           "Received unexpected message -- exiting\n");
+      goto error;
     }
+    plugin_name = GNUNET_malloc (plugin_name_size + 1);
+    GNUNET_strlcpy (plugin_name,
+                    ((char *) &msg[1]),
+                    plugin_name_size + 1);
+
+    binary = GNUNET_OS_get_libexec_binary_path ("gnunet-cmd");
+
     LOG (GNUNET_ERROR_TYPE_ERROR,
-         "Error while uncompressing config -- exiting\n");
-    GNUNET_free (config);
+         "plugin_name: %s \n",
+         plugin_name);
+
+    // cmd_binary_process = GNUNET_OS_start_process (
+    /*GNUNET_OS_INHERIT_STD_ERR  verbose? ,
+      NULL,
+      NULL,
+      NULL,
+      binary,
+      plugin_name,
+      ni->global_n,
+      ni->local_m,
+      ni->n,
+      ni->m,
+      NULL);*/
+
+    plugin = GNUNET_new (struct Plugin);
+    plugin->api = GNUNET_PLUGIN_load (plugin_name,
+                                      NULL);
+    plugin->library_name = GNUNET_strdup (plugin_name);
+
+    plugin->global_n = ni->global_n;
+    plugin->local_m = ni->local_m;
+    plugin->n = ni->n;
+    plugin->m = ni->m;
+
+    router_ip = GNUNET_malloc (strlen (ROUTER_BASE_IP) + strlen (plugin->m)
+                               + 1);
+    strcpy (router_ip, ROUTER_BASE_IP);
+    strcat (router_ip, plugin->m);
+
+    node_ip = GNUNET_malloc (strlen (NODE_BASE_IP) + strlen (plugin->n) + 1);
+    strcat (node_ip, NODE_BASE_IP);
+    strcat (node_ip, plugin->n);
+
+    plugin->api->start_testcase (&write_message, router_ip, node_ip);
+
+    LOG (GNUNET_ERROR_TYPE_ERROR,
+         "We got here!\n");
+
+    /*if (NULL == cmd_binary_process)
+    {
+      LOG (GNUNET_ERROR_TYPE_ERROR,
+           "Starting plugin failed!\n");
+      return GNUNET_SYSERR;
+      }*/
+
+    LOG (GNUNET_ERROR_TYPE_ERROR,
+         "We got here 2!\n");
+
+    LOG (GNUNET_ERROR_TYPE_ERROR,
+         "global_n: %s local_n: %s n: %s m: %s.\n",
+         ni->global_n,
+         ni->local_m,
+         ni->n,
+         ni->m);
+
+    LOG (GNUNET_ERROR_TYPE_ERROR,
+         "We got here 3!\n");
+
+    GNUNET_free (binary);
+
+    done_reading = GNUNET_YES;
+
+    msg_length = sizeof(struct GNUNET_CMDS_HelperReply);
+    reply = GNUNET_new (struct GNUNET_CMDS_HelperReply);
+    reply->header.type = htons (GNUNET_MESSAGE_TYPE_CMDS_HELPER_REPLY);
+    reply->header.size = htons ((uint16_t) msg_length);
+
+    LOG (GNUNET_ERROR_TYPE_ERROR,
+         "We got here 4!\n");
+
+    write_message ((struct GNUNET_MessageHeader *) reply, msg_length);
+
+    LOG (GNUNET_ERROR_TYPE_ERROR,
+         "We got here 5!\n");
+
+    /*child_death_task_id = GNUNET_SCHEDULER_add_read_file (
+      GNUNET_TIME_UNIT_FOREVER_REL,
+      GNUNET_DISK_pipe_handle (sigpipe, GNUNET_DISK_PIPE_END_READ),
+      &child_death_task,
+      NULL);*/
+    return GNUNET_OK;
+  }
+  else
+  {
+    LOG (GNUNET_ERROR_TYPE_WARNING, "Received unexpected message -- exiting\n");
     goto error;
   }
-  cfg = GNUNET_CONFIGURATION_create ();
-  if (GNUNET_OK !=
-      GNUNET_CONFIGURATION_deserialize (cfg, config, ul_config_size, NULL))
-  {
-    LOG (GNUNET_ERROR_TYPE_ERROR, "Unable to deserialize config -- exiting\n");
-    GNUNET_free (config);
-    goto error;
-  }
-  GNUNET_free (config);
-  hostname = NULL;
-  if (0 != hostname_size)
-  {
-    hostname = GNUNET_malloc (hostname_size + 1);
-    GNUNET_strlcpy (hostname,
-                    ((char *) &msg[1]) + trusted_ip_size + 1,
-                    hostname_size + 1);
-  }
-  /* unset GNUNET_TESTING_PREFIX if present as it is more relevant for testbed */
-  evstr = getenv (GNUNET_TESTING_PREFIX);
-  if (NULL != evstr)
-  {
-    /* unsetting the variable will invalidate the pointer! */
-    evstr = GNUNET_strdup (evstr);
-    GNUNET_break (0 == unsetenv (GNUNET_TESTING_PREFIX));
-  }
-  test_system =
-    GNUNET_TESTING_system_create ("testbed-helper", trusted_ip, hostname, NULL);
-  if (NULL != evstr)
-  {
-    char *evar;
 
-    GNUNET_asprintf (&evar, GNUNET_TESTING_PREFIX "=%s", evstr);
-    GNUNET_assert (0 == putenv (evar)); /* consumes 'evar',
-                                           see putenv(): becomes part of environment! */
-    GNUNET_free (evstr);
-    evstr = NULL;
-  }
-  GNUNET_free (hostname);
-  hostname = NULL;
-  GNUNET_assert (NULL != test_system);
-  GNUNET_assert (GNUNET_OK ==
-                 GNUNET_TESTING_configuration_create (test_system, cfg));
-  GNUNET_assert (GNUNET_OK ==
-                 GNUNET_CONFIGURATION_get_value_filename (cfg,
-                                                          "PATHS",
-                                                          "DEFAULTCONFIG",
-                                                          &config));
-  if (GNUNET_OK != GNUNET_CONFIGURATION_write (cfg, config))
-  {
-    LOG (GNUNET_ERROR_TYPE_WARNING,
-         "Unable to write config file: %s -- exiting\n",
-         config);
-    GNUNET_CONFIGURATION_destroy (cfg);
-    GNUNET_free (config);
-    goto error;
-  }
-  LOG_DEBUG ("Staring testbed with config: %s\n", config);
-  binary = GNUNET_OS_get_libexec_binary_path ("gnunet-cmd");
-  {
-    char *evar;
-
-    /* expose testbed configuration through env variable */
-    GNUNET_asprintf (&evar, "%s=%s", ENV_TESTBED_CONFIG, config);
-    GNUNET_assert (0 == putenv (evar));   /* consumes 'evar',
-                                            see putenv(): becomes part of environment! */
-    evstr = NULL;
-  }
-
-  cmd_binary_process = GNUNET_OS_start_process (
-    GNUNET_OS_INHERIT_STD_ERR /*verbose? */,
-    NULL,
-    NULL,
-    NULL,
-    binary);
-
-  if (NULL == cmd_binary_process)
-  {
-    return GNUNET_SYSERR;
-  }
-
-  GNUNET_free (binary);
-  GNUNET_free (config);
-
-  done_reading = GNUNET_YES;
-  config = GNUNET_CONFIGURATION_serialize (cfg, &config_size);
-  GNUNET_CONFIGURATION_destroy (cfg);
-  cfg = NULL;
-  xconfig_size =
-    GNUNET_TESTBED_compress_config_ (config, config_size, &xconfig);
-  GNUNET_free (config);
-  wc = GNUNET_new (struct WriteContext);
-  wc->length = xconfig_size + sizeof(struct GNUNET_TESTBED_HelperReply);
-  reply = GNUNET_realloc (xconfig, wc->length);
-  memmove (&reply[1], reply, xconfig_size);
-  reply->header.type = htons (GNUNET_MESSAGE_TYPE_TESTBED_HELPER_REPLY);
-  reply->header.size = htons ((uint16_t) wc->length);
-  reply->config_size = htons ((uint16_t) config_size);
-  wc->data = reply;
-  write_task_id = GNUNET_SCHEDULER_add_write_file (GNUNET_TIME_UNIT_FOREVER_REL,
-                                                   stdout_fd,
-                                                   &write_task,
-                                                   wc);
-  child_death_task_id = GNUNET_SCHEDULER_add_read_file (
-    GNUNET_TIME_UNIT_FOREVER_REL,
-    GNUNET_DISK_pipe_handle (sigpipe, GNUNET_DISK_PIPE_END_READ),
-    &child_death_task,
-    NULL);
-  return GNUNET_OK;
 
   error:
   status = GNUNET_SYSERR;
+  LOG (GNUNET_ERROR_TYPE_ERROR,
+       "tokenizer shuting down!\n");
   GNUNET_SCHEDULER_shutdown ();
   return GNUNET_SYSERR;
 }
@@ -461,6 +573,8 @@ read_task (void *cls)
   if ((GNUNET_SYSERR == sread) || (0 == sread))
   {
     LOG_DEBUG ("STDIN closed\n");
+    LOG (GNUNET_ERROR_TYPE_ERROR,
+         "tokenizer shuting down during reading!\n");
     GNUNET_SCHEDULER_shutdown ();
     return;
   }
@@ -468,6 +582,8 @@ read_task (void *cls)
   {
     /* didn't expect any more data! */
     GNUNET_break_op (0);
+    LOG (GNUNET_ERROR_TYPE_ERROR,
+         "tokenizer shuting down during reading, didn't expect any more data!\n");
     GNUNET_SCHEDULER_shutdown ();
     return;
   }
@@ -478,6 +594,8 @@ read_task (void *cls)
       GNUNET_MST_from_buffer (tokenizer, buf, sread, GNUNET_NO, GNUNET_NO))
   {
     GNUNET_break (0);
+    LOG (GNUNET_ERROR_TYPE_ERROR,
+         "tokenizer shuting down during reading, writing to buffer failed!\n");
     GNUNET_SCHEDULER_shutdown ();
     return;
   }
@@ -503,8 +621,11 @@ run (void *cls,
      const char *cfgfile,
      const struct GNUNET_CONFIGURATION_Handle *cfg)
 {
+  struct NodeIdentifier *ni = cls;
+
   LOG_DEBUG ("Starting interpreter loop helper...\n");
-  tokenizer = GNUNET_MST_create (&tokenizer_cb, NULL);
+
+  tokenizer = GNUNET_MST_create (&tokenizer_cb, ni);
   stdin_fd = GNUNET_DISK_get_handle_from_native (stdin);
   stdout_fd = GNUNET_DISK_get_handle_from_native (stdout);
   read_task_id = GNUNET_SCHEDULER_add_read_file (GNUNET_TIME_UNIT_FOREVER_REL,
@@ -545,14 +666,28 @@ sighandler_child_death ()
 int
 main (int argc, char **argv)
 {
+  struct NodeIdentifier *ni;
   struct GNUNET_SIGNAL_Context *shc_chld;
   struct GNUNET_GETOPT_CommandLineOption options[] =
   { GNUNET_GETOPT_OPTION_END };
   int ret;
 
-  GNUNET_log_setup ("gnunet-helper-cmds",
+  GNUNET_log_setup ("gnunet-cmds-helper",
                     "DEBUG",
                     NULL);
+  ni = GNUNET_new (struct NodeIdentifier);
+  ni->global_n = argv[1];
+  ni->local_m = argv[2];
+  ni->n = argv[3];
+  ni->m = argv[4];
+
+  LOG (GNUNET_ERROR_TYPE_ERROR,
+       "global_n: %s local_n: %s n: %s m: %s.\n",
+       ni->global_n,
+       ni->local_m,
+       ni->n,
+       ni->m);
+
   status = GNUNET_OK;
   if (NULL ==
       (sigpipe = GNUNET_DISK_pipe (GNUNET_DISK_PF_NONE)))
@@ -564,18 +699,21 @@ main (int argc, char **argv)
     GNUNET_SIGNAL_handler_install (GNUNET_SIGCHLD, &sighandler_child_death);
   ret = GNUNET_PROGRAM_run (argc,
                             argv,
-                            "gnunet-helper-cmds",
+                            "gnunet-cmds-helper",
                             "Helper for starting a local interpreter loop",
                             options,
                             &run,
-                            NULL);
+                            ni);
+  LOG (GNUNET_ERROR_TYPE_ERROR,
+       "run finished\n");
   GNUNET_SIGNAL_handler_uninstall (shc_chld);
   shc_chld = NULL;
   GNUNET_DISK_pipe_close (sigpipe);
+  GNUNET_free (ni);
   if (GNUNET_OK != ret)
     return 1;
   return (GNUNET_OK == status) ? 0 : 1;
 }
 
 
-/* end of gnunet-helper-testbed.c */
+/* end of gnunet-cmds-helper.c */

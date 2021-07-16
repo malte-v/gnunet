@@ -463,7 +463,7 @@ GNUNET_TRANSPORT_TESTING_start_peer (struct
     GNUNET_free (emsg);
     return NULL;
   }
-  GNUNET_free (emsg);
+
   if (GNUNET_OK != GNUNET_TESTING_peer_start (p->peer))
   {
     LOG (GNUNET_ERROR_TYPE_ERROR,
@@ -508,6 +508,7 @@ GNUNET_TRANSPORT_TESTING_start_peer (struct
          cfgname,
          emsg);
     GNUNET_TRANSPORT_TESTING_stop_peer (p);
+    GNUNET_free (emsg);
     return NULL;
   }
   p->ats = GNUNET_ATS_connectivity_init (p->cfg);
@@ -518,6 +519,7 @@ GNUNET_TRANSPORT_TESTING_start_peer (struct
          cfgname,
          emsg);
     GNUNET_TRANSPORT_TESTING_stop_peer (p);
+    GNUNET_free (emsg);
     return NULL;
   }
   p->ghh = GNUNET_TRANSPORT_hello_get (p->cfg,

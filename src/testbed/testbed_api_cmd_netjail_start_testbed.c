@@ -28,12 +28,35 @@
 #include "gnunet_testbed_ng_service.h"
 #include "testbed_api.h"
 #include "testbed_api_hosts.h"
+#include "testbed_helper.h"
 
 #define NETJAIL_EXEC_SCRIPT "./netjail_exec.sh"
+
+struct HelperMessage;
+
+struct HelperMessage
+{
+
+  struct HelperMessage *next;
+
+  struct HelperMessage *prev;
+
+  /**
+   * Size of the original message.
+   */
+  uint16_t bytes_msg;
+
+  /* Followed by @e bytes_msg of msg.*/
+};
+
 
 
 struct NetJailState
 {
+
+  struct HelperMessage *hp_messages_head;
+
+  struct HelperMessage *hp_messages_tail;
 
   /**
    * The process handle
@@ -63,6 +86,8 @@ struct NetJailState
   unsigned int n_msg;
 
   unsigned int number_of_testbeds_started;
+
+  unsigned int number_of_peers_started;
 
   /**
    * The host where the controller is running
@@ -112,7 +137,7 @@ netjail_exec_traits (void *cls,
 {
   struct NetJailState *ns = cls;
   struct GNUNET_HELPER_Handle **helper = ns->helper;
-  struct GNUNET_TESTBED_Host **hosts = ns->host;
+  struct HelperMessage *hp_messages_head = ns->hp_messages_head;
 
 
   struct GNUNET_TESTING_Trait traits[] = {
@@ -123,8 +148,8 @@ netjail_exec_traits (void *cls,
     },
     {
       .index = 1,
-      .trait_name = "hosts",
-      .ptr = (const void *) hosts,
+      .trait_name = "hp_msgs_head",
+      .ptr = (const void *) hp_messages_head,
     },
     GNUNET_TESTING_trait_end ()
   };
@@ -162,13 +187,14 @@ GNUNET_TESTBED_get_trait_helper_handles (const struct
  * @return #GNUNET_OK on success.
  */
 int
-GNUNET_TESTBED_get_trait_hosts (const struct
-                                GNUNET_TESTING_Command *cmd,
-                                struct GNUNET_TESTBED_Host ***hosts)
+GNUNET_TESTBED_get_trait_helper_messages (const struct
+                                          GNUNET_TESTING_Command *cmd,
+                                          struct HelperMessage ***
+                                          hp_messages_head)
 {
   return cmd->traits (cmd->cls,
-                      (const void **) hosts,
-                      "hosts",
+                      (const void **) hp_messages_head,
+                      "hp_msgs_head",
                       (unsigned int) 1);
 }
 
@@ -214,15 +240,32 @@ helper_mst (void *cls, const struct GNUNET_MessageHeader *message)
 {
   struct TestbedCount *tbc = cls;
   struct NetJailState *ns = tbc->ns;
-  struct GNUNET_TESTBED_Host *host = ns->host[tbc->count - 1];
+  struct HelperMessage *hp_msg;
 
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "helper_mst tbc->count: %d\n",
-              tbc->count);
-  GNUNET_TESTBED_extract_cfg (host, message);
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "Received message from helper.\n");
-  ns->number_of_testbeds_started++;
+  if (GNUNET_MESSAGE_TYPE_CMDS_HELPER_REPLY == ntohs (message->type))
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "helper_mst tbc->count: %d\n",
+                tbc->count);
+    // GNUNET_TESTBED_extract_cfg (host, message);
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "Received message from helper.\n");
+    ns->number_of_testbeds_started++;
+  }
+  else if (GNUNET_MESSAGE_TYPE_CMDS_HELPER_PEER_STARTED == ntohs (
+             message->type))
+  {
+    ns->number_of_peers_started++;
+  }
+  else
+  {
+    hp_msg = GNUNET_new (struct HelperMessage);
+    hp_msg->bytes_msg = message->size;
+    memcpy (&hp_msg[1], message, message->size);
+    GNUNET_CONTAINER_DLL_insert (ns->hp_messages_head, ns->hp_messages_tail,
+                                 hp_msg);
+  }
+
   return GNUNET_OK;
 }
 
@@ -235,6 +278,32 @@ exp_cb (void *cls)
 }
 
 
+static struct GNUNET_CMDS_HelperInit *
+create_helper_init_msg_ (char *m_char,
+                         char *n_char,
+                         const char *plugin_name)
+{
+  struct GNUNET_CMDS_HelperInit *msg;
+  uint16_t plugin_name_len;
+  uint16_t msg_size;
+
+  GNUNET_assert (NULL != plugin_name);
+  plugin_name_len = strlen (plugin_name);
+  msg_size = sizeof(struct GNUNET_CMDS_HelperInit) + plugin_name_len;
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "msg_size: %d \n",
+              msg_size);
+  msg = GNUNET_malloc (msg_size);
+  msg->header.size = htons (msg_size);
+  msg->header.type = htons (GNUNET_MESSAGE_TYPE_CMDS_HELPER_INIT);
+  msg->plugin_name_size = htons (plugin_name_len);
+  GNUNET_memcpy ((char *) &msg[1],
+                 plugin_name,
+                 plugin_name_len);
+  return msg;
+}
+
+
 static void
 start_testbed (struct NetJailState *ns, struct
                GNUNET_CONFIGURATION_Handle *config,
@@ -242,13 +311,15 @@ start_testbed (struct NetJailState *ns, struct
                char *m_char)
 {
   struct GNUNET_CONFIGURATION_Handle *cfg;
-  struct GNUNET_TESTBED_HelperInit *msg;
+  struct GNUNET_CMDS_HelperInit *msg;
   struct TestbedCount *tbc;
   char *const script_argv[] = {NETJAIL_EXEC_SCRIPT,
-                               m_char,
                                n_char,
+                               m_char,
                                GNUNET_OS_get_libexec_binary_path (
                                  HELPER_CMDS_BINARY),
+                               ns->global_n,
+                               ns->local_m,
                                NULL};
   unsigned int m = atoi (m_char);
   unsigned int n = atoi (n_char);
@@ -291,7 +362,9 @@ start_testbed (struct NetJailState *ns, struct
 
   struct GNUNET_HELPER_Handle *helper = ns->helper[tbc->count - 1];
 
-  msg = GNUNET_TESTBED_create_helper_init_msg_ ("127.0.0.1", NULL, config);
+  msg = create_helper_init_msg_ (m_char,
+                                 n_char,
+                                 "libgnunet_plugin_testcmd");
   GNUNET_array_append (ns->msg, ns->n_msg, &msg->header);
 
   GNUNET_array_append (ns->shandle, ns->n_shandle, GNUNET_HELPER_send (
@@ -300,6 +373,10 @@ start_testbed (struct NetJailState *ns, struct
                          GNUNET_NO,
                          &clear_msg,
                          tbc));
+
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "Message send!\n");
+
   if (NULL == ns->shandle[tbc->count - 1])
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
@@ -348,14 +425,49 @@ netjail_start_finish (void *cls,
 {
   unsigned int ret = GNUNET_NO;
   struct NetJailState *ns = cls;
+  unsigned int total_number = atoi (ns->local_m) * atoi (ns->global_n);
+  struct GNUNET_CMDS_PEER_STARTED *reply;
+  size_t msg_length;
+  struct GNUNET_HELPER_Handle *helper;
+  struct TestbedCount *tbc;
 
-  if (ns->number_of_testbeds_started == atoi (ns->local_m) * atoi (
-        ns->global_n))
+  if (ns->number_of_testbeds_started == total_number)
   {
-    ret = GNUNET_YES;
-    cont (cont_cls);
-    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                "All helper started!\n");
+    /* ret = GNUNET_YES;
+       cont (cont_cls);*/
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "All helpers started!\n");
+  }
+
+  if (ns->number_of_peers_started == total_number)
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "All peers started!\n");
+
+    for (int i = 1; i <= atoi (ns->global_n); i++) {
+      for (int j = 1; j <= atoi (ns->local_m); j++)
+      {
+        tbc = GNUNET_new (struct TestbedCount);
+        tbc->ns = ns;
+        tbc->count = (j - 1) * atoi (ns->local_m) + i + atoi (ns->global_n)
+                     * atoi (ns->local_m);
+        helper = ns->helper[tbc->count - 1];
+        msg_length = sizeof(struct GNUNET_CMDS_ALL_PEERS_STARTED);
+        reply = GNUNET_new (struct GNUNET_CMDS_ALL_PEERS_STARTED);
+        reply->header.type = htons (
+          GNUNET_MESSAGE_TYPE_CMDS_HELPER_ALL_PEERS_STARTED);
+        reply->header.size = htons ((uint16_t) msg_length);
+
+        GNUNET_array_append (ns->msg, ns->n_msg, &reply->header);
+
+        GNUNET_array_append (ns->shandle, ns->n_shandle, GNUNET_HELPER_send (
+                               helper,
+                               &reply->header,
+                               GNUNET_NO,
+                               &clear_msg,
+                               tbc));
+      }
+    }
   }
   return ret;
 }

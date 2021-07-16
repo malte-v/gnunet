@@ -26,21 +26,32 @@
 #include "platform.h"
 #include "gnunet_testing_ng_lib.h"
 #include "gnunet_util_lib.h"
-#include "gnunet_testing_plugin.h"
+#include "gnunet_testbed_ng_service.h"
 
-
-
-
+unsigned int are_all_peers_started;
 
 static void
-start_testcase ()
+all_peers_started ()
+{
+  are_all_peers_started = GNUNET_YES;
+}
+
+static void
+start_testcase (TESTBED_CMD_HELPER_write_cb write_message, char *router_ip,
+                char *node_ip)
 {
   struct GNUNET_TIME_Absolute now = GNUNET_TIME_absolute_get ();
+
+  are_all_peers_started = GNUNET_NO;
 
   struct GNUNET_TESTING_Command commands[] = {
     GNUNET_TESTING_cmd_hello_world_birth ("hello-world-birth-0",
                                           &now),
     GNUNET_TESTING_cmd_hello_world ("hello-world-0","hello-world-birth-0",""),
+    GNUNET_TESTING_cmd_send_peer_ready ("send-peer-ready-1",
+                                        write_message),
+    GNUNET_TESTING_cmd_block_until_all_peers_started ("block-1",
+                                                      &are_all_peers_started),
     GNUNET_TESTING_cmd_end ()
   };
 

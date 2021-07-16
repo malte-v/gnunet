@@ -29,6 +29,11 @@
 #include "gnunet_util_lib.h"
 #include "gnunet_child_management_lib.h"
 
+/**
+ * Generic logging shortcut
+ */
+#define LOG(kind, ...) GNUNET_log (kind, __VA_ARGS__)
+
 
 /**
  * Struct which defines a Child Wait handle
@@ -87,7 +92,7 @@ maint_child_death (void *cls)
   (void) cls;
   sig_task = NULL;
 
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+  GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
               "Received SIGCHLD.\n");
 
   /* drain pipe */
@@ -193,6 +198,9 @@ GNUNET_wait_child (struct GNUNET_OS_Process *proc,
 {
   struct GNUNET_ChildWaitHandle *cwh;
 
+  LOG (GNUNET_ERROR_TYPE_ERROR,
+       "Adding child!\n");
+
   child_management_start ();
   cwh = GNUNET_new (struct GNUNET_ChildWaitHandle);
   cwh->proc = proc;
@@ -216,9 +224,12 @@ GNUNET_wait_child (struct GNUNET_OS_Process *proc,
 void
 GNUNET_wait_child_cancel (struct GNUNET_ChildWaitHandle *cwh)
 {
-  GNUNET_CONTAINER_DLL_remove (cwh_head,
-                               cwh_tail,
-                               cwh);
+  if ((NULL != cwh_head))
+  {
+    GNUNET_CONTAINER_DLL_remove (cwh_head,
+                                 cwh_tail,
+                                 cwh);
+  }
   if (NULL == cwh_head)
   {
     child_management_done ();

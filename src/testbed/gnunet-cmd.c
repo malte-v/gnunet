@@ -36,6 +36,9 @@
  */
 #define LOG(kind, ...) GNUNET_log (kind, __VA_ARGS__)
 
+#define NODE_BASE_IP "192.168.15."
+
+#define ROUTER_BASE_IP "92.68.150."
 
 /**
  * Handle for a plugin.
@@ -51,29 +54,44 @@ struct Plugin
    * Plugin API.
    */
   struct GNUNET_TESTING_PluginFunctions *api;
+
+  char *node_ip;
+
+  char *plugin_name;
+
+  char *global_n;
+
+  char *local_m;
+
+  char *n;
+
+  char *m;
 };
 
 
 /**
  * Main function to run the test cases.
  *
- * @param cls not used.
+ * @param cls plugin to use.
  *
  */
 static void
 run (void *cls)
 {
-  struct Plugin *plugin;
+  struct Plugin *plugin = cls;
+  char *router_ip;
+  char *node_ip;
 
-  GNUNET_log_from (GNUNET_ERROR_TYPE_DEBUG, "gnunet-cmd",
-                   "running plugin.\n");
-  LOG (GNUNET_ERROR_TYPE_ERROR,
-       "running plugin.\n");
-  plugin = GNUNET_new (struct Plugin);
-  plugin->api = GNUNET_PLUGIN_load ("libgnunet_plugin_testcmd",
-                                    NULL);
-  plugin->library_name = GNUNET_strdup ("libgnunet_plugin_testcmd");
-  plugin->api->start_testcase ();
+  router_ip = GNUNET_malloc (strlen (ROUTER_BASE_IP) + strlen (plugin->m) + 1);
+  strcpy (router_ip, ROUTER_BASE_IP);
+  strcat (router_ip, plugin->m);
+
+  node_ip = GNUNET_malloc (strlen (NODE_BASE_IP) + strlen (plugin->n) + 1);
+  strcat (node_ip, NODE_BASE_IP);
+  strcat (node_ip, plugin->n);
+
+  plugin->api->start_testcase (NULL, router_ip, node_ip);
+
 }
 
 
@@ -81,13 +99,25 @@ int
 main (int argc, char *const *argv)
 {
   int rv = 0;
+  struct Plugin *plugin;
 
   GNUNET_log_setup ("gnunet-cmd",
                     "DEBUG",
                     NULL);
 
-  GNUNET_SCHEDULER_run (&run,
-                        NULL);
+  plugin = GNUNET_new (struct Plugin);
+  plugin->api = GNUNET_PLUGIN_load (argv[0],
+                                    NULL);
+  plugin->library_name = GNUNET_strdup (argv[0]);
 
+  plugin->global_n = argv[1];
+  plugin->local_m = argv[2];
+  plugin->n = argv[3];
+  plugin->m = argv[4];
+
+  GNUNET_SCHEDULER_run (&run,
+                        plugin);
+
+  GNUNET_free (plugin);
   return rv;
 }

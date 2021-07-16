@@ -28,6 +28,7 @@
 #define GNUNET_TESTING_NG_LIB_H
 
 #include "gnunet_util_lib.h"
+#include "gnunet_testing_plugin.h"
 
 
 /* ********************* Helper functions ********************* */

@@ -84,6 +84,52 @@ struct GNUNET_TESTBED_HelperReply
    * un-compressed */
 };
 
+/**
+ * Initialization message for gnunet-cmds-testbed to start cmd binary.
+ */
+struct GNUNET_CMDS_HelperInit
+{
+  /**
+   * Type is GNUNET_MESSAGE_TYPE_CMDS_HELPER_INIT
+   */
+  struct GNUNET_MessageHeader header;
+
+  /**
+   *
+   */
+  uint16_t plugin_name_size GNUNET_PACKED;
+
+  /* Followed by plugin name of the plugin running the test case. This is not NULL
+   * terminated */
+};
+
+/**
+ * Reply message from cmds helper process
+ */
+struct GNUNET_CMDS_HelperReply
+{
+  /**
+   * Type is GNUNET_MESSAGE_TYPE_CMDS_HELPER_REPLY
+   */
+  struct GNUNET_MessageHeader header;
+};
+
+struct GNUNET_CMDS_PEER_STARTED
+{
+  /**
+   * Type is GNUNET_MESSAGE_TYPE_CMDS_HELPER_PEER_STARTED
+   */
+  struct GNUNET_MessageHeader header;
+};
+
+struct GNUNET_CMDS_ALL_PEERS_STARTED
+{
+  /**
+   * Type is GNUNET_MESSAGE_TYPE_CMDS_HELPER_ALL_PEERS_STARTED
+   */
+  struct GNUNET_MessageHeader header;
+};
+
 GNUNET_NETWORK_STRUCT_END
 #endif
 /* end of testbed_helper.h */

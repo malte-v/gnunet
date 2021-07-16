@@ -24,7 +24,7 @@ endif
 
 libexec_PROGRAMS = \
   gnunet-cmd \
-  gnunet-helper-cmds \
+  gnunet-cmds-helper \
   gnunet-service-testbed \
   gnunet-helper-testbed \
   gnunet-daemon-testbed-blacklist \
@@ -45,6 +45,7 @@ libgnunet_plugin_testcmd_la_SOURCES = \
 libgnunet_plugin_testcmd_la_LIBADD = \
   $(top_builddir)/src/util/libgnunetutil.la \
   $(top_builddir)/src/testing/libgnunettesting.la \
+  $(top_builddir)/src/testbed/libgnunettestbed.la
   $(LTLIBINTL)
 libgnunet_plugin_testcmd_la_LDFLAGS = \
  $(GN_PLUGIN_LDFLAGS)
@@ -94,9 +95,9 @@ gnunet_cmd_LDADD = $(XLIB) \
  libgnunettestbed.la \
  $(LTLIBINTL) $(Z_LIBS)
 
-gnunet_helper_cmds_SOURCES = \
-  gnunet-helper-cmds.c
-gnunet_helper_cmds_LDADD = $(XLIB) \
+gnunet_cmds_helper_SOURCES = \
+  gnunet-cmds-helper.c
+gnunet_cmds_helper_LDADD = $(XLIB) \
  $(top_builddir)/src/util/libgnunetutil.la \
  $(top_builddir)/src/testing/libgnunettesting.la \
  libgnunettestbed.la \
@@ -124,6 +125,8 @@ lib_LTLIBRARIES = \
   libgnunettestbed.la
 
 libgnunettestbed_la_SOURCES = \
+  testbed_api_cmd_send_peer_ready.c \
+  testbed_api_cmd_block_until_all_peers_started.c \
   testbed_api_cmd_netjail_start.c \
   testbed_api_cmd_netjail_start_testbed.c \
   testbed_api_cmd_netjail_stop_testbed.c \

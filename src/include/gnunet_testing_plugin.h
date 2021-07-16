@@ -36,9 +36,17 @@ extern "C"
 #endif
 #endif
 
+typedef void
+(*TESTBED_CMD_HELPER_write_cb) (struct GNUNET_MessageHeader *message, size_t
+                                msg_length);
 
 typedef void
-(*GNUNET_TESTING_PLUGIN_StartTestCase) ();
+(*GNUNET_TESTING_PLUGIN_StartTestCase) (TESTBED_CMD_HELPER_write_cb
+                                        write_message, char *router_ip,
+                                        char *node_ip);
+
+typedef void
+(*GNUNET_TESTING_PLUGIN_ALL_PEERS_STARTED) ();
 
 struct GNUNET_TESTING_PluginFunctions
 {
@@ -48,6 +56,8 @@ struct GNUNET_TESTING_PluginFunctions
   void *cls;
 
   GNUNET_TESTING_PLUGIN_StartTestCase start_testcase;
+
+  GNUNET_TESTING_PLUGIN_ALL_PEERS_STARTED all_peers_started;
 };
 
 #if 0                           /* keep Emacsens' auto-indent happy */
