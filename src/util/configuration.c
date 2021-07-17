@@ -1,6 +1,6 @@
 /*
      This file is part of GNUnet.
-     Copyright (C) 2006, 2007, 2008, 2009, 2013, 2020 GNUnet e.V.
+     Copyright (C) 2006, 2007, 2008, 2009, 2013, 2020, 2021 GNUnet e.V.
 
      GNUnet is free software: you can redistribute it and/or modify it
      under the terms of the GNU Affero General Public License as published
@@ -260,13 +260,14 @@ GNUNET_CONFIGURATION_deserialize (struct GNUNET_CONFIGURATION_Handle *cfg,
     pos = memchr (&mem[r_bytes], '\n', to_read);
     if (NULL == pos)
     {
-      line_orig = GNUNET_strndup (&mem[r_bytes], line_size = to_read);
+      line_orig = GNUNET_strndup (&mem[r_bytes],
+                                  line_size = to_read);
       r_bytes += line_size;
     }
     else
     {
-      line_orig =
-        GNUNET_strndup (&mem[r_bytes], line_size = (pos - &mem[r_bytes]));
+      line_orig = GNUNET_strndup (&mem[r_bytes],
+                                  line_size = (pos - &mem[r_bytes]));
       r_bytes += line_size + 1;
     }
     line = line_orig;
@@ -288,7 +289,8 @@ GNUNET_CONFIGURATION_deserialize (struct GNUNET_CONFIGURATION_Handle *cfg,
       continue;
 
     /* remove tailing whitespace */
-    for (i = line_size - 1; (i >= 1) && (isspace ((unsigned char) line[i]));
+    for (i = line_size - 1;
+         (i >= 1) && (isspace ((unsigned char) line[i]));
          i--)
       line[i] = '\0';
 
@@ -297,26 +299,46 @@ GNUNET_CONFIGURATION_deserialize (struct GNUNET_CONFIGURATION_Handle *cfg,
       ;
 
     /* ignore comments */
-    if (('#' == line[0]) || ('%' == line[0]))
+    if ( ('#' == line[0]) ||
+         ('%' == line[0]) )
       continue;
 
     /* handle special "@INLINE@" directive */
-    if (0 == strncasecmp (line, "@INLINE@ ", strlen ("@INLINE@ ")))
+    if (0 == strncasecmp (line,
+                          "@INLINE@ ",
+                          strlen ("@INLINE@ ")))
     {
       /* @INLINE@ value */
       value = &line[strlen ("@INLINE@ ")];
       if (NULL != basedir)
       {
-        char *fn;
-
-        GNUNET_asprintf (&fn, "%s/%s", basedir, value);
-        if (GNUNET_OK != GNUNET_CONFIGURATION_parse (cfg, fn))
+        if ('/' == *value)
         {
-          GNUNET_free (fn);
-          ret = GNUNET_SYSERR;         /* failed to parse included config */
-          break;
+          if (GNUNET_OK !=
+              GNUNET_CONFIGURATION_parse (cfg,
+                                          value))
+          {
+            ret = GNUNET_SYSERR;       /* failed to parse included config */
+            break;
+          }
         }
-        GNUNET_free (fn);
+        else
+        {
+          char *fn;
+
+          GNUNET_asprintf (&fn, "%s/%s",
+                           basedir,
+                           value);
+          if (GNUNET_OK !=
+              GNUNET_CONFIGURATION_parse (cfg,
+                                          fn))
+          {
+            GNUNET_free (fn);
+            ret = GNUNET_SYSERR;       /* failed to parse included config */
+            break;
+          }
+          GNUNET_free (fn);
+        }
       }
       else
       {
@@ -374,7 +396,8 @@ GNUNET_CONFIGURATION_deserialize (struct GNUNET_CONFIGURATION_Handle *cfg,
   }
   GNUNET_free (line_orig);
   GNUNET_free (section);
-  GNUNET_assert ((GNUNET_OK != ret) || (r_bytes == size));
+  GNUNET_assert ( (GNUNET_OK != ret) ||
+                  (r_bytes == size) );
   return ret;
 }
 
@@ -426,7 +449,16 @@ GNUNET_CONFIGURATION_parse (struct GNUNET_CONFIGURATION_Handle *cfg,
   endsep = strrchr (fn, (int) '/');
   if (NULL != endsep)
     *endsep = '\0';
-  ret = GNUNET_CONFIGURATION_deserialize (cfg, mem, fs, fn);
+  ret = GNUNET_CONFIGURATION_deserialize (cfg,
+                                          mem,
+                                          fs,
+                                          fn);
+  if (GNUNET_OK != ret)
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                _ ("Failed to parse configuration file `%s'\n"),
+                fn);
+  }
   GNUNET_free (fn);
   GNUNET_free (mem);
   /* restore dirty flag - anything we set in the meantime
