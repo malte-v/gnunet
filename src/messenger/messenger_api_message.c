@@ -56,8 +56,8 @@ create_message (enum GNUNET_MESSENGER_MessageKind kind)
     message->body.file.uri = NULL;
     break;
   case GNUNET_MESSENGER_KIND_PRIVATE:
-    message->body.private.length = 0;
-    message->body.private.data = NULL;
+    message->body.privacy.length = 0;
+    message->body.privacy.data = NULL;
     break;
   default:
     break;
@@ -87,11 +87,11 @@ copy_message (const struct GNUNET_MESSENGER_Message *message)
     copy->body.file.uri = GNUNET_strdup(message->body.file.uri);
     break;
   case GNUNET_MESSENGER_KIND_PRIVATE:
-    copy->body.private.data = copy->body.private.length ? GNUNET_malloc(copy->body.private.length) : NULL;
+    copy->body.privacy.data = copy->body.privacy.length ? GNUNET_malloc(copy->body.privacy.length) : NULL;
 
-    if (copy->body.private.data)
+    if (copy->body.privacy.data)
     {
-      GNUNET_memcpy(copy->body.private.data, message->body.private.data, copy->body.private.length);
+      GNUNET_memcpy(copy->body.privacy.data, message->body.privacy.data, copy->body.privacy.length);
     }
 
     break;
@@ -117,7 +117,7 @@ destroy_message_body (enum GNUNET_MESSENGER_MessageKind kind, struct GNUNET_MESS
     GNUNET_free(body->file.uri);
     break;
   case GNUNET_MESSENGER_KIND_PRIVATE:
-    GNUNET_free(body->private.data);
+    GNUNET_free(body->privacy.data);
     break;
   default:
     break;
@@ -206,7 +206,7 @@ get_message_body_kind_size (enum GNUNET_MESSENGER_MessageKind kind)
     length += member_size(struct GNUNET_MESSENGER_Message, body.file.name);
     break;
   case GNUNET_MESSENGER_KIND_PRIVATE:
-    length += member_size(struct GNUNET_MESSENGER_Message, body.private.key);
+    length += member_size(struct GNUNET_MESSENGER_Message, body.privacy.key);
     break;
   default:
     break;
@@ -256,7 +256,7 @@ get_message_body_size (enum GNUNET_MESSENGER_MessageKind kind, const struct GNUN
     length += strlen (body->file.uri);
     break;
   case GNUNET_MESSENGER_KIND_PRIVATE:
-    length += body->private.length;
+    length += body->privacy.length;
     break;
   default:
     break;
@@ -421,8 +421,8 @@ encode_message_body (enum GNUNET_MESSENGER_MessageKind kind, const struct GNUNET
     encode_step_ext(buffer, offset, body->file.uri, min(length - offset, strlen(body->file.uri)));
     break;
   case GNUNET_MESSENGER_KIND_PRIVATE:
-    encode_step(buffer, offset, &(body->private.key));
-    encode_step_ext(buffer, offset, body->private.data, min(length - offset, body->private.length));
+    encode_step(buffer, offset, &(body->privacy.key));
+    encode_step_ext(buffer, offset, body->privacy.data, min(length - offset, body->privacy.length));
     break;
   default:
     break;
@@ -579,10 +579,10 @@ decode_message_body (enum GNUNET_MESSENGER_MessageKind *kind, struct GNUNET_MESS
     decode_step_malloc(buffer, offset, body->file.uri, length - offset, 1);
     break;
   case GNUNET_MESSENGER_KIND_PRIVATE:
-    decode_step(buffer, offset, &(body->private.key));
+    decode_step(buffer, offset, &(body->privacy.key));
 
-    body->private.length = (length - offset);
-    decode_step_malloc(buffer, offset, body->private.data, length - offset, 0);
+    body->privacy.length = (length - offset);
+    decode_step_malloc(buffer, offset, body->privacy.data, length - offset, 0);
     break;
   default:
     *kind = GNUNET_MESSENGER_KIND_UNKNOWN;
@@ -738,14 +738,14 @@ encrypt_message (struct GNUNET_MESSENGER_Message *message, const struct GNUNET_I
   const uint16_t padded_length = calc_padded_length(length);
 
   message->header.kind = GNUNET_MESSENGER_KIND_PRIVATE;
-  message->body.private.data = GNUNET_malloc(padded_length);
-  message->body.private.length = padded_length;
+  message->body.privacy.data = GNUNET_malloc(padded_length);
+  message->body.privacy.length = padded_length;
 
-  encode_short_message (&shortened, padded_length, message->body.private.data);
+  encode_short_message (&shortened, padded_length, message->body.privacy.data);
 
-  if (padded_length == GNUNET_IDENTITY_encrypt (message->body.private.data, padded_length, key,
-                                                &(message->body.private.key),
-                                                message->body.private.data))
+  if (padded_length == GNUNET_IDENTITY_encrypt (message->body.privacy.data, padded_length, key,
+                                                &(message->body.privacy.key),
+                                                message->body.privacy.data))
   {
     destroy_message_body (shortened.kind, &(shortened.body));
     return GNUNET_YES;
@@ -764,9 +764,9 @@ decrypt_message (struct GNUNET_MESSENGER_Message *message, const struct GNUNET_I
 {
   GNUNET_assert((message) && (key));
 
-  if (message->body.private.length != GNUNET_IDENTITY_decrypt (message->body.private.data, message->body.private.length,
-                                                               key, &(message->body.private.key),
-                                                               message->body.private.data))
+  if (message->body.privacy.length != GNUNET_IDENTITY_decrypt (message->body.privacy.data, message->body.privacy.length,
+                                                               key, &(message->body.privacy.key),
+                                                               message->body.privacy.data))
   {
     GNUNET_log(GNUNET_ERROR_TYPE_WARNING, "Decrypting message failed!\n");
 
@@ -775,7 +775,7 @@ decrypt_message (struct GNUNET_MESSENGER_Message *message, const struct GNUNET_I
 
   struct GNUNET_MESSENGER_ShortMessage shortened;
 
-  if (GNUNET_YES != decode_short_message (&shortened, message->body.private.length, message->body.private.data))
+  if (GNUNET_YES != decode_short_message (&shortened, message->body.privacy.length, message->body.privacy.data))
   {
     GNUNET_log(GNUNET_ERROR_TYPE_WARNING, "Decoding decrypted message failed!\n");
 

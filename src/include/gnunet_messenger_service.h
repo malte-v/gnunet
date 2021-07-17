@@ -476,8 +476,8 @@ struct GNUNET_MESSENGER_MessageBody
     struct GNUNET_MESSENGER_MessageInvite invite;
     struct GNUNET_MESSENGER_MessageText text;
     struct GNUNET_MESSENGER_MessageFile file;
-    struct GNUNET_MESSENGER_MessagePrivate private;
-    struct GNUNET_MESSENGER_MessageDelete delete;
+    struct GNUNET_MESSENGER_MessagePrivate privacy;
+    struct GNUNET_MESSENGER_MessageDelete deletion;
   };
 };
 

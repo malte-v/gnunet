@@ -126,11 +126,11 @@ void
 handle_message_delete (struct GNUNET_MESSENGER_SrvRoom *room, struct GNUNET_MESSENGER_MemberSession *session,
                        const struct GNUNET_MESSENGER_Message *message, const struct GNUNET_HashCode *hash)
 {
-  struct GNUNET_TIME_Relative delay = GNUNET_TIME_relative_ntoh (message->body.delete.delay);
+  struct GNUNET_TIME_Relative delay = GNUNET_TIME_relative_ntoh (message->body.deletion.delay);
   struct GNUNET_TIME_Absolute action = GNUNET_TIME_absolute_ntoh (message->header.timestamp);
 
   action = GNUNET_TIME_absolute_add (action, delay);
   delay = GNUNET_TIME_absolute_get_difference (GNUNET_TIME_absolute_get (), action);
 
-  delete_room_message (room, session, &(message->body.delete.hash), delay);
+  delete_room_message (room, session, &(message->body.deletion.hash), delay);
 }

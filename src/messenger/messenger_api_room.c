@@ -205,11 +205,11 @@ handle_delete_message (struct GNUNET_MESSENGER_Room *room, struct GNUNET_MESSENG
                      const struct GNUNET_MESSENGER_Message *message, const struct GNUNET_HashCode *hash)
 {
   struct GNUNET_MESSENGER_RoomMessageEntry *entry = GNUNET_CONTAINER_multihashmap_get (
-      room->messages, &(message->body.delete.hash)
+      room->messages, &(message->body.deletion.hash)
   );
 
   if ((entry) && ((entry->sender == sender) || (get_handle_contact (room->handle, &(room->key)) == sender)) &&
-      (GNUNET_YES == GNUNET_CONTAINER_multihashmap_remove (room->messages, &(message->body.delete.hash), entry)))
+      (GNUNET_YES == GNUNET_CONTAINER_multihashmap_remove (room->messages, &(message->body.deletion.hash), entry)))
   {
     destroy_message (entry->message);
     GNUNET_free(entry);
