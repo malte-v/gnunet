@@ -1,6 +1,6 @@
 /*
    This file is part of GNUnet
-   Copyright (C) 2014-2017 GNUnet e.V.
+   Copyright (C) 2014-2017, 2021 GNUnet e.V.
 
    GNUnet is free software: you can redistribute it and/or modify it
    under the terms of the GNU Affero General Public License as published
@@ -70,6 +70,11 @@ GNUNET_JSON_parse (const json_t *root,
     {
       if (NULL != error_json_name)
         *error_json_name = spec[i].field;
+      else
+        GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
+                    "Parsing failed for field `%s:%u`\n",
+                    spec[i].field,
+                    i);
       if (NULL != error_line)
         *error_line = i;
       GNUNET_JSON_parse_free (spec);
