@@ -283,8 +283,6 @@ shutdown_task (void *cls)
 }
 
 
-
-
 /**
  * Task to write to the standard out
  *
@@ -548,10 +546,10 @@ tokenizer_cb (void *cls, const struct GNUNET_MessageHeader *message)
   }
 
 
-  error:
+error:
   status = GNUNET_SYSERR;
   LOG (GNUNET_ERROR_TYPE_ERROR,
-       "tokenizer shuting down!\n");
+       "tokenizer shutting down!\n");
   GNUNET_SCHEDULER_shutdown ();
   return GNUNET_SYSERR;
 }
@@ -574,7 +572,7 @@ read_task (void *cls)
   {
     LOG_DEBUG ("STDIN closed\n");
     LOG (GNUNET_ERROR_TYPE_ERROR,
-         "tokenizer shuting down during reading!\n");
+         "tokenizer shutting down during reading!\n");
     GNUNET_SCHEDULER_shutdown ();
     return;
   }
@@ -583,7 +581,7 @@ read_task (void *cls)
     /* didn't expect any more data! */
     GNUNET_break_op (0);
     LOG (GNUNET_ERROR_TYPE_ERROR,
-         "tokenizer shuting down during reading, didn't expect any more data!\n");
+         "tokenizer shutting down during reading, didn't expect any more data!\n");
     GNUNET_SCHEDULER_shutdown ();
     return;
   }
@@ -595,7 +593,7 @@ read_task (void *cls)
   {
     GNUNET_break (0);
     LOG (GNUNET_ERROR_TYPE_ERROR,
-         "tokenizer shuting down during reading, writing to buffer failed!\n");
+         "tokenizer shutting down during reading, writing to buffer failed!\n");
     GNUNET_SCHEDULER_shutdown ();
     return;
   }
