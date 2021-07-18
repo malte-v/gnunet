@@ -42,7 +42,14 @@ GNUNET_JSON_from_data (const void *data,
   char *buf;
   json_t *json;
 
-  buf = GNUNET_STRINGS_data_to_string_alloc (data, size);
+  if ((size * 8 + 4) / 5 + 1 >=
+      GNUNET_MAX_MALLOC_CHECKED)
+  {
+    GNUNET_break (0);
+    return NULL;
+  }
+  buf = GNUNET_STRINGS_data_to_string_alloc (data,
+                                             size);
   json = json_string (buf);
   GNUNET_free (buf);
   GNUNET_break (NULL != json);
@@ -199,7 +206,6 @@ GNUNET_JSON_from_rsa_signature (const struct GNUNET_CRYPTO_RsaSignature *sig)
   GNUNET_free (buf);
   return ret;
 }
-
 
 
 /* End of json/json_generator.c */
