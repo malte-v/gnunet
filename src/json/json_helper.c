@@ -125,7 +125,7 @@ parse_variable_data (void *cls,
     return GNUNET_SYSERR;
   }
   size = (strlen (str) * 5) / 8;
-  if (size >= 1024)
+  if (size >= GNUNET_MAX_MALLOC_CHECKED)
   {
     GNUNET_break_op (0);
     return GNUNET_SYSERR;
@@ -135,6 +135,15 @@ parse_variable_data (void *cls,
                                        strlen (str),
                                        data,
                                        size);
+  if ( (0 < size) &&
+       (GNUNET_OK != res) )
+  {
+    size--;
+    res = GNUNET_STRINGS_string_to_data (str,
+                                         strlen (str),
+                                         data,
+                                         size);
+  }
   if (GNUNET_OK != res)
   {
     GNUNET_break_op (0);

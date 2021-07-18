@@ -42,7 +42,8 @@ main (int argc,
   const struct GNUNET_GETOPT_CommandLineOption options[] = {
     GNUNET_GETOPT_option_flag ('d',
                                "decode",
-                               gettext_noop ("run decoder modus, otherwise runs as encoder"),
+                               gettext_noop (
+                                 "run decoder modus, otherwise runs as encoder"),
                                &decode),
     GNUNET_GETOPT_option_help ("Crockford base32 encoder/decoder"),
     GNUNET_GETOPT_option_version (PACKAGE_VERSION),
@@ -105,11 +106,12 @@ main (int argc,
        out_size and out_size-1 below */
     out_size = in_size * 5 / 8;
     out = GNUNET_malloc (out_size);
-    if (GNUNET_OK !=
-        GNUNET_STRINGS_string_to_data (in,
-                                       in_size,
-                                       out,
-                                       out_size))
+    if ( (GNUNET_OK !=
+          GNUNET_STRINGS_string_to_data (in,
+                                         in_size,
+                                         out,
+                                         out_size)) &&
+         (out_size > 0) )
     {
       out_size--;
       if (GNUNET_OK !=
