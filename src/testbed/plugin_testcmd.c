@@ -28,12 +28,20 @@
 #include "gnunet_util_lib.h"
 #include "gnunet_testbed_ng_service.h"
 
+/**
+ * Generic logging shortcut
+ */
+#define LOG(kind, ...) GNUNET_log (kind, __VA_ARGS__)
+
 unsigned int are_all_peers_started;
 
 static void
 all_peers_started ()
 {
   are_all_peers_started = GNUNET_YES;
+  LOG (GNUNET_ERROR_TYPE_ERROR,
+       "setting are_all_peers_started: %d\n",
+       are_all_peers_started);
 }
 
 static void
@@ -41,6 +49,9 @@ start_testcase (TESTBED_CMD_HELPER_write_cb write_message, char *router_ip,
                 char *node_ip)
 {
   struct GNUNET_TIME_Absolute now = GNUNET_TIME_absolute_get ();
+
+  LOG (GNUNET_ERROR_TYPE_ERROR,
+       "We got here 6!\n");
 
   are_all_peers_started = GNUNET_NO;
 
@@ -52,12 +63,15 @@ start_testcase (TESTBED_CMD_HELPER_write_cb write_message, char *router_ip,
                                         write_message),
     GNUNET_TESTING_cmd_block_until_all_peers_started ("block-1",
                                                       &are_all_peers_started),
-    GNUNET_TESTING_cmd_end ()
+    GNUNET_TESTING_cmd_local_test_finished ("local-test-finished-1",
+                                            write_message)
   };
 
   GNUNET_TESTING_run (NULL,
                       commands,
                       GNUNET_TIME_UNIT_FOREVER_REL);
+  LOG (GNUNET_ERROR_TYPE_ERROR,
+       "We got here 7!\n");
 
 }
 
@@ -75,6 +89,7 @@ libgnunet_plugin_testcmd_init (void *cls)
 
   api = GNUNET_new (struct GNUNET_TESTING_PluginFunctions);
   api->start_testcase = &start_testcase;
+  api->all_peers_started = &all_peers_started;
   return api;
 }
 

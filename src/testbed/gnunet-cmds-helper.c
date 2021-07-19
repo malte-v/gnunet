@@ -383,7 +383,7 @@ write_message (struct GNUNET_MessageHeader *message, size_t msg_length)
  * @param cls plugin to use.
  *
  */
-static void
+/*static void
 run_plugin (void *cls)
 {
   struct Plugin *plugin = cls;
@@ -400,7 +400,7 @@ run_plugin (void *cls)
 
   plugin->api->start_testcase (&write_message, router_ip, node_ip);
 
-}
+}*/
 
 
 /**
@@ -433,12 +433,7 @@ tokenizer_cb (void *cls, const struct GNUNET_MessageHeader *message)
        "tokenizer \n");
 
   msize = ntohs (message->size);
-  if (GNUNET_MESSAGE_TYPE_CMDS_HELPER_ALL_PEERS_STARTED == ntohs (
-        message->type))
-  {
-    plugin->api->all_peers_started ();
-  }
-  else if (GNUNET_MESSAGE_TYPE_CMDS_HELPER_INIT == ntohs (message->type))
+  if (GNUNET_MESSAGE_TYPE_CMDS_HELPER_INIT == ntohs (message->type))
   {
     msg = (const struct GNUNET_CMDS_HelperInit *) message;
     plugin_name_size = ntohs (msg->plugin_name_size);
@@ -519,7 +514,7 @@ tokenizer_cb (void *cls, const struct GNUNET_MessageHeader *message)
 
     GNUNET_free (binary);
 
-    done_reading = GNUNET_YES;
+    // done_reading = GNUNET_YES;
 
     msg_length = sizeof(struct GNUNET_CMDS_HelperReply);
     reply = GNUNET_new (struct GNUNET_CMDS_HelperReply);
@@ -539,6 +534,14 @@ tokenizer_cb (void *cls, const struct GNUNET_MessageHeader *message)
       GNUNET_DISK_pipe_handle (sigpipe, GNUNET_DISK_PIPE_END_READ),
       &child_death_task,
       NULL);*/
+    return GNUNET_OK;
+  }
+  else if (GNUNET_MESSAGE_TYPE_CMDS_HELPER_ALL_PEERS_STARTED == ntohs (
+             message->type))
+  {
+    LOG (GNUNET_ERROR_TYPE_ERROR,
+         "We got here 8!\n");
+    plugin->api->all_peers_started ();
     return GNUNET_OK;
   }
   else
@@ -588,6 +591,8 @@ read_task (void *cls)
     return;
   }
   LOG_DEBUG ("Read %u bytes\n", (unsigned int) sread);
+  LOG (GNUNET_ERROR_TYPE_ERROR,
+       "Read %u bytes\n", (unsigned int) sread);
   /* FIXME: could introduce a GNUNET_MST_read2 to read
      directly from 'stdin_fd' and save a memcpy() here */
   if (GNUNET_OK !=

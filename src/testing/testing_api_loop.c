@@ -415,7 +415,7 @@ interpreter_run (void *cls)
   if (NULL == cmd->label)
   {
 
-    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                 "Running command END %p\n",
                 is);
     is->result = GNUNET_OK;
@@ -424,7 +424,7 @@ interpreter_run (void *cls)
   }
   else if (NULL != cmd)
   {
-    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                 "Running command `%s' %p\n",
                 cmd->label,
                 is);

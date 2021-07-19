@@ -27,6 +27,11 @@
 #include "gnunet_util_lib.h"
 #include "gnunet_testing_ng_lib.h"
 
+/**
+ * Generic logging shortcut
+ */
+#define LOG(kind, ...) GNUNET_log (kind, __VA_ARGS__)
+
 struct BlockState
 {
   unsigned int *all_peers_started;
@@ -58,6 +63,8 @@ block_until_all_peers_started_run (void *cls,
                                    const struct GNUNET_TESTING_Command *cmd,
                                    struct GNUNET_TESTING_Interpreter *is)
 {
+  LOG (GNUNET_ERROR_TYPE_ERROR,
+       "block_until_all_peers_started_run!\n");
 }
 
 
@@ -68,6 +75,21 @@ block_until_all_peers_started_finish (void *cls,
 {
   struct BlockState *bs = cls;
   unsigned int *ret = bs->all_peers_started;
+
+  LOG (GNUNET_ERROR_TYPE_ERROR,
+       "We got here 10\n");
+
+  if (GNUNET_YES == *ret)
+  {
+    LOG (GNUNET_ERROR_TYPE_ERROR,
+         "We do not need to block anymore!\n");
+    cont (cont_cls);
+  }
+  else
+  {
+    LOG (GNUNET_ERROR_TYPE_ERROR,
+         "You shall not pass!\n");
+  }
 
   return *ret;
 }
@@ -85,6 +107,10 @@ GNUNET_TESTING_cmd_block_until_all_peers_started (const char *label,
                                                   all_peers_started)
 {
   struct BlockState *bs;
+
+  LOG (GNUNET_ERROR_TYPE_ERROR,
+       "we have all_peers_started: %u\n",
+       *all_peers_started);
 
   bs = GNUNET_new (struct BlockState);
   bs->all_peers_started = all_peers_started;

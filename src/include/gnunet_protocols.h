@@ -3567,6 +3567,8 @@ extern "C" {
 
 #define GNUNET_MESSAGE_TYPE_CMDS_HELPER_ALL_PEERS_STARTED 1703
 
+#define GNUNET_MESSAGE_TYPE_CMDS_HELPER_LOCAL_FINISHED 1704
+
 /*********************************************************************************/
 
 /**

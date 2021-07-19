@@ -89,6 +89,8 @@ struct NetJailState
 
   unsigned int number_of_peers_started;
 
+  unsigned int number_of_local_test_finished;
+
   /**
    * The host where the controller is running
    */
@@ -256,6 +258,14 @@ helper_mst (void *cls, const struct GNUNET_MessageHeader *message)
              message->type))
   {
     ns->number_of_peers_started++;
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "number_of_peers_started: %d\n",
+                ns->number_of_peers_started);
+  }
+  else if (GNUNET_MESSAGE_TYPE_CMDS_HELPER_LOCAL_FINISHED == ntohs (
+             message->type))
+  {
+    ns->number_of_local_test_finished++;
   }
   else
   {
@@ -375,7 +385,8 @@ start_testbed (struct NetJailState *ns, struct
                          tbc));
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "Message send!\n");
+              "Message %d send!\n",
+              tbc->count);
 
   if (NULL == ns->shandle[tbc->count - 1])
   {
@@ -426,17 +437,22 @@ netjail_start_finish (void *cls,
   unsigned int ret = GNUNET_NO;
   struct NetJailState *ns = cls;
   unsigned int total_number = atoi (ns->local_m) * atoi (ns->global_n);
-  struct GNUNET_CMDS_PEER_STARTED *reply;
+  struct GNUNET_CMDS_ALL_PEERS_STARTED *reply;
   size_t msg_length;
   struct GNUNET_HELPER_Handle *helper;
   struct TestbedCount *tbc;
 
+  if (ns->number_of_local_test_finished == total_number)
+  {
+    ret = GNUNET_YES;
+    cont (cont_cls);
+  }
+
   if (ns->number_of_testbeds_started == total_number)
   {
-    /* ret = GNUNET_YES;
-       cont (cont_cls);*/
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                 "All helpers started!\n");
+    ns->number_of_testbeds_started = 0;
   }
 
   if (ns->number_of_peers_started == total_number)
@@ -449,9 +465,9 @@ netjail_start_finish (void *cls,
       {
         tbc = GNUNET_new (struct TestbedCount);
         tbc->ns = ns;
-        tbc->count = (j - 1) * atoi (ns->local_m) + i + atoi (ns->global_n)
-                     * atoi (ns->local_m);
-        helper = ns->helper[tbc->count - 1];
+        // TODO This needs to be more generic. As we send more messages back and forth, we can not grow the arrays again and again, because this is to error prone.
+        tbc->count = (j - 1) * atoi (ns->local_m) + i + total_number;
+        helper = ns->helper[tbc->count - 1 - total_number];
         msg_length = sizeof(struct GNUNET_CMDS_ALL_PEERS_STARTED);
         reply = GNUNET_new (struct GNUNET_CMDS_ALL_PEERS_STARTED);
         reply->header.type = htons (
@@ -460,14 +476,21 @@ netjail_start_finish (void *cls,
 
         GNUNET_array_append (ns->msg, ns->n_msg, &reply->header);
 
-        GNUNET_array_append (ns->shandle, ns->n_shandle, GNUNET_HELPER_send (
-                               helper,
-                               &reply->header,
-                               GNUNET_NO,
-                               &clear_msg,
-                               tbc));
+        struct GNUNET_HELPER_SendHandle *sh = GNUNET_HELPER_send (
+          helper,
+          &reply->header,
+          GNUNET_NO,
+          &clear_msg,
+          tbc);
+
+        GNUNET_array_append (ns->shandle, ns->n_shandle, sh);
+
+        GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                    "All peers started message %d send!\n",
+                    tbc->count);
       }
     }
+    ns->number_of_peers_started = 0;
   }
   return ret;
 }

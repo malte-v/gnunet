@@ -130,6 +130,14 @@ struct GNUNET_CMDS_ALL_PEERS_STARTED
   struct GNUNET_MessageHeader header;
 };
 
+struct GNUNET_CMDS_LOCAL_FINISHED
+{
+  /**
+   * Type is GNUNET_MESSAGE_TYPE_CMDS_HELPER_LOCAL_FINISHED
+   */
+  struct GNUNET_MessageHeader header;
+};
+
 GNUNET_NETWORK_STRUCT_END
 #endif
 /* end of testbed_helper.h */

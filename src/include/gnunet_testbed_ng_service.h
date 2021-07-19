@@ -274,4 +274,10 @@ GNUNET_TESTING_cmd_block_until_all_peers_started (const char *label,
 struct GNUNET_TESTING_Command
 GNUNET_TESTING_cmd_send_peer_ready (const char *label,
                                     TESTBED_CMD_HELPER_write_cb write_message);
+
+struct GNUNET_TESTING_Command
+GNUNET_TESTING_cmd_local_test_finished (const char *label,
+                                        TESTBED_CMD_HELPER_write_cb
+                                        write_message);
+
 #endif
