@@ -232,8 +232,8 @@ create_message_delete (const struct GNUNET_HashCode *hash, const struct GNUNET_T
   if (!message)
     return NULL;
 
-  GNUNET_memcpy(&(message->body.delete.hash), hash, sizeof(struct GNUNET_HashCode));
-  message->body.delete.delay = GNUNET_TIME_relative_hton (delay);
+  GNUNET_memcpy(&(message->body.deletion.hash), hash, sizeof(struct GNUNET_HashCode));
+  message->body.deletion.delay = GNUNET_TIME_relative_hton (delay);
 
   return message;
 }
