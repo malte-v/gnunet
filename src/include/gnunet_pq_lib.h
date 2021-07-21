@@ -527,9 +527,8 @@ GNUNET_PQ_exec_prepared (struct GNUNET_PQ_Context *db,
  * @return
  *   #GNUNET_YES if all results could be extracted
  *   #GNUNET_SYSERR if a result was invalid (non-existing field)
- * @deprecated (should become an internal API)
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_PQ_extract_result (PGresult *result,
                           struct GNUNET_PQ_ResultSpec *rs,
                           int row);

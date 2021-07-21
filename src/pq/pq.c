@@ -123,16 +123,14 @@ GNUNET_PQ_cleanup_result (struct GNUNET_PQ_ResultSpec *rs)
 }
 
 
-int
+enum GNUNET_GenericReturnValue
 GNUNET_PQ_extract_result (PGresult *result,
                           struct GNUNET_PQ_ResultSpec *rs,
                           int row)
 {
-  unsigned int i;
-
   if (NULL == result)
     return GNUNET_SYSERR;
-  for (i = 0; NULL != rs[i].conv; i++)
+  for (unsigned int i = 0; NULL != rs[i].conv; i++)
   {
     struct GNUNET_PQ_ResultSpec *spec;
     enum GNUNET_GenericReturnValue ret;
