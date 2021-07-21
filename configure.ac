@@ -115,7 +115,7 @@ AS_CASE(["$host_os"],
   [*darwin* | *rhapsody* | *macosx*],[
      AC_DEFINE_UNQUOTED(DARWIN,1,[This is an Apple Darwin system])
      CPPFLAGS="-D_APPLE_C_SOURCE $CPPFLAGS"
-     CFLAGS="-fno-common $CFLAGS"
+     CFLAGS="-fno-common -D__APPLE_USE_RFC_3542 $CFLAGS"
      LDFLAGS="$OLD_LDFLAGS"
      AC_MSG_WARN([WARNING: The VPN application cannot be compiled on your OS])
      AC_CHECK_LIB(intl, gettext)
