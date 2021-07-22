@@ -44,7 +44,7 @@
 #include "testbed_api.h"
 #include "gnunet_testing_plugin.h"
 #include <zlib.h>
-#include "execinfo.h"
+
 
 /**
  * Generic logging shortcut
@@ -59,8 +59,6 @@
 #define NODE_BASE_IP "192.168.15."
 
 #define ROUTER_BASE_IP "92.68.150."
-
-#define MAX_TRACE_DEPTH 50
 
 /**
  * Handle for a plugin.
@@ -180,61 +178,6 @@ static int done_reading;
 static int status;
 
 
-struct BacktraceInfo
-{
-  /**
-   * Array of strings which make up a backtrace from the point when this
-   * task was scheduled (essentially, who scheduled the task?)
-   */
-  char **backtrace_strings;
-
-  /**
-   * Size of the backtrace_strings array
-   */
-  int num_backtrace_strings;
-};
-
-/**
- * Output stack trace of task @a t.
- *
- * @param t task to dump stack trace of
- */
-static void
-dump_backtrace (struct BacktraceInfo *t)
-{
-
-  for (unsigned int i = 0; i < t->num_backtrace_strings; i++)
-    LOG (GNUNET_ERROR_TYPE_ERROR,
-         "Task %p trace %u: %s\n",
-         t,
-         i,
-         t->backtrace_strings[i]);
-
-}
-
-
-/**
- * Initialize backtrace data for task @a t
- *
- * @param t task to initialize
- */
-static void
-init_backtrace ()
-{
-  struct BacktraceInfo *t;
-  void *backtrace_array[MAX_TRACE_DEPTH];
-
-  t = GNUNET_new (struct BacktraceInfo);
-  t->num_backtrace_strings
-    = backtrace (backtrace_array, MAX_TRACE_DEPTH);
-  t->backtrace_strings =
-    backtrace_symbols (backtrace_array,
-                       t->num_backtrace_strings);
-  dump_backtrace (t);
-
-}
-
-
 /**
  * Task to shut down cleanly
  *
@@ -244,7 +187,6 @@ static void
 shutdown_task (void *cls)
 {
 
-  init_backtrace ();
   LOG_DEBUG ("Shutting down.\n");
   LOG (GNUNET_ERROR_TYPE_ERROR,
        "Shutting down tokenizer!\n");
@@ -549,7 +491,7 @@ tokenizer_cb (void *cls, const struct GNUNET_MessageHeader *message)
   }
 
 
-error:
+  error:
   status = GNUNET_SYSERR;
   LOG (GNUNET_ERROR_TYPE_ERROR,
        "tokenizer shutting down!\n");
