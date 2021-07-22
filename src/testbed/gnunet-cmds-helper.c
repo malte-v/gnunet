@@ -427,7 +427,8 @@ tokenizer_cb (void *cls, const struct GNUNET_MessageHeader *message)
     strcat (node_ip, NODE_BASE_IP);
     strcat (node_ip, plugin->n);
 
-    plugin->api->start_testcase (&write_message, router_ip, node_ip);
+    plugin->api->start_testcase (&write_message, router_ip, node_ip, plugin->m,
+                                 plugin->n);
 
     LOG (GNUNET_ERROR_TYPE_ERROR,
          "We got here!\n");
@@ -479,8 +480,6 @@ tokenizer_cb (void *cls, const struct GNUNET_MessageHeader *message)
   else if (GNUNET_MESSAGE_TYPE_CMDS_HELPER_ALL_PEERS_STARTED == ntohs (
              message->type))
   {
-    LOG (GNUNET_ERROR_TYPE_ERROR,
-         "We got here 8!\n");
     plugin->api->all_peers_started ();
     return GNUNET_OK;
   }

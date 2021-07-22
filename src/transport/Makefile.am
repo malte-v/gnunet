@@ -167,6 +167,9 @@ libgnunettransporttesting_la_LDFLAGS = \
  $(GN_LIB_LDFLAGS)
 
 libgnunettransporttesting2_la_SOURCES = \
+  transport_api_cmd_connecting_peers.c \
+  transport_api_cmd_start_peer.c \
+  transport_api_cmd_send_simple.c \
   transport-testing2.c transport-testing2.h \
   transport-testing-filenames2.c \
   transport-testing-loggers2.c \
@@ -394,7 +397,19 @@ plugin_LTLIBRARIES = \
   $(HTTP_SERVER_PLUGIN_LA) \
   $(HTTPS_SERVER_PLUGIN_LA) \
   $(WLAN_PLUGIN_LA) \
-  $(BT_PLUGIN_LA)
+  $(BT_PLUGIN_LA) 
+  # libgnunet_plugin_simple_send.la
+
+# libgnunet_plugin_cmd_simple_send_la_SOURCES = \
+#  plugin_cmd_simple_send.c
+# libgnunet_plugin_cmd_simple_send_la_LIBADD = \
+#  $(top_builddir)/src/util/libgnunetutil.la \
+#  $(top_builddir)/src/testing/libgnunettesting.la \
+#  $(top_builddir)/src/statistics/libgnunetstatistics.la \
+#  $(top_builddir)/src/testbed/libgnunettestbed.la \
+#  $(LTLIBINTL)
+# libgnunet_plugin_cmd_simple_send_la_LDFLAGS = \
+#  $(GN_PLUGIN_LDFLAGS)
 
 if HAVE_EXPERIMENTAL
 plugin_LTLIBRARIES += libgnunet_plugin_transport_udp.la
@@ -541,6 +556,7 @@ libgnunet_plugin_transport_https_server_la_CFLAGS = \
 
 if HAVE_TESTING
 check_PROGRAMS = \
+ test_transport_api_cmd_simple_send \
  test_transport_address_switch_tcp \
  test_transport_testing_startstop \
  test_transport_testing_restart \
@@ -629,6 +645,7 @@ endif
 if ENABLE_TEST_RUN
 AM_TESTS_ENVIRONMENT=export GNUNET_PREFIX=$${GNUNET_PREFIX:-@libdir@};export PATH=$${GNUNET_PREFIX:-@prefix@}/bin:$$PATH;unset XDG_DATA_HOME;unset XDG_CONFIG_HOME;
 TESTS = \
+ test_transport_api_cmd_simple_send \
  test_transport_address_switch_tcp \
  $(HTTP_SWITCH) \
  $(HTTPS_SWITCH) \
@@ -704,6 +721,16 @@ TESTS += \
   test_communicator_bidirect-tcp
 endif
 endif
+
+test_transport_api_cmd_simple_send_SOURCES = \
+ test_transport_api_cmd_simple_send.c
+test_transport_api_cmd_simple_send_LDADD = \
+ $(top_builddir)/src/testing/libgnunettesting.la \
+ $(top_builddir)/src/util/libgnunetutil.la \
+ $(top_builddir)/src/testbed/libgnunettestbed.la \
+ libgnunettransport.la \
+ $(top_builddir)/src/hello/libgnunethello.la \
+ libgnunettransporttesting.la
 
 test_transport_testing_startstop_SOURCES = \
  test_transport_testing_startstop.c

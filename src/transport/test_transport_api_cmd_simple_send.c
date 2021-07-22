@@ -19,8 +19,8 @@
  */
 
 /**
- * @file testing/test_testbed_api_cmd_netjail.c
- * @brief Test case executing a script in a network name space.
+ * @file transport/test_transport_api_cmd_simple_send.c
+ * @brief Test case executing a script which sends a test message between two peers.
  * @author t3sserakt
  */
 #include "platform.h"
@@ -45,7 +45,7 @@ run (void *cls)
     GNUNET_TESTBED_cmd_netjail_start_testbed ("netjail-start-testbed-1",
                                               "2",
                                               "2",
-                                              "libgnunet_plugin_testcmd"),
+                                              "libgnunet_plugin_cmd_simple_send"),
     GNUNET_TESTBED_cmd_stop_testbed ("stop-testbed",
                                      "netjail-start-testbed-1",
                                      "2",

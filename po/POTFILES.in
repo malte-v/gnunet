@@ -445,7 +445,6 @@ src/testing/testing_api_cmd_batch.c
 src/testing/testing_api_cmd_hello_world.c
 src/testing/testing_api_cmd_hello_world_birth.c
 src/testing/testing_api_cmd_send_peer_ready.c
-src/testing/testing_api_cmd_start_peer.c
 src/testing/testing_api_cmd_system_create.c
 src/testing/testing_api_loop.c
 src/testing/testing_api_trait_cmd.c
@@ -471,6 +470,7 @@ src/transport/gnunet-transport-profiler.c
 src/transport/gnunet-transport-wlan-receiver.c
 src/transport/gnunet-transport-wlan-sender.c
 src/transport/gnunet-transport.c
+src/transport/plugin_cmd_simple_send.c
 src/transport/plugin_transport_http_client.c
 src/transport/plugin_transport_http_common.c
 src/transport/plugin_transport_http_server.c
@@ -502,6 +502,9 @@ src/transport/transport_api2_core.c
 src/transport/transport_api2_monitor.c
 src/transport/transport_api_address_to_string.c
 src/transport/transport_api_blacklist.c
+src/transport/transport_api_cmd_connecting_peers.c
+src/transport/transport_api_cmd_send_simple.c
+src/transport/transport_api_cmd_start_peer.c
 src/transport/transport_api_core.c
 src/transport/transport_api_hello_get.c
 src/transport/transport_api_manipulation.c

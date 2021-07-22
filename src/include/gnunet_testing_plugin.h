@@ -43,7 +43,9 @@ typedef void
 typedef void
 (*GNUNET_TESTING_PLUGIN_StartTestCase) (TESTBED_CMD_HELPER_write_cb
                                         write_message, char *router_ip,
-                                        char *node_ip);
+                                        char *node_ip,
+                                        char *n,
+                                        char *m);
 
 typedef void
 (*GNUNET_TESTING_PLUGIN_ALL_PEERS_STARTED) ();

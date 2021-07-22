@@ -16,6 +16,7 @@ lib_LTLIBRARIES = \
 
 libgnunettesting_la_SOURCES = \
   testing.c \
+  testing_api_cmd_system_create.c \
   testing_api_cmd_batch.c \
   testing_api_cmd_hello_world.c \
   testing_api_cmd_hello_world_birth.c \

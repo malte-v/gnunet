@@ -97,6 +97,8 @@ struct NetJailState
   struct GNUNET_TESTBED_Host **host;
 
   unsigned int n_host;
+
+  char *plugin_name;
 };
 
 struct TestbedCount
@@ -345,6 +347,7 @@ start_testbed (struct NetJailState *ns, struct
 
   cfg = GNUNET_CONFIGURATION_dup (config);
 
+  // TODO We do not need this?
   GNUNET_array_append (ns->host, ns->n_host,
                        GNUNET_TESTBED_host_create_with_id (tbc->count - 1,
                                                            NULL,
@@ -374,7 +377,7 @@ start_testbed (struct NetJailState *ns, struct
 
   msg = create_helper_init_msg_ (m_char,
                                  n_char,
-                                 "libgnunet_plugin_testcmd");
+                                 ns->plugin_name);
   GNUNET_array_append (ns->msg, ns->n_msg, &msg->header);
 
   GNUNET_array_append (ns->shandle, ns->n_shandle, GNUNET_HELPER_send (
@@ -506,13 +509,15 @@ netjail_start_finish (void *cls,
 struct GNUNET_TESTING_Command
 GNUNET_TESTBED_cmd_netjail_start_testbed (const char *label,
                                           char *local_m,
-                                          char *global_n)
+                                          char *global_n,
+                                          char *plugin_name)
 {
   struct NetJailState *ns;
 
   ns = GNUNET_new (struct NetJailState);
   ns->local_m = local_m;
   ns->global_n = global_n;
+  ns->plugin_name = plugin_name;
 
   struct GNUNET_TESTING_Command cmd = {
     .cls = ns,

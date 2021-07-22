@@ -26,10 +26,13 @@
 #include "platform.h"
 #include "gnunet_util_lib.h"
 #include "gnunet_testing_ng_lib.h"
+#include "gnunet_testing_lib.h"
 
 struct TestSystemState
 {
   struct GNUNET_TESTING_System *test_system;
+
+  const char *testdir;
 };
 
 
@@ -80,6 +83,17 @@ GNUNET_TESTING_get_trait_test_system (const struct
                       (const void **) test_system,
                       "test_system",
                       (unsigned int) 0);
+}
+
+
+static void
+system_create_cleanup (void *cls,
+                       const struct GNUNET_TESTING_Command *cmd)
+{
+  struct TestSystemState *tss = cls;
+
+  GNUNET_free (tss->test_system);
+  GNUNET_free (tss);
 }
 
 

@@ -29,6 +29,8 @@
 
 #include "gnunet_util_lib.h"
 #include "gnunet_testing_plugin.h"
+#include "gnunet_transport_application_service.h"
+#include "gnunet_testing_lib.h"
 
 
 /* ********************* Helper functions ********************* */
@@ -831,4 +833,39 @@ int
 GNUNET_TESTING_get_trait_what_am_i (const struct GNUNET_TESTING_Command *cmd,
                                     char **what_am_i);
 
+int
+GNUNET_TESTING_get_trait_application_handle (const struct
+                                             GNUNET_TESTING_Command *cmd,
+                                             struct
+                                             GNUNET_TRANSPORT_ApplicationHandle
+                                             **ah);
+
+int
+GNUNET_TESTING_get_trait_peer_id (const struct
+                                  GNUNET_TESTING_Command *cmd,
+                                  struct GNUNET_PeerIdentity **id);
+
+int
+GNUNET_TESTING_get_trait_connected_peers_map (const struct
+                                              GNUNET_TESTING_Command
+                                              *cmd,
+                                              struct
+                                              GNUNET_CONTAINER_MultiPeerMap **
+                                              connected_peers_map);
+int
+GNUNET_TESTING_get_trait_hello_size (const struct
+                                     GNUNET_TESTING_Command
+                                     *cmd,
+                                     size_t **hello_size);
+
+int
+GNUNET_TESTING_get_trait_hello (const struct
+                                GNUNET_TESTING_Command
+                                *cmd,
+                                char **hello);
+
+int
+GNUNET_TESTING_get_trait_test_system (const struct
+                                      GNUNET_TESTING_Command *cmd,
+                                      struct GNUNET_TESTING_System **test_system);
 #endif

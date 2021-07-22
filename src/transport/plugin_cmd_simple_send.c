@@ -33,38 +33,47 @@
  */
 #define LOG(kind, ...) GNUNET_log (kind, __VA_ARGS__)
 
-unsigned int are_all_peers_started;
+#define BASE_DIR "testdir"
 
-static void
-all_peers_started ()
-{
-  are_all_peers_started = GNUNET_YES;
-  LOG (GNUNET_ERROR_TYPE_ERROR,
-       "setting are_all_peers_started: %d\n",
-       are_all_peers_started);
-}
 
 static void
 start_testcase (TESTBED_CMD_HELPER_write_cb write_message, char *router_ip,
                 char *node_ip,
-                char *n,
-                char *m)
+                char *m,
+                char *n)
 {
   struct GNUNET_TIME_Absolute now = GNUNET_TIME_absolute_get ();
+  char *testdir;
 
-  LOG (GNUNET_ERROR_TYPE_ERROR,
-       "We got here 6!\n");
+  testdir = GNUNET_malloc (strlen (basedir) + strlen (m) + strlen (n)
+                           + 1);
 
-  are_all_peers_started = GNUNET_NO;
+  strcpy (testdir, BASE_DIR);
+  strcat (testdir, m);
+  strcat (testdir, n);
 
   struct GNUNET_TESTING_Command commands[] = {
-    GNUNET_TESTING_cmd_hello_world_birth ("hello-world-birth-0",
-                                          &now),
-    GNUNET_TESTING_cmd_hello_world ("hello-world-0","hello-world-birth-0",""),
+    GNUNET_TESTING_cmd_system_create ("system-create-1",
+                                      testdir),
+    GNUNET_TESTING_cmd_start_peer ("start-peer-1",
+                                   "system-create-1",
+                                   m,
+                                   n,
+                                   struct GNUNET_MQ_MessageHandler *handlers,
+                                   const char *cfgname),
     GNUNET_TESTING_cmd_send_peer_ready ("send-peer-ready-1",
                                         write_message),
     GNUNET_TESTING_cmd_block_until_all_peers_started ("block-1",
                                                       &are_all_peers_started),
+    GNUNET_TESTING_cmd_connect_peers ("connect-peers-1",
+                                      "start-peer-1",
+                                      "this is useless"),
+    /*GNUNET_TESTING_cmd_send_simple ("send-simple-1",
+                                    char *m,
+                                    char *n,
+                                    uint32_t num,
+                                    const char *peer1_label,
+                                    const char *peer2_label),*/
     GNUNET_TESTING_cmd_local_test_finished ("local-test-finished-1",
                                             write_message)
   };
@@ -72,8 +81,6 @@ start_testcase (TESTBED_CMD_HELPER_write_cb write_message, char *router_ip,
   GNUNET_TESTING_run (NULL,
                       commands,
                       GNUNET_TIME_UNIT_FOREVER_REL);
-  LOG (GNUNET_ERROR_TYPE_ERROR,
-       "We got here 7!\n");
 
 }
 

@@ -232,7 +232,8 @@ GNUNET_TESTBED_cmd_netjail_start (const char *label,
 struct GNUNET_TESTING_Command
 GNUNET_TESTBED_cmd_netjail_start_testbed (const char *label,
                                           char *local_m,
-                                          char *global_n);
+                                          char *global_n,
+                                          char *plugin_name);
 
 
 /**
