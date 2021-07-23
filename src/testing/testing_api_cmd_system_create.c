@@ -43,10 +43,15 @@ system_create_run (void *cls,
 {
   struct TestSystemState *tss = cls;
 
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "system create\n");
+
   tss->test_system = GNUNET_TESTING_system_create (tss->testdir,
                                                    NULL,
                                                    NULL,
                                                    NULL);
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "system created\n");
 }
 
 static int

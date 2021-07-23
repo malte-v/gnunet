@@ -41,18 +41,18 @@ run (void *cls)
   struct GNUNET_TESTING_Command commands[] = {
     GNUNET_TESTBED_cmd_netjail_start ("netjail-start-1",
                                       "2",
-                                      "2"),
+                                      "1"),
     GNUNET_TESTBED_cmd_netjail_start_testbed ("netjail-start-testbed-1",
                                               "2",
-                                              "2",
+                                              "1",
                                               "libgnunet_plugin_cmd_simple_send"),
     GNUNET_TESTBED_cmd_stop_testbed ("stop-testbed",
                                      "netjail-start-testbed-1",
                                      "2",
-                                     "2"),
+                                     "1"),
     GNUNET_TESTBED_cmd_netjail_stop ("netjail-stop-1",
                                      "2",
-                                     "2"),
+                                     "1"),
     GNUNET_TESTING_cmd_end ()
   };
 

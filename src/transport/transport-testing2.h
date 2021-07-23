@@ -920,5 +920,42 @@ GNUNET_TRANSPORT_TESTING_get_test_plugin_name (const char *executable,
 char *
 GNUNET_TRANSPORT_TESTING_get_test_source_name (const char *file);
 
+struct GNUNET_TESTING_Command
+GNUNET_TRANSPORT_cmd_start_peer (const char *label,
+                                 const char *system_label,
+                                 char *m,
+                                 char *n,
+                                 struct GNUNET_MQ_MessageHandler *handlers,
+                                 const char *cfgname);
+
+struct GNUNET_TESTING_Command
+GNUNET_TRANSPORT_cmd_connect_peers (const char *label,
+                                    const char *peer1_label,
+                                    const char *peer2_label);
+
+int
+GNUNET_TRANSPORT_get_trait_peer_id (const struct
+                                    GNUNET_TESTING_Command *cmd,
+                                    struct GNUNET_PeerIdentity **id);
+
+int
+GNUNET_TRANSPORT_get_trait_connected_peers_map (const struct
+                                                GNUNET_TESTING_Command
+                                                *cmd,
+                                                struct
+                                                GNUNET_CONTAINER_MultiPeerMap **
+                                                connected_peers_map);
+int
+GNUNET_TRANSPORT_get_trait_hello_size (const struct
+                                       GNUNET_TESTING_Command
+                                       *cmd,
+                                       size_t **hello_size);
+
+int
+GNUNET_TRANSPORT_get_trait_hello (const struct
+                                  GNUNET_TESTING_Command
+                                  *cmd,
+                                  char **hello);
+
 #endif
 /* end of transport_testing.h */

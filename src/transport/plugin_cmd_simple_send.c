@@ -19,7 +19,7 @@
  */
 
 /**
- * @file testbed/plugin_testcmd.c
+ * @file testbed/plugin_cmd_simple_send.c
  * @brief a plugin to provide the API for running test cases.
  * @author t3sserakt
  */
@@ -27,8 +27,10 @@
 #include "gnunet_testing_ng_lib.h"
 #include "gnunet_util_lib.h"
 #include "gnunet_transport_application_service.h"
-#include "gnunet_transport_service.h"
+// #include "gnunet_transport_service.h"
 #include "gnunet_testbed_ng_service.h"
+#include "transport-testing2.h"
+
 /**
  * Generic logging shortcut
  */
@@ -38,9 +40,37 @@
 
 struct GNUNET_MQ_MessageHandler *handlers;
 
-const char *cfgname;
-
 unsigned int are_all_peers_started;
+
+static int
+check_test (void *cls,
+            const struct GNUNET_TRANSPORT_TESTING_TestMessage *message)
+{
+  return GNUNET_OK;
+}
+
+static void
+handle_test (void *cls,
+             const struct GNUNET_TRANSPORT_TESTING_TestMessage *message)
+{
+  LOG (GNUNET_ERROR_TYPE_ERROR,
+       "message received\n");
+}
+
+static int
+check_test2 (void *cls,
+             const struct GNUNET_TRANSPORT_TESTING_TestMessage *message)
+{
+  return GNUNET_OK;
+}
+
+static void
+handle_test2 (void *cls,
+              const struct GNUNET_TRANSPORT_TESTING_TestMessage *message)
+{
+  LOG (GNUNET_ERROR_TYPE_ERROR,
+       "message received\n");
+}
 
 static void
 all_peers_started ()
@@ -58,6 +88,16 @@ start_testcase (TESTBED_CMD_HELPER_write_cb write_message, char *router_ip,
                 char *n)
 {
   char *testdir;
+  char *cfgname;
+
+  GNUNET_asprintf (&cfgname,
+                   "%s%s.conf",
+                   "test_transport_api2_tcp_peer",
+                   n);
+
+  LOG (GNUNET_ERROR_TYPE_ERROR,
+       "cfgname: %s\n",
+       cfgname);
 
   testdir = GNUNET_malloc (strlen (BASE_DIR) + strlen (m) + strlen (n)
                            + 1);
@@ -66,22 +106,34 @@ start_testcase (TESTBED_CMD_HELPER_write_cb write_message, char *router_ip,
   strcat (testdir, m);
   strcat (testdir, n);
 
+  struct GNUNET_MQ_MessageHandler handlers[] = {
+    GNUNET_MQ_hd_var_size (test,
+                           GNUNET_TRANSPORT_TESTING_SIMPLE_MTYPE,
+                           struct GNUNET_TRANSPORT_TESTING_TestMessage,
+                           NULL),
+    GNUNET_MQ_hd_var_size (test2,
+                           GNUNET_TRANSPORT_TESTING_SIMPLE_MTYPE2,
+                           struct GNUNET_TRANSPORT_TESTING_TestMessage,
+                           NULL),
+    GNUNET_MQ_handler_end ()
+  };
+
   struct GNUNET_TESTING_Command commands[] = {
     GNUNET_TESTING_cmd_system_create ("system-create-1",
                                       testdir),
-    /*GNUNET_TRANSPORT_cmd_start_peer ("start-peer-1",
+    GNUNET_TRANSPORT_cmd_start_peer ("start-peer-1",
                                      "system-create-1",
                                      m,
                                      n,
                                      handlers,
-                                     cfgname),*/
+                                     cfgname),
     GNUNET_TESTING_cmd_send_peer_ready ("send-peer-ready-1",
                                         write_message),
     GNUNET_TESTING_cmd_block_until_all_peers_started ("block-1",
                                                       &are_all_peers_started),
-    /*GNUNET_TRANSPORT_cmd_connect_peers ("connect-peers-1",
+    GNUNET_TRANSPORT_cmd_connect_peers ("connect-peers-1",
                                         "start-peer-1",
-                                        "this is useless"),*/
+                                        "this is useless"),
     /*GNUNET_TESTING_cmd_send_simple ("send-simple-1",
                                     char *m,
                                     char *n,
@@ -106,7 +158,7 @@ start_testcase (TESTBED_CMD_HELPER_write_cb write_message, char *router_ip,
  * @return the exported block API
  */
 void *
-libgnunet_plugin_testcmd_init (void *cls)
+libgnunet_plugin_cmd_simple_send_init (void *cls)
 {
   struct GNUNET_TESTING_PluginFunctions *api;
 
@@ -124,7 +176,7 @@ libgnunet_plugin_testcmd_init (void *cls)
  * @return NULL
  */
 void *
-libgnunet_plugin_testcmd_done (void *cls)
+libgnunet_plugin_cmd_simple_send_done (void *cls)
 {
   struct GNUNET_TESTING_PluginFunctions *api = cls;
 
@@ -133,4 +185,4 @@ libgnunet_plugin_testcmd_done (void *cls)
 }
 
 
-/* end of plugin_testcmd.c */
+/* end of plugin_cmd_simple_send.c */

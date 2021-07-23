@@ -29,7 +29,7 @@
 #include "gnunet_testbed_ng_service.h"
 
 
-#define NETJAIL_STOP_SCRIPT "./netjail_stop.sh"
+#define NETJAIL_STOP_SCRIPT "./../testbed/netjail_stop.sh"
 
 struct GNUNET_ChildWaitHandle *cwh;
 

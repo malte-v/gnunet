@@ -76,12 +76,12 @@ send_simple_run (void *cls,
   const struct GNUNET_TESTING_Command *peer2_cmd;
 
   peer1_cmd = GNUNET_TESTING_interpreter_lookup_command (sss->peer1_label);
-  GNUNET_TESTING_get_trait_connected_peers_map (peer1_cmd,
-                                                &connected_peers_map);
+  GNUNET_TRANSPORT_get_trait_connected_peers_map (peer1_cmd,
+                                                  &connected_peers_map);
 
   peer2_cmd = GNUNET_TESTING_interpreter_lookup_command (sss->peer2_label);
-  GNUNET_TESTING_get_trait_peer_id (peer2_cmd,
-                                    &id);
+  GNUNET_TRANSPORT_get_trait_peer_id (peer2_cmd,
+                                      &id);
 
   mq = GNUNET_CONTAINER_multipeermap_get (connected_peers_map,
                                           id);

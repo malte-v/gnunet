@@ -28,7 +28,7 @@
 #include "gnunet_testing_ng_lib.h"
 #include "gnunet_testbed_ng_service.h"
 
-#define NETJAIL_START_SCRIPT "./netjail_start.sh"
+#define NETJAIL_START_SCRIPT "./../testbed/netjail_start.sh"
 
 struct NetJailState
 {

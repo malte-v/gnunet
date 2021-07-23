@@ -30,7 +30,7 @@
 #include "testbed_api_hosts.h"
 #include "testbed_helper.h"
 
-#define NETJAIL_EXEC_SCRIPT "./netjail_exec.sh"
+#define NETJAIL_EXEC_SCRIPT "./../testbed/netjail_exec.sh"
 
 struct HelperMessage;
 
@@ -319,15 +319,15 @@ create_helper_init_msg_ (char *m_char,
 static void
 start_testbed (struct NetJailState *ns, struct
                GNUNET_CONFIGURATION_Handle *config,
-               char *n_char,
-               char *m_char)
+               char *m_char,
+               char *n_char)
 {
-  struct GNUNET_CONFIGURATION_Handle *cfg;
+  // struct GNUNET_CONFIGURATION_Handle *cfg;
   struct GNUNET_CMDS_HelperInit *msg;
   struct TestbedCount *tbc;
   char *const script_argv[] = {NETJAIL_EXEC_SCRIPT,
-                               n_char,
                                m_char,
+                               n_char,
                                GNUNET_OS_get_libexec_binary_path (
                                  HELPER_CMDS_BINARY),
                                ns->global_n,
@@ -345,17 +345,17 @@ start_testbed (struct NetJailState *ns, struct
   tbc->ns = ns;
   tbc->count = (n - 1) * atoi (ns->local_m) + m;
 
-  cfg = GNUNET_CONFIGURATION_dup (config);
+  // cfg = GNUNET_CONFIGURATION_dup (config);
 
   // TODO We do not need this?
-  GNUNET_array_append (ns->host, ns->n_host,
+  /*GNUNET_array_append (ns->host, ns->n_host,
                        GNUNET_TESTBED_host_create_with_id (tbc->count - 1,
                                                            NULL,
                                                            NULL,
                                                            cfg,
-                                                           0));
+                                                           0));*/
 
-  if ((GNUNET_YES != GNUNET_DISK_file_test ("test_testbed_api.conf")) ||
+  /*if ((GNUNET_YES != GNUNET_DISK_file_test ("test_testbed_api.conf")) ||
       (GNUNET_SYSERR == GNUNET_CONFIGURATION_load (config,
                                                    "test_testbed_api.conf")))
   {
@@ -363,7 +363,7 @@ start_testbed (struct NetJailState *ns, struct
                 _ (
                   "Unreadable or malformed configuration file `%s', exit ...\n"),
                 "test_testbed_api.conf");
-  }
+                }*/
 
   GNUNET_array_append (ns->helper, ns->n_helper, GNUNET_HELPER_start (
                          GNUNET_YES,
@@ -425,8 +425,8 @@ netjail_exec_run (void *cls,
       sprintf (str_n, "%d", i);
       sprintf (str_m, "%d", j);
       start_testbed (ns, config,
-                     str_n,
-                     str_m);
+                     str_m,
+                     str_n);
     }
   }
 }

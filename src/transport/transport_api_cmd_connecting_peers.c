@@ -63,8 +63,8 @@ connect_peers_run (void *cls,
   GNUNET_TRANSPORT_get_trait_application_handle (peer1_cmd,
                                                  &ah);
 
-  GNUNET_TESTING_get_trait_hello (peer1_cmd,
-                                  &hello);
+  GNUNET_TRANSPORT_get_trait_hello (peer1_cmd,
+                                    &hello);
 
   LOG (GNUNET_ERROR_TYPE_ERROR,
        "hello: %s\n",
@@ -73,11 +73,11 @@ connect_peers_run (void *cls,
   // TODO This does not work, because the other peer is running in another local loop. We need to message between different local loops. For now we will create the hello manually with the known information about the other local peers.
   // ---------------------------------------------
   /*peer2_cmd = GNUNET_TESTING_interpreter_lookup_command (cps->peer2_label);
-  GNUNET_TESTING_get_trait_peer_id (peer2_cmd,
+  GNUNET_TRANSPORT_get_trait_peer_id (peer2_cmd,
                                     &id);
-  GNUNET_TESTING_get_trait_hello (peer2_cmd,
+  GNUNET_TRANSPORT_get_trait_hello (peer2_cmd,
                                   &hello);
-  GNUNET_TESTING_get_trait_hello_size (peer2_cmd,
+  GNUNET_TRANSPORT_get_trait_hello_size (peer2_cmd,
                                        &hello_size);
 
   addr = GNUNET_HELLO_extract_address (hello,
@@ -108,11 +108,11 @@ connect_peers_finish (void *cls,
   struct GNUNET_PeerIdentity *id;
 
   peer1_cmd = GNUNET_TESTING_interpreter_lookup_command (cps->peer1_label);
-  GNUNET_TESTING_get_trait_peer_id (peer1_cmd,
+  GNUNET_TRANSPORT_get_trait_peer_id (peer1_cmd,
                                     &id);
 
   peer2_cmd = GNUNET_TESTING_interpreter_lookup_command (cps->peer2_label);
-  GNUNET_TESTING_get_trait_connected_peers_map (peer2_cmd,
+  GNUNET_TRANSPORT_get_trait_connected_peers_map (peer2_cmd,
                                                 &connected_peers_map);
 
   ret = GNUNET_CONTAINER_multipeermap_contains (connected_peers_map,

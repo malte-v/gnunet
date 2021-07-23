@@ -445,10 +445,10 @@ start_peer_traits (void *cls,
 }
 
 int
-GNUNET_TESTING_get_trait_hello_size (const struct
-                                     GNUNET_TESTING_Command
-                                     *cmd,
-                                     size_t **hello_size)
+GNUNET_TRANSPORT_get_trait_hello_size (const struct
+                                       GNUNET_TESTING_Command
+                                       *cmd,
+                                       size_t **hello_size)
 {
   return cmd->traits (cmd->cls,
                       (const void **) hello_size,
@@ -457,10 +457,10 @@ GNUNET_TESTING_get_trait_hello_size (const struct
 }
 
 int
-GNUNET_TESTING_get_trait_hello (const struct
-                                GNUNET_TESTING_Command
-                                *cmd,
-                                char **hello)
+GNUNET_TRANSPORT_get_trait_hello (const struct
+                                  GNUNET_TESTING_Command
+                                  *cmd,
+                                  char **hello)
 {
   return cmd->traits (cmd->cls,
                       (const void **) hello,
@@ -469,12 +469,12 @@ GNUNET_TESTING_get_trait_hello (const struct
 }
 
 int
-GNUNET_TESTING_get_trait_connected_peers_map (const struct
-                                              GNUNET_TESTING_Command
-                                              *cmd,
-                                              struct
-                                              GNUNET_CONTAINER_MultiPeerMap **
-                                              connected_peers_map)
+GNUNET_TRANSPORT_get_trait_connected_peers_map (const struct
+                                                GNUNET_TESTING_Command
+                                                *cmd,
+                                                struct
+                                                GNUNET_CONTAINER_MultiPeerMap **
+                                                connected_peers_map)
 {
   return cmd->traits (cmd->cls,
                       (const void **) connected_peers_map,
@@ -498,9 +498,9 @@ GNUNET_TRANSPORT_get_trait_application_handle (const struct
 
 
 int
-GNUNET_TESTING_get_trait_peer_id (const struct
-                                  GNUNET_TESTING_Command *cmd,
-                                  struct GNUNET_PeerIdentity **id)
+GNUNET_TRANSPORT_get_trait_peer_id (const struct
+                                    GNUNET_TESTING_Command *cmd,
+                                    struct GNUNET_PeerIdentity **id)
 {
   return cmd->traits (cmd->cls,
                       (const void **) id,

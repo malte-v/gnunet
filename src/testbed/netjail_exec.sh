@@ -1,5 +1,5 @@
 #!/bin/sh
-. "./netjail_core.sh"
+. "./../testbed/netjail_core.sh"
 
 set -eu
 set -x

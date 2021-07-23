@@ -101,6 +101,7 @@ gnunet_cmds_helper_SOURCES = \
 gnunet_cmds_helper_LDADD = $(XLIB) \
  $(top_builddir)/src/util/libgnunetutil.la \
  $(top_builddir)/src/testing/libgnunettesting.la \
+ $(top_builddir)/src/transport/libgnunettransport.la \
  libgnunettestbed.la \
  $(LTLIBINTL) $(Z_LIBS)
 
