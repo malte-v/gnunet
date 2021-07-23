@@ -558,6 +558,15 @@ GNUNET_TIME_relative_is_forever (struct GNUNET_TIME_Relative rel);
 
 
 /**
+ * Test if @a rel is zero.
+ *
+ * @return true if it is.
+ */
+bool
+GNUNET_TIME_relative_is_zero (struct GNUNET_TIME_Relative rel);
+
+
+/**
  * Convert seconds after the UNIX epoch to absolute time.
  *
  * @param s_after_epoch seconds after epoch to convert

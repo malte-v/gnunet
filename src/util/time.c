@@ -484,6 +484,13 @@ GNUNET_TIME_relative_is_forever (struct GNUNET_TIME_Relative rel)
 }
 
 
+bool
+GNUNET_TIME_relative_is_zero (struct GNUNET_TIME_Relative rel)
+{
+  return rel.rel_value_us == 0;
+}
+
+
 struct GNUNET_TIME_Absolute
 GNUNET_TIME_absolute_from_ms (uint64_t ms_after_epoch)
 {
