@@ -473,21 +473,21 @@ GNUNET_TIME_absolute_hton (struct GNUNET_TIME_Absolute a)
 bool
 GNUNET_TIME_absolute_is_never (struct GNUNET_TIME_Absolute abs)
 {
-  return abs.abs_value_us == GNUNET_TIME_UNIT_FOREVER_ABS.abs_value_us;
+  return GNUNET_TIME_UNIT_FOREVER_ABS.abs_value_us == abs.abs_value_us;
 }
 
 
 bool
 GNUNET_TIME_relative_is_forever (struct GNUNET_TIME_Relative rel)
 {
-  return rel.rel_value_us == GNUNET_TIME_UNIT_FOREVER_REL.rel_value_us;
+  return GNUNET_TIME_UNIT_FOREVER_REL.rel_value_us == rel.rel_value_us;
 }
 
 
 bool
 GNUNET_TIME_relative_is_zero (struct GNUNET_TIME_Relative rel)
 {
-  return rel.rel_value_us == 0;
+  return 0 == rel.rel_value_us;
 }
 
 
