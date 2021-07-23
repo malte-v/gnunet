@@ -530,6 +530,44 @@ GNUNET_TIME_absolute_hton (struct GNUNET_TIME_Absolute a);
 
 
 /**
+ * Convert milliseconds after the UNIX epoch to absolute time.
+ *
+ * @param ms_after_epoch millisecond timestamp to convert
+ * @return converted time value
+ */
+struct GNUNET_TIME_Absolute
+GNUNET_TIME_absolute_from_ms (uint64_t ms_after_epoch);
+
+
+/**
+ * Test if @a abs is never.
+ *
+ * @return true if it is.
+ */
+bool
+GNUNET_TIME_absolute_is_never (struct GNUNET_TIME_Absolute abs);
+
+
+/**
+ * Test if @a rel is forever.
+ *
+ * @return true if it is.
+ */
+bool
+GNUNET_TIME_relative_is_forever (struct GNUNET_TIME_Relative rel);
+
+
+/**
+ * Convert seconds after the UNIX epoch to absolute time.
+ *
+ * @param s_after_epoch seconds after epoch to convert
+ * @return converted time value
+ */
+struct GNUNET_TIME_Absolute
+GNUNET_TIME_absolute_from_s (uint64_t s_after_epoch);
+
+
+/**
  * Convert absolute time from network byte order.
  *
  * @param a time to convert
@@ -609,8 +647,8 @@ struct GNUNET_CONFIGURATION_Handle;
  * @return monotonically increasing time
  */
 struct GNUNET_TIME_Absolute
-GNUNET_TIME_absolute_get_monotonic (const struct
-                                    GNUNET_CONFIGURATION_Handle *cfg);
+GNUNET_TIME_absolute_get_monotonic (
+  const struct GNUNET_CONFIGURATION_Handle *cfg);
 
 
 #if 0                           /* keep Emacsens' auto-indent happy */

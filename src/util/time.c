@@ -470,6 +470,47 @@ GNUNET_TIME_absolute_hton (struct GNUNET_TIME_Absolute a)
 }
 
 
+bool
+GNUNET_TIME_absolute_is_never (struct GNUNET_TIME_Absolute abs)
+{
+  return abs.abs_value_us == GNUNET_TIME_UNIT_FOREVER_ABS.abs_value_us;
+}
+
+
+bool
+GNUNET_TIME_relative_is_forever (struct GNUNET_TIME_Relative rel)
+{
+  return rel.rel_value_us == GNUNET_TIME_UNIT_FOREVER_REL.rel_value_us;
+}
+
+
+struct GNUNET_TIME_Absolute
+GNUNET_TIME_absolute_from_ms (uint64_t ms_after_epoch)
+{
+  struct GNUNET_TIME_Absolute ret;
+
+  ret.abs_value_us = GNUNET_TIME_UNIT_MILLISECONDS.rel_value_us
+                     * ms_after_epoch;
+  if (ret.abs_value_us / GNUNET_TIME_UNIT_MILLISECONDS.rel_value_us !=
+      ms_after_epoch)
+    ret = GNUNET_TIME_UNIT_FOREVER_ABS;
+  return ret;
+}
+
+
+struct GNUNET_TIME_Absolute
+GNUNET_TIME_absolute_from_s (uint64_t s_after_epoch)
+{
+  struct GNUNET_TIME_Absolute ret;
+
+  ret.abs_value_us = GNUNET_TIME_UNIT_SECONDS.rel_value_us * s_after_epoch;
+  if (ret.abs_value_us / GNUNET_TIME_UNIT_SECONDS.rel_value_us !=
+      s_after_epoch)
+    ret = GNUNET_TIME_UNIT_FOREVER_ABS;
+  return ret;
+}
+
+
 struct GNUNET_TIME_Absolute
 GNUNET_TIME_absolute_ntoh (struct GNUNET_TIME_AbsoluteNBO a)
 {
