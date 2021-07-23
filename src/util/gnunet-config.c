@@ -74,6 +74,21 @@ static int rewrite;
  */
 static int full;
 
+/**
+ * If printing the value of CFLAGS has been requested.
+ */
+static int cflags;
+
+/**
+ * If printing the value of LIBS has been requested.
+ */
+static int libs;
+
+/**
+ * If printing the value of PREFIX has been requested.
+ */
+static int prefix;
+
 
 /**
  * Print each option in a given section.
@@ -150,6 +165,23 @@ run (void *cls,
 
   (void) cls;
   (void) args;
+  if (1 == cflags || 1 == libs || 1 == prefix)
+  {
+    /* These values are defined in the makefile */
+    if (1 == cflags)
+    {
+      fprintf (stdout, "%s\n", "-I"INCLUDEDIR);
+    }
+    if (1 == libs)
+    {
+      fprintf (stdout, "%s\n", "-L"LIBDIR" -lgnunetutil");
+    }
+    if (1 == prefix)
+    {
+      fprintf (stdout, "%s\n", PREFIX);
+    }
+    return;
+  }
   if (NULL != backend_check)
   {
     char *name;
@@ -364,6 +396,21 @@ main (int argc, char *const *argv)
                                  "VALUE",
                                  gettext_noop ("value to set"),
                                  &value),
+    GNUNET_GETOPT_option_flag ('C',
+                               "cflags",
+                               gettext_noop (
+                                 "Provide an appropriate value for CFLAGS to applications building on top of GNUnet"),
+                               &cflags),
+    GNUNET_GETOPT_option_flag ('j',
+                               "libs",
+                               gettext_noop (
+                                 "Provide an appropriate value for LIBS to applications building on top of GNUnet"),
+                               &libs),
+    GNUNET_GETOPT_option_flag ('p',
+                               "prefix",
+                               gettext_noop (
+                                 "Provide the path under which GNUnet was installed"),
+                               &prefix),
     GNUNET_GETOPT_OPTION_END
   };
   int ret;
