@@ -313,7 +313,7 @@ void
 GNUNET_PQ_reconnect_if_down (struct GNUNET_PQ_Context *db)
 {
   if (1 ==
-      PQ_consumeInput (db->conn))
+      PQconsumeInput (db->conn))
     return;
   if (CONNECTION_BAD != PQstatus (db->conn))
     return;
