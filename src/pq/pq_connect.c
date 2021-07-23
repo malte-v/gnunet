@@ -312,6 +312,9 @@ GNUNET_PQ_run_sql (struct GNUNET_PQ_Context *db,
 void
 GNUNET_PQ_reconnect_if_down (struct GNUNET_PQ_Context *db)
 {
+  if (1 ==
+      PQ_consumeInput (db->conn))
+    return;
   if (CONNECTION_BAD != PQstatus (db->conn))
     return;
   GNUNET_PQ_reconnect (db);
