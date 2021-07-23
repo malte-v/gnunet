@@ -28,6 +28,7 @@
 #include "gnunet_testing_ng_lib.h"
 #include "gnunet_peerstore_service.h"
 #include "gnunet_transport_core_service.h"
+#include "gnunet_transport_application_service.h"
 
 /**
  * Generic logging shortcut
@@ -483,11 +484,11 @@ GNUNET_TESTING_get_trait_connected_peers_map (const struct
 
 
 int
-GNUNET_TESTING_get_trait_application_handle (const struct
-                                             GNUNET_TESTING_Command *cmd,
-                                             struct
-                                             GNUNET_TRANSPORT_ApplicationHandle
-                                             **ah)
+GNUNET_TRANSPORT_get_trait_application_handle (const struct
+                                               GNUNET_TESTING_Command *cmd,
+                                               struct
+                                               GNUNET_TRANSPORT_ApplicationHandle
+                                               **ah)
 {
   return cmd->traits (cmd->cls,
                       (const void **) ah,
@@ -515,12 +516,12 @@ GNUNET_TESTING_get_trait_peer_id (const struct
  * @return command.
  */
 struct GNUNET_TESTING_Command
-GNUNET_TESTING_cmd_start_peer (const char *label,
-                               const char *system_label,
-                               char *m,
-                               char *n,
-                               struct GNUNET_MQ_MessageHandler *handlers,
-                               const char *cfgname)
+GNUNET_TRANSPORT_cmd_start_peer (const char *label,
+                                 const char *system_label,
+                                 char *m,
+                                 char *n,
+                                 struct GNUNET_MQ_MessageHandler *handlers,
+                                 const char *cfgname)
 {
   struct StartPeerState *sps;
   struct GNUNET_CONTAINER_MultiPeerMap *connected_peers_map =

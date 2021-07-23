@@ -398,15 +398,16 @@ plugin_LTLIBRARIES = \
   $(HTTPS_SERVER_PLUGIN_LA) \
   $(WLAN_PLUGIN_LA) \
   $(BT_PLUGIN_LA) 
-  # libgnunet_plugin_simple_send.la
+#  libgnunet_plugin_cmd_simple_send.la
 
 # libgnunet_plugin_cmd_simple_send_la_SOURCES = \
-#  plugin_cmd_simple_send.c
+# plugin_cmd_simple_send.c
 # libgnunet_plugin_cmd_simple_send_la_LIBADD = \
 #  $(top_builddir)/src/util/libgnunetutil.la \
 #  $(top_builddir)/src/testing/libgnunettesting.la \
 #  $(top_builddir)/src/statistics/libgnunetstatistics.la \
 #  $(top_builddir)/src/testbed/libgnunettestbed.la \
+#  libgnunettransport.la \
 #  $(LTLIBINTL)
 # libgnunet_plugin_cmd_simple_send_la_LDFLAGS = \
 #  $(GN_PLUGIN_LDFLAGS)

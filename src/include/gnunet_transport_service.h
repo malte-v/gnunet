@@ -686,6 +686,20 @@ GNUNET_TRANSPORT_core_get_mq (struct GNUNET_TRANSPORT_CoreHandle *handle,
                               const struct GNUNET_PeerIdentity *peer);
 
 
+struct GNUNET_TESTING_Command
+GNUNET_TRANSPORT_cmd_start_peer (const char *label,
+                                 const char *system_label,
+                                 char *m,
+                                 char *n,
+                                 struct GNUNET_MQ_MessageHandler *handlers,
+                                 const char *cfgname);
+
+struct GNUNET_TESTING_Command
+GNUNET_TRANSPORT_cmd_connect_peers (const char *label,
+                                    const char *peer1_label,
+                                    const char *peer2_label);
+
+
 #if 0 /* keep Emacsens' auto-indent happy */
 {
 #endif

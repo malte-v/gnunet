@@ -28,6 +28,7 @@
 #include "gnunet_testing_ng_lib.h"
 #include "gnunet_transport_application_service.h"
 #include "gnunet_hello_lib.h"
+#include "gnunet_transport_service.h"
 
 /**
  * Generic logging shortcut
@@ -59,8 +60,8 @@ connect_peers_run (void *cls,
   enum GNUNET_NetworkType nt = 0;
 
   peer1_cmd = GNUNET_TESTING_interpreter_lookup_command (cps->peer1_label);
-  GNUNET_TESTING_get_trait_application_handle (peer1_cmd,
-                                               &ah);
+  GNUNET_TRANSPORT_get_trait_application_handle (peer1_cmd,
+                                                 &ah);
 
   GNUNET_TESTING_get_trait_hello (peer1_cmd,
                                   &hello);
@@ -154,9 +155,9 @@ connect_peers_cleanup (void *cls,
  * @return command.
  */
 struct GNUNET_TESTING_Command
-GNUNET_TESTING_cmd_connect_peers (const char *label,
-                                  const char *peer1_label,
-                                  const char *peer2_label)
+GNUNET_TRANSPORT_cmd_connect_peers (const char *label,
+                                    const char *peer1_label,
+                                    const char *peer2_label)
 {
   struct ConnectPeersState *cps;
 

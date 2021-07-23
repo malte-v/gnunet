@@ -26,8 +26,9 @@
 #include "platform.h"
 #include "gnunet_testing_ng_lib.h"
 #include "gnunet_util_lib.h"
+#include "gnunet_transport_application_service.h"
+#include "gnunet_transport_service.h"
 #include "gnunet_testbed_ng_service.h"
-
 /**
  * Generic logging shortcut
  */
@@ -35,6 +36,20 @@
 
 #define BASE_DIR "testdir"
 
+struct GNUNET_MQ_MessageHandler *handlers;
+
+const char *cfgname;
+
+unsigned int are_all_peers_started;
+
+static void
+all_peers_started ()
+{
+  are_all_peers_started = GNUNET_YES;
+  LOG (GNUNET_ERROR_TYPE_ERROR,
+       "setting are_all_peers_started: %d\n",
+       are_all_peers_started);
+}
 
 static void
 start_testcase (TESTBED_CMD_HELPER_write_cb write_message, char *router_ip,
@@ -42,10 +57,9 @@ start_testcase (TESTBED_CMD_HELPER_write_cb write_message, char *router_ip,
                 char *m,
                 char *n)
 {
-  struct GNUNET_TIME_Absolute now = GNUNET_TIME_absolute_get ();
   char *testdir;
 
-  testdir = GNUNET_malloc (strlen (basedir) + strlen (m) + strlen (n)
+  testdir = GNUNET_malloc (strlen (BASE_DIR) + strlen (m) + strlen (n)
                            + 1);
 
   strcpy (testdir, BASE_DIR);
@@ -55,19 +69,19 @@ start_testcase (TESTBED_CMD_HELPER_write_cb write_message, char *router_ip,
   struct GNUNET_TESTING_Command commands[] = {
     GNUNET_TESTING_cmd_system_create ("system-create-1",
                                       testdir),
-    GNUNET_TESTING_cmd_start_peer ("start-peer-1",
-                                   "system-create-1",
-                                   m,
-                                   n,
-                                   struct GNUNET_MQ_MessageHandler *handlers,
-                                   const char *cfgname),
+    /*GNUNET_TRANSPORT_cmd_start_peer ("start-peer-1",
+                                     "system-create-1",
+                                     m,
+                                     n,
+                                     handlers,
+                                     cfgname),*/
     GNUNET_TESTING_cmd_send_peer_ready ("send-peer-ready-1",
                                         write_message),
     GNUNET_TESTING_cmd_block_until_all_peers_started ("block-1",
                                                       &are_all_peers_started),
-    GNUNET_TESTING_cmd_connect_peers ("connect-peers-1",
-                                      "start-peer-1",
-                                      "this is useless"),
+    /*GNUNET_TRANSPORT_cmd_connect_peers ("connect-peers-1",
+                                        "start-peer-1",
+                                        "this is useless"),*/
     /*GNUNET_TESTING_cmd_send_simple ("send-simple-1",
                                     char *m,
                                     char *n,

@@ -35,6 +35,8 @@
 #include "gnunet_constants.h"
 #include "gnunet_util_lib.h"
 #include "gnunet_nt_lib.h"
+#include "gnunet_testing_lib.h"
+#include "gnunet_testing_ng_lib.h"
 
 /**
  * Handle to the TRANSPORT subsystem for making suggestions about
@@ -113,6 +115,13 @@ GNUNET_TRANSPORT_application_validate (
   const struct GNUNET_PeerIdentity *peer,
   enum GNUNET_NetworkType nt,
   const char *addr);
+
+int
+GNUNET_TRANSPORT_get_trait_application_handle (const struct
+                                               GNUNET_TESTING_Command *cmd,
+                                               struct
+                                               GNUNET_TRANSPORT_ApplicationHandle
+                                               **ah);
 
 /** @} */ /* end of group */
 
