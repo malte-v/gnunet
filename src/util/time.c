@@ -491,6 +491,26 @@ GNUNET_TIME_relative_is_zero (struct GNUNET_TIME_Relative rel)
 }
 
 
+bool
+GNUNET_TIME_absolute_is_past (struct GNUNET_TIME_Absolute abs)
+{
+  struct GNUNET_TIME_Absolute now;
+
+  now = GNUNET_TIME_absolute_get ();
+  return abs.abs_value_us < now.abs_value_us;
+}
+
+
+bool
+GNUNET_TIME_absolute_is_future (struct GNUNET_TIME_Absolute abs)
+{
+  struct GNUNET_TIME_Absolute now;
+
+  now = GNUNET_TIME_absolute_get ();
+  return abs.abs_value_us > now.abs_value_us;
+}
+
+
 struct GNUNET_TIME_Absolute
 GNUNET_TIME_absolute_from_ms (uint64_t ms_after_epoch)
 {

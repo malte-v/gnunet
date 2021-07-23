@@ -549,6 +549,24 @@ GNUNET_TIME_absolute_is_never (struct GNUNET_TIME_Absolute abs);
 
 
 /**
+ * Test if @a abs is truly in the past (excluding now).
+ *
+ * @return true if it is.
+ */
+bool
+GNUNET_TIME_absolute_is_past (struct GNUNET_TIME_Absolute abs);
+
+
+/**
+ * Test if @a abs is truly in the future (excluding now).
+ *
+ * @return true if it is.
+ */
+bool
+GNUNET_TIME_absolute_is_future (struct GNUNET_TIME_Absolute abs);
+
+
+/**
  * Test if @a rel is forever.
  *
  * @return true if it is.
