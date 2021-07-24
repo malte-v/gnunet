@@ -1,3 +1,66 @@
+Fri, 23 Jul 2021 20:10:45 +0200 (be8bca817)
+introduce new TIME helper functions - Christian Grothoff
+
+Sat, 17 Jul 2021 20:13:36 +0200 (70de6f2ad)
+fix #6925 and #6926 - Christian Grothoff
+
+Tue, 6 Jul 2021 15:30:43 +0200 (b6521e32a)
+DHTU: skeleton for plugins - Christian Grothoff
+
+Mon, 5 Jul 2021 09:46:34 +0200 (7799411a8)
+HANDBOOK: Fix #6911 - Martin Schanzenbach
+
+Mon, 5 Jul 2021 09:42:54 +0200 (56af99b50)
+UTIL: Prevent segfaults in config writeout. Fixes #6913 - Martin Schanzenbach
+
+Thu, 1 Jul 2021 15:45:13 +0200 (b62520333)
+DHT: cleaner implementation of peer selection logic (use 64-bits, more readable code) - Christian Grothoff
+
+Mon, 28 Jun 2021 07:16:36 +0200 (3ae831780)
+BUILD: Fix bswap portability - Martin Schanzenbach
+
+Fri, 18 Jun 2021 13:47:35 +0200 (a7d06945b)
+fix debian package build - Christian Grothoff
+
+Wed, 16 Jun 2021 17:09:22 +0200 (1bc1fbda0)
+PQ: update libgnunetpq implementation to avoid duplicated nullable tests and to allow for the actual field name to differ from the fname, as done for example by the Taler amounts which are split over two DB fields - Christian Grothoff
+
+Sun, 6 Jun 2021 13:36:46 +0200 (1b18c4db2)
+GNS: Fix EdDSA lookup by zonekey TLD - Martin Schanzenbach
+
+Fri, 28 May 2021 10:54:08 +0200 (aa25216fe)
+IDENTITY: Add EdDSA switch to handbook and manpage - Martin Schanzenbach
+
+Sun, 16 May 2021 23:07:03 +0200 (c68abd271)
+[FCFSD] document it in the handbook - Alessio Vanni
+
+Mon, 10 May 2021 21:48:18 +0200 (96eddc25f)
+UTIL: Fix #6858 - Martin Schanzenbach
+
+Mon, 10 May 2021 21:43:12 +0200 (b66096531)
+CONVERSATION: Fix FTBFS for tests. #6857 - Martin Schanzenbach
+
+Sun, 2 May 2021 19:02:26 +0200 (2bca4006c)
+[FCFSD] Provide a better user experience - Alessio Vanni
+
+Sat, 1 May 2021 22:05:15 +0200 (572f4d6f7)
+GNS: Add EDKEY support. - Martin Schanzenbach
+
+Mon, 26 Apr 2021 15:08:16 +0200 (3a995fce4)
+fix gnunet-config: do not always write configuration file - Christian Grothoff
+
+Sat, 24 Apr 2021 17:29:42 +0200 (8233e2820)
+Swap gnunet-config's default behaviour for the rewrite flag - Alessio Vanni
+
+Mon, 22 Feb 2021 10:16:16 +0100 (3cd248236)
+RECLAIM: Added libpabc credential support. - Martin Schanzenbach
+
+Sun, 18 Apr 2021 21:11:08 +0200 (75cfa6370)
+SCALARPRODUCT: migrating logic from libgcrypt to libsodium (#6818). - Christian Grothoff
+
+Mon, 5 Apr 2021 12:37:53 +0200 (afa003863)
+GNS: Update to new identity of FCFS PIN. - Martin Schanzenbach
+
 Sat, 3 Apr 2021 09:40:46 +0200 (08fe7735b)
 handbook: Add section on commit messages and developer branches - Martin Schanzenbach
 
