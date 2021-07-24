@@ -80,7 +80,12 @@ on_message (void *cls, struct GNUNET_MESSENGER_Room *room, const struct GNUNET_M
     }
   case GNUNET_MESSENGER_KIND_TEXT:
     {
-      printf ("* '%s' says: \"%s\"\n", sender_name, message->body.text.text);
+      if (flags & GNUNET_MESSENGER_FLAG_SENT)
+        printf (">");
+      else
+        printf ("<");
+
+      printf (" '%s' says: \"%s\"\n", sender_name, message->body.text.text);
       break;
     }
   default:

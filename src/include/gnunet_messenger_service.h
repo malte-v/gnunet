@@ -499,6 +499,7 @@ struct GNUNET_MESSENGER_Message
 
 /**
  * Enum for the different supported flags used by message handling
+ * Compatible flags can be OR'ed together.
  */
 enum GNUNET_MESSENGER_MessageFlags
 {
@@ -508,9 +509,14 @@ enum GNUNET_MESSENGER_MessageFlags
   GNUNET_MESSENGER_FLAG_NONE = 0,
 
   /**
+   * The sent flag. The flag indicates that the message was sent by the client.
+   */
+  GNUNET_MESSENGER_FLAG_SENT = 1,
+
+  /**
    * The private flag. The flag indicates that the message was privately encrypted.
    */
-  GNUNET_MESSENGER_FLAG_PRIVATE = 1,
+  GNUNET_MESSENGER_FLAG_PRIVATE = 2,
 };
 
 /**
