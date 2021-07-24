@@ -346,6 +346,7 @@ GNUNET_PQ_event_listen_cancel (struct GNUNET_PQ_EventHandler *eh)
   }
   GNUNET_assert (0 ==
                  pthread_mutex_unlock (&db->notify_lock));
+  GNUNET_free (eh);
 }
 
 
@@ -364,7 +365,7 @@ GNUNET_PQ_event_notify (struct GNUNET_PQ_Context *db,
   end = es_to_channel (es,
                        end);
   end = stpcpy (end,
-                "'");
+                ", '");
   end = GNUNET_STRINGS_data_to_string (extra,
                                        extra_size,
                                        end,
