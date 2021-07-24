@@ -327,11 +327,29 @@ GNUNET_STRINGS_data_to_string_alloc (const void *buf,
  * @param out_size size of the output buffer @a out
  * @return #GNUNET_OK on success, #GNUNET_SYSERR if result has the wrong encoding
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_STRINGS_string_to_data (const char *enc,
                                size_t enclen,
                                void *out,
                                size_t out_size);
+
+
+/**
+ * Convert CrockfordBase32 encoding back to data.
+ * @a out_size will be determined from @a enc and
+ * @a out will be allocated to be large enough.
+ *
+ * @param enc the encoding
+ * @param enclen number of characters in @a enc (without 0-terminator, which can be missing)
+ * @param[out] out location where to allocate and store the decoded data
+ * @param[out] out_size set to the size of the output buffer @a out
+ * @return #GNUNET_OK on success, #GNUNET_SYSERR if result has the wrong encoding
+ */
+enum GNUNET_GenericReturnValue
+GNUNET_STRINGS_string_to_data_alloc (const char *enc,
+                                     size_t enclen,
+                                     void **out,
+                                     size_t *out_size);
 
 
 /**
@@ -359,7 +377,10 @@ GNUNET_STRINGS_base64_encode (const void *in,
  * @return the size of the output
  */
 size_t
-GNUNET_STRINGS_urlencode (const char *data, size_t len, char **out);
+GNUNET_STRINGS_urlencode (const char *data,
+                          size_t len,
+                          char **out);
+
 
 /**
  * Encode into Base64url. RFC7515
@@ -371,7 +392,9 @@ GNUNET_STRINGS_urlencode (const char *data, size_t len, char **out);
  * @return the size of the output
  */
 size_t
-GNUNET_STRINGS_base64url_encode (const void *in, size_t len, char **output);
+GNUNET_STRINGS_base64url_encode (const void *in,
+                                 size_t len,
+                                 char **output);
 
 
 /**
@@ -399,7 +422,9 @@ GNUNET_STRINGS_base64_decode (const char *data,
  * @return the size of the output
  */
 size_t
-GNUNET_STRINGS_base64url_decode (const char *data, size_t len, void **out);
+GNUNET_STRINGS_base64url_decode (const char *data,
+                                 size_t len,
+                                 void **out);
 
 /**
  * url/percent encode (RFC3986).
@@ -411,7 +436,9 @@ GNUNET_STRINGS_base64url_decode (const char *data, size_t len, void **out);
  * @return the size of the output
  */
 size_t
-GNUNET_STRINGS_urldecode (const char *data, size_t len, char **out);
+GNUNET_STRINGS_urldecode (const char *data,
+                          size_t len,
+                          char **out);
 
 
 /**
@@ -442,7 +469,7 @@ GNUNET_STRINGS_pp2s (const struct GNUNET_PeerIdentity *pids,
  *         an URI, '* scheme_part' and '*path_part' will remain unchanged
  *         (if they weren't NULL).
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_STRINGS_parse_uri (const char *path,
                           char **scheme_part,
                           const char **path_part);
@@ -462,7 +489,7 @@ GNUNET_STRINGS_parse_uri (const char *path,
  *        GNUNET_free (). Can be NULL.
  * @return #GNUNET_YES if 'filename' is absolute, #GNUNET_NO otherwise.
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_STRINGS_path_is_absolute (const char *filename,
                                  int can_be_uri,
                                  int *r_is_uri,
@@ -505,7 +532,7 @@ enum GNUNET_STRINGS_FilenameCheck
  * @return #GNUNET_YES if all checks pass, #GNUNET_NO if at least one of them
  *         fails, #GNUNET_SYSERR when a check can't be performed
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_STRINGS_check_filename (const char *filename,
                                enum GNUNET_STRINGS_FilenameCheck checks);
 
@@ -521,7 +548,7 @@ GNUNET_STRINGS_check_filename (const char *filename,
  * @return #GNUNET_OK if conversion succeeded. #GNUNET_SYSERR otherwise, in which
  *         case the contents of r_buf are undefined.
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_STRINGS_to_address_ipv6 (const char *zt_addr,
                                 uint16_t addrlen,
                                 struct sockaddr_in6 *r_buf);
@@ -537,7 +564,7 @@ GNUNET_STRINGS_to_address_ipv6 (const char *zt_addr,
  * @return #GNUNET_OK if conversion succeeded. #GNUNET_SYSERR otherwise, in which case
  *         the contents of r_buf are undefined.
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_STRINGS_to_address_ipv4 (const char *zt_addr,
                                 uint16_t addrlen,
                                 struct sockaddr_in *r_buf);
@@ -569,7 +596,7 @@ GNUNET_STRINGS_parse_socket_addr (const char *addr,
  * @return #GNUNET_OK if conversion succeeded. #GNUNET_SYSERR otherwise, in which
  *         case the contents of r_buf are undefined.
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_STRINGS_to_address_ip (const char *addr,
                               uint16_t addrlen,
                               struct sockaddr_storage *r_buf);
@@ -587,7 +614,7 @@ GNUNET_STRINGS_to_address_ip (const char *addr,
  * @param u8argv a location to store new argv in
  * @return #GNUNET_OK on success, #GNUNET_SYSERR on failure
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_STRINGS_get_utf8_args (int argc,
                               char *const *argv,
                               int *u8argc,
@@ -610,7 +637,9 @@ GNUNET_STRINGS_get_utf8_args (int argc,
  *         null byte
  */
 size_t
-GNUNET_strlcpy (char *dst, const char *src, size_t n);
+GNUNET_strlcpy (char *dst,
+                const char *src,
+                size_t n);
 
 
 /* ***************** IPv4/IPv6 parsing ****************** */

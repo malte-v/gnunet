@@ -1,6 +1,6 @@
 /*
    This file is part of GNUnet
-   Copyright (C) 2016, 2017, 2020 GNUnet e.V.
+   Copyright (C) 2016, 2017, 2020, 2021 GNUnet e.V.
 
    GNUnet is free software: you can redistribute it and/or modify it
    under the terms of the GNU Affero General Public License as published
@@ -853,6 +853,170 @@ GNUNET_PQ_reconnect (struct GNUNET_PQ_Context *db);
 
 
 /**
+ * Function called whenever the socket needed for 
+ * notifications from postgres changes.
+ *
+ * @param cls closure
+ * @param fd socket to listen on, -1 for none
+ */
+typedef void
+(*GNUNET_PQ_SocketCallback)(void *cls,
+                            int fd);
+
+
+/**
+ * Obtain the file descriptor to poll on for notifications.
+ * Useful if the GNUnet scheduler is NOT to be used for
+ * such notifications.
+ * 
+ * @param db database handle
+ * @param sc function to call with the socket
+ * @param sc_cls closure for @a sc
+ */
+void
+GNUNET_PQ_event_set_socket_callback (struct GNUNET_PQ_Context *db,
+                                     GNUNET_PQ_SocketCallback sc,
+                                     void *sc_cls);
+
+
+/**
+ * Poll for database events now.  Used if the event FD
+ * is ready and the application wants to trigger applicable
+ * events.
+ * Useful if the GNUnet scheduler is NOT to be used for
+ * such notifications.
+ *
+ * @param db database handle
+ */
+void
+GNUNET_PQ_event_do_poll (struct GNUNET_PQ_Context *db);
+
+
+/**
+ * Run poll event loop using the GNUnet scheduler.
+ *
+ * @param db database handle
+ */
+void
+GNUNET_PQ_event_scheduler_start (struct GNUNET_PQ_Context *db);
+
+
+/**
+ * Stop running poll event loop using the GNUnet scheduler.
+ *
+ * @param db database handle
+ */
+void
+GNUNET_PQ_event_scheduler_stop (struct GNUNET_PQ_Context *db);
+
+
+/**
+ * Handle for an active LISTENer to the database.
+ */ 
+struct GNUNET_PQ_EventHandler;
+
+/**
+ * Function called on events received from Postgres.
+ *
+ * @param cls closure
+ * @param extra additional event data provided
+ * @param extra_size number of bytes in @a extra
+ */
+typedef void
+(*GNUNET_PQ_EventCallback)(void *cls,
+                           const void *extra,
+                           size_t extra_size);
+
+GNUNET_NETWORK_STRUCT_BEGIN
+
+
+/**
+ * Header of a structure that describes an
+ * event channel we may subscribe to or notify on.
+ */
+struct GNUNET_PQ_EventHeaderP
+{
+  /**
+   * The length of the struct (in bytes, including the length field itself),
+   * in big-endian format.
+   */
+  uint16_t size GNUNET_PACKED;
+
+  /**
+   * The type of the message (GNUNET_PQ_EVENT_TYPE_XXXX), in big-endian format.
+   */
+  uint16_t type GNUNET_PACKED;
+
+};
+
+GNUNET_NETWORK_STRUCT_END
+
+
+/**
+ * Handle for an active LISTENer to the database.
+ */ 
+struct GNUNET_PQ_EventHandler;
+
+/**
+ * Register callback to be invoked on events of type @a es.
+ * 
+ * Unlike many other calls, this function is thread-safe
+ * and may be called from threads that are different
+ * from the one that setup @a db. However, the @a cb
+ * will always be called from the thread that runs
+ * #GNUNET_PQ_event_do_poll() or the GNUnet scheduler.
+ *
+ * @param db database context to use
+ * @param es specification of the event to listen for
+ * @param cb function to call when the event happens, possibly
+ *         multiple times (until #GNUNET_PQ_event_listen_cancel() is invoked)
+ * @param cb_cls closure for @a cb
+ * @return handle useful to cancel the listener
+ */
+struct GNUNET_PQ_EventHandler *
+GNUNET_PQ_event_listen (struct GNUNET_PQ_Context *db,
+                        const struct GNUNET_PQ_EventHeaderP *es,
+                        GNUNET_PQ_EventCallback cb,
+                        void *cb_cls);
+
+
+/**
+ * Stop notifications.
+ * 
+ * Unlike many other calls, this function is thread-safe
+ * and may be called from threads that are different
+ * from the one that setup @a db. However, the @a cb
+ * will always be called from the thread that runs
+ * #GNUNET_PQ_event_do_poll() or the GNUnet scheduler.
+ *
+ * @param eh handle to unregister.
+ */
+void
+GNUNET_PQ_event_listen_cancel (struct GNUNET_PQ_EventHandler *eh);
+
+
+/**
+ * Notify all that listen on @a es of an event.
+ * 
+ * Unlike many other calls, this function is thread-safe
+ * and may be called from threads that are different
+ * from the one that setup @a db. However, the @a cb
+ * will always be called from the thread that runs
+ * #GNUNET_PQ_event_do_poll() or the GNUnet scheduler.
+ *
+ * @param db database context to use
+ * @param es specification of the event to generate
+ * @param extra additional event data provided
+ * @param extra_size number of bytes in @a extra
+ */
+void
+GNUNET_PQ_event_notify (struct GNUNET_PQ_Context *db,
+                        const struct GNUNET_PQ_EventHeaderP *es,
+                        const void *extra,
+                        size_t extra_size);
+
+
+/**
  * Within the @a db context, run all the SQL files
  * from the @a load_path from 0000-9999.sql (as long
  * as the files exist contiguously).
@@ -861,7 +1025,7 @@ GNUNET_PQ_reconnect (struct GNUNET_PQ_Context *db);
  * @param load_path where to find the XXXX.sql files
  * @return #GNUNET_OK on success
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_PQ_run_sql (struct GNUNET_PQ_Context *db,
                    const char *load_path);
 

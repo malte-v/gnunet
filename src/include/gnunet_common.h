@@ -435,11 +435,12 @@ enum GNUNET_ErrorType
  * @param date when was the message logged?
  * @param message what is the message
  */
-typedef void (*GNUNET_Logger) (void *cls,
-                               enum GNUNET_ErrorType kind,
-                               const char *component,
-                               const char *date,
-                               const char *message);
+typedef void
+(*GNUNET_Logger) (void *cls,
+                  enum GNUNET_ErrorType kind,
+                  const char *component,
+                  const char *date,
+                  const char *message);
 
 
 /**

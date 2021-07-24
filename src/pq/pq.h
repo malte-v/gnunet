@@ -57,6 +57,26 @@ struct GNUNET_PQ_Context
    * Path to load SQL files from.
    */
   char *load_path;
+
+  /**
+   * Function to call on Postgres FDs.
+   */
+  GNUNET_PQ_SocketCallback sc;
+
+  /**
+   * Closure for @e sc.
+   */
+  void *sc_cls;
+
+  /**
+   * Map managing event subscriptions.
+   */
+  struct GNUNET_CONTAINER_MultiShortmap *channel_map;
+
+  /**
+   * Lock to access @e channel_map.
+   */
+  pthread_mutex_t notify_lock;
 };
 
 #endif

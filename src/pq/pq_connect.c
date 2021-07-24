@@ -209,7 +209,7 @@ apply_patch (struct GNUNET_PQ_Context *db,
  * @param load_path where to find the XXXX.sql files
  * @return #GNUNET_OK on success
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_PQ_run_sql (struct GNUNET_PQ_Context *db,
                    const char *load_path)
 {

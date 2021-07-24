@@ -116,7 +116,6 @@ parse_variable_data (void *cls,
   const char *str;
   size_t size;
   void *data;
-  int res;
 
   str = json_string_value (root);
   if (NULL == str)
@@ -124,30 +123,13 @@ parse_variable_data (void *cls,
     GNUNET_break_op (0);
     return GNUNET_SYSERR;
   }
-  size = (strlen (str) * 5) / 8;
-  if (size >= GNUNET_MAX_MALLOC_CHECKED)
+  if (GNUNET_OK !=
+      GNUNET_STRINGS_string_to_data_alloc (str,
+                                           strlen (str),
+                                           &data,
+                                           &size))
   {
     GNUNET_break_op (0);
-    return GNUNET_SYSERR;
-  }
-  data = GNUNET_malloc (size);
-  res = GNUNET_STRINGS_string_to_data (str,
-                                       strlen (str),
-                                       data,
-                                       size);
-  if ( (0 < size) &&
-       (GNUNET_OK != res) )
-  {
-    size--;
-    res = GNUNET_STRINGS_string_to_data (str,
-                                         strlen (str),
-                                         data,
-                                         size);
-  }
-  if (GNUNET_OK != res)
-  {
-    GNUNET_break_op (0);
-    GNUNET_free (data);
     return GNUNET_SYSERR;
   }
   *(void **) spec->ptr = data;
