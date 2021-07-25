@@ -235,17 +235,100 @@ GNUNET_PQ_event_do_poll (struct GNUNET_PQ_Context *db)
 }
 
 
+/**
+ * Function called when the Postgres FD changes and we need
+ * to update the scheduler event loop task.
+ *
+ * @param cls a `struct GNUNET_PQ_Context *`
+ * @param fd the file descriptor, possibly -1
+ */
+static void
+scheduler_fd_cb (void *cls,
+                 int fd);
+
+
+/**
+ * The GNUnet scheduler notifies us that we need to
+ * trigger the DB event poller.
+ *
+ * @param cls a `struct GNUNET_PQ_Context *`
+ */
+static void
+do_scheduler_notify (void *cls)
+{
+  struct GNUNET_PQ_Context *db = cls;
+
+  GNUNET_assert (db->scheduler_on);
+  GNUNET_assert (NULL != db->rfd);
+  GNUNET_PQ_event_do_poll (db);
+  db->event_task
+    = GNUNET_SCHEDULER_add_read_net (GNUNET_TIME_UNIT_ZERO,
+                                     db->rfd,
+                                     &do_scheduler_notify,
+                                     db);  
+}
+
+
+/**
+ * Function called when the Postgres FD changes and we need
+ * to update the scheduler event loop task.
+ *
+ * @param cls a `struct GNUNET_PQ_Context *`
+ * @param fd the file descriptor, possibly -1
+ */
+static void
+scheduler_fd_cb (void *cls,
+                 int fd)
+{
+  struct GNUNET_PQ_Context *db = cls;
+  
+  if (NULL != db->event_task)
+  {
+    GNUNET_SCHEDULER_cancel (db->event_task);
+    db->event_task = NULL;
+  }
+  GNUNET_free (db->rfd);
+  if (-1 == fd)
+    return;
+  if (0 == GNUNET_CONTAINER_multishortmap_size (db->channel_map))
+    return;
+  db->rfd = GNUNET_NETWORK_socket_box_native (fd);
+  db->event_task
+    = GNUNET_SCHEDULER_add_read_net (GNUNET_TIME_UNIT_ZERO,
+                                     db->rfd,
+                                     &do_scheduler_notify,
+                                     db);
+}
+
+
 void
 GNUNET_PQ_event_scheduler_start (struct GNUNET_PQ_Context *db)
 {
-  GNUNET_break (0); // FIXME: not implemented
+  int fd;
+  
+  GNUNET_assert (! db->scheduler_on);
+  GNUNET_assert (NULL == db->sc);
+  db->scheduler_on = true;
+  db->sc = &scheduler_fd_cb;
+  db->sc_cls = db;
+  fd = PQsocket (db->conn);
+  scheduler_fd_cb (db,
+                   fd);
 }
 
 
 void
 GNUNET_PQ_event_scheduler_stop (struct GNUNET_PQ_Context *db)
 {
-  GNUNET_break (0); // FIXME: not implemented
+  GNUNET_assert (db->scheduler_on);
+  GNUNET_free (db->rfd);
+  db->sc = NULL;
+  db->scheduler_on = false;
+  if (NULL != db->event_task)
+  {
+    GNUNET_SCHEDULER_cancel (db->event_task);
+    db->event_task = NULL;
+  }
 }
 
 

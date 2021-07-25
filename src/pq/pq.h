@@ -77,6 +77,21 @@ struct GNUNET_PQ_Context
    * Lock to access @e channel_map.
    */
   pthread_mutex_t notify_lock;
+
+  /**
+   * Task responsible for processing events.
+   */
+  struct GNUNET_SCHEDULER_Task *event_task;
+
+  /**
+   * File descriptor wrapper for @e event_task.
+   */
+  struct GNUNET_NETWORK_Handle *rfd;
+  
+  /**
+   * Is scheduling via the GNUnet scheduler desired?
+   */
+  bool scheduler_on;
 };
 
 #endif
