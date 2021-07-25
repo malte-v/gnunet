@@ -227,11 +227,6 @@ gnunet_config_SOURCES = \
 gnunet_config_LDADD = \
   libgnunetutil.la \
   $(GN_LIBINTL)
-gnunet_config_CPPFLAGS = \
- -DINCLUDEDIR=\"$(includedir)\" \
- -DLIBDIR=\"$(libdir)\" \
- -DPREFIX=\"$(prefix)\" \
- $(AM_CPPFLAGS)
 
 gnunet_uri_SOURCES = \
  gnunet-uri.c

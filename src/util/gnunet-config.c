@@ -167,19 +167,22 @@ run (void *cls,
   (void) args;
   if (1 == cflags || 1 == libs || 1 == prefix)
   {
-    /* These values are defined in the makefile */
+    char *prefixdir = GNUNET_OS_installation_get_path (GNUNET_OS_IPK_PREFIX);
+    char *libdir = GNUNET_OS_installation_get_path (GNUNET_OS_IPK_LIBDIR);
     if (1 == cflags)
     {
-      fprintf (stdout, "%s\n", "-I"INCLUDEDIR);
+      fprintf (stdout, "-I%sinclude\n", prefixdir);
     }
     if (1 == libs)
     {
-      fprintf (stdout, "%s\n", "-L"LIBDIR" -lgnunetutil");
+      fprintf (stdout, "-L%s -lgnunetutil\n", libdir);
     }
     if (1 == prefix)
     {
-      fprintf (stdout, "%s\n", PREFIX);
+      fprintf (stdout, "%s\n", prefixdir);
     }
+    GNUNET_free (prefixdir);
+    GNUNET_free (libdir);
     return;
   }
   if (NULL != backend_check)
