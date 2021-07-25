@@ -94,4 +94,15 @@ struct GNUNET_PQ_Context
   bool scheduler_on;
 };
 
+
+/**
+ * Internal API. Reconnect should re-register notifications
+ * after a disconnect.
+ *
+ * @param db the DB handle
+ */
+void
+GNUNET_PQ_event_reconnect_ (struct GNUNET_PQ_Context *db);
+
+
 #endif

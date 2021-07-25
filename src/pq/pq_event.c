@@ -365,6 +365,42 @@ manage_subscribe (struct GNUNET_PQ_Context *db,
 }
 
 
+/**
+ * Re-subscribe to notifications after disconnect.
+ *
+ * @param cls the DB context
+ * @param sh the short hash of the channel
+ * @param eh the event handler
+ * @return #GNUNET_OK to continue to iterate
+ */
+static int
+register_notify (void *cls,
+                 const struct GNUNET_ShortHashCode *sh,
+                 void *value)
+{
+  struct GNUNET_PQ_Context *db = cls;
+  struct GNUNET_PQ_EventHandler *eh = value;
+  
+  manage_subscribe (db,
+                    "LISTEN ",
+                    eh);
+  return GNUNET_OK;
+} 
+
+
+void
+GNUNET_PQ_event_reconnect_ (struct GNUNET_PQ_Context *db)
+{
+  GNUNET_assert (0 ==
+                 pthread_mutex_lock (&db->notify_lock));
+  GNUNET_CONTAINER_multishortmap_iterate (db->channel_map,
+                                          &register_notify,
+                                          db);
+  GNUNET_assert (0 ==
+                 pthread_mutex_unlock (&db->notify_lock));
+}
+
+
 struct GNUNET_PQ_EventHandler *
 GNUNET_PQ_event_listen (struct GNUNET_PQ_Context *db,
                         const struct GNUNET_PQ_EventHeaderP *es,

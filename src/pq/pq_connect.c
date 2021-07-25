@@ -416,6 +416,7 @@ GNUNET_PQ_reconnect (struct GNUNET_PQ_Context *db)
     db->conn = NULL;
     return;
   }
+  GNUNET_PQ_event_reconnect_ (db);
   if ( (NULL != db->sc) &&
        (0 != GNUNET_CONTAINER_multishortmap_size (db->channel_map)) )
     db->sc (db->sc_cls,
