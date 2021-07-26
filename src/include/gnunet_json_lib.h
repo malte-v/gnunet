@@ -539,7 +539,7 @@ struct GNUNET_JSON_PackSpec;
  * @return json object to pack, NULL to pack nothing
  */
 typedef json_t *
-(GNUNET_JSON_PackCallback)(const struct GNUNET_JSON_PackSpec *se);
+(*GNUNET_JSON_PackCallback)(const struct GNUNET_JSON_PackSpec *se);
 
 
 /**
@@ -809,8 +809,8 @@ GNUNET_JSON_pack_time_rel (const char *name,
  * @return json pack specification
  */
 struct GNUNET_JSON_PackSpec
-GNUNET_JSON_pack_time_rel (const char *name,
-                           struct GNUNET_TIME_RelativeNBO rt);
+GNUNET_JSON_pack_time_rel_nbo (const char *name,
+                               struct GNUNET_TIME_RelativeNBO rt);
 
 
 /**
@@ -835,8 +835,8 @@ GNUNET_JSON_pack_rsa_public_key (const char *name,
  * @return json pack specification
  */
 struct GNUNET_JSON_PackSpec
-GNUNET_JSON_pack_ (const char *name,
-                   const struct GNUNET_CRYPTO_RsaSignature *sig);
+GNUNET_JSON_pack_rsa_signature (const char *name,
+                                const struct GNUNET_CRYPTO_RsaSignature *sig);
 
 
 #endif
