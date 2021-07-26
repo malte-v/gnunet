@@ -553,26 +553,9 @@ struct GNUNET_JSON_PackSpec
   const char *field_name;
 
   /**
-   * Function that will do the packing.
+   * Object to pack.
    */
-  GNUNET_JSON_PackCallback *packer;
-
-  /**
-   * Closure for @e packer.
-   */
-  void *packer_cls;
-
-  /**
-   * Pointer to be provided to the packer.
-   */
-  const void *value_ptr;
-
-  /**
-   * Numeric value for the packer, could be
-   * the length of the data in @e value_ptr,
-   * or something different depending on the type.
-   */
-  uint64_t value_num;
+  json_t *object;
   
   /**
    * True if a NULL (or 0) argument is allowed. In this

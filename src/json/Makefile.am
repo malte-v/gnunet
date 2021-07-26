@@ -16,9 +16,10 @@ libgnunetjson_la_LDFLAGS = \
 libgnunetjson_la_CFLAGS = $(MHD_CFLAGS) $(AM_CFLAGS)
 libgnunetjson_la_SOURCES = \
   json.c \
-  json_mhd.c \
   json_generator.c \
-  json_helper.c
+  json_helper.c \
+  json_mhd.c \
+  json_pack.c
 libgnunetjson_la_LIBADD = \
   $(top_builddir)/src/util/libgnunetutil.la \
   -ljansson \
