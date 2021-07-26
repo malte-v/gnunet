@@ -555,7 +555,7 @@ struct GNUNET_JSON_PackSpec
   /**
    * Function that will do the packing.
    */
-  GNUNET_JSON_PackCallback packer;
+  GNUNET_JSON_PackCallback *packer;
 
   /**
    * Closure for @e packer.
