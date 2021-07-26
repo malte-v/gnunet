@@ -521,6 +521,324 @@ GNUNET_JSON_getopt (char shortName,
                     const char *description,
                     json_t **json);
 
+
+/* ****************** JSON PACK helper ******************* */
+
+
+/**
+ * Element in the array to give to the packer.
+ */
+struct GNUNET_JSON_PackSpec;
+
+
+/**
+ * Function called to pack an element into the JSON
+ * object as part of #GNUNET_JSON_pack_().
+ *
+ * @param se pack specification to execute
+ * @return json object to pack, NULL to pack nothing
+ */
+typedef json_t *
+(GNUNET_JSON_PackCallback)(const struct GNUNET_JSON_PackSpec *se);
+
+
+/**
+ * Element in the array to give to the packer.
+ */
+struct GNUNET_JSON_PackSpec
+{
+  /**
+   * Name of the field to pack.
+   */
+  const char *field_name;
+
+  /**
+   * Function that will do the packing.
+   */
+  GNUNET_JSON_PackCallback packer;
+
+  /**
+   * Closure for @e packer.
+   */
+  void *packer_cls;
+
+  /**
+   * Pointer to be provided to the packer.
+   */
+  const void *value_ptr;
+
+  /**
+   * Numeric value for the packer, could be
+   * the length of the data in @e value_ptr,
+   * or something different depending on the type.
+   */
+  uint64_t value_num;
+  
+  /**
+   * True if a NULL (or 0) argument is allowed. In this
+   * case, if the argument is NULL the @e packer should
+   * return NULL and the field should be skipped (omitted from
+   * the generated object) and not be serialized at all.
+   */
+  bool allow_null;
+};
+
+
+/**
+ * Pack a JSON object from a @a spec. Aborts if
+ * packing fails.
+ *
+ * @param spec specification object
+ * @return JSON object
+ */
+json_t *
+GNUNET_JSON_pack_ (struct GNUNET_JSON_PackSpec spec[]);
+
+
+/**
+ * Pack a JSON object from a @a spec. Aborts if
+ * packing fails.
+ *
+ * @param ... list of specification objects
+ * @return JSON object
+ */
+#define GNUNET_JSON_PACK(...) \
+  GNUNET_JSON_pack_ ((struct GNUNET_JSON_PackSpec[]) {__VA_ARGS__, GNUNET_JSON_pack_end_ ()})
+
+
+/**
+ * Do not use directly. Use #GNUNET_JSON_PACK.
+ *
+ * @return array terminator
+ */
+struct GNUNET_JSON_PackSpec
+GNUNET_JSON_pack_end_(void);
+
+
+/**
+ * Modify packer instruction to allow NULL as a value.
+ * 
+ * @param in json pack specification to modify
+ * @return json pack specification
+ */
+struct GNUNET_JSON_PackSpec
+GNUNET_JSON_pack_allow_null (struct GNUNET_JSON_PackSpec in);
+
+
+/**
+ * Generate packer instruction for a JSON field of type
+ * bool.
+ * 
+ * @param name name of the field to add to the object
+ * @param b boolean value
+ * @return json pack specification
+ */
+struct GNUNET_JSON_PackSpec
+GNUNET_JSON_pack_bool (const char *name,
+                       bool b);
+
+
+/**
+ * Generate packer instruction for a JSON field of type
+ * string.
+ * 
+ * @param name name of the field to add to the object
+ * @param s string value
+ * @return json pack specification
+ */
+struct GNUNET_JSON_PackSpec
+GNUNET_JSON_pack_string (const char *name,
+                         const char *s);
+
+
+/**
+ * Generate packer instruction for a JSON field of type
+ * unsigned integer. Note that the maximum allowed 
+ * value is still limited by JSON and not UINT64_MAX.
+ * 
+ * @param name name of the field to add to the object
+ * @param num numeric value
+ * @return json pack specification
+ */
+struct GNUNET_JSON_PackSpec
+GNUNET_JSON_pack_uint64 (const char *name,
+                         uint64_t num);
+
+
+/**
+ * Generate packer instruction for a JSON field of type
+ * signed integer.
+ * 
+ * @param name name of the field to add to the object
+ * @param num numeric value
+ * @return json pack specification
+ */
+struct GNUNET_JSON_PackSpec
+GNUNET_JSON_pack_int64 (const char *name,
+                         int64_t num);
+
+
+/**
+ * Generate packer instruction for a JSON field of type
+ * JSON object where the reference is taken over by
+ * the packer.
+ * 
+ * @param name name of the field to add to the object
+ * @param o object to steal
+ * @return json pack specification
+ */
+struct GNUNET_JSON_PackSpec
+GNUNET_JSON_pack_object_steal (const char *name,
+                               json_t *o);
+
+
+/**
+ * Generate packer instruction for a JSON field of type JSON object where the
+ * reference counter is incremented by the packer.  Note that a deep copy is
+ * not performed.
+ * 
+ * @param name name of the field to add to the object
+ * @param o object to increment reference counter of
+ * @return json pack specification
+ */
+struct GNUNET_JSON_PackSpec
+GNUNET_JSON_pack_object_incref (const char *name,
+                                json_t *o);
+
+
+/**
+ * Generate packer instruction for a JSON field of type
+ * JSON array where the reference is taken over by
+ * the packer.
+ * 
+ * @param name name of the field to add to the object
+ * @param a array to steal
+ * @return json pack specification
+ */
+struct GNUNET_JSON_PackSpec
+GNUNET_JSON_pack_array_steal (const char *name,
+                              json_t *a);
+
+
+/**
+ * Generate packer instruction for a JSON field of type JSON array where the
+ * reference counter is incremented by the packer.  Note that a deep copy is
+ * not performed.
+ * 
+ * @param name name of the field to add to the object
+ * @param a array to increment reference counter of
+ * @return json pack specification
+ */
+struct GNUNET_JSON_PackSpec
+GNUNET_JSON_pack_array_incref (const char *name,
+                               json_t *a);
+
+
+/**
+ * Generate packer instruction for a JSON field of type
+ * variable size binary blob.
+ * 
+ * @param name name of the field to add to the object
+ * @param blob binary data to pack
+ * @param blob_size number of bytes in @a blob
+ * @return json pack specification
+ */
+struct GNUNET_JSON_PackSpec
+GNUNET_JSON_pack_data_varsize (const char *name,
+                               const void *blob,
+                               size_t blob_size);
+
+
+/**
+ * Generate packer instruction for a JSON field where the
+ * size is automatically determined from the argument.
+ * 
+ * @param name name of the field to add to the object
+ * @param blob data to pack, must not be an array
+ * @return json pack specification
+ */
+#define GNUNET_JSON_pack_data_auto(name,blob) \
+  GNUNET_JSON_pack_data_varsize (name, blob, sizeof (*blob))
+
+
+/**
+ * Generate packer instruction for a JSON field of type
+ * absolute time.
+ *
+ * @param name name of the field to add to the object
+ * @param at absolute time to pack
+ * @return json pack specification
+ */
+struct GNUNET_JSON_PackSpec
+GNUNET_JSON_pack_time_abs (const char *name,
+                           struct GNUNET_TIME_Absolute at);
+
+
+/**
+ * Generate packer instruction for a JSON field of type
+ * absolute time in network byte order.
+ *
+ * @param name name of the field to add to the object
+ * @param at absolute time to pack
+ * @return json pack specification
+ */
+struct GNUNET_JSON_PackSpec
+GNUNET_JSON_pack_time_abs_nbo (const char *name,
+                               struct GNUNET_TIME_AbsoluteNBO at);
+
+
+/**
+ * Generate packer instruction for a JSON field of type
+ * relative time.
+ *
+ * @param name name of the field to add to the object
+ * @param rt relative time to pack
+ * @return json pack specification
+ */
+struct GNUNET_JSON_PackSpec
+GNUNET_JSON_pack_time_rel (const char *name,
+                           struct GNUNET_TIME_Relative rt);
+
+
+/**
+ * Generate packer instruction for a JSON field of type
+ * relative time in network byte order.
+ *
+ * @param name name of the field to add to the object
+ * @param rt relative time to pack
+ * @return json pack specification
+ */
+struct GNUNET_JSON_PackSpec
+GNUNET_JSON_pack_time_rel (const char *name,
+                           struct GNUNET_TIME_RelativeNBO rt);
+
+
+/**
+ * Generate packer instruction for a JSON field of type
+ * RSA public key.
+ * 
+ * @param name name of the field to add to the object
+ * @param pk RSA public key
+ * @return json pack specification
+ */
+struct GNUNET_JSON_PackSpec
+GNUNET_JSON_pack_rsa_public_key (const char *name,
+                                 const struct GNUNET_CRYPTO_RsaPublicKey *pk);
+
+
+/**
+ * Generate packer instruction for a JSON field of type
+ * RSA signature.
+ * 
+ * @param name name of the field to add to the object
+ * @param sig RSA signature
+ * @return json pack specification
+ */
+struct GNUNET_JSON_PackSpec
+GNUNET_JSON_pack_ (const char *name,
+                   const struct GNUNET_CRYPTO_RsaSignature *sig);
+
+
 #endif
 
 /* end of gnunet_json_lib.h */
