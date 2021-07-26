@@ -44,6 +44,7 @@ libgnunet_plugin_testcmd_la_SOURCES = \
   plugin_testcmd.c
 libgnunet_plugin_testcmd_la_LIBADD = \
   $(top_builddir)/src/util/libgnunetutil.la \
+  $(top_builddir)/src/arm/libgnunetarm.la \
   $(top_builddir)/src/testing/libgnunettesting.la \
   $(top_builddir)/src/statistics/libgnunetstatistics.la \
   libgnunettestbed.la \
