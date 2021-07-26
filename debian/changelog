@@ -1,3 +1,9 @@
+gnunet (0.14.1-6) unstable; urgency=low
+
+  * Fix path resolution of inlined config files.
+
+ -- Florian Dold <florian@dold.me>  Mon, 26 Jul 2021 19:35:45 +0200
+
 gnunet (0.14.1-5) unstable; urgency=low
 
   * New JSON construction helpers.
