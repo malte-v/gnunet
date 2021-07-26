@@ -1,3 +1,9 @@
+gnunet (0.14.1-5) unstable; urgency=low
+
+  * New JSON construction helpers.
+
+ -- Florian Dold <florian@dold.me>  Mon, 26 Jul 2021 17:49:20 +0200
+
 gnunet (0.14.1-4) unstable; urgency=low
 
   * New absolute/relative time helpers.
