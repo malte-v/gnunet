@@ -341,6 +341,7 @@ GNUNET_CONFIGURATION_deserialize (struct GNUNET_CONFIGURATION_Handle *cfg,
                          "%s/%s",
                          basedir_realpath,
                          value);
+        free (basedir_realpath);
       }
       if (GNUNET_OK !=
           GNUNET_CONFIGURATION_parse (cfg,
