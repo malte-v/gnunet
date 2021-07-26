@@ -94,6 +94,11 @@ struct GNUNET_CONFIGURATION_Handle
    * #GNUNET_SYSERR on error (i.e. last save failed)
    */
   enum GNUNET_GenericReturnValue dirty;
+
+  /**
+   * Name of the entry point configuration file.
+   */
+  char *main_filename;
 };
 
 
@@ -230,7 +235,7 @@ enum GNUNET_GenericReturnValue
 GNUNET_CONFIGURATION_deserialize (struct GNUNET_CONFIGURATION_Handle *cfg,
                                   const char *mem,
                                   size_t size,
-                                  const char *basedir)
+                                  const char *source_filename)
 {
   char *line;
   char *line_orig;
@@ -310,10 +315,11 @@ GNUNET_CONFIGURATION_deserialize (struct GNUNET_CONFIGURATION_Handle *cfg,
     {
       char *inline_path;
 
-      if (NULL == basedir)
+      if (NULL == source_filename)
       {
         LOG (GNUNET_ERROR_TYPE_DEBUG,
-             "Ignoring parsing @INLINE@ configurations, not allowed!\n");
+             "Refusing to parse @INLINE@ configurations, "
+             "not allowed without source filename!\n");
         ret = GNUNET_SYSERR;
         break;
       }
@@ -326,22 +332,26 @@ GNUNET_CONFIGURATION_deserialize (struct GNUNET_CONFIGURATION_Handle *cfg,
         /* We compute the canonical, absolute path first,
            so that relative imports resolve properly with symlinked
            config files.  */
-        char *basedir_realpath;
+        char *source_realpath;
+        char *endsep;
 
-        basedir_realpath = realpath (basedir,
-                                     NULL);
-        if (NULL == basedir_realpath)
+        source_realpath = realpath (source_filename,
+                                    NULL);
+        if (NULL == source_realpath)
         {
           /* Couldn't even resolve path of base dir. */
           GNUNET_break (0);
           ret = GNUNET_SYSERR;       /* failed to parse included config */
           break;
         }
+        endsep = strrchr (source_realpath, '/');
+        GNUNET_assert (NULL != endsep);
+        *endsep = '\0';
         GNUNET_asprintf (&inline_path,
                          "%s/%s",
-                         basedir_realpath,
+                         source_realpath,
                          value);
-        free (basedir_realpath);
+        free (source_realpath);
       }
       if (GNUNET_OK !=
           GNUNET_CONFIGURATION_parse (cfg,
@@ -415,7 +425,6 @@ GNUNET_CONFIGURATION_parse (struct GNUNET_CONFIGURATION_Handle *cfg,
   size_t fs;
   char *fn;
   char *mem;
-  char *endsep;
   int dirty;
   enum GNUNET_GenericReturnValue ret;
   ssize_t sret;
@@ -451,9 +460,6 @@ GNUNET_CONFIGURATION_parse (struct GNUNET_CONFIGURATION_Handle *cfg,
     return GNUNET_SYSERR;
   }
   LOG (GNUNET_ERROR_TYPE_DEBUG, "Deserializing contents of file `%s'\n", fn);
-  endsep = strrchr (fn, (int) '/');
-  if (NULL != endsep)
-    *endsep = '\0';
   ret = GNUNET_CONFIGURATION_deserialize (cfg,
                                           mem,
                                           fs,
