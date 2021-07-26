@@ -309,7 +309,6 @@ GNUNET_CONFIGURATION_deserialize (struct GNUNET_CONFIGURATION_Handle *cfg,
                           strlen ("@INLINE@ ")))
     {
       char *inline_path;
-      char *inline_realpath;
 
       if (NULL == basedir)
       {
@@ -323,32 +322,35 @@ GNUNET_CONFIGURATION_deserialize (struct GNUNET_CONFIGURATION_Handle *cfg,
       if ('/' == *value)
         inline_path = GNUNET_strdup (value);
       else
+      {
+        /* We compute the canonical, absolute path first,
+           so that relative imports resolve properly with symlinked
+           config files.  */
+        char *basedir_realpath;
+
+        basedir_realpath = realpath (basedir,
+                                     NULL);
+        if (NULL == basedir_realpath)
+        {
+          /* Couldn't even resolve path of base dir. */
+          GNUNET_break (0);
+          ret = GNUNET_SYSERR;       /* failed to parse included config */
+          break;
+        }
         GNUNET_asprintf (&inline_path,
                          "%s/%s",
-                         basedir,
+                         basedir_realpath,
                          value);
-      /* We compute the canonical, absolute path first,
-         so that relative imports resolve properly with symlinked
-         config files.  */
-      inline_realpath = realpath (inline_path,
-                                  NULL);
-      GNUNET_free (inline_path);
-      if (NULL == inline_realpath)
-      {
-        /* Couldn't even resolve path of included file. */
-        GNUNET_break (0);
-        ret = GNUNET_SYSERR;       /* failed to parse included config */
-        break;
       }
       if (GNUNET_OK !=
           GNUNET_CONFIGURATION_parse (cfg,
-                                      inline_realpath))
+                                      inline_path))
       {
-        GNUNET_free (inline_realpath);
+        GNUNET_free (inline_path);
         ret = GNUNET_SYSERR;       /* failed to parse included config */
         break;
       }
-      GNUNET_free (inline_realpath);
+      GNUNET_free (inline_path);
       continue;
     }
     if (('[' == line[0]) && (']' == line[line_size - 1]))
