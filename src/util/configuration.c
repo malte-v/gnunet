@@ -308,45 +308,47 @@ GNUNET_CONFIGURATION_deserialize (struct GNUNET_CONFIGURATION_Handle *cfg,
                           "@INLINE@ ",
                           strlen ("@INLINE@ ")))
     {
-      /* @INLINE@ value */
-      value = &line[strlen ("@INLINE@ ")];
-      if (NULL != basedir)
-      {
-        if ('/' == *value)
-        {
-          if (GNUNET_OK !=
-              GNUNET_CONFIGURATION_parse (cfg,
-                                          value))
-          {
-            ret = GNUNET_SYSERR;       /* failed to parse included config */
-            break;
-          }
-        }
-        else
-        {
-          char *fn;
+      char *inline_path;
+      char *inline_realpath;
 
-          GNUNET_asprintf (&fn, "%s/%s",
-                           basedir,
-                           value);
-          if (GNUNET_OK !=
-              GNUNET_CONFIGURATION_parse (cfg,
-                                          fn))
-          {
-            GNUNET_free (fn);
-            ret = GNUNET_SYSERR;       /* failed to parse included config */
-            break;
-          }
-          GNUNET_free (fn);
-        }
-      }
-      else
+      if (NULL == basedir)
       {
         LOG (GNUNET_ERROR_TYPE_DEBUG,
              "Ignoring parsing @INLINE@ configurations, not allowed!\n");
         ret = GNUNET_SYSERR;
         break;
       }
+      /* FIXME: also trim space and end of line comment? */
+      value = &line[strlen ("@INLINE@ ")];
+      if ('/' == *value)
+        inline_path = GNUNET_strdup (value);
+      else
+        GNUNET_asprintf (&inline_path,
+                         "%s/%s",
+                         basedir,
+                         value);
+      /* We compute the canonical, absolute path first,
+         so that relative imports resolve properly with symlinked
+         config files.  */
+      inline_realpath = realpath (inline_path,
+                                  NULL);
+      GNUNET_free (inline_path);
+      if (NULL == inline_realpath)
+      {
+        /* Couldn't even resolve path of included file. */
+        GNUNET_break (0);
+        ret = GNUNET_SYSERR;       /* failed to parse included config */
+        break;
+      }
+      if (GNUNET_OK !=
+          GNUNET_CONFIGURATION_parse (cfg,
+                                      inline_realpath))
+      {
+        GNUNET_free (inline_realpath);
+        ret = GNUNET_SYSERR;       /* failed to parse included config */
+        break;
+      }
+      GNUNET_free (inline_realpath);
       continue;
     }
     if (('[' == line[0]) && (']' == line[line_size - 1]))
