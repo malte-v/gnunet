@@ -29,6 +29,7 @@
 #include "gnunet_configuration_lib.h"
 #include "gnunet_disk_lib.h"
 #include "gnunet_buffer_lib.h"
+#include "gnunet_container_lib.h"
 
 #define LOG(kind, ...) GNUNET_log_from (kind, "util", __VA_ARGS__)
 
@@ -111,6 +112,23 @@ struct ConfigSection
   unsigned int hint_inlined_from_line;
 };
 
+struct ConfigFile
+{
+  /**
+   * Source filename.
+   */
+  char *source_filename;
+
+  /**
+   * Level in the tree of loaded config files.
+   */
+  unsigned int level;
+
+  struct ConfigFile *prev;
+
+  struct ConfigFile *next;
+};
+
 
 /**
  * @brief configuration data
@@ -123,6 +141,21 @@ struct GNUNET_CONFIGURATION_Handle
   struct ConfigSection *sections;
 
   /**
+   * Linked list of loaded files.
+   */
+  struct ConfigFile *loaded_files_head;
+
+  /**
+   * Linked list of loaded files.
+   */
+  struct ConfigFile *loaded_files_tail;
+
+  /**
+   * Current nesting level of file loading.
+   */
+  unsigned int current_nest_level;
+
+  /**
    * Enable diagnostics.
    */
   bool diagnostics;
@@ -133,6 +166,11 @@ struct GNUNET_CONFIGURATION_Handle
    * #GNUNET_SYSERR on error (i.e. last save failed)
    */
   enum GNUNET_GenericReturnValue dirty;
+
+  /**
+   * Was the configuration ever loaded via GNUNET_CONFIGURATION_load?
+   */
+  bool load_called;
 
   /**
    * Name of the entry point configuration file.
@@ -250,9 +288,14 @@ void
 GNUNET_CONFIGURATION_destroy (struct GNUNET_CONFIGURATION_Handle *cfg)
 {
   struct ConfigSection *sec;
+  struct ConfigFile *cf;
 
   while (NULL != (sec = cfg->sections))
     GNUNET_CONFIGURATION_remove_section (cfg, sec->name);
+  while (NULL != (cf = cfg->loaded_files_head))
+    GNUNET_CONTAINER_DLL_remove (cfg->loaded_files_head,
+                                 cfg->loaded_files_tail,
+                                 cf);
   GNUNET_free (cfg);
 }
 
@@ -279,9 +322,9 @@ GNUNET_CONFIGURATION_parse_and_run (const char *filename,
 
 
 /**
- * Closure to inline_glob_cb.
+ * Closure to collect_files_cb.
  */
-struct InlineGlobClosure
+struct CollectFilesContext
 {
   /**
    * Collected files from globbing.
@@ -305,14 +348,10 @@ struct InlineGlobClosure
  *  #GNUNET_SYSERR to abort iteration with error!
  */
 static int
-inline_glob_cb (void *cls,
-                const char *filename)
+collect_files_cb (void *cls,
+                  const char *filename)
 {
-  struct InlineGlobClosure *igc = cls;
-
-  LOG (GNUNET_ERROR_TYPE_DEBUG,
-       "Found globbed config file '%s'\n",
-       filename);
+  struct CollectFilesContext *igc = cls;
 
   GNUNET_array_append (igc->files,
                        igc->files_length,
@@ -363,11 +402,12 @@ handle_inline (struct GNUNET_CONFIGURATION_Handle *cfg,
 {
   char *inline_path;
   struct GNUNET_CONFIGURATION_Handle *other_cfg = NULL;
-  struct InlineGlobClosure igc = {
+  struct CollectFilesContext igc = {
     .files = NULL,
     .files_length = 0,
   };
   enum GNUNET_GenericReturnValue fun_ret;
+  unsigned int old_nest_level = cfg->current_nest_level++;
 
   /* We support the section restriction only for non-globs */
   GNUNET_assert (! (path_is_glob && (NULL != restrict_section)));
@@ -419,7 +459,7 @@ handle_inline (struct GNUNET_CONFIGURATION_Handle *cfg,
          "processing config glob '%s'\n",
          inline_path);
 
-    nret = GNUNET_DISK_glob (inline_path, inline_glob_cb, &igc);
+    nret = GNUNET_DISK_glob (inline_path, collect_files_cb, &igc);
     if (-1 == nret)
     {
       fun_ret = GNUNET_SYSERR;
@@ -441,10 +481,10 @@ handle_inline (struct GNUNET_CONFIGURATION_Handle *cfg,
   }
   else if (NULL != restrict_section)
   {
-    enum GNUNET_GenericReturnValue fret;
+    enum GNUNET_GenericReturnValue inner_ret;
     struct ConfigSection *cs;
 
-    fret = GNUNET_DISK_file_test_read (inline_path);
+    inner_ret = GNUNET_DISK_file_test_read (inline_path);
 
     cs = find_section (cfg, restrict_section);
 
@@ -467,7 +507,7 @@ handle_inline (struct GNUNET_CONFIGURATION_Handle *cfg,
       }
     }
 
-    if (GNUNET_OK != fret)
+    if (GNUNET_OK != inner_ret)
     {
       cs->inaccessible = true;
       fun_ret = GNUNET_OK;
@@ -475,10 +515,11 @@ handle_inline (struct GNUNET_CONFIGURATION_Handle *cfg,
     }
 
     other_cfg = GNUNET_CONFIGURATION_create ();
-    if (GNUNET_OK != GNUNET_CONFIGURATION_parse (other_cfg,
-                                                 inline_path))
+    inner_ret = GNUNET_CONFIGURATION_parse (other_cfg,
+                                            inline_path);
+    if (GNUNET_OK != inner_ret)
     {
-      fun_ret = GNUNET_SYSERR;
+      fun_ret = inner_ret;
       goto cleanup;
     }
 
@@ -513,6 +554,7 @@ handle_inline (struct GNUNET_CONFIGURATION_Handle *cfg,
     fun_ret = GNUNET_OK;
   }
   cleanup:
+  cfg->current_nest_level = old_nest_level;
   if (NULL != other_cfg)
     GNUNET_CONFIGURATION_destroy (other_cfg);
   GNUNET_free (inline_path);
@@ -756,11 +798,7 @@ GNUNET_CONFIGURATION_deserialize (struct GNUNET_CONFIGURATION_Handle *cfg,
       }
       if (GNUNET_OK != directive_ret)
       {
-        LOG (GNUNET_ERROR_TYPE_WARNING,
-             _ ("Bad directive '%s' in line %u\n"),
-             directive,
-             nr);
-        ret = GNUNET_SYSERR;
+        ret = directive_ret;
         break;
       }
       continue;
@@ -845,6 +883,55 @@ GNUNET_CONFIGURATION_parse (struct GNUNET_CONFIGURATION_Handle *cfg,
   LOG (GNUNET_ERROR_TYPE_DEBUG, "Asked to parse config file `%s'\n", fn);
   if (NULL == fn)
     return GNUNET_SYSERR;
+
+
+  /* Check for cycles */
+  {
+    unsigned int lvl = cfg->current_nest_level;
+    struct ConfigFile *cf = cfg->loaded_files_tail;
+    struct ConfigFile *parent = NULL;
+
+
+    for (; NULL != cf; parent = cf, cf = cf->prev)
+    {
+      /* Check parents based on level, skipping children of siblings. */
+      if (cf->level >= lvl)
+        continue;
+      lvl = cf->level;
+      if ( (NULL == cf->source_filename) || (NULL == filename))
+        continue;
+      if (0 == strcmp (cf->source_filename, filename))
+      {
+        if (NULL == parent)
+        {
+          LOG (GNUNET_ERROR_TYPE_ERROR,
+               "Forbidden direct cyclic configuration import (%s -> %s)\n",
+               cf->source_filename,
+               filename);
+        }
+        else
+          LOG (GNUNET_ERROR_TYPE_ERROR,
+               "Forbidden indirect cyclic configuration import (%s -> ... -> %s -> %s)\n",
+               cf->source_filename,
+               parent->source_filename,
+               filename);
+        return GNUNET_SYSERR;
+      }
+    }
+
+  }
+
+  /* Keep track of loaded files.*/
+  {
+    struct ConfigFile *cf = GNUNET_new (struct ConfigFile);
+
+    cf->level = cfg->current_nest_level;
+    cf->source_filename = GNUNET_strdup (filename ? filename : "<input>");
+    GNUNET_CONTAINER_DLL_insert_tail (cfg->loaded_files_head,
+                                      cfg->loaded_files_tail,
+                                      cf);
+  }
+
   dirty = cfg->dirty; /* back up value! */
   if (GNUNET_SYSERR ==
       GNUNET_DISK_file_size (fn, &fs64, GNUNET_YES, GNUNET_YES))
@@ -876,7 +963,7 @@ GNUNET_CONFIGURATION_parse (struct GNUNET_CONFIGURATION_Handle *cfg,
                                           mem,
                                           fs,
                                           fn);
-  if (GNUNET_OK != ret)
+  if (GNUNET_SYSERR == ret)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                 _ ("Failed to parse configuration file `%s'\n"),
@@ -1035,6 +1122,36 @@ GNUNET_CONFIGURATION_serialize_diagnostics (const struct
                                             GNUNET_CONFIGURATION_Handle *cfg)
 {
   struct GNUNET_Buffer buf = { 0 };
+
+  GNUNET_buffer_write_fstr (&buf,
+                            "#\n# Configuration file diagnostics\n#\n");
+  GNUNET_buffer_write_fstr (&buf,
+                            "# Entry point: %s\n",
+                            cfg->main_filename ? cfg->main_filename :
+                            "<input>");
+  GNUNET_buffer_write_fstr (&buf,
+                            "#\n# Files Loaded:\n");
+
+  for (struct ConfigFile *cfil = cfg->loaded_files_head;
+       NULL != cfil;
+       cfil = cfil->next)
+  {
+    GNUNET_buffer_write_fstr (&buf,
+                              "# ");
+    for (unsigned int i = 0; i < cfil->level; i++)
+      GNUNET_buffer_write_fstr (&buf,
+                                "+");
+    if (0 != cfil->level)
+      GNUNET_buffer_write_fstr (&buf,
+                                " ");
+
+    GNUNET_buffer_write_fstr (&buf,
+                              "%s\n",
+                              cfil->source_filename);
+  }
+
+  GNUNET_buffer_write_fstr (&buf,
+                            "#\n\n");
 
   for (struct ConfigSection *sec = cfg->sections;
        NULL != sec;
@@ -2059,41 +2176,51 @@ GNUNET_CONFIGURATION_remove_value_filename (
 }
 
 
-/**
- * Wrapper around #GNUNET_CONFIGURATION_parse.  Called on each
- * file in a directory, we trigger parsing on those files that
- * end with ".conf".
- *
- * @param cls the cfg
- * @param filename file to parse
- * @return #GNUNET_OK on success
- */
-static enum GNUNET_GenericReturnValue
-parse_configuration_file (void *cls, const char *filename)
-{
-  struct GNUNET_CONFIGURATION_Handle *cfg = cls;
-  char *ext;
-
-  /* Examine file extension */
-  ext = strrchr (filename, '.');
-  if ((NULL == ext) || (0 != strcmp (ext, ".conf")))
-  {
-    GNUNET_log (GNUNET_ERROR_TYPE_WARNING, "Skipping file `%s'\n", filename);
-    return GNUNET_OK;
-  }
-
-  return GNUNET_CONFIGURATION_parse (cfg, filename);
-}
-
-
 enum GNUNET_GenericReturnValue
 GNUNET_CONFIGURATION_load_from (struct GNUNET_CONFIGURATION_Handle *cfg,
                                 const char *defaults_d)
 {
+  struct CollectFilesContext files_context = {
+    .files = NULL,
+    .files_length = 0,
+  };
+  enum GNUNET_GenericReturnValue fun_ret;
+
   if (GNUNET_SYSERR ==
-      GNUNET_DISK_directory_scan (defaults_d, &parse_configuration_file, cfg))
+      GNUNET_DISK_directory_scan (defaults_d, &collect_files_cb,
+                                  &files_context))
     return GNUNET_SYSERR; /* no configuration at all found */
-  return GNUNET_OK;
+  qsort (files_context.files,
+         files_context.files_length,
+         sizeof (char *),
+         pstrcmp);
+  for (unsigned int i = 0; i < files_context.files_length; i++)
+  {
+    char *ext;
+    const char *filename = files_context.files[i];
+
+    /* Examine file extension */
+    ext = strrchr (filename, '.');
+    if ((NULL == ext) || (0 != strcmp (ext, ".conf")))
+    {
+      GNUNET_log (GNUNET_ERROR_TYPE_WARNING, "Skipping file `%s'\n", filename);
+      fun_ret = GNUNET_OK;
+      goto cleanup;
+    }
+    fun_ret = GNUNET_CONFIGURATION_parse (cfg, filename);
+    if (fun_ret != GNUNET_OK)
+      break;
+  }
+  cleanup:
+  if (files_context.files_length > 0)
+  {
+    for (size_t i = 0; i < files_context.files_length; i++)
+      GNUNET_free (files_context.files[i]);
+    GNUNET_array_grow (files_context.files,
+                       files_context.files_length,
+                       0);
+  }
+  return fun_ret;
 }
 
 
@@ -2158,5 +2285,71 @@ GNUNET_CONFIGURATION_default (void)
   return cfg;
 }
 
+/**
+ * Load configuration (starts with defaults, then loads
+ * system-specific configuration).
+ *
+ * @param cfg configuration to update
+ * @param filename name of the configuration file, NULL to load defaults
+ * @return #GNUNET_OK on success, #GNUNET_SYSERR on error
+ */
+int
+GNUNET_CONFIGURATION_load (struct GNUNET_CONFIGURATION_Handle *cfg,
+                           const char *filename)
+{
+  char *baseconfig;
+  const char *base_config_varname;
+
+  if (cfg->load_called)
+  {
+    /* FIXME:  Make this a GNUNET_assert later */
+    GNUNET_break (0);
+    GNUNET_free (cfg->main_filename);
+  }
+  cfg->load_called = true;
+  if (NULL != filename)
+    cfg->main_filename = GNUNET_strdup (filename);
+
+  base_config_varname = GNUNET_OS_project_data_get ()->base_config_varname;
+
+  if ((NULL != base_config_varname)
+      && (NULL != (baseconfig = getenv (base_config_varname))))
+  {
+    baseconfig = GNUNET_strdup (baseconfig);
+  }
+  else
+  {
+    char *ipath;
+
+    ipath = GNUNET_OS_installation_get_path (GNUNET_OS_IPK_DATADIR);
+    if (NULL == ipath)
+      return GNUNET_SYSERR;
+    GNUNET_asprintf (&baseconfig, "%s%s", ipath, "config.d");
+    GNUNET_free (ipath);
+  }
+
+  char *dname = GNUNET_STRINGS_filename_expand (baseconfig);
+  GNUNET_free (baseconfig);
+
+  if ((GNUNET_YES == GNUNET_DISK_directory_test (dname, GNUNET_YES))&&
+      (GNUNET_SYSERR == GNUNET_CONFIGURATION_load_from (cfg, dname)))
+  {
+    GNUNET_free (dname);
+    return GNUNET_SYSERR;       /* no configuration at all found */
+  }
+  GNUNET_free (dname);
+  if ((NULL != filename) &&
+      (GNUNET_OK != GNUNET_CONFIGURATION_parse (cfg, filename)))
+  {
+    /* specified configuration not found */
+    return GNUNET_SYSERR;
+  }
+  if (((GNUNET_YES !=
+        GNUNET_CONFIGURATION_have_value (cfg, "PATHS", "DEFAULTCONFIG"))) &&
+      (filename != NULL))
+    GNUNET_CONFIGURATION_set_value_string (cfg, "PATHS", "DEFAULTCONFIG",
+                                           filename);
+  return GNUNET_OK;
+}
 
 /* end of configuration.c */

@@ -434,7 +434,7 @@ GNUNET_DISK_directory_test (const char *fil, int is_readable)
 
 /**
  * Check if fil can be accessed using amode.
- * 
+ *
  * @param fil file to check for
  * @param amode access mode
  * @returns GNUnet error code
@@ -1001,6 +1001,17 @@ GNUNET_DISK_glob (const char *glob_pattern,
   char *mypat = GNUNET_strdup (glob_pattern);
   char *sep;
   int ret;
+
+  if ( (NULL != strrchr (glob_pattern, '+')) ||
+       (NULL != strrchr (glob_pattern, '[')) ||
+       (NULL != strrchr (glob_pattern, '+')) ||
+       (NULL != strrchr (glob_pattern, '~')) )
+  {
+    LOG (GNUNET_ERROR_TYPE_ERROR,
+         "unsupported glob pattern: '%s'\n",
+         glob_pattern);
+    return -1;
+  }
 
   sep = strrchr (mypat, DIR_SEPARATOR);
   if (NULL == sep)
