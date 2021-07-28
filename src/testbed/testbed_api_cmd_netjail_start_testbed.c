@@ -328,8 +328,7 @@ start_testbed (struct NetJailState *ns, struct
   char *const script_argv[] = {NETJAIL_EXEC_SCRIPT,
                                m_char,
                                n_char,
-                               GNUNET_OS_get_libexec_binary_path (
-                                 HELPER_CMDS_BINARY),
+                               HELPER_CMDS_BINARY,
                                ns->global_n,
                                ns->local_m,
                                NULL};
@@ -373,6 +372,9 @@ start_testbed (struct NetJailState *ns, struct
                          &exp_cb,
                          tbc));
 
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                    "First using helper %d\n",
+                    tbc->count - 1);
   struct GNUNET_HELPER_Handle *helper = ns->helper[tbc->count - 1];
 
   msg = create_helper_init_msg_ (m_char,
@@ -469,7 +471,12 @@ netjail_start_finish (void *cls,
         tbc = GNUNET_new (struct TestbedCount);
         tbc->ns = ns;
         // TODO This needs to be more generic. As we send more messages back and forth, we can not grow the arrays again and again, because this is to error prone.
-        tbc->count = (j - 1) * atoi (ns->local_m) + i + total_number;
+        tbc->count = (i - 1) * atoi (ns->local_m) + j + total_number;
+        GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                    "Second using helper %d %d %d\n",
+                    tbc->count - 1 - total_number,
+                    i,
+                    j);
         helper = ns->helper[tbc->count - 1 - total_number];
         msg_length = sizeof(struct GNUNET_CMDS_ALL_PEERS_STARTED);
         reply = GNUNET_new (struct GNUNET_CMDS_ALL_PEERS_STARTED);

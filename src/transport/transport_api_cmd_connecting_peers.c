@@ -124,6 +124,9 @@ connect_peers_finish (void *cls,
   }
 
   return ret;*/
+  cont (cont_cls);
+    LOG (GNUNET_ERROR_TYPE_ERROR,
+       "connect peer finish\n");
   return GNUNET_OK;
 }
 

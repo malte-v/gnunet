@@ -54,7 +54,7 @@ struct StartPeerState
   /**
    * Peer identity
    */
-  struct GNUNET_PeerIdentity *id;
+  struct GNUNET_PeerIdentity id;
 
   /**
    * Peer's transport service handle
@@ -145,7 +145,7 @@ retrieve_hello (void *cls)
   sps->rh_task = NULL;
   sps->pic = GNUNET_PEERSTORE_iterate (sps->ph,
                                        "transport",
-                                       sps->id,
+                                       &sps->id,
                                        GNUNET_PEERSTORE_TRANSPORT_HELLO_KEY,
                                        hello_iter_cb,
                                        sps);
@@ -179,7 +179,7 @@ notify_disconnect (void *cls,
        "Peer %s disconnected from peer %u (`%s')\n",
        GNUNET_i2s (peer),
        sps->no,
-       GNUNET_i2s (sps->id));
+       GNUNET_i2s (&sps->id));
 
 }
 
@@ -199,7 +199,7 @@ notify_connect (void *cls,
        "Peer %s connected to peer %u (`%s')\n",
        GNUNET_i2s (peer),
        sps->no,
-       GNUNET_i2s (sps->id));
+       GNUNET_i2s (&sps->id));
 
   GNUNET_CONTAINER_multipeermap_put (sps->connected_peers_map,
                                      peer,
@@ -222,6 +222,9 @@ start_peer_run (void *cls,
   const struct GNUNET_TESTING_Command *system_cmd;
   struct GNUNET_TESTING_System *tl_system;
 
+  LOG (GNUNET_ERROR_TYPE_ERROR,
+       "start peer 1\n");
+  
   if (GNUNET_NO == GNUNET_DISK_file_test (sps->cfgname))
   {
     LOG (GNUNET_ERROR_TYPE_ERROR,
@@ -251,8 +254,11 @@ start_peer_run (void *cls,
          sps->cfgname);
     GNUNET_CONFIGURATION_destroy (sps->cfg);
     GNUNET_TESTING_interpreter_fail ();
+    return;
   }
 
+  LOG (GNUNET_ERROR_TYPE_ERROR,
+       "start peer 2\n");
   sps->peer = GNUNET_TESTING_peer_configure (sps->tl_system,
                                              sps->cfg,
                                              sps->no,
@@ -266,8 +272,11 @@ start_peer_run (void *cls,
          emsg);
     GNUNET_free (emsg);
     GNUNET_TESTING_interpreter_fail ();
+    return;
   }
 
+  LOG (GNUNET_ERROR_TYPE_ERROR,
+       "start peer 3\n");
   if (GNUNET_OK != GNUNET_TESTING_peer_start (sps->peer))
   {
     LOG (GNUNET_ERROR_TYPE_ERROR,
@@ -275,13 +284,19 @@ start_peer_run (void *cls,
          sps->cfgname);
     GNUNET_free (emsg);
     GNUNET_TESTING_interpreter_fail ();
+    return;
   }
-
+LOG (GNUNET_ERROR_TYPE_ERROR,
+       "start peer 4\n");
   memset (&dummy,
           '\0',
           sizeof(dummy));
+  LOG (GNUNET_ERROR_TYPE_ERROR,
+       "start peer 4.1\n");
   GNUNET_TESTING_peer_get_identity (sps->peer,
-                                    sps->id);
+                                    &sps->id);
+  LOG (GNUNET_ERROR_TYPE_ERROR,
+       "start peer 4.2\n");
   if (0 == memcmp (&dummy,
                    &sps->id,
                    sizeof(struct GNUNET_PeerIdentity)))
@@ -291,11 +306,14 @@ start_peer_run (void *cls,
          sps->no);
     GNUNET_free (emsg);
     GNUNET_TESTING_interpreter_fail ();
+    return;
   }
   LOG (GNUNET_ERROR_TYPE_DEBUG,
        "Peer %u configured with identity `%s'\n",
        sps->no,
-       GNUNET_i2s_full (sps->id));
+       GNUNET_i2s_full (&sps->id));
+  LOG (GNUNET_ERROR_TYPE_ERROR,
+       "start peer 4.3\n");
   sps->th = GNUNET_TRANSPORT_core_connect (sps->cfg,
                                            NULL,
                                            sps->handlers,
@@ -310,7 +328,10 @@ start_peer_run (void *cls,
          emsg);
     GNUNET_free (emsg);
     GNUNET_TESTING_interpreter_fail ();
+    return;
   }
+  LOG (GNUNET_ERROR_TYPE_ERROR,
+       "start peer 5\n");
   sps->ph = GNUNET_PEERSTORE_connect (sps->cfg);
   if (NULL == sps->th)
   {
@@ -320,7 +341,10 @@ start_peer_run (void *cls,
          emsg);
     GNUNET_free (emsg);
     GNUNET_TESTING_interpreter_fail ();
+    return;
   }
+  LOG (GNUNET_ERROR_TYPE_ERROR,
+       "start peer 6\n");
   sps->ah = GNUNET_TRANSPORT_application_init (sps->cfg);
   if (NULL == sps->ah)
   {
@@ -330,6 +354,7 @@ start_peer_run (void *cls,
          emsg);
     GNUNET_free (emsg);
     GNUNET_TESTING_interpreter_fail ();
+    return;
   }
   sps->rh_task = GNUNET_SCHEDULER_add_now (retrieve_hello, sps);
 }
@@ -374,7 +399,7 @@ start_peer_cleanup (void *cls,
       LOG (GNUNET_ERROR_TYPE_DEBUG,
            "Testing lib failed to stop peer %u (`%s')\n",
            sps->no,
-           GNUNET_i2s (sps->id));
+           GNUNET_i2s (&sps->id));
     }
     GNUNET_TESTING_peer_destroy (sps->peer);
     sps->peer = NULL;
@@ -402,7 +427,7 @@ start_peer_traits (void *cls,
 {
   struct StartPeerState *sps = cls;
   struct GNUNET_TRANSPORT_ApplicationHandle *ah = sps->ah;
-  struct GNUNET_PeerIdentity *id = sps->id;
+  struct GNUNET_PeerIdentity *id = &sps->id;
   struct GNUNET_CONTAINER_MultiPeerMap *connected_peers_map =
     sps->connected_peers_map;
   char *hello = sps->hello;
@@ -528,6 +553,9 @@ GNUNET_TRANSPORT_cmd_start_peer (const char *label,
     GNUNET_CONTAINER_multipeermap_create (1,GNUNET_NO);
   unsigned int i;
 
+  LOG (GNUNET_ERROR_TYPE_ERROR,
+       "start peer 0.1\n");
+  
   sps = GNUNET_new (struct StartPeerState);
   sps->m = m;
   sps->n = n;
@@ -535,6 +563,9 @@ GNUNET_TRANSPORT_cmd_start_peer (const char *label,
   sps->connected_peers_map = connected_peers_map;
   sps->cfgname = cfgname;
 
+  LOG (GNUNET_ERROR_TYPE_ERROR,
+       "start peer 0.2\n");
+  
   if (NULL != handlers)
   {
     for (i = 0; NULL != handlers[i].cb; i++)
@@ -546,6 +577,8 @@ GNUNET_TRANSPORT_cmd_start_peer (const char *label,
                    i * sizeof(struct GNUNET_MQ_MessageHandler));
   }
 
+  LOG (GNUNET_ERROR_TYPE_ERROR,
+       "start peer 0.3\n");
   struct GNUNET_TESTING_Command cmd = {
     .cls = sps,
     .label = label,

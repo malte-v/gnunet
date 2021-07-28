@@ -411,7 +411,7 @@ tokenizer_cb (void *cls, const struct GNUNET_MessageHeader *message)
     plugin = GNUNET_new (struct Plugin);
     plugin->api = GNUNET_PLUGIN_load (plugin_name,
                                       NULL);
-    plugin->library_name = GNUNET_strdup (plugin_name);
+    plugin->library_name = GNUNET_strdup (basename(plugin_name));
 
     plugin->global_n = ni->global_n;
     plugin->local_m = ni->local_m;

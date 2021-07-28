@@ -206,6 +206,7 @@ src/json/json.c
 src/json/json_generator.c
 src/json/json_helper.c
 src/json/json_mhd.c
+src/json/json_pack.c
 src/messenger/gnunet-messenger.c
 src/messenger/gnunet-service-messenger.c
 src/messenger/gnunet-service-messenger_basement.c
@@ -294,6 +295,7 @@ src/peerstore/plugin_peerstore_sqlite.c
 src/pq/pq.c
 src/pq/pq_connect.c
 src/pq/pq_eval.c
+src/pq/pq_event.c
 src/pq/pq_exec.c
 src/pq/pq_prepare.c
 src/pq/pq_query_helper.c
@@ -595,5 +597,6 @@ src/vpn/vpn_api.c
 src/zonemaster/gnunet-service-zonemaster-monitor.c
 src/zonemaster/gnunet-service-zonemaster.c
 src/fs/fs_api.h
+src/include/gnunet_json_lib.h
 src/testbed/testbed_api.h
 src/testbed/testbed_api_operations.h

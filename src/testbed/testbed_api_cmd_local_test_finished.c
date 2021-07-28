@@ -93,6 +93,8 @@ local_test_finished_finish (void *cls,
                             void *cont_cls)
 {
   // This will stop the local loop without shutting down the scheduler, because we do not call the continuation, which is the interpreter_next method.
+  LOG (GNUNET_ERROR_TYPE_ERROR,
+       "Stopping local loop\n");
   return GNUNET_YES;
 }
 
