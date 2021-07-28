@@ -284,9 +284,14 @@ GNUNET_CONFIGURATION_parse_and_run (const char *filename,
 struct InlineGlobClosure
 {
   /**
-   * Configuration to read inlined configuration into.
+   * Collected files from globbing.
    */
-  struct GNUNET_CONFIGURATION_Handle *cfg;
+  char **files;
+
+  /**
+   * Size of the files array.
+   */
+  unsigned int files_length;
 };
 
 
@@ -306,15 +311,12 @@ inline_glob_cb (void *cls,
   struct InlineGlobClosure *igc = cls;
 
   LOG (GNUNET_ERROR_TYPE_DEBUG,
-       "Reading globbed config file '%s'\n",
+       "Found globbed config file '%s'\n",
        filename);
 
-  if (GNUNET_OK !=
-      GNUNET_CONFIGURATION_parse (igc->cfg,
-                                  filename))
-  {
-    return GNUNET_SYSERR;
-  }
+  GNUNET_array_append (igc->files,
+                       igc->files_length,
+                       GNUNET_strdup (filename));
   return GNUNET_OK;
 }
 
@@ -339,6 +341,13 @@ find_section (const struct GNUNET_CONFIGURATION_Handle *cfg,
 }
 
 
+static int
+pstrcmp (const void *a, const void *b)
+{
+  return strcmp (*((const char **) a), *((const char **) b));
+}
+
+
 /**
  * Handle an inline directive.
  *
@@ -353,6 +362,12 @@ handle_inline (struct GNUNET_CONFIGURATION_Handle *cfg,
                unsigned int source_lineno)
 {
   char *inline_path;
+  struct GNUNET_CONFIGURATION_Handle *other_cfg = NULL;
+  struct InlineGlobClosure igc = {
+    .files = NULL,
+    .files_length = 0,
+  };
+  enum GNUNET_GenericReturnValue fun_ret;
 
   /* We support the section restriction only for non-globs */
   GNUNET_assert (! (path_is_glob && (NULL != restrict_section)));
@@ -362,8 +377,10 @@ handle_inline (struct GNUNET_CONFIGURATION_Handle *cfg,
     LOG (GNUNET_ERROR_TYPE_DEBUG,
          "Refusing to parse inline configurations, "
          "not allowed without source filename!\n");
-    return GNUNET_SYSERR;
+    fun_ret = GNUNET_SYSERR;
+    goto cleanup;
   }
+
   if ('/' == *path_or_glob)
     inline_path = GNUNET_strdup (path_or_glob);
   else
@@ -381,7 +398,8 @@ handle_inline (struct GNUNET_CONFIGURATION_Handle *cfg,
       /* Couldn't even resolve path of base dir. */
       GNUNET_break (0);
       /* failed to parse included config */
-      return GNUNET_SYSERR;
+      fun_ret = GNUNET_SYSERR;
+      goto cleanup;
     }
     endsep = strrchr (source_realpath, '/');
     GNUNET_assert (NULL != endsep);
@@ -392,12 +410,10 @@ handle_inline (struct GNUNET_CONFIGURATION_Handle *cfg,
                      path_or_glob);
     free (source_realpath);
   }
+
   if (path_is_glob)
   {
     int nret;
-    struct InlineGlobClosure igc = {
-      .cfg = cfg,
-    };
 
     LOG (GNUNET_ERROR_TYPE_DEBUG,
          "processing config glob '%s'\n",
@@ -406,13 +422,25 @@ handle_inline (struct GNUNET_CONFIGURATION_Handle *cfg,
     nret = GNUNET_DISK_glob (inline_path, inline_glob_cb, &igc);
     if (-1 == nret)
     {
-      GNUNET_free (inline_path);
-      return GNUNET_SYSERR;
+      fun_ret = GNUNET_SYSERR;
+      goto cleanup;
     }
+    GNUNET_assert (nret == igc.files_length);
+    qsort (igc.files, igc.files_length, sizeof (char *), pstrcmp);
+    for (int i = 0; i < nret; i++)
+    {
+      if (GNUNET_OK !=
+          GNUNET_CONFIGURATION_parse (cfg,
+                                      igc.files[i]))
+      {
+        fun_ret = GNUNET_SYSERR;
+        goto cleanup;
+      }
+    }
+    fun_ret = GNUNET_OK;
   }
   else if (NULL != restrict_section)
   {
-    struct GNUNET_CONFIGURATION_Handle *other_cfg;
     enum GNUNET_GenericReturnValue fret;
     struct ConfigSection *cs;
 
@@ -442,17 +470,16 @@ handle_inline (struct GNUNET_CONFIGURATION_Handle *cfg,
     if (GNUNET_OK != fret)
     {
       cs->inaccessible = true;
-      GNUNET_free (inline_path);
-      return GNUNET_OK;
+      fun_ret = GNUNET_OK;
+      goto cleanup;
     }
 
     other_cfg = GNUNET_CONFIGURATION_create ();
     if (GNUNET_OK != GNUNET_CONFIGURATION_parse (other_cfg,
                                                  inline_path))
     {
-      GNUNET_free (inline_path);
-      GNUNET_CONFIGURATION_destroy (other_cfg);
-      return GNUNET_SYSERR;
+      fun_ret = GNUNET_SYSERR;
+      goto cleanup;
     }
 
     cs = find_section (other_cfg, restrict_section);
@@ -462,9 +489,8 @@ handle_inline (struct GNUNET_CONFIGURATION_Handle *cfg,
            "inlined configuration '%s' does not contain section '%s'\n",
            inline_path,
            restrict_section);
-      GNUNET_free (inline_path);
-      GNUNET_free (other_cfg);
-      return GNUNET_SYSERR;
+      fun_ret = GNUNET_SYSERR;
+      goto cleanup;
     }
     for (struct ConfigEntry *ce = cs->entries;
          NULL != ce;
@@ -473,17 +499,30 @@ handle_inline (struct GNUNET_CONFIGURATION_Handle *cfg,
                                              restrict_section,
                                              ce->key,
                                              ce->val);
-    GNUNET_CONFIGURATION_destroy (other_cfg);
+    fun_ret = GNUNET_OK;
   }
   else if (GNUNET_OK !=
            GNUNET_CONFIGURATION_parse (cfg,
                                        inline_path))
   {
-    GNUNET_free (inline_path);
-    return GNUNET_SYSERR;
+    fun_ret = GNUNET_SYSERR;
+    goto cleanup;
   }
+  else
+  {
+    fun_ret = GNUNET_OK;
+  }
+  cleanup:
+  if (NULL != other_cfg)
+    GNUNET_CONFIGURATION_destroy (other_cfg);
   GNUNET_free (inline_path);
-  return GNUNET_OK;
+  if (igc.files_length > 0)
+  {
+    for (size_t i = 0; i < igc.files_length; i++)
+      GNUNET_free (igc.files[i]);
+    GNUNET_array_grow (igc.files, igc.files_length, 0);
+  }
+  return fun_ret;
 }
 
 
