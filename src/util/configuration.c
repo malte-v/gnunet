@@ -238,10 +238,18 @@ GNUNET_CONFIGURATION_parse_and_run (const char *filename,
   return ret;
 }
 
+
+/**
+ * Closure to inline_glob_cb.
+ */
 struct InlineGlobClosure
 {
+  /**
+   * Configuration to read inlined configuration into.
+   */
   struct GNUNET_CONFIGURATION_Handle *cfg;
 };
+
 
 /**
  * Function called with a filename.
@@ -291,6 +299,7 @@ find_section (const struct GNUNET_CONFIGURATION_Handle *cfg,
   return pos;
 }
 
+
 static void
 set_section_inaccessible (struct GNUNET_CONFIGURATION_Handle *cfg,
                           const char *section)
@@ -310,6 +319,7 @@ set_section_inaccessible (struct GNUNET_CONFIGURATION_Handle *cfg,
 
   sec->inaccessible = true;
 }
+
 
 /**
  * Handle an inline directive.
@@ -438,10 +448,10 @@ handle_inline (struct GNUNET_CONFIGURATION_Handle *cfg,
 
 
 enum GNUNET_GenericReturnValue
-deserialize_internal (struct GNUNET_CONFIGURATION_Handle *cfg,
-                      const char *mem,
-                      size_t size,
-                      const char *source_filename)
+GNUNET_CONFIGURATION_deserialize (struct GNUNET_CONFIGURATION_Handle *cfg,
+                                  const char *mem,
+                                  size_t size,
+                                  const char *source_filename)
 {
   size_t line_size;
   unsigned int nr;
@@ -665,16 +675,6 @@ deserialize_internal (struct GNUNET_CONFIGURATION_Handle *cfg,
   GNUNET_assert ( (GNUNET_OK != ret) ||
                   (r_bytes == size) );
   return ret;
-}
-
-
-enum GNUNET_GenericReturnValue
-GNUNET_CONFIGURATION_deserialize (struct GNUNET_CONFIGURATION_Handle *cfg,
-                                  const char *mem,
-                                  size_t size,
-                                  const char *source_filename)
-{
-  return deserialize_internal (cfg, mem, size, source_filename);
 }
 
 
