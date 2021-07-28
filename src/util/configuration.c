@@ -1143,6 +1143,7 @@ GNUNET_CONFIGURATION_serialize (const struct GNUNET_CONFIGURATION_Handle *cfg,
   return mem;
 }
 
+
 char *
 GNUNET_CONFIGURATION_serialize_diagnostics (const struct
                                             GNUNET_CONFIGURATION_Handle *cfg)
@@ -1201,7 +1202,7 @@ GNUNET_CONFIGURATION_serialize_diagnostics (const struct
     if (sec->inaccessible)
     {
       GNUNET_buffer_write_fstr (&buf,
-                                "# <section contents inaccessible>\n\n");
+                                "# <section contents inaccessible>\n\n\n");
       continue;
     }
     for (struct ConfigEntry *ent = sec->entries;
@@ -1241,6 +1242,7 @@ GNUNET_CONFIGURATION_serialize_diagnostics (const struct
   }
   return GNUNET_buffer_reap_str (&buf);
 }
+
 
 enum GNUNET_GenericReturnValue
 GNUNET_CONFIGURATION_write (struct GNUNET_CONFIGURATION_Handle *cfg,
