@@ -28,6 +28,7 @@
 #include "gnunet_os_lib.h"
 #include "gnunet_configuration_lib.h"
 #include "gnunet_disk_lib.h"
+#include "gnunet_buffer_lib.h"
 
 #define LOG(kind, ...) GNUNET_log_from (kind, "util", __VA_ARGS__)
 
@@ -53,6 +54,16 @@ struct ConfigEntry
    * current, committed value
    */
   char *val;
+
+  /**
+   * Diagnostics information for the filename.
+   */
+  char *hint_filename;
+
+  /**
+   * Diagnostics information for the line number.
+   */
+  unsigned int hint_lineno;
 };
 
 
@@ -83,6 +94,21 @@ struct ConfigSection
    * directive, but the referenced file can't be found or accessed.
    */
   bool inaccessible;
+
+  /**
+   * Diagnostics hint for the inaccessible file.
+   */
+  char *hint_secret_filename;
+
+  /**
+   * For secret sections:  Where was this inlined from?
+   */
+  char *hint_inlined_from_filename;
+
+  /**
+   * For secret sections:  Where was this inlined from?
+   */
+  unsigned int hint_inlined_from_line;
 };
 
 
@@ -95,6 +121,11 @@ struct GNUNET_CONFIGURATION_Handle
    * Configuration sections.
    */
   struct ConfigSection *sections;
+
+  /**
+   * Enable diagnostics.
+   */
+  bool diagnostics;
 
   /**
    * Modification indication since last save
@@ -120,6 +151,14 @@ struct DiffHandle
 
   struct GNUNET_CONFIGURATION_Handle *cfgDiff;
 };
+
+
+void
+GNUNET_CONFIGURATION_enable_diagnostics (struct
+                                         GNUNET_CONFIGURATION_Handle *cfg)
+{
+  cfg->diagnostics = true;
+}
 
 
 struct GNUNET_CONFIGURATION_Handle *
@@ -300,27 +339,6 @@ find_section (const struct GNUNET_CONFIGURATION_Handle *cfg,
 }
 
 
-static void
-set_section_inaccessible (struct GNUNET_CONFIGURATION_Handle *cfg,
-                          const char *section)
-{
-  struct ConfigSection *sec;
-
-  sec = find_section (cfg, section);
-
-  if (NULL == sec)
-  {
-    sec = GNUNET_new (struct ConfigSection);
-    sec->name = GNUNET_strdup (section);
-    sec->next = cfg->sections;
-    cfg->sections = sec;
-    sec->entries = NULL;
-  }
-
-  sec->inaccessible = true;
-}
-
-
 /**
  * Handle an inline directive.
  *
@@ -331,7 +349,8 @@ handle_inline (struct GNUNET_CONFIGURATION_Handle *cfg,
                const char *path_or_glob,
                bool path_is_glob,
                const char *restrict_section,
-               const char *source_filename)
+               const char *source_filename,
+               unsigned int source_lineno)
 {
   char *inline_path;
 
@@ -399,9 +418,30 @@ handle_inline (struct GNUNET_CONFIGURATION_Handle *cfg,
 
     fret = GNUNET_DISK_file_test_read (inline_path);
 
+    cs = find_section (cfg, restrict_section);
+
+    if (NULL == cs)
+    {
+      cs = GNUNET_new (struct ConfigSection);
+      cs->name = GNUNET_strdup (restrict_section);
+      cs->next = cfg->sections;
+      cfg->sections = cs;
+      cs->entries = NULL;
+    }
+    if (cfg->diagnostics)
+    {
+      if (NULL != inline_path)
+        cs->hint_secret_filename = GNUNET_strdup (inline_path);
+      if (source_filename)
+      {
+        cs->hint_inlined_from_filename = GNUNET_strdup (source_filename);
+        cs->hint_inlined_from_line = source_lineno;
+      }
+    }
+
     if (GNUNET_OK != fret)
     {
-      set_section_inaccessible (cfg, restrict_section);
+      cs->inaccessible = true;
       GNUNET_free (inline_path);
       return GNUNET_OK;
     }
@@ -444,6 +484,67 @@ handle_inline (struct GNUNET_CONFIGURATION_Handle *cfg,
   }
   GNUNET_free (inline_path);
   return GNUNET_OK;
+}
+
+
+/**
+ * Find an entry from a configuration.
+ *
+ * @param cfg handle to the configuration
+ * @param section section the option is in
+ * @param key the option
+ * @return matching entry, NULL if not found
+ */
+static struct ConfigEntry *
+find_entry (const struct GNUNET_CONFIGURATION_Handle *cfg,
+            const char *section,
+            const char *key)
+{
+  struct ConfigSection *sec;
+  struct ConfigEntry *pos;
+
+  if (NULL == (sec = find_section (cfg, section)))
+    return NULL;
+  if (sec->inaccessible)
+  {
+    LOG (GNUNET_ERROR_TYPE_WARNING,
+         "Section '%s' is marked as inaccessible, because the configuration "
+         " file that contains the section can't be read.  Attempts to use "
+         "option '%s' will fail.\n",
+         section,
+         key);
+    return NULL;
+  }
+  pos = sec->entries;
+  while ((pos != NULL) && (0 != strcasecmp (key, pos->key)))
+    pos = pos->next;
+  return pos;
+}
+
+
+/**
+ * Set a configuration hint.
+ *
+ * @param cfg configuration handle
+ * @param section section
+ * @param option config option
+ * @param hint_filename
+ * @param hint_line
+ */
+static void
+set_entry_hint (struct GNUNET_CONFIGURATION_Handle *cfg,
+                const char *section,
+                const char *option,
+                const char *hint_filename,
+                unsigned int hint_line)
+{
+  struct ConfigEntry *e = find_entry (cfg, section, option);
+  if (! cfg->diagnostics)
+    return;
+  if (! e)
+    return;
+  e->hint_filename = GNUNET_strdup (hint_filename);
+  e->hint_lineno = hint_line;
 }
 
 
@@ -553,7 +654,8 @@ GNUNET_CONFIGURATION_deserialize (struct GNUNET_CONFIGURATION_Handle *cfg,
                                        path,
                                        false,
                                        NULL,
-                                       source_filename);
+                                       source_filename,
+                                       nr);
       }
       else if (0 == strcasecmp (directive, "INLINE-MATCHING"))
       {
@@ -567,7 +669,8 @@ GNUNET_CONFIGURATION_deserialize (struct GNUNET_CONFIGURATION_Handle *cfg,
                                        path,
                                        true,
                                        NULL,
-                                       source_filename);
+                                       source_filename,
+                                       nr);
       }
       else if (0 == strcasecmp (directive, "INLINE-SECRET"))
       {
@@ -600,7 +703,8 @@ GNUNET_CONFIGURATION_deserialize (struct GNUNET_CONFIGURATION_Handle *cfg,
                                        path,
                                        false,
                                        secname,
-                                       source_filename);
+                                       source_filename,
+                                       nr);
       }
       else
       {
@@ -660,6 +764,14 @@ GNUNET_CONFIGURATION_deserialize (struct GNUNET_CONFIGURATION_Handle *cfg,
         value++;
       }
       GNUNET_CONFIGURATION_set_value_string (cfg, section, tag, &value[i]);
+      if (cfg->diagnostics)
+      {
+        set_entry_hint (cfg,
+                        section,
+                        tag,
+                        source_filename ? source_filename : "<input>",
+                        nr);
+      }
       GNUNET_free (tag);
       continue;
     }
@@ -799,6 +911,8 @@ GNUNET_CONFIGURATION_serialize (const struct GNUNET_CONFIGURATION_Handle *cfg,
        NULL != sec;
        sec = sec->next)
   {
+    if (sec->inaccessible)
+      continue;
     /* For each section we need to add 3 characters: {'[',']','\n'} */
     m_size += strlen (sec->name) + 3;
     for (struct ConfigEntry *ent = sec->entries;
@@ -877,6 +991,73 @@ GNUNET_CONFIGURATION_serialize (const struct GNUNET_CONFIGURATION_Handle *cfg,
   return mem;
 }
 
+char *
+GNUNET_CONFIGURATION_serialize_diagnostics (const struct
+                                            GNUNET_CONFIGURATION_Handle *cfg)
+{
+  struct GNUNET_Buffer buf = { 0 };
+
+  for (struct ConfigSection *sec = cfg->sections;
+       NULL != sec;
+       sec = sec->next)
+  {
+    if (sec->hint_secret_filename)
+      GNUNET_buffer_write_fstr (&buf,
+                                "# secret section from %s\n",
+                                sec->hint_secret_filename);
+    if (sec->hint_inlined_from_filename)
+    {
+      GNUNET_buffer_write_fstr (&buf,
+                                "# inlined from %s:%u\n",
+                                sec->hint_inlined_from_filename,
+                                sec->hint_inlined_from_line);
+    }
+    GNUNET_buffer_write_fstr (&buf,
+                              "[%s]\n",
+                              sec->name);
+    if (sec->inaccessible)
+    {
+      GNUNET_buffer_write_fstr (&buf,
+                                "# <section contents inaccessible>\n\n");
+      continue;
+    }
+    for (struct ConfigEntry *ent = sec->entries;
+         NULL != ent;
+         ent = ent->next)
+    {
+      if (do_skip (sec->name,
+                   ent->key))
+        continue;
+      if (NULL != ent->val)
+      {
+        char *pos;
+        char *val = GNUNET_malloc (strlen (ent->val) * 2 + 1);
+        strcpy (val, ent->val);
+        while (NULL != (pos = strstr (val, "\n")))
+        {
+          memmove (&pos[2], &pos[1], strlen (&pos[1]));
+          pos[0] = '\\';
+          pos[1] = 'n';
+        }
+        if (NULL != ent->hint_filename)
+        {
+          GNUNET_buffer_write_fstr (&buf,
+                                    "# %s:%u\n",
+                                    ent->hint_filename,
+                                    ent->hint_lineno);
+        }
+        GNUNET_buffer_write_fstr (&buf,
+                                  "%s = %s\n",
+                                  ent->key,
+                                  val);
+        GNUNET_free (val);
+      }
+      GNUNET_buffer_write_str (&buf, "\n");
+    }
+    GNUNET_buffer_write_str (&buf, "\n");
+  }
+  return GNUNET_buffer_reap_str (&buf);
+}
 
 enum GNUNET_GenericReturnValue
 GNUNET_CONFIGURATION_write (struct GNUNET_CONFIGURATION_Handle *cfg,
@@ -1028,10 +1209,13 @@ GNUNET_CONFIGURATION_remove_section (struct GNUNET_CONFIGURATION_Handle *cfg,
         spos->entries = ent->next;
         GNUNET_free (ent->key);
         GNUNET_free (ent->val);
+        GNUNET_free (ent->hint_filename);
         GNUNET_free (ent);
         cfg->dirty = GNUNET_YES;
       }
       GNUNET_free (spos->name);
+      GNUNET_free (spos->hint_secret_filename);
+      GNUNET_free (spos->hint_inlined_from_filename);
       GNUNET_free (spos);
       return;
     }
@@ -1070,41 +1254,6 @@ GNUNET_CONFIGURATION_dup (const struct GNUNET_CONFIGURATION_Handle *cfg)
   ret = GNUNET_CONFIGURATION_create ();
   GNUNET_CONFIGURATION_iterate (cfg, &copy_entry, ret);
   return ret;
-}
-
-
-/**
- * Find an entry from a configuration.
- *
- * @param cfg handle to the configuration
- * @param section section the option is in
- * @param key the option
- * @return matching entry, NULL if not found
- */
-static struct ConfigEntry *
-find_entry (const struct GNUNET_CONFIGURATION_Handle *cfg,
-            const char *section,
-            const char *key)
-{
-  struct ConfigSection *sec;
-  struct ConfigEntry *pos;
-
-  if (NULL == (sec = find_section (cfg, section)))
-    return NULL;
-  if (sec->inaccessible)
-  {
-    LOG (GNUNET_ERROR_TYPE_WARNING,
-         "Section '%s' is marked as inaccessible, because the configuration "
-         " file that contains the section can't be read.  Attempts to use "
-         "option '%s' will fail.\n",
-         section,
-         key);
-    return NULL;
-  }
-  pos = sec->entries;
-  while ((pos != NULL) && (0 != strcasecmp (key, pos->key)))
-    pos = pos->next;
-  return pos;
 }
 
 
