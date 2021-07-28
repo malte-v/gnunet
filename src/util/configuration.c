@@ -97,9 +97,14 @@ struct ConfigSection
   bool inaccessible;
 
   /**
-   * Diagnostics hint for the inaccessible file.
+   * Diagnostics hint for the secret file.
    */
   char *hint_secret_filename;
+
+  /**
+   * Extra information regarding permissions of the secret file.
+   */
+  char *hint_secret_stat;
 
   /**
    * For secret sections:  Where was this inlined from?
@@ -498,8 +503,27 @@ handle_inline (struct GNUNET_CONFIGURATION_Handle *cfg,
     }
     if (cfg->diagnostics)
     {
-      if (NULL != inline_path)
-        cs->hint_secret_filename = GNUNET_strdup (inline_path);
+      char *sfn = GNUNET_STRINGS_filename_expand (inline_path);
+      struct stat istat;
+
+      cs->hint_secret_filename = sfn;
+      if (0 == stat (sfn, &istat))
+      {
+        struct passwd *pw = getpwuid (istat.st_uid);
+        struct group *gr = getgrgid (istat.st_gid);
+        char *pwname = (NULL == pw) ? "<unknown>" : pw->pw_name;
+        char *grname = (NULL == gr) ? "<unknown>" : gr->gr_name;
+
+        GNUNET_asprintf (&cs->hint_secret_stat,
+                         "%s:%s %o",
+                         pwname,
+                         grname,
+                         istat.st_mode);
+      }
+      else
+      {
+        cs->hint_secret_stat = GNUNET_strdup ("<can't stat file>");
+      }
       if (source_filename)
       {
         cs->hint_inlined_from_filename = GNUNET_strdup (source_filename);
@@ -1159,8 +1183,9 @@ GNUNET_CONFIGURATION_serialize_diagnostics (const struct
   {
     if (sec->hint_secret_filename)
       GNUNET_buffer_write_fstr (&buf,
-                                "# secret section from %s\n",
-                                sec->hint_secret_filename);
+                                "# secret section from %s\n# secret file stat %s\n",
+                                sec->hint_secret_filename,
+                                sec->hint_secret_stat);
     if (sec->hint_inlined_from_filename)
     {
       GNUNET_buffer_write_fstr (&buf,
@@ -1371,6 +1396,7 @@ GNUNET_CONFIGURATION_remove_section (struct GNUNET_CONFIGURATION_Handle *cfg,
       }
       GNUNET_free (spos->name);
       GNUNET_free (spos->hint_secret_filename);
+      GNUNET_free (spos->hint_secret_stat);
       GNUNET_free (spos->hint_inlined_from_filename);
       GNUNET_free (spos);
       return;
