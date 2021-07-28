@@ -526,6 +526,8 @@ handle_inline (struct GNUNET_CONFIGURATION_Handle *cfg,
       }
       if (source_filename)
       {
+        /* Possible that this secret section has been inlined before */
+        GNUNET_free (cs->hint_inlined_from_filename);
         cs->hint_inlined_from_filename = GNUNET_strdup (source_filename);
         cs->hint_inlined_from_line = source_lineno;
       }
