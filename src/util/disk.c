@@ -882,6 +882,143 @@ GNUNET_DISK_directory_scan (const char *dir_name,
   return count;
 }
 
+/**
+ * Check for a simple wildcard match.
+ * Only asterisks are allowed.
+ * Asterisks match everything, including slashes.
+ *
+ * @param pattern pattern with wildcards
+ * @param str string to match against
+ * @returns true on match, false otherwise
+ */
+static bool
+glob_match (const char *pattern, const char *str)
+{
+  /* Position in the input string */
+  const char *str_pos = str;
+  /* Position in the pattern */
+  const char *pat_pos = pattern;
+  /* Backtrack position in string */
+  const char *str_bt = NULL;
+  /* Backtrack position in pattern */
+  const char *pat_bt = NULL;
+
+  for (;;)
+  {
+    if (*pat_pos == '*')
+    {
+      str_bt = str_pos;
+      pat_bt = pat_pos++;
+    }
+    else if (*pat_pos == *str_pos)
+    {
+      if ('\0' == *pat_pos)
+        return true;
+      str_pos++;
+      pat_pos++;
+    }
+    else
+    {
+      if (NULL == str_bt)
+        return false;
+      /* Backtrack to match one more
+         character as part of the asterisk. */
+      str_pos = str_bt + 1;
+      if ('\0' == *str_pos)
+        return false;
+      pat_pos = pat_bt;
+    }
+  }
+}
+
+struct GlobClosure
+{
+  const char *glob;
+  GNUNET_FileNameCallback cb;
+  void *cls;
+};
+
+/**
+ * Function called with a filename.
+ *
+ * @param cls closure
+ * @param filename complete filename (absolute path)
+ * @return #GNUNET_OK to continue to iterate,
+ *  #GNUNET_NO to stop iteration with no error,
+ *  #GNUNET_SYSERR to abort iteration with error!
+ */
+static enum GNUNET_GenericReturnValue
+glob_cb (void *cls,
+         const char *filename)
+{
+  struct GlobClosure *gc = cls;
+  const char *fn;
+
+  fn = strrchr (filename, DIR_SEPARATOR);
+  fn = (NULL == fn) ? filename : (fn + 1);
+
+  LOG (GNUNET_ERROR_TYPE_DEBUG,
+       "checking glob '%s' against '%s'\n",
+       gc->glob,
+       fn);
+
+  if (glob_match (gc->glob, fn))
+  {
+    LOG (GNUNET_ERROR_TYPE_DEBUG,
+         "found glob match '%s'\n",
+         filename);
+    gc->cb (gc->cls, filename);
+  }
+  return GNUNET_OK;
+}
+
+
+int
+GNUNET_DISK_glob (const char *glob_pattern,
+                  GNUNET_FileNameCallback callback,
+                  void *callback_cls)
+{
+  char *mypat = GNUNET_strdup (glob_pattern);
+  char *sep;
+  int ret;
+
+  sep = strrchr (mypat, DIR_SEPARATOR);
+  if (NULL == sep)
+  {
+    GNUNET_free (mypat);
+    return -1;
+  }
+
+  *sep = '\0';
+
+  if (NULL != strchr (mypat, '*'))
+  {
+    GNUNET_free (mypat);
+    GNUNET_break (0);
+    LOG (GNUNET_ERROR_TYPE_ERROR,
+         "glob pattern may only contain '*' in the final path component\n");
+    return -1;
+  }
+
+  {
+    struct GlobClosure gc = {
+      .glob = sep + 1,
+      .cb = callback,
+      .cls = callback_cls,
+    };
+    LOG (GNUNET_ERROR_TYPE_DEBUG,
+         "scanning directory '%s' for glob matches on '%s'\n",
+         mypat,
+         gc.glob);
+    ret = GNUNET_DISK_directory_scan (mypat,
+                                      glob_cb,
+                                      &gc
+                                      );
+  }
+  GNUNET_free (mypat);
+  return ret;
+}
+
 
 /**
  * Function that removes the given directory by calling
@@ -997,7 +1134,7 @@ GNUNET_DISK_file_copy (const char *src,
   GNUNET_DISK_file_close (in);
   GNUNET_DISK_file_close (out);
   return GNUNET_OK;
-FAIL:
+  FAIL:
   GNUNET_free (buf);
   GNUNET_DISK_file_close (in);
   GNUNET_DISK_file_close (out);

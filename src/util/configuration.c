@@ -230,6 +230,120 @@ GNUNET_CONFIGURATION_parse_and_run (const char *filename,
   return ret;
 }
 
+struct InlineGlobClosure
+{
+  struct GNUNET_CONFIGURATION_Handle *cfg;
+};
+
+/**
+ * Function called with a filename.
+ *
+ * @param cls closure
+ * @param filename complete filename (absolute path)
+ * @return #GNUNET_OK to continue to iterate,
+ *  #GNUNET_NO to stop iteration with no error,
+ *  #GNUNET_SYSERR to abort iteration with error!
+ */
+static int
+inline_glob_cb (void *cls,
+                const char *filename)
+{
+  struct InlineGlobClosure *igc = cls;
+
+  LOG (GNUNET_ERROR_TYPE_DEBUG,
+       "Reading globbed config file '%s'\n",
+       filename);
+
+  if (GNUNET_OK !=
+      GNUNET_CONFIGURATION_parse (igc->cfg,
+                                  filename))
+  {
+    return GNUNET_SYSERR;
+  }
+  return GNUNET_OK;
+}
+
+/**
+ * Handle an inline directive.
+ *
+ * @returns #GNUNET_SYSERR on error, #GNUNET_OK otherwise
+ */
+enum GNUNET_GenericReturnValue
+handle_inline (struct GNUNET_CONFIGURATION_Handle *cfg,
+               const char *path_or_glob,
+               bool path_is_glob,
+               const char *restrict_section,
+               const char *source_filename)
+{
+  char *inline_path;
+
+  /* We support the section restriction only for non-globs */
+  GNUNET_assert (! (path_is_glob && (NULL != restrict_section)));
+
+  if (NULL == source_filename)
+  {
+    LOG (GNUNET_ERROR_TYPE_DEBUG,
+         "Refusing to parse inline configurations, "
+         "not allowed without source filename!\n");
+    return GNUNET_SYSERR;
+  }
+  if ('/' == *path_or_glob)
+    inline_path = GNUNET_strdup (path_or_glob);
+  else
+  {
+    /* We compute the canonical, absolute path first,
+       so that relative imports resolve properly with symlinked
+       config files.  */
+    char *source_realpath;
+    char *endsep;
+
+    source_realpath = realpath (source_filename,
+                                NULL);
+    if (NULL == source_realpath)
+    {
+      /* Couldn't even resolve path of base dir. */
+      GNUNET_break (0);
+      /* failed to parse included config */
+      return GNUNET_SYSERR;
+    }
+    endsep = strrchr (source_realpath, '/');
+    GNUNET_assert (NULL != endsep);
+    *endsep = '\0';
+    GNUNET_asprintf (&inline_path,
+                     "%s/%s",
+                     source_realpath,
+                     path_or_glob);
+    free (source_realpath);
+  }
+  if (path_is_glob)
+  {
+    int nret;
+    struct InlineGlobClosure igc = {
+      .cfg = cfg,
+    };
+
+    LOG (GNUNET_ERROR_TYPE_DEBUG,
+         "processing config glob '%s'\n",
+         inline_path);
+
+    nret = GNUNET_DISK_glob (inline_path, inline_glob_cb, &igc);
+    if (-1 == nret)
+    {
+      GNUNET_free (inline_path);
+      return GNUNET_SYSERR;
+    }
+  }
+  else if (GNUNET_OK !=
+           GNUNET_CONFIGURATION_parse (cfg,
+                                       inline_path))
+  {
+    GNUNET_free (inline_path);
+    return GNUNET_SYSERR;
+  }
+  GNUNET_free (inline_path);
+  return GNUNET_OK;
+}
+
 
 enum GNUNET_GenericReturnValue
 GNUNET_CONFIGURATION_deserialize (struct GNUNET_CONFIGURATION_Handle *cfg,
@@ -237,28 +351,27 @@ GNUNET_CONFIGURATION_deserialize (struct GNUNET_CONFIGURATION_Handle *cfg,
                                   size_t size,
                                   const char *source_filename)
 {
-  char *line;
-  char *line_orig;
   size_t line_size;
-  char *pos;
   unsigned int nr;
   size_t r_bytes;
   size_t to_read;
-  size_t i;
-  int emptyline;
   enum GNUNET_GenericReturnValue ret;
   char *section;
   char *eq;
   char *tag;
   char *value;
+  char *line_orig = NULL;
 
   ret = GNUNET_OK;
-  section = GNUNET_strdup ("");
+  section = NULL;
   nr = 0;
   r_bytes = 0;
-  line_orig = NULL;
   while (r_bytes < size)
   {
+    char *pos;
+    char *line;
+    bool emptyline;
+
     GNUNET_free (line_orig);
     /* fgets-like behaviour on buffer */
     to_read = size - r_bytes;
@@ -280,7 +393,7 @@ GNUNET_CONFIGURATION_deserialize (struct GNUNET_CONFIGURATION_Handle *cfg,
     nr++;
     /* tabs and '\r' are whitespace */
     emptyline = GNUNET_YES;
-    for (i = 0; i < line_size; i++)
+    for (size_t i = 0; i < line_size; i++)
     {
       if (line[i] == '\t')
         line[i] = ' ';
@@ -294,7 +407,7 @@ GNUNET_CONFIGURATION_deserialize (struct GNUNET_CONFIGURATION_Handle *cfg,
       continue;
 
     /* remove tailing whitespace */
-    for (i = line_size - 1;
+    for (size_t i = line_size - 1;
          (i >= 1) && (isspace ((unsigned char) line[i]));
          i--)
       line[i] = '\0';
@@ -308,60 +421,103 @@ GNUNET_CONFIGURATION_deserialize (struct GNUNET_CONFIGURATION_Handle *cfg,
          ('%' == line[0]) )
       continue;
 
-    /* handle special "@INLINE@" directive */
-    if (0 == strncasecmp (line,
-                          "@INLINE@ ",
-                          strlen ("@INLINE@ ")))
+    /* Handle special directives. */
+    if ('@' == line[0])
     {
-      char *inline_path;
+      char *end = strchr (line + 1, '@');
+      char *directive;
+      enum GNUNET_GenericReturnValue directive_ret;
 
-      if (NULL == source_filename)
+      if (NULL == end)
       {
-        LOG (GNUNET_ERROR_TYPE_DEBUG,
-             "Refusing to parse @INLINE@ configurations, "
-             "not allowed without source filename!\n");
+        LOG (GNUNET_ERROR_TYPE_WARNING,
+             _ ("Bad directive in line %u\n"),
+             nr);
         ret = GNUNET_SYSERR;
         break;
       }
-      /* FIXME: also trim space and end of line comment? */
-      value = &line[strlen ("@INLINE@ ")];
-      if ('/' == *value)
-        inline_path = GNUNET_strdup (value);
-      else
-      {
-        /* We compute the canonical, absolute path first,
-           so that relative imports resolve properly with symlinked
-           config files.  */
-        char *source_realpath;
-        char *endsep;
+      *end = '\0';
+      directive = line + 1;
 
-        source_realpath = realpath (source_filename,
-                                    NULL);
-        if (NULL == source_realpath)
+      if (0 == strcasecmp (directive, "INLINE"))
+      {
+        const char *path = end + 1;
+
+        /* Skip space before path */
+        for (; isspace (*path); path++)
+          ;
+
+        directive_ret = handle_inline (cfg,
+                                       path,
+                                       false,
+                                       NULL,
+                                       source_filename);
+      }
+      else if (0 == strcasecmp (directive, "INLINE-MATCHING"))
+      {
+        const char *path = end + 1;
+
+        /* Skip space before path */
+        for (; isspace (*path); path++)
+          ;
+
+        directive_ret = handle_inline (cfg,
+                                       path,
+                                       true,
+                                       NULL,
+                                       source_filename);
+      }
+      else if (0 == strcasecmp (directive, "INLINE-SECRET"))
+      {
+        const char *secname = end + 1;
+        const char *path;
+        const char *secname_end;
+
+        /* Skip space before secname */
+        for (; isspace (*secname); secname++)
+          ;
+
+        secname_end = strchr (secname, ' ');
+
+        if (NULL == secname_end)
         {
-          /* Couldn't even resolve path of base dir. */
-          GNUNET_break (0);
-          ret = GNUNET_SYSERR;       /* failed to parse included config */
+          LOG (GNUNET_ERROR_TYPE_WARNING,
+               _ ("Bad inline-secret directive in line %u\n"),
+               nr);
+          ret = GNUNET_SYSERR;
           break;
         }
-        endsep = strrchr (source_realpath, '/');
-        GNUNET_assert (NULL != endsep);
-        *endsep = '\0';
-        GNUNET_asprintf (&inline_path,
-                         "%s/%s",
-                         source_realpath,
-                         value);
-        free (source_realpath);
+        secname_end = '\0';
+        path = secname_end + 1;
+
+        /* Skip space before path */
+        for (; isspace (*path); path++)
+          ;
+
+        directive_ret = handle_inline (cfg,
+                                       path,
+                                       false,
+                                       secname,
+                                       source_filename);
       }
-      if (GNUNET_OK !=
-          GNUNET_CONFIGURATION_parse (cfg,
-                                      inline_path))
+      else
       {
-        GNUNET_free (inline_path);
-        ret = GNUNET_SYSERR;       /* failed to parse included config */
+        LOG (GNUNET_ERROR_TYPE_WARNING,
+             _ ("Unknown or malformed directive '%s' in line %u\n"),
+             directive,
+             nr);
+        ret = GNUNET_SYSERR;
         break;
       }
-      GNUNET_free (inline_path);
+      if (GNUNET_OK != directive_ret)
+      {
+        LOG (GNUNET_ERROR_TYPE_WARNING,
+             _ ("Bad directive '%s' in line %u\n"),
+             directive,
+             nr);
+        ret = GNUNET_SYSERR;
+        break;
+      }
       continue;
     }
     if (('[' == line[0]) && (']' == line[line_size - 1]))
@@ -375,10 +531,13 @@ GNUNET_CONFIGURATION_deserialize (struct GNUNET_CONFIGURATION_Handle *cfg,
     }
     if (NULL != (eq = strchr (line, '=')))
     {
+      size_t i;
+
       /* tag = value */
       tag = GNUNET_strndup (line, eq - line);
       /* remove tailing whitespace */
-      for (i = strlen (tag) - 1; (i >= 1) && (isspace ((unsigned char) tag[i]));
+      for (i = strlen (tag) - 1;
+           (i >= 1) && (isspace ((unsigned char) tag[i]));
            i--)
         tag[i] = '\0';
 
