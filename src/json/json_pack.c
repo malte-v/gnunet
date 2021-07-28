@@ -232,13 +232,13 @@ GNUNET_JSON_pack_data_varsize (const char *name,
                                const void *blob,
                                size_t blob_size)
 {
-  json_t *json;
+  struct GNUNET_JSON_PackSpec ps = {
+    .field_name = name,
+    .object = GNUNET_JSON_from_data (blob,
+                                     blob_size)
+  };
 
-  json = GNUNET_JSON_from_data (blob,
-                                blob_size);
-  GNUNET_assert (NULL != json);
-  return GNUNET_JSON_pack_object_steal (name,
-                                        json);
+  return ps;
 }
 
 
@@ -290,12 +290,12 @@ struct GNUNET_JSON_PackSpec
 GNUNET_JSON_pack_rsa_public_key (const char *name,
                                  const struct GNUNET_CRYPTO_RsaPublicKey *pk)
 {
-  json_t *json;
+  struct GNUNET_JSON_PackSpec ps = {
+    .field_name = name,
+    .object = GNUNET_JSON_from_rsa_public_key (pk)
+  };
 
-  json = GNUNET_JSON_from_rsa_public_key (pk);
-  GNUNET_assert (NULL != json);
-  return GNUNET_JSON_pack_object_steal (name,
-                                        json);
+  return ps;
 }
 
 
@@ -303,12 +303,12 @@ struct GNUNET_JSON_PackSpec
 GNUNET_JSON_pack_rsa_signature (const char *name,
                                 const struct GNUNET_CRYPTO_RsaSignature *sig)
 {
-  json_t *json;
+  struct GNUNET_JSON_PackSpec ps = {
+    .field_name = name,
+    .object = GNUNET_JSON_from_rsa_signature (sig)
+  };
 
-  json = GNUNET_JSON_from_rsa_signature (sig);
-  GNUNET_assert (NULL != json);
-  return GNUNET_JSON_pack_object_steal (name,
-                                        json);
+  return ps;
 }
 
 
