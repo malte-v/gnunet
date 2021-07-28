@@ -1918,12 +1918,45 @@ GNUNET_CONFIGURATION_default (void)
   char *cfgname = NULL;
   struct GNUNET_CONFIGURATION_Handle *cfg;
 
+  /* FIXME:  Why are we doing this?  Needs some commentary! */
   GNUNET_OS_init (dpd);
+
   cfg = GNUNET_CONFIGURATION_create ();
+
+  /* First, try user configuration. */
   if (NULL != xdg)
     GNUNET_asprintf (&cfgname, "%s/%s", xdg, pd->config_file);
   else
     cfgname = GNUNET_strdup (pd->user_config_file);
+
+  /* If user config doesn't exist, try in
+     /etc/<projdir>/<cfgfile> and /etc/<cfgfile> */
+  if (GNUNET_OK != GNUNET_DISK_file_test (cfgname))
+  {
+    GNUNET_free (cfgname);
+    GNUNET_asprintf (&cfgname, "/etc/%s", pd->config_file);
+  }
+  if (GNUNET_OK != GNUNET_DISK_file_test (cfgname))
+  {
+    GNUNET_free (cfgname);
+    GNUNET_asprintf (&cfgname, "/etc/%s/%s", pd->project_dirname,
+                     pd->config_file);
+  }
+  if (GNUNET_OK != GNUNET_DISK_file_test (cfgname))
+  {
+    LOG (GNUNET_ERROR_TYPE_ERROR,
+         "Unable to top-level configuration file.\n");
+    GNUNET_OS_init (pd);
+    GNUNET_CONFIGURATION_destroy (cfg);
+    GNUNET_free (cfgname);
+    return NULL;
+  }
+
+  /* We found a configuration file that looks good, try to load it. */
+
+  LOG (GNUNET_ERROR_TYPE_DEBUG,
+       "Loading top-level configuration from '%s'\n",
+       cfgname);
   if (GNUNET_OK !=
       GNUNET_CONFIGURATION_load (cfg, cfgname))
   {
