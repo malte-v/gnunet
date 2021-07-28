@@ -148,7 +148,13 @@ GNUNET_JSON_pack_object_steal (const char *name,
 
   if (NULL == o)
     return ps;
-  GNUNET_assert (json_is_object (o));
+  if (! json_is_object (o))
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                "Expected JSON object for field `%s'\n",
+                name);
+    GNUNET_assert (0);
+  }
   return ps;
 }
 
@@ -165,7 +171,13 @@ GNUNET_JSON_pack_object_incref (const char *name,
   if (NULL == o)
     return ps;
   (void) json_incref (o);
-  GNUNET_assert (json_is_object (o));
+  if (! json_is_object (o))
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                "Expected JSON object for field `%s'\n",
+                name);
+    GNUNET_assert (0);
+  }
   return ps;
 }
 
@@ -181,7 +193,13 @@ GNUNET_JSON_pack_array_steal (const char *name,
 
   if (NULL == a)
     return ps;
-  GNUNET_assert (json_is_array (a));
+  if (! json_is_array (a))
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                "Expected JSON array for field `%s'\n",
+                name);
+    GNUNET_assert (0);
+  }
   return ps;
 }
 
@@ -198,7 +216,13 @@ GNUNET_JSON_pack_array_incref (const char *name,
   if (NULL == a)
     return ps;
   (void) json_incref (a);
-  GNUNET_assert (json_is_array (a));  
+  if (! json_is_array (a))
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                "Expected JSON array for field `%s'\n",
+                name);
+    GNUNET_assert (0);
+  }
   return ps;
 }
 
