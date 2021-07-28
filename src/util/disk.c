@@ -432,9 +432,15 @@ GNUNET_DISK_directory_test (const char *fil, int is_readable)
   return GNUNET_YES;
 }
 
-
-enum GNUNET_GenericReturnValue
-GNUNET_DISK_file_test (const char *fil)
+/**
+ * Check if fil can be accessed using amode.
+ * 
+ * @param fil file to check for
+ * @param amode access mode
+ * @returns GNUnet error code
+ */
+static enum GNUNET_GenericReturnValue
+file_test_internal (const char *fil, int amode)
 {
   struct stat filestat;
   int ret;
@@ -461,7 +467,7 @@ GNUNET_DISK_file_test (const char *fil)
     GNUNET_free (rdir);
     return GNUNET_NO;
   }
-  if (access (rdir, F_OK) < 0)
+  if (access (rdir, amode) < 0)
   {
     LOG_STRERROR_FILE (GNUNET_ERROR_TYPE_WARNING, "access", rdir);
     GNUNET_free (rdir);
@@ -469,6 +475,20 @@ GNUNET_DISK_file_test (const char *fil)
   }
   GNUNET_free (rdir);
   return GNUNET_YES;
+}
+
+
+enum GNUNET_GenericReturnValue
+GNUNET_DISK_file_test (const char *fil)
+{
+  return file_test_internal (fil, F_OK);
+}
+
+
+enum GNUNET_GenericReturnValue
+GNUNET_DISK_file_test_read (const char *fil)
+{
+  return file_test_internal (fil, R_OK);
 }
 
 

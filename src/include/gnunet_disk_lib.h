@@ -266,6 +266,16 @@ GNUNET_DISK_handle_invalid (const struct GNUNET_DISK_FileHandle *h);
 enum GNUNET_GenericReturnValue
 GNUNET_DISK_file_test (const char *fil);
 
+/**
+ * Check that fil corresponds to a filename and the file has read permissions.
+ *
+ * @param fil filename to check
+ * @return #GNUNET_YES if yes, #GNUNET_NO if file doesn't exist or
+ *         has no read permissions, #GNUNET_SYSERR if something else
+ *         (will print an error message in that case, too).
+ */
+enum GNUNET_GenericReturnValue
+GNUNET_DISK_file_test_read (const char *fil);
 
 /**
  * Move a file out of the way (create a backup) by renaming it to "orig.NUM~"
