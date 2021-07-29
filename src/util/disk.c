@@ -956,6 +956,11 @@ struct GlobClosure
   const char *glob;
   GNUNET_FileNameCallback cb;
   void *cls;
+
+  /**
+   * Number of files that actually matched the glob pattern.
+   */
+  int nres;
 };
 
 /**
@@ -984,10 +989,15 @@ glob_cb (void *cls,
 
   if (glob_match (gc->glob, fn))
   {
+    enum GNUNET_GenericReturnValue cbret;
+
     LOG (GNUNET_ERROR_TYPE_DEBUG,
          "found glob match '%s'\n",
          filename);
-    gc->cb (gc->cls, filename);
+    gc->nres++;
+    cbret = gc->cb (gc->cls, filename);
+    if (GNUNET_OK != cbret)
+      return cbret;
   }
   return GNUNET_OK;
 }
@@ -1036,6 +1046,7 @@ GNUNET_DISK_glob (const char *glob_pattern,
       .glob = sep + 1,
       .cb = callback,
       .cls = callback_cls,
+      .nres = 0,
     };
     LOG (GNUNET_ERROR_TYPE_DEBUG,
          "scanning directory '%s' for glob matches on '%s'\n",
@@ -1045,9 +1056,9 @@ GNUNET_DISK_glob (const char *glob_pattern,
                                       glob_cb,
                                       &gc
                                       );
+    GNUNET_free (mypat);
+    return (ret < 0) ? ret : gc.nres;
   }
-  GNUNET_free (mypat);
-  return ret;
 }
 
 
