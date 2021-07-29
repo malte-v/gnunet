@@ -126,6 +126,7 @@ gnunet_regex_profiler_SOURCES = \
   gnunet-regex-profiler.c
 gnunet_regex_profiler_LDADD = -lm \
   $(top_builddir)/src/arm/libgnunetarm.la \
+  $(top_builddir)/src/testing/libgnunettesting.la \
   $(top_builddir)/src/testbed/libgnunettestbed.la \
   libgnunetregex_internal.a \
   $(top_builddir)/src/dht/libgnunetdht.la \
