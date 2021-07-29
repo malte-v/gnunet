@@ -109,7 +109,7 @@ GNUNET_JSON_pack_uint64 (const char *name,
   };
   
 #if JSON_INTEGER_IS_LONG_LONG
-  GNUNET_assert (num <= LONG_LONG_MAX);
+  GNUNET_assert (num <= LLONG_MAX);
 #else
   GNUNET_assert (num <= LONG_MAX);
 #endif
@@ -127,8 +127,8 @@ GNUNET_JSON_pack_int64 (const char *name,
   };
   
 #if JSON_INTEGER_IS_LONG_LONG
-  GNUNET_assert (num <= LONG_LONG_MAX);
-  GNUNET_assert (num >= LONG_LONG_MIN);
+  GNUNET_assert (num <= LLONG_MAX);
+  GNUNET_assert (num >= LLONG_MIN);
 #else
   GNUNET_assert (num <= LONG_MAX);
   GNUNET_assert (num >= LONG_MIN);
