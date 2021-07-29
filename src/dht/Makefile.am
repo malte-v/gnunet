@@ -112,6 +112,7 @@ gnunet_dht_profiler_LDADD = \
   libgnunetdht.la \
   $(top_builddir)/src/core/libgnunetcore.la \
   $(top_builddir)/src/util/libgnunetutil.la \
+  $(top_builddir)/src/testing/libgnunettesting.la \
  $(top_builddir)/src/testbed/libgnunettestbed.la
 gnunet_dht_profiler_LDFLAGS = \
   $(GN_LIBINTL)
