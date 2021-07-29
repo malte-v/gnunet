@@ -40,6 +40,7 @@ gnunet_consensus_profiler_SOURCES = \
 gnunet_consensus_profiler_LDADD = \
   $(top_builddir)/src/util/libgnunetutil.la \
   libgnunetconsensus.la \
+  $(top_builddir)/src/testing/libgnunettesting.la \
   $(top_builddir)/src/testbed/libgnunettestbed.la \
   $(GN_LIBINTL)
 
