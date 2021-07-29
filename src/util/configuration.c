@@ -1197,7 +1197,7 @@ GNUNET_CONFIGURATION_serialize_diagnostics (const struct
                                 sec->hint_inlined_from_line);
     }
     GNUNET_buffer_write_fstr (&buf,
-                              "[%s]\n",
+                              "[%s]\n\n",
                               sec->name);
     if (sec->inaccessible)
     {
