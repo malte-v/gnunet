@@ -132,6 +132,17 @@ struct ConfigFile
   struct ConfigFile *prev;
 
   struct ConfigFile *next;
+
+  /**
+   * Was this configuration file parsed via
+   * @inline-secret@?
+   */
+  char *hint_restrict_section;
+
+  /**
+   * Was this configuration file inaccessible?
+   */
+  bool hint_inaccessible;
 };
 
 
@@ -181,6 +192,13 @@ struct GNUNET_CONFIGURATION_Handle
    * Name of the entry point configuration file.
    */
   char *main_filename;
+
+  /**
+   * When parsing into this configuration, and this vaue
+   * is non-NULL, only parse sections of the same name,
+   * and ban import statements.
+   */
+  const char *restrict_section;
 };
 
 
@@ -298,9 +316,13 @@ GNUNET_CONFIGURATION_destroy (struct GNUNET_CONFIGURATION_Handle *cfg)
   while (NULL != (sec = cfg->sections))
     GNUNET_CONFIGURATION_remove_section (cfg, sec->name);
   while (NULL != (cf = cfg->loaded_files_head))
+  {
+    GNUNET_free (cf->hint_restrict_section);
+    GNUNET_free (cf->source_filename);
     GNUNET_CONTAINER_DLL_remove (cfg->loaded_files_head,
                                  cfg->loaded_files_tail,
                                  cf);
+  }
   GNUNET_free (cfg);
 }
 
@@ -488,6 +510,7 @@ handle_inline (struct GNUNET_CONFIGURATION_Handle *cfg,
   {
     enum GNUNET_GenericReturnValue inner_ret;
     struct ConfigSection *cs;
+    struct ConfigFile *cf = GNUNET_new (struct ConfigFile);
 
     inner_ret = GNUNET_DISK_file_test_read (inline_path);
 
@@ -533,18 +556,32 @@ handle_inline (struct GNUNET_CONFIGURATION_Handle *cfg,
       }
     }
 
+    /* Put file in the load list for diagnostics, even if we can't access it. */
+    {
+      cf->level = cfg->current_nest_level;
+      cf->source_filename = GNUNET_strdup (inline_path);
+      cf->hint_restrict_section = GNUNET_strdup (restrict_section);
+      GNUNET_CONTAINER_DLL_insert_tail (cfg->loaded_files_head,
+                                        cfg->loaded_files_tail,
+                                        cf);
+    }
+
     if (GNUNET_OK != inner_ret)
     {
       cs->inaccessible = true;
+      cf->hint_inaccessible = true;
+      /* File can't be accessed, but that's okay. */
       fun_ret = GNUNET_OK;
       goto cleanup;
     }
 
     other_cfg = GNUNET_CONFIGURATION_create ();
+    other_cfg->restrict_section = restrict_section;
     inner_ret = GNUNET_CONFIGURATION_parse (other_cfg,
                                             inline_path);
     if (GNUNET_OK != inner_ret)
     {
+      cf->hint_inaccessible = true;
       fun_ret = inner_ret;
       goto cleanup;
     }
@@ -737,6 +774,17 @@ GNUNET_CONFIGURATION_deserialize (struct GNUNET_CONFIGURATION_Handle *cfg,
       char *end = strchr (line + 1, '@');
       char *directive;
       enum GNUNET_GenericReturnValue directive_ret;
+
+      if (NULL != cfg->restrict_section)
+      {
+        LOG (GNUNET_ERROR_TYPE_WARNING,
+             _ (
+               "Illegal directive in line %u (parsing resticted section %s)\n"),
+             nr,
+             cfg->restrict_section);
+        ret = GNUNET_SYSERR;
+        break;
+      }
 
       if (NULL == end)
       {
@@ -1173,8 +1221,19 @@ GNUNET_CONFIGURATION_serialize_diagnostics (const struct
                                 " ");
 
     GNUNET_buffer_write_fstr (&buf,
-                              "%s\n",
+                              "%s",
                               cfil->source_filename);
+
+    if (NULL != cfil->hint_restrict_section)
+      GNUNET_buffer_write_fstr (&buf,
+                                " (%s secret section %s)",
+                                cfil->hint_inaccessible
+                                  ? "inaccessible"
+                                  : "loaded",
+                                cfil->hint_restrict_section);
+
+    GNUNET_buffer_write_str (&buf,
+                             "\n");
   }
 
   GNUNET_buffer_write_fstr (&buf,
