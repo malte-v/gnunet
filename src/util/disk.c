@@ -455,7 +455,7 @@ file_test_internal (const char *fil, int amode)
   {
     if (errno != ENOENT)
     {
-      LOG_STRERROR_FILE (GNUNET_ERROR_TYPE_WARNING, "stat", rdir);
+      LOG_STRERROR_FILE (GNUNET_ERROR_TYPE_DEBUG, "stat", rdir);
       GNUNET_free (rdir);
       return GNUNET_SYSERR;
     }
@@ -469,7 +469,7 @@ file_test_internal (const char *fil, int amode)
   }
   if (access (rdir, amode) < 0)
   {
-    LOG_STRERROR_FILE (GNUNET_ERROR_TYPE_WARNING, "access", rdir);
+    LOG_STRERROR_FILE (GNUNET_ERROR_TYPE_DEBUG, "access", rdir);
     GNUNET_free (rdir);
     return GNUNET_SYSERR;
   }
