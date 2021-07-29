@@ -113,6 +113,18 @@ GNUNET_CONFIGURATION_default (void);
 
 
 /**
+ * Return the filename of the default configuration filename
+ * that is used when no explicit configuration entry point
+ * has been specified.
+ *
+ * @returns NULL if no default configuration file can be located,
+ *          a newly allocated string otherwise
+ */
+char *
+GNUNET_CONFIGURATION_default_filename (void);
+
+
+/**
  * Parse a configuration file, add all of the options in the
  * file to the configuration environment.
  *

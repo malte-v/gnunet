@@ -1155,7 +1155,7 @@ GNUNET_CONFIGURATION_serialize_diagnostics (const struct
   GNUNET_buffer_write_fstr (&buf,
                             "# Entry point: %s\n",
                             cfg->main_filename ? cfg->main_filename :
-                            "<input>");
+                            "<none>");
   GNUNET_buffer_write_fstr (&buf,
                             "#\n# Files Loaded:\n");
 
@@ -2253,6 +2253,58 @@ GNUNET_CONFIGURATION_load_from (struct GNUNET_CONFIGURATION_Handle *cfg,
   return fun_ret;
 }
 
+char *
+GNUNET_CONFIGURATION_default_filename (void)
+{
+  char *cfg_fn;
+  const struct GNUNET_OS_ProjectData *pd = GNUNET_OS_project_data_get ();
+  const char *xdg = getenv ("XDG_CONFIG_HOME");
+
+  if (NULL != xdg)
+    GNUNET_asprintf (&cfg_fn,
+                     "%s%s%s",
+                     xdg,
+                     DIR_SEPARATOR_STR,
+                     pd->config_file);
+  else
+    cfg_fn = GNUNET_strdup (pd->user_config_file);
+
+  if (GNUNET_OK == GNUNET_DISK_file_test_read (cfg_fn))
+    return cfg_fn;
+
+  GNUNET_free (cfg_fn);
+
+  /* Fall back to /etc/ for the default configuration.
+     Should be okay to use forward slashes here. */
+
+  GNUNET_asprintf (&cfg_fn,
+                   "/etc/%s",
+                   pd->config_file);
+
+  if (GNUNET_OK == GNUNET_DISK_file_test_read (cfg_fn))
+    return cfg_fn;
+
+  GNUNET_free (cfg_fn);
+
+  GNUNET_asprintf (&cfg_fn,
+                   "/etc/%s",
+                   pd->config_file);
+
+  if (GNUNET_OK == GNUNET_DISK_file_test_read (cfg_fn))
+    return cfg_fn;
+
+  GNUNET_asprintf (&cfg_fn,
+                   "/etc/%s/%s",
+                   pd->project_dirname,
+                   pd->config_file);
+
+  if (GNUNET_OK == GNUNET_DISK_file_test_read (cfg_fn))
+    return cfg_fn;
+
+  GNUNET_free (cfg_fn);
+  return NULL;
+}
+
 
 struct GNUNET_CONFIGURATION_Handle *
 GNUNET_CONFIGURATION_default (void)
@@ -2284,7 +2336,9 @@ GNUNET_CONFIGURATION_default (void)
   if (GNUNET_OK != GNUNET_DISK_file_test (cfgname))
   {
     GNUNET_free (cfgname);
-    GNUNET_asprintf (&cfgname, "/etc/%s/%s", pd->project_dirname,
+    GNUNET_asprintf (&cfgname,
+                     "/etc/%s/%s",
+                     pd->project_dirname,
                      pd->config_file);
   }
   if (GNUNET_OK != GNUNET_DISK_file_test (cfgname))
@@ -2353,7 +2407,10 @@ GNUNET_CONFIGURATION_load (struct GNUNET_CONFIGURATION_Handle *cfg,
 
     ipath = GNUNET_OS_installation_get_path (GNUNET_OS_IPK_DATADIR);
     if (NULL == ipath)
+    {
+      GNUNET_break (0);
       return GNUNET_SYSERR;
+    }
     GNUNET_asprintf (&baseconfig, "%s%s", ipath, "config.d");
     GNUNET_free (ipath);
   }
@@ -2364,6 +2421,9 @@ GNUNET_CONFIGURATION_load (struct GNUNET_CONFIGURATION_Handle *cfg,
   if ((GNUNET_YES == GNUNET_DISK_directory_test (dname, GNUNET_YES))&&
       (GNUNET_SYSERR == GNUNET_CONFIGURATION_load_from (cfg, dname)))
   {
+    LOG (GNUNET_ERROR_TYPE_WARNING,
+         "Failed to load base configuration from '%s'\n",
+         filename);
     GNUNET_free (dname);
     return GNUNET_SYSERR;       /* no configuration at all found */
   }
@@ -2372,6 +2432,9 @@ GNUNET_CONFIGURATION_load (struct GNUNET_CONFIGURATION_Handle *cfg,
       (GNUNET_OK != GNUNET_CONFIGURATION_parse (cfg, filename)))
   {
     /* specified configuration not found */
+    LOG (GNUNET_ERROR_TYPE_WARNING,
+         "Failed to load configuration from file '%s'\n",
+         filename);
     return GNUNET_SYSERR;
   }
   if (((GNUNET_YES !=

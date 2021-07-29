@@ -173,7 +173,6 @@ run (void *cls,
   {
     struct GNUNET_CONFIGURATION_Handle *ncfg;
     /* Re-parse the configuration with diagnostics enabled. */
-    GNUNET_assert (NULL != cfgfile);
     ncfg = GNUNET_CONFIGURATION_create ();
     GNUNET_CONFIGURATION_enable_diagnostics (ncfg);
     GNUNET_CONFIGURATION_load (ncfg, cfgfile);
