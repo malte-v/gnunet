@@ -61,6 +61,7 @@ gnunet_ats_sim_SOURCES = \
 gnunet_ats_sim_LDADD = \
  $(top_builddir)/src/util/libgnunetutil.la \
  $(top_builddir)/src/ats-tests/libgnunetatstesting.la \
+ $(top_builddir)/src/testing/libgnunettesting.la \
  $(top_builddir)/src/testbed/libgnunettestbed.la \
  $(top_builddir)/src/ats/libgnunetats.la \
  $(top_builddir)/src/core/libgnunetcore.la \
