@@ -95,6 +95,8 @@ struct StartPeerState
 
   char *n;
 
+  char *local_m;
+
   unsigned int finished;
 
   const char *system_label;
@@ -104,7 +106,7 @@ struct StartPeerState
    */
   unsigned int no;
 
-  struct GNUNET_CONTAINER_MultiPeerMap *connected_peers_map;
+  struct GNUNET_CONTAINER_MultiShortmap *connected_peers_map;
 
   struct GNUNET_TESTING_System *tl_system;
 
@@ -190,7 +192,9 @@ notify_connect (void *cls,
                 struct GNUNET_MQ_Handle *mq)
 {
   struct StartPeerState *sps = cls;
-
+  struct GNUNET_ShortHashCode *key = GNUNET_new (struct GNUNET_ShortHashCode);
+  struct GNUNET_HashCode hc;
+  int node_number;
 
   void *ret;
 
@@ -201,8 +205,16 @@ notify_connect (void *cls,
        sps->no,
        GNUNET_i2s (&sps->id));
 
-  GNUNET_CONTAINER_multipeermap_put (sps->connected_peers_map,
-                                     peer,
+  // TODO we need to store with a key identifying the netns node in the future. For now we have only one connecting node.
+      node_number = 1;
+    GNUNET_CRYPTO_hash (&node_number, sizeof(node_number), &hc);
+    
+
+  memcpy (key,
+          &hc,
+          sizeof (*key));
+  GNUNET_CONTAINER_multishortmap_put (sps->connected_peers_map,
+                                     key,
                                      mq,
                                      GNUNET_CONTAINER_MULTIHASHMAPOPTION_MULTIPLE);
 
@@ -428,7 +440,7 @@ start_peer_traits (void *cls,
   struct StartPeerState *sps = cls;
   struct GNUNET_TRANSPORT_ApplicationHandle *ah = sps->ah;
   struct GNUNET_PeerIdentity *id = &sps->id;
-  struct GNUNET_CONTAINER_MultiPeerMap *connected_peers_map =
+  struct GNUNET_CONTAINER_MultiShortmap *connected_peers_map =
     sps->connected_peers_map;
   char *hello = sps->hello;
   size_t hello_size = sps->hello_size;
@@ -498,7 +510,7 @@ GNUNET_TRANSPORT_get_trait_connected_peers_map (const struct
                                                 GNUNET_TESTING_Command
                                                 *cmd,
                                                 struct
-                                                GNUNET_CONTAINER_MultiPeerMap **
+                                                GNUNET_CONTAINER_MultiShortmap **
                                                 connected_peers_map)
 {
   return cmd->traits (cmd->cls,
@@ -545,20 +557,24 @@ GNUNET_TRANSPORT_cmd_start_peer (const char *label,
                                  const char *system_label,
                                  char *m,
                                  char *n,
+                                 char *local_m,
                                  struct GNUNET_MQ_MessageHandler *handlers,
                                  const char *cfgname)
 {
   struct StartPeerState *sps;
-  struct GNUNET_CONTAINER_MultiPeerMap *connected_peers_map =
-    GNUNET_CONTAINER_multipeermap_create (1,GNUNET_NO);
+  struct GNUNET_CONTAINER_MultiShortmap *connected_peers_map =
+    GNUNET_CONTAINER_multishortmap_create (1,GNUNET_NO);
   unsigned int i;
 
   LOG (GNUNET_ERROR_TYPE_ERROR,
-       "start peer 0.1\n");
+       "start peer 0.1 with cfg: %s\n",
+       cfgname);
   
   sps = GNUNET_new (struct StartPeerState);
   sps->m = m;
   sps->n = n;
+  sps->local_m = local_m;
+  sps->no = (atoi (n) - 1) * atoi (sps->local_m) + atoi (m);
   sps->system_label = system_label;
   sps->connected_peers_map = connected_peers_map;
   sps->cfgname = cfgname;

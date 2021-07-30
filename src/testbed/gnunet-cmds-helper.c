@@ -428,7 +428,7 @@ tokenizer_cb (void *cls, const struct GNUNET_MessageHeader *message)
     strcat (node_ip, plugin->n);
 
     plugin->api->start_testcase (&write_message, router_ip, node_ip, plugin->m,
-                                 plugin->n);
+                                 plugin->n, plugin->local_m);
 
     LOG (GNUNET_ERROR_TYPE_ERROR,
          "We got here!\n");

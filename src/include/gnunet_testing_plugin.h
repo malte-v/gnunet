@@ -45,7 +45,8 @@ typedef void
                                         write_message, char *router_ip,
                                         char *node_ip,
                                         char *n,
-                                        char *m);
+                                        char *m,
+                                        char *local_m);
 
 typedef void
 (*GNUNET_TESTING_PLUGIN_ALL_PEERS_STARTED) ();

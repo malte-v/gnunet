@@ -1900,6 +1900,9 @@ queue_read (void *cls)
                                      BUF_SIZE - queue->cread_off);
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Received %lu bytes from TCP queue\n", rcvd);
+    GNUNET_log_from_nocheck (GNUNET_ERROR_TYPE_DEBUG,
+                           "transport",
+              "Received %lu bytes from TCP queue\n", rcvd);
   if (-1 == rcvd)
   {
     if ((EAGAIN != errno) && (EINTR != errno))
@@ -2675,6 +2678,9 @@ proto_read_kx (void *cls)
                                      sizeof(pq->ibuf) - pq->ibuf_off);
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Received %lu bytes for KX\n", rcvd);
+      GNUNET_log_from_nocheck (GNUNET_ERROR_TYPE_DEBUG,
+                           "transport",
+              "Received %lu bytes for KX\n", rcvd);
   if (-1 == rcvd)
   {
     if ((EAGAIN != errno) && (EINTR != errno))
@@ -2824,6 +2830,10 @@ queue_read_kx (void *cls)
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Received %lu bytes for KX\n",
               rcvd);
+      GNUNET_log_from_nocheck (GNUNET_ERROR_TYPE_DEBUG,
+                           "transport",
+              "Received %lu bytes for KX\n",
+              rcvd);
   if (-1 == rcvd)
   {
     if ((EAGAIN != errno) && (EINTR != errno))
@@ -2918,6 +2928,9 @@ mq_init (void *cls, const struct GNUNET_PeerIdentity *peer, const char *address)
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Connecting to %s\n", address);
+  GNUNET_log_from_nocheck (GNUNET_ERROR_TYPE_DEBUG,
+                           "transport",
+                           "Connecting to %s\n", address);
   if (0 != strncmp (address,
                     COMMUNICATOR_ADDRESS_PREFIX "-",
                     strlen (COMMUNICATOR_ADDRESS_PREFIX "-")))
@@ -3238,7 +3251,7 @@ init_socket (struct sockaddr *addr,
     return GNUNET_SYSERR;
   }
 
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+  GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
               "address %s\n",
               GNUNET_a2s (addr, in_len));
 

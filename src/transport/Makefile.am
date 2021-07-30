@@ -171,6 +171,7 @@ libgnunettransporttesting2_la_SOURCES = \
   transport_api_cmd_start_peer.c \
   transport_api_cmd_send_simple.c \
   transport-testing2.c transport-testing2.h \
+  transport-testing-cmds.h \
   transport-testing-filenames2.c \
   transport-testing-loggers2.c \
   transport-testing-main2.c \
@@ -409,8 +410,8 @@ libgnunet_plugin_cmd_simple_send_la_LIBADD = \
   $(top_builddir)/src/testbed/libgnunettestbed.la \
   libgnunettransporttesting2.la \
   $(LTLIBINTL)
-#libgnunet_plugin_cmd_simple_send_la_LDFLAGS = \
-#  $(GN_PLUGIN_LDFLAGS)
+libgnunet_plugin_cmd_simple_send_la_LDFLAGS = \
+  $(GN_PLUGIN_LDFLAGS)
 
 if HAVE_EXPERIMENTAL
 plugin_LTLIBRARIES += libgnunet_plugin_transport_udp.la

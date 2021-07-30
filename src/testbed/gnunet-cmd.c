@@ -90,7 +90,7 @@ run (void *cls)
   strcat (node_ip, NODE_BASE_IP);
   strcat (node_ip, plugin->n);
 
-  plugin->api->start_testcase (NULL, router_ip, node_ip, NULL, NULL);
+  plugin->api->start_testcase (NULL, router_ip, node_ip, NULL, NULL, NULL);
 
 }
 

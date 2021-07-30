@@ -48,7 +48,8 @@ static void
 start_testcase (TESTBED_CMD_HELPER_write_cb write_message, char *router_ip,
                 char *node_ip,
                 char *n,
-                char *m)
+                char *m,
+                char *local_m)
 {
   struct GNUNET_TIME_Absolute now = GNUNET_TIME_absolute_get ();
 

@@ -26,7 +26,8 @@
 #include "platform.h"
 #include "gnunet_util_lib.h"
 #include "gnunet_testing_ng_lib.h"
-#include "transport-testing.h"
+#include "transport-testing2.h"
+#include "transport-testing-cmds.h"
 
 struct SendSimpleState
 {
@@ -70,21 +71,26 @@ send_simple_run (void *cls,
   struct GNUNET_MQ_Envelope *env;
   struct GNUNET_TRANSPORT_TESTING_TestMessage *test;
   struct GNUNET_MQ_Handle *mq;
-  struct GNUNET_CONTAINER_MultiPeerMap *connected_peers_map;
+  struct GNUNET_CONTAINER_MultiShortmap *connected_peers_map;
   struct GNUNET_PeerIdentity *id;
   const struct GNUNET_TESTING_Command *peer1_cmd;
   const struct GNUNET_TESTING_Command *peer2_cmd;
+  struct GNUNET_ShortHashCode *key = GNUNET_new (struct GNUNET_ShortHashCode);
+  struct GNUNET_HashCode hc;
+  int node_number;
 
   peer1_cmd = GNUNET_TESTING_interpreter_lookup_command (sss->peer1_label);
   GNUNET_TRANSPORT_get_trait_connected_peers_map (peer1_cmd,
                                                   &connected_peers_map);
 
-  peer2_cmd = GNUNET_TESTING_interpreter_lookup_command (sss->peer2_label);
-  GNUNET_TRANSPORT_get_trait_peer_id (peer2_cmd,
-                                      &id);
-
-  mq = GNUNET_CONTAINER_multipeermap_get (connected_peers_map,
-                                          id);
+  node_number = 1;
+  GNUNET_CRYPTO_hash (&node_number, sizeof(node_number), &hc);
+  memcpy (key,
+          &hc,
+          sizeof (*key));
+  
+  mq = GNUNET_CONTAINER_multishortmap_get (connected_peers_map,
+                                          key);
 
   env = GNUNET_MQ_msg_extra (test,
                              2600 - sizeof(*test),
@@ -110,7 +116,7 @@ send_simple_run (void *cls,
  * @return command.
  */
 struct GNUNET_TESTING_Command
-GNUNET_TESTING_cmd_send_simple (const char *label,
+GNUNET_TRANSPORT_cmd_send_simple (const char *label,
                                 char *m,
                                 char *n,
                                 uint32_t num,

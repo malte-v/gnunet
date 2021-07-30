@@ -30,6 +30,7 @@
 // #include "gnunet_transport_service.h"
 #include "gnunet_testbed_ng_service.h"
 #include "transport-testing2.h"
+#include "transport-testing-cmds.h"
 
 /**
  * Generic logging shortcut
@@ -85,20 +86,25 @@ static void
 start_testcase (TESTBED_CMD_HELPER_write_cb write_message, char *router_ip,
                 char *node_ip,
                 char *m,
-                char *n)
+                char *n,
+                char *local_m)
 {
   char *testdir;
   char *cfgname;
 
   GNUNET_asprintf (&cfgname,
                    "%s%s.conf",
-                   "test_transport_api2_tcp_peer",
+                   "test_transport_api2_tcp_node",
                    n);
 
   LOG (GNUNET_ERROR_TYPE_ERROR,
        "cfgname: %s\n",
        cfgname);
 
+  LOG (GNUNET_ERROR_TYPE_ERROR,
+       "node ip: %s\n",
+       node_ip);
+  
   testdir = GNUNET_malloc (strlen (BASE_DIR) + strlen (m) + strlen (n)
                            + 1);
 
@@ -125,6 +131,7 @@ start_testcase (TESTBED_CMD_HELPER_write_cb write_message, char *router_ip,
                                      "system-create-1",
                                      m,
                                      n,
+                                     local_m,
                                      handlers,
                                      cfgname),
     GNUNET_TESTING_cmd_send_peer_ready ("send-peer-ready-1",
@@ -134,12 +141,12 @@ start_testcase (TESTBED_CMD_HELPER_write_cb write_message, char *router_ip,
     GNUNET_TRANSPORT_cmd_connect_peers ("connect-peers-1",
                                         "start-peer-1",
                                         "this is useless"),
-    /*GNUNET_TESTING_cmd_send_simple ("send-simple-1",
-                                    char *m,
-                                    char *n,
-                                    uint32_t num,
-                                    const char *peer1_label,
-                                    const char *peer2_label),*/
+    GNUNET_TRANSPORT_cmd_send_simple ("send-simple-1",
+                                    m,
+                                    n,
+                                    0,
+                                    "start-peer-1",
+                                    "this is useless"),
     GNUNET_TESTING_cmd_local_test_finished ("local-test-finished-1",
                                             write_message)
   };

@@ -373,9 +373,16 @@ start_testbed (struct NetJailState *ns, struct
                          tbc));
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                    "First using helper %d\n",
-                    tbc->count - 1);
+                    "First using helper %d %d\n",
+              tbc->count - 1,
+              ns->n_helper);
   struct GNUNET_HELPER_Handle *helper = ns->helper[tbc->count - 1];
+
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                    "First using helper %d %d %p\n",
+              tbc->count - 1,
+              ns->n_helper,
+              helper);
 
   msg = create_helper_init_msg_ (m_char,
                                  n_char,
