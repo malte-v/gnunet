@@ -1,3 +1,15 @@
+gnunet (0.14.1-8) unstable; urgency=low
+
+  * Allow configuration entry point to fall back to /etc/.
+
+ -- Florian Dold <florian@dold.me>  Thu, 29 Jul 2021 15:03:08 +0200
+
+gnunet (0.14.1-7) unstable; urgency=low
+
+  * Implement new configuration directives and diagnostics.
+
+ -- Florian Dold <florian@dold.me>  Wed, 28 Jul 2021 21:23:36 +0200
+
 gnunet (0.14.1-6) unstable; urgency=low
 
   * Fix path resolution of inlined config files.

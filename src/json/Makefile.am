@@ -13,7 +13,9 @@ libgnunetjson_la_LDFLAGS = \
   $(GN_LIBINTL) \
   -version-info 0:0:0 \
   -no-undefined
-libgnunetjson_la_CFLAGS = $(MHD_CFLAGS) $(AM_CFLAGS)
+libgnunetjson_la_CFLAGS = \
+  $(MHD_CFLAGS) \
+  $(AM_CFLAGS)
 libgnunetjson_la_SOURCES = \
   json.c \
   json_generator.c \
@@ -26,9 +28,6 @@ libgnunetjson_la_LIBADD = \
   $(MHD_LIBS) \
   $(XLIB) \
   $(Z_LIBS)
-libgnunetjson_la_DEPENDENCIES = \
-  $(top_builddir)/src/util/libgnunetutil.la
-
 
 check_PROGRAMS = \
   test_json \

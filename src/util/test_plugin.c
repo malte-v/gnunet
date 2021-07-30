@@ -26,15 +26,22 @@
 
 
 static void
-test_cb (void *cls, const char *libname, void *lib_ret)
+test_cb (void *cls,
+         const char *libname,
+         void *lib_ret)
 {
-  void *ret;
+  const char *test_cls = cls;
+  char *ret;
 
-  GNUNET_assert (0 == strcmp (cls, "test"));
-  GNUNET_assert (0 == strcmp (lib_ret, "Hello"));
-  ret = GNUNET_PLUGIN_unload (libname, "out");
+  GNUNET_assert (0 == strcmp (test_cls,
+                              "test-closure"));
+  GNUNET_assert (0 == strcmp (lib_ret,
+                              "Hello"));
+  ret = GNUNET_PLUGIN_unload (libname,
+                              "out");
   GNUNET_assert (NULL != ret);
-  GNUNET_assert (0 == strcmp (ret, "World"));
+  GNUNET_assert (0 == strcmp (ret,
+                              "World"));
   free (ret);
 }
 
@@ -44,24 +51,35 @@ main (int argc, char *argv[])
 {
   void *ret;
 
-  GNUNET_log_setup ("test-plugin", "WARNING", NULL);
-  GNUNET_log_skip (1, GNUNET_NO);
-  ret = GNUNET_PLUGIN_load ("libgnunet_plugin_missing", NULL);
+  GNUNET_log_setup ("test-plugin",
+                    "WARNING",
+                    NULL);
+  GNUNET_log_skip (1,
+                   GNUNET_NO);
+  ret = GNUNET_PLUGIN_load ("libgnunet_plugin_missing",
+                            NULL);
   GNUNET_log_skip (0, GNUNET_NO);
-  if (ret != NULL)
+  if (NULL != ret)
     return 1;
-  ret = GNUNET_PLUGIN_load ("libgnunet_plugin_test", "in");
-  if (ret == NULL)
+  ret = GNUNET_PLUGIN_load ("libgnunet_plugin_utiltest",
+                            "in");
+  if (NULL == ret)
     return 1;
-  if (0 != strcmp (ret, "Hello"))
+  if (0 != strcmp (ret,
+                   "Hello"))
     return 2;
-  ret = GNUNET_PLUGIN_unload ("libgnunet_plugin_test", "out");
-  if (ret == NULL)
+  ret = GNUNET_PLUGIN_unload ("libgnunet_plugin_utiltest",
+                              "out");
+  if (NULL == ret)
     return 3;
-  if (0 != strcmp (ret, "World"))
+  if (0 != strcmp (ret,
+                   "World"))
     return 4;
   free (ret);
-  GNUNET_PLUGIN_load_all ("libgnunet_plugin_tes", "in", &test_cb, "test");
+  GNUNET_PLUGIN_load_all ("libgnunet_plugin_utiltes",
+                          "in",
+                          &test_cb,
+                          "test-closure");
   return 0;
 }
 

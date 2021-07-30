@@ -113,6 +113,18 @@ GNUNET_CONFIGURATION_default (void);
 
 
 /**
+ * Return the filename of the default configuration filename
+ * that is used when no explicit configuration entry point
+ * has been specified.
+ *
+ * @returns NULL if no default configuration file can be located,
+ *          a newly allocated string otherwise
+ */
+char *
+GNUNET_CONFIGURATION_default_filename (void);
+
+
+/**
  * Parse a configuration file, add all of the options in the
  * file to the configuration environment.
  *
@@ -137,6 +149,19 @@ char *
 GNUNET_CONFIGURATION_serialize (const struct GNUNET_CONFIGURATION_Handle *cfg,
                                 size_t *size);
 
+
+/**
+ * Serializes the given configuration with diagnostics information.
+ * Diagnostics information will only be available if diagnostics
+ * have been enabled before parsing.
+ *
+ * @param cfg configuration to serialize
+ * @return the memory block where the serialized configuration is
+ *           present. This memory should be freed by the caller
+ */
+char *
+GNUNET_CONFIGURATION_serialize_diagnostics (const struct
+                                            GNUNET_CONFIGURATION_Handle *cfg);
 
 /**
  * De-serializes configuration
@@ -233,6 +258,16 @@ enum GNUNET_GenericReturnValue
 GNUNET_CONFIGURATION_parse_and_run (const char *filename,
                                     GNUNET_CONFIGURATION_Callback cb,
                                     void *cb_cls);
+
+/**
+ * Enable extra diagnostics.  Will produce more log output
+ * and allocate more memory.
+ *
+ * @param cfg configuration handle
+ */
+void
+GNUNET_CONFIGURATION_enable_diagnostics (struct
+                                         GNUNET_CONFIGURATION_Handle *cfg);
 
 
 /**

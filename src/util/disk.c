@@ -434,7 +434,7 @@ GNUNET_DISK_directory_test (const char *fil, int is_readable)
 
 /**
  * Check if fil can be accessed using amode.
- * 
+ *
  * @param fil file to check for
  * @param amode access mode
  * @returns GNUnet error code
@@ -455,7 +455,7 @@ file_test_internal (const char *fil, int amode)
   {
     if (errno != ENOENT)
     {
-      LOG_STRERROR_FILE (GNUNET_ERROR_TYPE_WARNING, "stat", rdir);
+      LOG_STRERROR_FILE (GNUNET_ERROR_TYPE_DEBUG, "stat", rdir);
       GNUNET_free (rdir);
       return GNUNET_SYSERR;
     }
@@ -469,7 +469,7 @@ file_test_internal (const char *fil, int amode)
   }
   if (access (rdir, amode) < 0)
   {
-    LOG_STRERROR_FILE (GNUNET_ERROR_TYPE_WARNING, "access", rdir);
+    LOG_STRERROR_FILE (GNUNET_ERROR_TYPE_DEBUG, "access", rdir);
     GNUNET_free (rdir);
     return GNUNET_SYSERR;
   }
@@ -956,6 +956,11 @@ struct GlobClosure
   const char *glob;
   GNUNET_FileNameCallback cb;
   void *cls;
+
+  /**
+   * Number of files that actually matched the glob pattern.
+   */
+  int nres;
 };
 
 /**
@@ -984,10 +989,15 @@ glob_cb (void *cls,
 
   if (glob_match (gc->glob, fn))
   {
+    enum GNUNET_GenericReturnValue cbret;
+
     LOG (GNUNET_ERROR_TYPE_DEBUG,
          "found glob match '%s'\n",
          filename);
-    gc->cb (gc->cls, filename);
+    gc->nres++;
+    cbret = gc->cb (gc->cls, filename);
+    if (GNUNET_OK != cbret)
+      return cbret;
   }
   return GNUNET_OK;
 }
@@ -1001,6 +1011,17 @@ GNUNET_DISK_glob (const char *glob_pattern,
   char *mypat = GNUNET_strdup (glob_pattern);
   char *sep;
   int ret;
+
+  if ( (NULL != strrchr (glob_pattern, '+')) ||
+       (NULL != strrchr (glob_pattern, '[')) ||
+       (NULL != strrchr (glob_pattern, '+')) ||
+       (NULL != strrchr (glob_pattern, '~')) )
+  {
+    LOG (GNUNET_ERROR_TYPE_ERROR,
+         "unsupported glob pattern: '%s'\n",
+         glob_pattern);
+    return -1;
+  }
 
   sep = strrchr (mypat, DIR_SEPARATOR);
   if (NULL == sep)
@@ -1025,6 +1046,7 @@ GNUNET_DISK_glob (const char *glob_pattern,
       .glob = sep + 1,
       .cb = callback,
       .cls = callback_cls,
+      .nres = 0,
     };
     LOG (GNUNET_ERROR_TYPE_DEBUG,
          "scanning directory '%s' for glob matches on '%s'\n",
@@ -1034,9 +1056,9 @@ GNUNET_DISK_glob (const char *glob_pattern,
                                       glob_cb,
                                       &gc
                                       );
+    GNUNET_free (mypat);
+    return (ret < 0) ? ret : gc.nres;
   }
-  GNUNET_free (mypat);
-  return ret;
 }
 
 

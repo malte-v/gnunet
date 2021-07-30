@@ -70,6 +70,12 @@ static int global_ret;
 static int rewrite;
 
 /**
+ * Should we give extra diagnostics?
+ */
+static int diagnostics;
+
+
+/**
  * Should the generated configuration file contain the whole configuration?
  */
 static int full;
@@ -162,6 +168,17 @@ run (void *cls,
     GNUNET_free (name);
     return;
   }
+
+  if (diagnostics)
+  {
+    struct GNUNET_CONFIGURATION_Handle *ncfg;
+    /* Re-parse the configuration with diagnostics enabled. */
+    ncfg = GNUNET_CONFIGURATION_create ();
+    GNUNET_CONFIGURATION_enable_diagnostics (ncfg);
+    GNUNET_CONFIGURATION_load (ncfg, cfgfile);
+    cfg = ncfg;
+  }
+
   if (full)
     rewrite = GNUNET_YES;
   if (list_sections)
@@ -176,16 +193,26 @@ run (void *cls,
   if ( (! rewrite) &&
        (NULL == section) )
   {
-    fprintf (stderr,
-             _ ("%s or %s argument is required\n"),
-             "--section",
-             "--list-sections");
-    global_ret = 1;
-    return;
-  }
+    char *serialization;
 
-  if ( (NULL != section) &&
-       (NULL == value) )
+    if (! diagnostics)
+    {
+      fprintf (stderr,
+               _ ("%s, %s or %s argument is required\n"),
+               "--section",
+               "--list-sections",
+               "--diagnostics");
+      global_ret = 1;
+      return;
+    }
+    serialization = GNUNET_CONFIGURATION_serialize_diagnostics (cfg);
+    fprintf (stdout,
+             "%s",
+             serialization);
+    GNUNET_free (serialization);
+  }
+  else if ( (NULL != section) &&
+            (NULL == value) )
   {
     if (NULL == option)
     {
@@ -348,6 +375,12 @@ main (int argc, char *const *argv)
       gettext_noop (
         "rewrite the configuration file, even if nothing changed"),
       &rewrite),
+    GNUNET_GETOPT_option_flag (
+      'd',
+      "diagnostics",
+      gettext_noop (
+        "output extra diagnostics"),
+      &diagnostics),
     GNUNET_GETOPT_option_flag ('S',
                                "list-sections",
                                gettext_noop (

@@ -105,6 +105,7 @@ endif
 gnunet_fs_profiler_SOURCES = \
  gnunet-fs-profiler.c
 gnunet_fs_profiler_LDADD = \
+  $(top_builddir)/src/testing/libgnunettesting.la \
   $(top_builddir)/src/testbed/libgnunettestbed.la \
   $(top_builddir)/src/util/libgnunetutil.la \
   $(GN_LIBINTL)
