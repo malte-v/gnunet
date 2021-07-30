@@ -447,8 +447,12 @@ GNUNET_PLUGIN_load_all_in_context (const struct GNUNET_OS_ProjectData *ctx,
                                    void *cb_cls)
 {
   const struct GNUNET_OS_ProjectData *cpd = GNUNET_OS_project_data_get ();
+
   GNUNET_OS_init (ctx);
-  GNUNET_PLUGIN_load_all (basename, arg, cb, cb_cls);
+  GNUNET_PLUGIN_load_all (basename,
+                          arg,
+                          cb,
+                          cb_cls);
   GNUNET_OS_init (cpd);
 }
 

@@ -242,11 +242,11 @@ gnunet_qr_LDADD = \
 gnunet_qr_LDFLAGS= -lzbar
 
 plugin_LTLIBRARIES = \
-  libgnunet_plugin_test.la
+  libgnunet_plugin_utiltest.la
 
-libgnunet_plugin_test_la_SOURCES = \
+libgnunet_plugin_utiltest_la_SOURCES = \
   test_plugin_plug.c
-libgnunet_plugin_test_la_LDFLAGS = \
+libgnunet_plugin_utiltest_la_LDFLAGS = \
  $(GN_PLUGIN_LDFLAGS)
 
 if HAVE_BENCHMARKS
