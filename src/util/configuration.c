@@ -616,7 +616,7 @@ handle_inline (struct GNUNET_CONFIGURATION_Handle *cfg,
   {
     fun_ret = GNUNET_OK;
   }
-cleanup:
+  cleanup:
   cfg->current_nest_level = old_nest_level;
   if (NULL != other_cfg)
     GNUNET_CONFIGURATION_destroy (other_cfg);
@@ -889,6 +889,16 @@ GNUNET_CONFIGURATION_deserialize (struct GNUNET_CONFIGURATION_Handle *cfg,
     if (NULL != (eq = strchr (line, '=')))
     {
       size_t i;
+
+      if (NULL == section)
+      {
+        LOG (GNUNET_ERROR_TYPE_WARNING,
+             _ (
+               "Syntax error while deserializing in line %u (option without section)\n"),
+             nr);
+        ret = GNUNET_SYSERR;
+        break;
+      }
 
       /* tag = value */
       tag = GNUNET_strndup (line, eq - line);
@@ -2300,7 +2310,7 @@ GNUNET_CONFIGURATION_load_from (struct GNUNET_CONFIGURATION_Handle *cfg,
     if (fun_ret != GNUNET_OK)
       break;
   }
-cleanup:
+  cleanup:
   if (files_context.files_length > 0)
   {
     for (size_t i = 0; i < files_context.files_length; i++)
