@@ -194,7 +194,7 @@ struct GNUNET_CONFIGURATION_Handle
   char *main_filename;
 
   /**
-   * When parsing into this configuration, and this vaue
+   * When parsing into this configuration, and this value
    * is non-NULL, only parse sections of the same name,
    * and ban import statements.
    */
@@ -616,7 +616,7 @@ handle_inline (struct GNUNET_CONFIGURATION_Handle *cfg,
   {
     fun_ret = GNUNET_OK;
   }
-  cleanup:
+cleanup:
   cfg->current_nest_level = old_nest_level;
   if (NULL != other_cfg)
     GNUNET_CONFIGURATION_destroy (other_cfg);
@@ -779,7 +779,7 @@ GNUNET_CONFIGURATION_deserialize (struct GNUNET_CONFIGURATION_Handle *cfg,
       {
         LOG (GNUNET_ERROR_TYPE_WARNING,
              _ (
-               "Illegal directive in line %u (parsing resticted section %s)\n"),
+               "Illegal directive in line %u (parsing restricted section %s)\n"),
              nr,
              cfg->restrict_section);
         ret = GNUNET_SYSERR;
@@ -2300,7 +2300,7 @@ GNUNET_CONFIGURATION_load_from (struct GNUNET_CONFIGURATION_Handle *cfg,
     if (fun_ret != GNUNET_OK)
       break;
   }
-  cleanup:
+cleanup:
   if (files_context.files_length > 0)
   {
     for (size_t i = 0; i < files_context.files_length; i++)
@@ -2311,6 +2311,7 @@ GNUNET_CONFIGURATION_load_from (struct GNUNET_CONFIGURATION_Handle *cfg,
   }
   return fun_ret;
 }
+
 
 char *
 GNUNET_CONFIGURATION_default_filename (void)
@@ -2428,6 +2429,7 @@ GNUNET_CONFIGURATION_default (void)
   return cfg;
 }
 
+
 /**
  * Load configuration (starts with defaults, then loads
  * system-specific configuration).
@@ -2477,7 +2479,7 @@ GNUNET_CONFIGURATION_load (struct GNUNET_CONFIGURATION_Handle *cfg,
   char *dname = GNUNET_STRINGS_filename_expand (baseconfig);
   GNUNET_free (baseconfig);
 
-  if ((GNUNET_YES == GNUNET_DISK_directory_test (dname, GNUNET_YES))&&
+  if ((GNUNET_YES == GNUNET_DISK_directory_test (dname, GNUNET_YES)) &&
       (GNUNET_SYSERR == GNUNET_CONFIGURATION_load_from (cfg, dname)))
   {
     LOG (GNUNET_ERROR_TYPE_WARNING,
@@ -2503,5 +2505,6 @@ GNUNET_CONFIGURATION_load (struct GNUNET_CONFIGURATION_Handle *cfg,
                                            filename);
   return GNUNET_OK;
 }
+
 
 /* end of configuration.c */

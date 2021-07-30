@@ -193,7 +193,8 @@ run (void *cls,
   if ( (! rewrite) &&
        (NULL == section) )
   {
-    char *ser;
+    char *serialization;
+
     if (! diagnostics)
     {
       fprintf (stderr,
@@ -204,9 +205,11 @@ run (void *cls,
       global_ret = 1;
       return;
     }
-    ser = GNUNET_CONFIGURATION_serialize_diagnostics (cfg);
-    printf ("%s", ser);
-    GNUNET_free (ser);
+    serialization = GNUNET_CONFIGURATION_serialize_diagnostics (cfg);
+    fprintf (stdout,
+             "%s",
+             serialization);
+    GNUNET_free (serialization);
   }
   else if ( (NULL != section) &&
             (NULL == value) )
