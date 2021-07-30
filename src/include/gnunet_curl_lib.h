@@ -150,7 +150,7 @@ GNUNET_CURL_get_select_info (struct GNUNET_CURL_Context *ctx,
  * @param header header string; will be given to the context AS IS.
  * @return #GNUNET_OK if no errors occurred, #GNUNET_SYSERR otherwise.
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_CURL_append_header (struct GNUNET_CURL_Context *ctx,
                            const char *header);
 

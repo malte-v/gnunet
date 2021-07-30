@@ -784,6 +784,20 @@ GNUNET_CURL_download_get_result_ (struct GNUNET_CURL_DownloadBuffer *db,
                   (const char *) db->buf);
     return NULL;
   }
+  if (0 == *response_code)
+  {
+    char *url;
+
+    if (CURLE_OK !=
+        curl_easy_getinfo (eh,
+                           CURLINFO_EFFECTIVE_URL,
+                           &url))
+      url = "<unknown URL>";
+    GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
+                "Failed to download response from `%s': \n",
+                url);
+    return NULL;
+  }
   if (MHD_HTTP_NO_CONTENT == *response_code)
     return NULL;
   json = NULL;
@@ -825,8 +839,9 @@ GNUNET_CURL_download_get_result_ (struct GNUNET_CURL_DownloadBuffer *db,
  * @param header header string; will be given to the context AS IS.
  * @return #GNUNET_OK if no errors occurred, #GNUNET_SYSERR otherwise.
  */
-int
-GNUNET_CURL_append_header (struct GNUNET_CURL_Context *ctx, const char *header)
+enum GNUNET_GenericReturnValue
+GNUNET_CURL_append_header (struct GNUNET_CURL_Context *ctx,
+                           const char *header)
 {
   ctx->common_headers = curl_slist_append (ctx->common_headers, header);
   if (NULL == ctx->common_headers)
@@ -892,7 +907,7 @@ do_benchmark (CURLMsg *cmsg)
      curl -w "foo%{size_request} -XPOST --data "ABC" $URL
      the CURLINFO_REQUEST_SIZE should be the whole size of the request
      including headers and body.
-  *///
+  */
   GNUNET_break (size_curl <= size_long);
 
   urd = get_url_benchmark_data (url, (unsigned int) response_code);
