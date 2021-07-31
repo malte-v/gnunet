@@ -1,3 +1,9 @@
+gnunet (0.14.1-10) unstable; urgency=low
+
+  * Do not remove users/groups in postrm.
+
+ -- Florian Dold <florian@dold.me>  Sat, 31 Jul 2021 16:46:13 +0200
+
 gnunet (0.14.1-9) unstable; urgency=low
 
   * Fix some bugs in configuration file parsing.
