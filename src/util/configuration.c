@@ -427,7 +427,7 @@ handle_inline (struct GNUNET_CONFIGURATION_Handle *cfg,
                const char *source_filename,
                unsigned int source_lineno)
 {
-  char *inline_path;
+  char *inline_path = NULL;
   struct GNUNET_CONFIGURATION_Handle *other_cfg = NULL;
   struct CollectFilesContext igc = {
     .files = NULL,
