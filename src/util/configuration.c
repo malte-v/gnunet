@@ -589,11 +589,15 @@ handle_inline (struct GNUNET_CONFIGURATION_Handle *cfg,
     cs = find_section (other_cfg, restrict_section);
     if (NULL == cs)
     {
-      LOG (GNUNET_ERROR_TYPE_ERROR,
-           "inlined configuration '%s' does not contain section '%s'\n",
+      LOG (GNUNET_ERROR_TYPE_INFO,
+           "Configuration file '%s' loaded with @inline-secret@ "
+           "does not contain section '%s'.\n",
            inline_path,
            restrict_section);
-      fun_ret = GNUNET_SYSERR;
+      /* Inlined onfiguration is accessible but doesn't contain any values.
+         We treat this as if the inlined section was empty, and do not
+         consider it an error. */
+      fun_ret = GNUNET_OK;
       goto cleanup;
     }
     for (struct ConfigEntry *ce = cs->entries;
@@ -616,7 +620,7 @@ handle_inline (struct GNUNET_CONFIGURATION_Handle *cfg,
   {
     fun_ret = GNUNET_OK;
   }
-  cleanup:
+ cleanup:
   cfg->current_nest_level = old_nest_level;
   if (NULL != other_cfg)
     GNUNET_CONFIGURATION_destroy (other_cfg);
@@ -2310,7 +2314,7 @@ GNUNET_CONFIGURATION_load_from (struct GNUNET_CONFIGURATION_Handle *cfg,
     if (fun_ret != GNUNET_OK)
       break;
   }
-  cleanup:
+ cleanup:
   if (files_context.files_length > 0)
   {
     for (size_t i = 0; i < files_context.files_length; i++)
