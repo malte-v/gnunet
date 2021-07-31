@@ -1,3 +1,9 @@
+gnunet (0.14.1-11) unstable; urgency=low
+
+  * Make configuration parsing more permissive.
+
+ -- Florian Dold <florian@dold.me>  Sat, 31 Jul 2021 20:04:42 +0200
+
 gnunet (0.14.1-10) unstable; urgency=low
 
   * Do not remove users/groups in postrm.
