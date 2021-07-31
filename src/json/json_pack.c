@@ -33,7 +33,7 @@ GNUNET_JSON_pack_ (struct GNUNET_JSON_PackSpec spec[])
 
   ret = json_object ();
   GNUNET_assert (NULL != ret);
-  for (unsigned int i=0;
+  for (unsigned int i = 0;
        NULL != spec[i].field_name;
        i++)
   {
@@ -55,7 +55,7 @@ GNUNET_JSON_pack_ (struct GNUNET_JSON_PackSpec spec[])
 
 
 struct GNUNET_JSON_PackSpec
-GNUNET_JSON_pack_end_(void)
+GNUNET_JSON_pack_end_ (void)
 {
   struct GNUNET_JSON_PackSpec ps = {
     .field_name = NULL
@@ -81,7 +81,7 @@ GNUNET_JSON_pack_bool (const char *name,
     .field_name = name,
     .object = json_boolean (b)
   };
-  
+
   return ps;
 }
 
@@ -94,8 +94,8 @@ GNUNET_JSON_pack_string (const char *name,
     .field_name = name,
     .object = json_string (s)
   };
-  
-  return ps;  
+
+  return ps;
 }
 
 
@@ -107,25 +107,25 @@ GNUNET_JSON_pack_uint64 (const char *name,
     .field_name = name,
     .object = json_integer ((json_int_t) num)
   };
-  
+
 #if JSON_INTEGER_IS_LONG_LONG
   GNUNET_assert (num <= LLONG_MAX);
 #else
   GNUNET_assert (num <= LONG_MAX);
 #endif
-  return ps;  
+  return ps;
 }
 
 
 struct GNUNET_JSON_PackSpec
 GNUNET_JSON_pack_int64 (const char *name,
-                         int64_t num)
+                        int64_t num)
 {
   struct GNUNET_JSON_PackSpec ps = {
     .field_name = name,
     .object = json_integer ((json_int_t) num)
   };
-  
+
 #if JSON_INTEGER_IS_LONG_LONG
   GNUNET_assert (num <= LLONG_MAX);
   GNUNET_assert (num >= LLONG_MIN);
@@ -234,8 +234,10 @@ GNUNET_JSON_pack_data_varsize (const char *name,
 {
   struct GNUNET_JSON_PackSpec ps = {
     .field_name = name,
-    .object = GNUNET_JSON_from_data (blob,
-                                     blob_size)
+    .object = (NULL != blob)
+    ? GNUNET_JSON_from_data (blob,
+                             blob_size)
+    : NULL
   };
 
   return ps;
