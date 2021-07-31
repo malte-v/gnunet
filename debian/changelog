@@ -2,7 +2,7 @@ gnunet (0.14.1-9) unstable; urgency=low
 
   * Fix some bugs in configuration file parsing.
 
- -- Florian Dold <florian@dold.me>  Sat Jul 31 12:57:43 PM CEST 2021
+ -- Florian Dold <florian@dold.me>  Sat, 31 Jul 2021 16:08:19 +0200
 
 gnunet (0.14.1-8) unstable; urgency=low
 
