@@ -53,13 +53,13 @@ connect_peers_run (void *cls,
 {
   struct ConnectPeersState *cps = cls;
   const struct GNUNET_TESTING_Command *peer1_cmd;
-  const struct GNUNET_TESTING_Command *peer2_cmd;
+  //const struct GNUNET_TESTING_Command *peer2_cmd;
   struct GNUNET_TRANSPORT_ApplicationHandle *ah;
   struct GNUNET_PeerIdentity *peer = GNUNET_new (struct GNUNET_PeerIdentity);
   char *addr;
-  struct GNUNET_TIME_Absolute t;
+  //struct GNUNET_TIME_Absolute t;
   char *hello;
-  size_t *hello_size;
+  //size_t *hello_size;
   enum GNUNET_NetworkType nt = 0;
   char *peer_id;
 

@@ -72,9 +72,9 @@ send_simple_run (void *cls,
   struct GNUNET_TRANSPORT_TESTING_TestMessage *test;
   struct GNUNET_MQ_Handle *mq;
   struct GNUNET_CONTAINER_MultiShortmap *connected_peers_map;
-  struct GNUNET_PeerIdentity *id;
+  //struct GNUNET_PeerIdentity *id;
   const struct GNUNET_TESTING_Command *peer1_cmd;
-  const struct GNUNET_TESTING_Command *peer2_cmd;
+  //const struct GNUNET_TESTING_Command *peer2_cmd;
   struct GNUNET_ShortHashCode *key = GNUNET_new (struct GNUNET_ShortHashCode);
   struct GNUNET_HashCode hc;
   int node_number;
