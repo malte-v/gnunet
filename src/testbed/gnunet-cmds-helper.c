@@ -124,8 +124,8 @@ struct Plugin *plugin;
 
 /**
  * The process handle to the testbed service
- */
-static struct GNUNET_OS_Process *cmd_binary_process;
+ 
+static struct GNUNET_OS_Process *cmd_binary_process;*/
 
 /**
  * Handle to the testing system
@@ -276,7 +276,7 @@ write_task (void *cls)
  *
  * @param cls closure, NULL if we need to self-restart
  */
-static void
+/*static void
 child_death_task (void *cls)
 {
   const struct GNUNET_DISK_FileHandle *pr;
@@ -284,7 +284,7 @@ child_death_task (void *cls)
 
   pr = GNUNET_DISK_pipe_handle (sigpipe, GNUNET_DISK_PIPE_END_READ);
   child_death_task_id = NULL;
-  /* consume the signal */
+  // consume the signal 
   GNUNET_break (0 < GNUNET_DISK_file_read (pr, &c, sizeof(c)));
   LOG_DEBUG ("Got SIGCHLD\n");
 
@@ -294,7 +294,7 @@ child_death_task (void *cls)
                                     pr,
                                     &child_death_task,
                                     NULL);
-}
+}*/
 
 
 static void

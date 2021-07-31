@@ -196,7 +196,7 @@ notify_connect (void *cls,
   struct GNUNET_HashCode hc;
   int node_number;
 
-  void *ret;
+  void *ret = NULL;
 
 
   LOG (GNUNET_ERROR_TYPE_DEBUG,
