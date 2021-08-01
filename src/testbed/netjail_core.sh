@@ -95,13 +95,13 @@ netjail_node_exec() {
 	FD_OUT=$3
 	shift 3
 
-	unshare -fp --kill-child -- ip netns exec $NODE sudo -u $JAILOR -- $@ 1>& $FD_OUT 0<& $FD_IN
+	ip netns exec $NODE sudo -u $JAILOR -- $@ 1>& $FD_OUT 0<& $FD_IN
 }
 
 netjail_node_exec_without_fds() {
 	NODE=$1
 	shift 1
 
-	unshare -fp --kill-child -- ip netns exec $NODE sudo -u $JAILOR -- $@
+	ip netns exec $NODE sudo -u $JAILOR -- $@
 }
 
