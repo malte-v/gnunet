@@ -248,12 +248,20 @@ struct GNUNET_JSON_PackSpec
 GNUNET_JSON_pack_time_abs (const char *name,
                            struct GNUNET_TIME_Absolute at)
 {
-  json_t *json;
+  struct GNUNET_JSON_PackSpec ps = {
+    .field_name = name
+  };
 
-  json = GNUNET_JSON_from_time_abs (at);
-  GNUNET_assert (NULL != json);
-  return GNUNET_JSON_pack_object_steal (name,
-                                        json);
+  if (0 != at.abs_value_us)
+  {
+    ps.object = GNUNET_JSON_from_time_abs (at);
+    GNUNET_assert (NULL != ps.object);
+  }
+  else
+  {
+    ps.object = NULL;
+  }
+  return ps;
 }
 
 
