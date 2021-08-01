@@ -108,114 +108,63 @@ case "${1}" in
 			echo " done."
 		fi
 
-                # Install GNUnet configuration for all users provided non exists
-		userlist=$(awk -F ':' '$3>=1000 && $3<2000 {print $1}' /etc/passwd)
-		users=($userlist)
-		homedirlist=$(awk -F ':' '$3>=1000 && $3<2000 {print $6}' /etc/passwd)
-                homedirs=($homedirlist)
-
-		for (( i=0; i<${#users[@]}; i++ )); do
-		    usermod -aG gnunet ${users[$i]}
-                    if [ -n "$i" ]  && [ -d "${homedirs[$i]}" ]; then
-			            mkdir -p ${homedirs[$i]}/.config/systemd/user/
-
-			            cat > "${homedirs[$i]}/.config/systemd/user/gnunet-user.service" << EOF
-# Copyright (C) 2019 GNUnet e.V.
+#	# Change the proxy settings for Firefox and Chromium if desired
+#		if ${_PROXY}
+#        then
+#		    mkdir -p /etc/X11/xinit/xinitrc.d/
+#cat > "/etc/X11/xinit/xinitrc.d/80-gnunet-user-services" << "EOF"
+##!/bin/bash
+#systemctl --user daemon-reload
+#systemctl --user start gnunet-user
+#systemctl --user enable gnunet-user
+#user=$(whoami)
+#gnunet_proxy=$(gnunet-config -c /etc/skel/.config/gnunet.conf -s gns-proxy | grep 'IMMEDIATE_START = YES')
 #
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
-
-[Unit]
-Description=Service that runs a GNUnet for the user gnunet
-After=network.target
-
-[Service]
-Type=forking
-ExecStart=/usr/bin/gnunet-arm -s -c ${homedirs[$i]}/.config/gnunet.conf
-ExecStop=/usr/bin/gnunet-arm -e -c ${homedirs[$i]}/.config/gnunet.conf
-
-[Install]
-WantedBy=multi-user.target
-EOF
-
-			            chown "${users[$i]}":"${users[$i]}" "${homedirs[$i]}/.config/systemd/user/gnunet-user.service"
-                        if [ ! -f "${homedirs[$i]}/.config/gnunet.conf" ]; then
-				            mkdir -p ${homedirs[$i]}/.config/
-				            cp /etc/skel/.config/gnunet.conf "${homedirs[$i]}/.config/gnunet.conf"
-				            chmod 644 "${homedirs[$i]}/.config/gnunet.conf"
-                        fi
-                    fi
-                    port=$((8000+$(id -u "${users[$i]}")))
-                    gnunet-config -c "${homedirs[$i]}/.config/gnunet.conf" \
-                         --section=gns-proxy \
-                         --option=IMMEDIATE_START \
-                         --value=YES
-                    gnunet-config -c "${homedirs[$i]}/.config/gnunet.conf" \
-                         --section=gns-proxy \
-                         --option=OPTIONS \
- 			             --value="-p $port"
-				chown "${users[$i]}":"${users[$i]}" "${homedirs[$i]}/.config/gnunet.conf"
-		done
-
-                # Change the proxy settings for Firefox and Chromium if desired
-		if ${_PROXY}
-        then
-		    mkdir -p /etc/X11/xinit/xinitrc.d/
-cat > "/etc/X11/xinit/xinitrc.d/80-gnunet-user-services" << "EOF"
-#!/bin/bash
-systemctl --user daemon-reload
-systemctl --user start gnunet-user
-systemctl --user enable gnunet-user
-user=$(whoami)
-gnunet_proxy=$(gnunet-config -c /etc/skel/.config/gnunet.conf -s gns-proxy | grep 'IMMEDIATE_START = YES')
-
-# Enable GNS proxy for new users informed by /etc/skel.
-if [ "$gnunet_proxy" ]; then
-
-        # Calculate user specific port
-        port=$((8000+$(id -u $user)))
-
-        gnunet-config -c $HOME/.config/gnunet.conf \
-                --section=gns-proxy \
-                --option=OPTIONS \
-                --value="-p $port"
-
-        # Firefox
-        defaultprofile=$(ls $HOME/.mozilla/firefox/*.default)
-        if [ ! "$defaultprofile" ];then
-                timeout 3s firefox --headless # dirty: create profile if not existent
-        fi
-        for ffprofile in $HOME/.mozilla/firefox/*.*/; do
-                js=$ffprofile/user.js
-                if [ -f "$js" ]; then
-                        sed -i '/Preferences for using the GNU Name System/d' "$js"
-                        sed -i '/network.proxy.socks/d' "$js"
-                        sed -i '/network.proxy.socks_port/d' "$js"
-                        sed -i '/network.proxy.socks_remote_dns/d' "$js"
-                        sed -i '/network.proxy.type/d' "$js"
-                fi
-                echo "// Preferences for using the GNU Name System" >> "$js"
-                echo "user_pref(\"network.proxy.socks\", \"localhost\");" >> "$js"
-                echo "user_pref(\"network.proxy.socks_port\", $port);" >> "$js"
-                echo "user_pref(\"network.proxy.socks_remote_dns\", true);" >> "$js"
-                echo "user_pref(\"network.proxy.type\", 1);" >> "$js"
-        done
-
-        # Chromium
-        profile="$HOME/.profile"
-        if [ -f "$profile" ]; then
-                sed -i '/CHROMIUM_USER_FLAGS/d' "$profile"
-        fi
-        echo "export CHROMIUM_USER_FLAGS=--proxy-server=socks5://localhost:$port" \
-                >> "$profile"
-fi
-
-# Create/Renew GNS certificate authority (CA) per user.
-gnunet-gns-proxy-setup-ca
-EOF
-                fi
+## Enable GNS proxy for new users informed by /etc/skel.
+#if [ "$gnunet_proxy" ]; then
+#
+#        # Calculate user specific port
+#        port=$((8000+$(id -u $user)))
+#
+#        gnunet-config -c $HOME/.config/gnunet.conf \
+#                --section=gns-proxy \
+#                --option=OPTIONS \
+#                --value="-p $port"
+#
+#        # Firefox
+#        defaultprofile=$(ls $HOME/.mozilla/firefox/*.default)
+#        if [ ! "$defaultprofile" ];then
+#                timeout 3s firefox --headless # dirty: create profile if not existent
+#        fi
+#        for ffprofile in $HOME/.mozilla/firefox/*.*/; do
+#                js=$ffprofile/user.js
+#                if [ -f "$js" ]; then
+#                        sed -i '/Preferences for using the GNU Name System/d' "$js"
+#                        sed -i '/network.proxy.socks/d' "$js"
+#                        sed -i '/network.proxy.socks_port/d' "$js"
+#                        sed -i '/network.proxy.socks_remote_dns/d' "$js"
+#                        sed -i '/network.proxy.type/d' "$js"
+#                fi
+#                echo "// Preferences for using the GNU Name System" >> "$js"
+#                echo "user_pref(\"network.proxy.socks\", \"localhost\");" >> "$js"
+#                echo "user_pref(\"network.proxy.socks_port\", $port);" >> "$js"
+#                echo "user_pref(\"network.proxy.socks_remote_dns\", true);" >> "$js"
+#                echo "user_pref(\"network.proxy.type\", 1);" >> "$js"
+#        done
+#
+#        # Chromium
+#        profile="$HOME/.profile"
+#        if [ -f "$profile" ]; then
+#                sed -i '/CHROMIUM_USER_FLAGS/d' "$profile"
+#        fi
+#        echo "export CHROMIUM_USER_FLAGS=--proxy-server=socks5://localhost:$port" \
+#                >> "$profile"
+#fi
+#
+## Create/Renew GNS certificate authority (CA) per user.
+#gnunet-gns-proxy-setup-ca
+#EOF
+#                fi
 
 		# Update files and directories permissions.
 		# Assuming default values, this *should* not be changed.
@@ -265,21 +214,6 @@ cat > "${CONFIG_NEW}" <<EOF
 GNUNET_USER=${_USERNAME}
 GNUNET_GROUP=${_GROUPNAME}
 GNUNET_AUTOSTART="${_AUTOSTART}"
-EOF
-
-cat > "/etc/systemd/system/gnunet.service" <<EOF
-[Unit]
-Description=A framework for secure peer-to-peer networking
-
-[Service]
-EnvironmentFile=/etc/default/gnunet
-User=${_USERNAME}
-Type=forking
-ExecStart=/usr/bin/gnunet-arm -s -c /etc/gnunet.conf
-ExecStop=/usr/bin/gnunet-arm -e -c /etc/gnunet.conf
-
-[Install]
-WantedBy=multi-user.target
 EOF
 
 		cp -f "${CONFIG_NEW}" "${CONFIG_FILE}"
