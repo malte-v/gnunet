@@ -29,8 +29,8 @@
 
 /**
  * Handle for an active LISTENer to the database.
- */ 
-struct GNUNET_PQ_EventHandler
+ */
+struct GNUNET_DB_EventHandler
 {
   /**
    * Channel name.
@@ -40,7 +40,7 @@ struct GNUNET_PQ_EventHandler
   /**
    * Function to call on events.
    */
-  GNUNET_PQ_EventCallback cb;
+  GNUNET_DB_EventCallback cb;
 
   /**
    * Closure for @e cb.
@@ -54,8 +54,6 @@ struct GNUNET_PQ_EventHandler
 };
 
 
-
-
 /**
  * Convert @a es to a short hash.
  *
@@ -63,7 +61,7 @@ struct GNUNET_PQ_EventHandler
  * @param[out] sh short hash to set
  */
 static void
-es_to_sh (const struct GNUNET_PQ_EventHeaderP *es,
+es_to_sh (const struct GNUNET_DB_EventHeaderP *es,
           struct GNUNET_ShortHashCode *sh)
 {
   struct GNUNET_HashCode h_channel;
@@ -111,7 +109,7 @@ sh_to_channel (struct GNUNET_ShortHashCode *sh,
  * @return end position of the identifier
  */
 static char *
-es_to_channel (const struct GNUNET_PQ_EventHeaderP *es,
+es_to_channel (const struct GNUNET_DB_EventHeaderP *es,
                char identifier[64])
 {
   struct GNUNET_ShortHashCode sh;
@@ -141,12 +139,12 @@ struct NotifyContext
 
 
 /**
- * Function called on every event handler that 
+ * Function called on every event handler that
  * needs to be triggered.
  *
  * @param cls a `struct NotifyContext`
  * @param sh channel name
- * @param value a `struct GNUNET_PQ_EventHandler`
+ * @param value a `struct GNUNET_DB_EventHandler`
  * @return #GNUNET_OK continue to iterate
  */
 static int
@@ -155,13 +153,13 @@ do_notify (void *cls,
            void *value)
 {
   struct NotifyContext *ctx = cls;
-  struct GNUNET_PQ_EventHandler *eh = value;
+  struct GNUNET_DB_EventHandler *eh = value;
 
   eh->cb (eh->cb_cls,
           ctx->extra,
           ctx->extra_size);
   return GNUNET_OK;
-} 
+}
 
 
 void
@@ -265,7 +263,7 @@ do_scheduler_notify (void *cls)
     = GNUNET_SCHEDULER_add_read_net (GNUNET_TIME_UNIT_ZERO,
                                      db->rfd,
                                      &do_scheduler_notify,
-                                     db);  
+                                     db);
 }
 
 
@@ -281,7 +279,7 @@ scheduler_fd_cb (void *cls,
                  int fd)
 {
   struct GNUNET_PQ_Context *db = cls;
-  
+
   if (NULL != db->event_task)
   {
     GNUNET_SCHEDULER_cancel (db->event_task);
@@ -305,7 +303,7 @@ void
 GNUNET_PQ_event_scheduler_start (struct GNUNET_PQ_Context *db)
 {
   int fd;
-  
+
   GNUNET_assert (! db->scheduler_on);
   GNUNET_assert (NULL == db->sc);
   db->scheduler_on = true;
@@ -335,7 +333,7 @@ GNUNET_PQ_event_scheduler_stop (struct GNUNET_PQ_Context *db)
 static void
 manage_subscribe (struct GNUNET_PQ_Context *db,
                   const char *cmd,
-                  struct GNUNET_PQ_EventHandler *eh)
+                  struct GNUNET_DB_EventHandler *eh)
 {
   char sql[16 + 64];
   char *end;
@@ -379,13 +377,13 @@ register_notify (void *cls,
                  void *value)
 {
   struct GNUNET_PQ_Context *db = cls;
-  struct GNUNET_PQ_EventHandler *eh = value;
-  
+  struct GNUNET_DB_EventHandler *eh = value;
+
   manage_subscribe (db,
                     "LISTEN ",
                     eh);
   return GNUNET_OK;
-} 
+}
 
 
 void
@@ -401,16 +399,16 @@ GNUNET_PQ_event_reconnect_ (struct GNUNET_PQ_Context *db)
 }
 
 
-struct GNUNET_PQ_EventHandler *
+struct GNUNET_DB_EventHandler *
 GNUNET_PQ_event_listen (struct GNUNET_PQ_Context *db,
-                        const struct GNUNET_PQ_EventHeaderP *es,
-                        GNUNET_PQ_EventCallback cb,
+                        const struct GNUNET_DB_EventHeaderP *es,
+                        GNUNET_DB_EventCallback cb,
                         void *cb_cls)
 {
-  struct GNUNET_PQ_EventHandler *eh;
+  struct GNUNET_DB_EventHandler *eh;
   bool was_zero;
 
-  eh = GNUNET_new (struct GNUNET_PQ_EventHandler);
+  eh = GNUNET_new (struct GNUNET_DB_EventHandler);
   eh->db = db;
   es_to_sh (es,
             &eh->sh);
@@ -421,14 +419,14 @@ GNUNET_PQ_event_listen (struct GNUNET_PQ_Context *db,
   was_zero = (0 == GNUNET_CONTAINER_multishortmap_size (db->channel_map));
   GNUNET_assert (GNUNET_OK ==
                  GNUNET_CONTAINER_multishortmap_put (db->channel_map,
-                                                         &eh->sh,
-                                                         eh,
-                                                         GNUNET_CONTAINER_MULTIHASHMAPOPTION_MULTIPLE));
+                                                     &eh->sh,
+                                                     eh,
+                                                     GNUNET_CONTAINER_MULTIHASHMAPOPTION_MULTIPLE));
   if ( (NULL != db->sc) &&
        was_zero)
   {
     int fd = PQsocket (db->conn);
-    
+
     if (-1 != fd)
       db->sc (db->sc_cls,
               fd);
@@ -443,7 +441,7 @@ GNUNET_PQ_event_listen (struct GNUNET_PQ_Context *db,
 
 
 void
-GNUNET_PQ_event_listen_cancel (struct GNUNET_PQ_EventHandler *eh)
+GNUNET_PQ_event_listen_cancel (struct GNUNET_DB_EventHandler *eh)
 {
   struct GNUNET_PQ_Context *db = eh->db;
 
@@ -451,9 +449,9 @@ GNUNET_PQ_event_listen_cancel (struct GNUNET_PQ_EventHandler *eh)
                  pthread_mutex_lock (&db->notify_lock));
   GNUNET_assert (GNUNET_OK ==
                  GNUNET_CONTAINER_multishortmap_remove (db->channel_map,
-                                                    &eh->sh,
-                                                    eh));
-    
+                                                        &eh->sh,
+                                                        eh));
+
   manage_subscribe (db,
                     "UNLISTEN ",
                     eh);
@@ -471,7 +469,7 @@ GNUNET_PQ_event_listen_cancel (struct GNUNET_PQ_EventHandler *eh)
 
 void
 GNUNET_PQ_event_notify (struct GNUNET_PQ_Context *db,
-                        const struct GNUNET_PQ_EventHeaderP *es,
+                        const struct GNUNET_DB_EventHeaderP *es,
                         const void *extra,
                         size_t extra_size)
 {
@@ -512,5 +510,5 @@ GNUNET_PQ_event_notify (struct GNUNET_PQ_Context *db,
   PQclear (result);
 }
 
-/* end of pq_event.c */
 
+/* end of pq_event.c */
