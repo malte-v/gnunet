@@ -1,3 +1,11 @@
+gnunet (0.14.1-12) unstable; urgency=low
+
+  * Lower debhelper compatibility level to 12.
+  * Do not inject user units in postinst for now.
+  * Tweaks to packaging.
+
+ -- Florian Dold <florian@dold.me>  Sat, 31 Jul 2021 20:04:42 +0200
+
 gnunet (0.14.1-11) unstable; urgency=low
 
   * Make configuration parsing more permissive.
