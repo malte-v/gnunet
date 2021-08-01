@@ -192,6 +192,7 @@ GNUNET_PQ_event_do_poll (struct GNUNET_PQ_Context *db)
 
   GNUNET_assert (0 ==
                  pthread_mutex_lock (&db->notify_lock));
+  PQconsumeInput (db->conn);
   while (NULL != (n = PQnotifies (db->conn)))
   {
     struct GNUNET_ShortHashCode sh;
@@ -208,6 +209,7 @@ GNUNET_PQ_event_do_poll (struct GNUNET_PQ_Context *db)
       GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
                   "Ignoring notification for unsupported channel identifier `%s'\n",
                   n->relname);
+      PQfreemem (n);
       continue;
     }
     if ( (NULL != n->extra) &&
@@ -221,12 +223,14 @@ GNUNET_PQ_event_do_poll (struct GNUNET_PQ_Context *db)
                   "Ignoring notification for unsupported extra data `%s' on channel `%s'\n",
                   n->extra,
                   n->relname);
+      PQfreemem (n);
       continue;
     }
     GNUNET_CONTAINER_multishortmap_iterate (db->channel_map,
                                             &do_notify,
                                             &ctx);
     GNUNET_free (ctx.extra);
+    PQfreemem (n);
   }
   GNUNET_assert (0 ==
                  pthread_mutex_unlock (&db->notify_lock));
