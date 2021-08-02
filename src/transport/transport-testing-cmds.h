@@ -25,7 +25,7 @@
  * @author Christian Grothoff
  */
 #ifndef TRANSPORT_TESTING_CMDS_H
-#define TRANSPORT_TESTING__CMDS_H
+#define TRANSPORT_TESTING_CMDS_H
 #include "gnunet_testing_lib.h"
 
 struct GNUNET_TESTING_Command
