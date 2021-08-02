@@ -294,7 +294,7 @@ GNUNET_PQ_reconnect_if_down (struct GNUNET_PQ_Context *db)
 void
 GNUNET_PQ_reconnect (struct GNUNET_PQ_Context *db)
 {
-  if (NULL != db->sc) 
+  if (NULL != db->sc)
     db->sc (db->sc_cls,
             -1);
   if (NULL != db->conn)
@@ -468,6 +468,8 @@ GNUNET_PQ_connect_with_cfg (const struct GNUNET_CONFIGURATION_Handle *cfg,
 void
 GNUNET_PQ_disconnect (struct GNUNET_PQ_Context *db)
 {
+  if (NULL == db)
+    return;
   GNUNET_assert (0 ==
                  GNUNET_CONTAINER_multishortmap_size (db->channel_map));
   GNUNET_CONTAINER_multishortmap_destroy (db->channel_map);
