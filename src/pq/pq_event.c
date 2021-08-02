@@ -192,7 +192,11 @@ GNUNET_PQ_event_do_poll (struct GNUNET_PQ_Context *db)
 
   GNUNET_assert (0 ==
                  pthread_mutex_lock (&db->notify_lock));
-  PQconsumeInput (db->conn);
+  if (1 !=
+      PQconsumeInput (db->conn))
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                "Failed to read from Postgres: %s\n",
+                PQerrorMessage (db->conn));
   while (NULL != (n = PQnotifies (db->conn)))
   {
     struct GNUNET_ShortHashCode sh;
@@ -264,7 +268,7 @@ do_scheduler_notify (void *cls)
   GNUNET_assert (NULL != db->rfd);
   GNUNET_PQ_event_do_poll (db);
   db->event_task
-    = GNUNET_SCHEDULER_add_read_net (GNUNET_TIME_UNIT_ZERO,
+    = GNUNET_SCHEDULER_add_read_net (GNUNET_TIME_UNIT_FOREVER_REL,
                                      db->rfd,
                                      &do_scheduler_notify,
                                      db);

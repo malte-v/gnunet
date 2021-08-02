@@ -95,7 +95,7 @@
 #define SECURITY_LEVEL 80
 
 /**
- * Is the estimated probabily for a new round this values
+ * Is the estimated probability for a new round this values
  * is based on the bsc thesis of Elias Summermatter (2021)
  */
 
@@ -467,7 +467,7 @@ struct Operation
 
   /**
    * Set difference is multiplied with this factor
-   * to gennerate large enought IBF
+   * to gennerate large enough IBF
    */
   uint8_t ibf_bucket_number_factor;
 
@@ -780,7 +780,7 @@ struct perf_num_send_received_msg
 };
 
 /**
- *  Main struct to messure perfomance (data/rtts)
+ *  Main struct to measure performance (data/rtts)
  */
 struct per_store_struct
 {
@@ -828,7 +828,7 @@ enum MESSAGE_CONTROL_FLOW_STATE
   MSG_CFS_EXPECTED,
 
   /**
-   * Track that message has been recieved
+   * Track that message has been received
    */
   MSG_CFS_RECEIVED,
 };
@@ -843,20 +843,22 @@ enum MESSAGE_TYPE
    * Offer message type
    */
   OFFER_MESSAGE,
+
   /**
    * Demand message type
    */
   DEMAND_MESSAGE,
+
   /**
-   * Elemente message type
+   * Element message type
    */
   ELEMENT_MESSAGE,
 };
 
-/**
- * Struct to tracked messages in message controll flow
- */
 
+/**
+ * Struct to tracked messages in message control flow
+ */
 struct messageControlFlowElement
 {
   /**
@@ -875,50 +877,54 @@ struct messageControlFlowElement
 
 
 #if MEASURE_PERFORMANCE
+
 /**
- * Loads different configuration to do perform perfomance tests
- * @param op
+ * Loads different configuration to perform performance tests
+ *
+ * @param op operation handle
  */
 static void
 load_config (struct Operation *op)
 {
-
-  setu_cfg = GNUNET_CONFIGURATION_create ();
-  GNUNET_CONFIGURATION_load (setu_cfg,"perf_setu.conf");
-
-
   long long number;
   float fl;
-  GNUNET_CONFIGURATION_get_value_float (setu_cfg,"IBF", "BUCKET_NUMBER_FACTOR",
+
+  setu_cfg = GNUNET_CONFIGURATION_create ();
+  GNUNET_CONFIGURATION_load (setu_cfg,
+                             "perf_setu.conf");
+  GNUNET_CONFIGURATION_get_value_float (setu_cfg,
+                                        "IBF",
+                                        "BUCKET_NUMBER_FACTOR",
                                         &fl);
   op->ibf_bucket_number_factor = fl;
-
-  GNUNET_CONFIGURATION_get_value_number (setu_cfg,"IBF", "NUMBER_PER_BUCKET",
+  GNUNET_CONFIGURATION_get_value_number (setu_cfg,
+                                         "IBF",
+                                         "NUMBER_PER_BUCKET",
                                          &number);
   op->ibf_number_buckets_per_element = number;
-
-  GNUNET_CONFIGURATION_get_value_number (setu_cfg,"PERFORMANCE", "TRADEOFF",
+  GNUNET_CONFIGURATION_get_value_number (setu_cfg,
+                                         "PERFORMANCE",
+                                         "TRADEOFF",
                                          &number);
   op->rtt_bandwidth_tradeoff = number;
-
-
-  GNUNET_CONFIGURATION_get_value_number (setu_cfg,"BOUNDARIES", "UPPER_ELEMENT",
+  GNUNET_CONFIGURATION_get_value_number (setu_cfg,
+                                         "BOUNDARIES",
+                                         "UPPER_ELEMENT",
                                          &number);
   op->byzantine_upper_bound = number;
-
-
   op->peer_site = 0;
 }
 
 
 /**
- * Function to calculate total bytes used for performance messurement
+ * Function to calculate total bytes used for performance measurement
  * @param size
  * @param perf_num_send_received_msg
  * @return bytes used
  */
 static int
-sum_sent_received_bytes (uint64_t size, struct perf_num_send_received_msg
+sum_sent_received_bytes (uint64_t size,
+                         struct perf_num_send_received_msg
                          perf_num_send_received_msg)
 {
   return (size * perf_num_send_received_msg.sent)
@@ -942,7 +948,7 @@ calculate_perf_store ()
   int bytes_transmitted = 0;
 
   /**
-   *  Calculate RGNUNET_SETU_AcceptMessageRT of Fullsync normaly 1 or 1.5 depending
+   *  Calculate RGNUNET_SETU_AcceptMessageRT of Fullsync normally 1 or 1.5 depending
    */
   if ((perf_store.element_full.received != 0) ||
       (perf_store.element_full.sent != 0)
@@ -1840,7 +1846,7 @@ struct GetElementContext
   struct GNUNET_HashCode hash;
 
   /**
-   * Pointer to the key enty
+   * Pointer to the key entry
    */
   struct KeyEntry *k;
 };

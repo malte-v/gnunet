@@ -355,7 +355,7 @@ run (void *cls,
               set2);
   GNUNET_CRYPTO_hash_create_random (GNUNET_CRYPTO_QUALITY_WEAK, &app_id);
 
-  /* test if canceling an uncommited request works! */
+  /* test if canceling an uncommitted request works! */
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Launching and instantly stopping set operation\n");
   my_oh = GNUNET_SETU_prepare (&local_id,

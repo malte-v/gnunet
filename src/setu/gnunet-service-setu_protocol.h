@@ -82,11 +82,13 @@ struct IBFMessage
   uint16_t salt GNUNET_PACKED;
 
   /**
-   * The bit lenght of the counter
+   * The bit length of the counter
    */
   uint16_t ibf_counter_bit_length;
   /* rest: buckets */
 };
+
+
 /**
 estimate_best_mode_of_operation (uint64_t avg_element_size,
 uint64_t local_set_size,
@@ -94,7 +96,6 @@ uint64_t local_set_size,
 uint64_t est_set_diff_remote,
         uint64_t est_set_diff_local,)
         **/
-
 
 
 struct InquiryMessage
