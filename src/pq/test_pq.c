@@ -38,7 +38,7 @@ static int ret;
 /**
  * An event handler.
  */
-static struct GNUNET_PQ_EventHandler *eh;
+static struct GNUNET_DB_EventHandler *eh;
 
 /**
  * Timeout task.
@@ -129,7 +129,7 @@ run_queries (struct GNUNET_PQ_Context *db)
   uint64_t u64;
   uint64_t u642;
   uint64_t uzzz = 42;
-  
+
   priv = GNUNET_CRYPTO_rsa_private_key_create (1024);
   pub = GNUNET_CRYPTO_rsa_private_key_get_public (priv);
   memset (&hmsg, 42, sizeof(hmsg));
@@ -264,16 +264,16 @@ event_cb (void *cls,
 static int
 test_notify (struct GNUNET_PQ_Context *db)
 {
-  struct GNUNET_PQ_EventHeaderP e1 = {
+  struct GNUNET_DB_EventHeaderP e1 = {
     .size = htons (sizeof (e1)),
     .type = htons (1)
   };
-  struct GNUNET_PQ_EventHeaderP e2 = {
+  struct GNUNET_DB_EventHeaderP e2 = {
     .size = htons (sizeof (e2)),
     .type = htons (2)
   };
   unsigned int called = 0;
-  struct GNUNET_PQ_EventHandler *eh;
+  struct GNUNET_DB_EventHandler *eh;
 
   eh = GNUNET_PQ_event_listen (db,
                                &e1,
@@ -359,7 +359,7 @@ event_sched_cb (void *cls,
 static void
 sched_tests (void *cls)
 {
-  struct GNUNET_PQ_EventHeaderP es = {
+  struct GNUNET_DB_EventHeaderP es = {
     .size = htons (sizeof (es)),
     .type = htons (42)
   };
@@ -382,7 +382,7 @@ sched_tests (void *cls)
                           5);
 }
 
-             
+
 int
 main (int argc,
       const char *const argv[])
