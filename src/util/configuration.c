@@ -322,7 +322,9 @@ GNUNET_CONFIGURATION_destroy (struct GNUNET_CONFIGURATION_Handle *cfg)
     GNUNET_CONTAINER_DLL_remove (cfg->loaded_files_head,
                                  cfg->loaded_files_tail,
                                  cf);
+    GNUNET_free (cf);
   }
+  GNUNET_free (cfg->main_filename);
   GNUNET_free (cfg);
 }
 
@@ -336,7 +338,9 @@ GNUNET_CONFIGURATION_parse_and_run (const char *filename,
   enum GNUNET_GenericReturnValue ret;
 
   cfg = GNUNET_CONFIGURATION_create ();
-  if (GNUNET_OK != GNUNET_CONFIGURATION_load (cfg, filename))
+  if (GNUNET_OK !=
+      GNUNET_CONFIGURATION_load (cfg,
+                                 filename))
   {
     GNUNET_break (0);
     GNUNET_CONFIGURATION_destroy (cfg);
@@ -620,7 +624,7 @@ handle_inline (struct GNUNET_CONFIGURATION_Handle *cfg,
   {
     fun_ret = GNUNET_OK;
   }
- cleanup:
+cleanup:
   cfg->current_nest_level = old_nest_level;
   if (NULL != other_cfg)
     GNUNET_CONFIGURATION_destroy (other_cfg);
@@ -2314,7 +2318,7 @@ GNUNET_CONFIGURATION_load_from (struct GNUNET_CONFIGURATION_Handle *cfg,
     if (fun_ret != GNUNET_OK)
       break;
   }
- cleanup:
+cleanup:
   if (files_context.files_length > 0)
   {
     for (size_t i = 0; i < files_context.files_length; i++)
@@ -2467,7 +2471,10 @@ GNUNET_CONFIGURATION_load (struct GNUNET_CONFIGURATION_Handle *cfg,
   }
   cfg->load_called = true;
   if (NULL != filename)
+  {
+    GNUNET_free (cfg->main_filename);
     cfg->main_filename = GNUNET_strdup (filename);
+  }
 
   base_config_varname = GNUNET_OS_project_data_get ()->base_config_varname;
 
