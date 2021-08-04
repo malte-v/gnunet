@@ -1,6 +1,6 @@
 /*
      This file is part of GNUnet.
-     Copyright (C) 2006-2020 GNUnet e.V.
+     Copyright (C) 2006-2021 GNUnet e.V.
 
      GNUnet is free software: you can redistribute it and/or modify it
      under the terms of the GNU Affero General Public License as published
@@ -875,6 +875,24 @@ GNUNET_error_type_to_string (enum GNUNET_ErrorType kind);
  * @ingroup logging
  * Use this for fatal errors that cannot be handled
  */
+#if __GNUC__ >= 6  || __clang_major__ >= 6
+#define GNUNET_assert(cond)                                     \
+  do                                                            \
+  {                                                             \
+ _Pragma("GCC diagnostic push")                                 \
+ _Pragma("GCC diagnostic ignored \"-Wtautological-compare\"")   \
+    if (! (cond))                                               \
+ _Pragma("GCC diagnostic pop")                                  \
+    {                                                           \
+      GNUNET_log (GNUNET_ERROR_TYPE_ERROR,                      \
+                  _ ("Assertion failed at %s:%d. Aborting.\n"), \
+                  __FILE__,                                     \
+                  __LINE__);                                    \
+      GNUNET_abort_ ();                                         \
+    }                                                           \
+  } while (0)
+#else
+/* older GCC/clangs do not support -Wtautological-compare */
 #define GNUNET_assert(cond)                                     \
   do                                                            \
   {                                                             \
@@ -887,7 +905,7 @@ GNUNET_error_type_to_string (enum GNUNET_ErrorType kind);
       GNUNET_abort_ ();                                         \
     }                                                           \
   } while (0)
-
+#endif
 
 /**
  * @ingroup logging
