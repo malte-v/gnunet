@@ -22,7 +22,7 @@
  * @author Nils Durner
  * @author Christian Grothoff
  *
- * @file
+ * @file gnunet/src/include/platform.h
  * Platform specific includes and defines.
  *
  * This file should never be included by installed

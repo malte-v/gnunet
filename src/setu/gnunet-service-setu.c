@@ -1746,8 +1746,8 @@ full_sync_plausibility_check (struct Operation *op)
     {
       LOG (GNUNET_ERROR_TYPE_ERROR,
            "PROTOCOL VIOLATION: Received duplicate element in full receiving "
-           "mode of operation this is not allowed! Duplicates: %lu\n",
-           duplicates);
+           "mode of operation this is not allowed! Duplicates: %llu\n",
+           (unsigned long long) duplicates);
       GNUNET_break_op (0);
       fail_union_operation (op);
       return;
@@ -2184,10 +2184,10 @@ send_ibf (struct Operation *op,
                      buckets_in_message, &msg[1], msg->ibf_counter_bit_length);
     buckets_sent += buckets_in_message;
     LOG (GNUNET_ERROR_TYPE_DEBUG,
-         "ibf chunk size %u, %lu/%u sent\n",
-         buckets_in_message,
-         buckets_sent,
-         ibf_size);
+         "ibf chunk size %u, %llu/%u sent\n",
+         (unsigned int) buckets_in_message,
+         (unsigned long long) buckets_sent,
+         (unsigned int) ibf_size);
     GNUNET_MQ_send (op->mq, ev);
   }
 

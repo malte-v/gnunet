@@ -64,12 +64,12 @@ struct GNUNET_DHTU_Source
    * Address in URL form ("ip+udp://$IP:$PORT")
    */
   char *address;
-  
+
   /**
    * Hash of the IP address.
    */
   struct GNUNET_DHTU_Hash id;
-  
+
   /**
    * My actual address.
    */
@@ -79,12 +79,12 @@ struct GNUNET_DHTU_Source
    * Number of bytes in @a addr.
    */
   socklen_t addrlen;
-  
+
   /**
    * Last generation this address was observed.
    */
   unsigned int scan_generation;
-  
+
 };
 
 
@@ -104,12 +104,12 @@ struct GNUNET_DHTU_Target
    * Kept in a DLL.
    */
   struct GNUNET_DHTU_Target *prev;
-  
+
   /**
    * Application context for this target.
    */
   void *app_ctx;
-  
+
   /**
    * Hash of the IP address.
    */
@@ -124,7 +124,7 @@ struct GNUNET_DHTU_Target
    * Tail of preferences expressed for this target.
    */
   struct GNUNET_DHTU_PreferenceHandle *ph_tail;
-  
+
   /**
    * Target IP address.
    */
@@ -134,7 +134,7 @@ struct GNUNET_DHTU_Target
    * Number of bytes in @a addr.
    */
   socklen_t addrlen;
-  
+
   /**
    * Preference counter, length of the @a ph_head DLL.
    */
@@ -170,7 +170,7 @@ struct GNUNET_DHTU_PreferenceHandle
  */
 struct Plugin
 {
-  /** 
+  /**
    * Callbacks into the DHT.
    */
   struct GNUNET_DHTU_PluginEnvironment *env;
@@ -200,7 +200,7 @@ struct Plugin
    * Map from hashes of sockaddrs to targets.
    */
   struct GNUNET_CONTAINER_MultiHashMap *dsts;
-  
+
   /**
    * Task that scans for IP address changes.
    */
@@ -212,7 +212,7 @@ struct Plugin
   struct GNUNET_SCHEDULER_Task *read_task;
 
   /**
-   * Port we bind to. 
+   * Port we bind to.
    */
   char *port;
 
@@ -290,7 +290,7 @@ create_target (struct Plugin *plugin,
       GNUNET_CONTAINER_multihashmap_size (plugin->dsts))
   {
     struct GNUNET_HashCode key;
-    
+
     dst = NULL;
     for (struct GNUNET_DHTU_Target *pos = plugin->dst_head;
          NULL != pos;
@@ -316,7 +316,7 @@ create_target (struct Plugin *plugin,
     GNUNET_assert (NULL == dst->ph_head);
     GNUNET_free (dst);
   }
-  pk.size = htons (sizeof (pk));  
+  pk.size = htons (sizeof (pk));
   dst = GNUNET_new (struct GNUNET_DHTU_Target);
   dst->addrlen = addrlen;
   memcpy (&dst->addr,
@@ -391,10 +391,10 @@ find_target (struct Plugin *plugin,
                          addrlen);
     GNUNET_assert (GNUNET_YES ==
                    GNUNET_CONTAINER_multihashmap_put (
-                                                      plugin->dsts,
-                                                      &key,
-                                                      dst,
-                                                      GNUNET_CONTAINER_MULTIHASHMAPOPTION_UNIQUE_ONLY));
+                     plugin->dsts,
+                     &key,
+                     dst,
+                     GNUNET_CONTAINER_MULTIHASHMAPOPTION_UNIQUE_ONLY));
   }
   else
   {
@@ -429,7 +429,7 @@ ip_try_connect (void *cls,
     .ai_flags = AI_NUMERICHOST | AI_NUMERICSERV
   };
   struct addrinfo *result = NULL;
-  
+
   if (0 !=
       strncmp (address,
                "ip+",
@@ -481,7 +481,7 @@ ip_try_connect (void *cls,
  * Request underlay to keep the connection to @a target alive if possible.
  * Hold may be called multiple times to express a strong preference to
  * keep a connection, say because a @a target is in multiple tables.
- * 
+ *
  * @param cls closure
  * @param target connection to keep alive
  */
@@ -503,7 +503,7 @@ ip_hold (void *cls,
 
 /**
  * Do no long request underlay to keep the connection alive.
- * 
+ *
  * @param cls closure
  * @param target connection to keep alive
  */
@@ -511,7 +511,7 @@ static void
 ip_drop (struct GNUNET_DHTU_PreferenceHandle *ph)
 {
   struct GNUNET_DHTU_Target *target = ph->target;
-  
+
   GNUNET_CONTAINER_DLL_remove (target->ph_head,
                                target->ph_tail,
                                ph);
@@ -532,7 +532,7 @@ ip_drop (struct GNUNET_DHTU_PreferenceHandle *ph)
  * @param msg_size number of bytes in @a msg
  * @param finished_cb function called once transmission is done
  *        (not called if @a target disconnects, then only the
- *         disconnect_cb is called). 
+ *         disconnect_cb is called).
  * @param finished_cb_cls closure for @a finished_cb
  */
 static void
@@ -568,7 +568,7 @@ create_source (struct Plugin *plugin,
                socklen_t addrlen)
 {
   struct GNUNET_DHTU_Source *src;
-  
+
   src = GNUNET_new (struct GNUNET_DHTU_Source);
   src->addrlen = addrlen;
   memcpy (&src->addr,
@@ -731,7 +731,7 @@ find_source (struct Plugin *plugin,
          (0 == memcmp (addr,
                        &src->addr,
                        addrlen)) )
-        return src;
+      return src;
   }
 
   return create_source (plugin,
@@ -788,7 +788,7 @@ read_cb (void *cls)
             cmsg->cmsg_len)
         {
           struct in_pktinfo pi;
-          
+
           memcpy (&pi,
                   CMSG_DATA (cmsg),
                   sizeof (pi));
@@ -797,7 +797,7 @@ read_cb (void *cls)
               .sin_family = AF_INET,
               .sin_addr = pi.ipi_addr
             };
-          
+
             src = find_source (plugin,
                                &sa,
                                sizeof (sa));
@@ -814,7 +814,7 @@ read_cb (void *cls)
             cmsg->cmsg_len)
         {
           struct in6_pktinfo pi;
-          
+
           memcpy (&pi,
                   CMSG_DATA (cmsg),
                   sizeof (pi));
@@ -824,7 +824,7 @@ read_cb (void *cls)
               .sin6_addr = pi.ipi6_addr,
               .sin6_scope_id = pi.ipi6_ifindex
             };
-          
+
             src = find_source (plugin,
                                &sa,
                                sizeof (sa));
@@ -833,7 +833,7 @@ read_cb (void *cls)
         }
         else
           GNUNET_break (0);
-      }   
+      }
     }
     dst = find_target (plugin,
                        &sa,
@@ -932,7 +932,8 @@ libgnunet_plugin_dhtu_ip_init (void *cls)
     GNUNET_free (plugin);
     return NULL;
   }
-  switch (af) {
+  switch (af)
+  {
   case AF_INET:
     {
       int on = 1;
@@ -956,7 +957,7 @@ libgnunet_plugin_dhtu_ip_init (void *cls)
 
       if (0 !=
           bind (sock,
-                &sa,
+                (const struct sockaddr *) &sa,
                 sizeof (sa)))
       {
         GNUNET_log_strerror (GNUNET_ERROR_TYPE_ERROR,
@@ -989,10 +990,10 @@ libgnunet_plugin_dhtu_ip_init (void *cls)
         .sin6_family = AF_INET6,
         .sin6_port = htons ((uint16_t) nport)
       };
-      
+
       if (0 !=
           bind (sock,
-                &sa,
+                (const struct sockaddr *) &sa,
                 sizeof (sa)))
       {
         GNUNET_log_strerror (GNUNET_ERROR_TYPE_ERROR,

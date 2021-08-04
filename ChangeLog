@@ -1,3 +1,87 @@
+Fri, 30 Jul 2021 22:20:05 +0200 (dccf60f89)
+config: handle syntax error instead of dereferencing NULL pointer - Florian Dold
+
+Fri, 2 Apr 2021 15:46:25 +0200 (ebc70e1bc)
+SETU: Implement LSD0003 - Martin Schanzenbach
+
+Thu, 29 Jul 2021 14:26:22 -0400 (72250781a)
+use modern spelling for LLONG_{MAX,MIN} - Thien-Thi Nguyen
+
+Thu, 29 Jul 2021 17:15:32 +0200 (6212bce41)
+config: restrict directives in files loaded via @inline-secret@ - Florian Dold
+
+Thu, 29 Jul 2021 10:42:18 -0400 (12e29f004)
+add dependency lib to a couple targets - Thien-Thi Nguyen
+
+Thu, 29 Jul 2021 16:13:16 +0200 (b69774cba)
+do not warn when GNUNET_DISK_file_test can't access file - Florian Dold
+
+Thu, 29 Jul 2021 15:40:36 +0200 (73ae1f379)
+config: prettier pretty printing - Florian Dold
+
+Thu, 29 Jul 2021 15:03:19 +0200 (8af5277c8)
+debian: bump version - Florian Dold
+
+Thu, 29 Jul 2021 14:59:10 +0200 (b41bca631)
+fall back to /etc for default configuration entry point - Florian Dold
+
+Wed, 28 Jul 2021 21:23:44 +0200 (cadca90ca)
+debian: bump version - Florian Dold
+
+Wed, 28 Jul 2021 21:00:30 +0200 (3012383a1)
+config: report stats for secret sections - Florian Dold
+
+Wed, 28 Jul 2021 20:19:38 +0200 (346706b18)
+config: extended diagnostics, import cycle detection, deterministic load order - Florian Dold
+
+Wed, 28 Jul 2021 18:59:07 +0200 (1af9f6c1c)
+config: sort globbed files - Florian Dold
+
+Wed, 28 Jul 2021 17:34:44 +0200 (7a0caef7a)
+diagnostics mode for gnunet-config - Florian Dold
+
+Wed, 28 Jul 2021 15:47:39 +0200 (2cdd91d55)
+fall back to /etc if user config can't be found - Florian Dold
+
+Wed, 28 Jul 2021 15:26:55 +0200 (94ea7a1fa)
+implement @inline-secret@ directive - Florian Dold
+
+Wed, 28 Jul 2021 14:31:38 +0200 (7615d46b0)
+implement config inline globbing - Florian Dold
+
+Mon, 26 Jul 2021 20:30:28 +0200 (28dfb1220)
+config: resolve realpath of parent config file, fix docs - Florian Dold
+
+Mon, 26 Jul 2021 20:03:29 +0200 (51e5fab47)
+config: free real basepath - Florian Dold
+
+Mon, 26 Jul 2021 19:59:29 +0200 (cda72d5c4)
+config: resolve realpath of base dir, not config - Florian Dold
+
+Mon, 26 Jul 2021 19:35:56 +0200 (473939543)
+debian: bump version - Florian Dold
+
+Mon, 26 Jul 2021 19:33:38 +0200 (16fe9a808)
+config: resolve symlinks for @INLINE@-ed files - Florian Dold
+
+Mon, 26 Jul 2021 17:49:43 +0200 (302e97b01)
+debian: bump version - Florian Dold
+
+Mon, 26 Jul 2021 16:32:34 +0200 (90095d19b)
+implement typed JSON packer - Christian Grothoff
+
+Mon, 26 Jul 2021 15:45:39 +0200 (baa855368)
+debian: bump version - Florian Dold
+
+Mon, 26 Jul 2021 15:31:14 +0200 (51990dbbf)
+JSON: add draft for new GNUNET_JSON_PACK API - Christian Grothoff
+
+Sat, 24 Jul 2021 22:50:22 +0200 (d63771f25)
+minimal test for new pq event functionality - Christian Grothoff
+
+Sat, 24 Jul 2021 22:05:46 +0200 (31eae6bbe)
+early draft for libgnunetpq event notification support - Christian Grothoff
+
 Fri, 23 Jul 2021 20:10:45 +0200 (be8bca817)
 introduce new TIME helper functions - Christian Grothoff
 
