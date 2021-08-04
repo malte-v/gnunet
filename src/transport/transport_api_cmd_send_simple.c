@@ -129,6 +129,7 @@ GNUNET_TRANSPORT_cmd_send_simple (const char *label,
   sss->m = m;
   sss->n = n;
   sss->num = num;
+  sss->peer1_label = peer1_label;
 
   struct GNUNET_TESTING_Command cmd = {
     .cls = sss,

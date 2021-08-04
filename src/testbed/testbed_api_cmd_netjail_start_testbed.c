@@ -328,7 +328,7 @@ start_testbed (struct NetJailState *ns, struct
   char *const script_argv[] = {NETJAIL_EXEC_SCRIPT,
                                m_char,
                                n_char,
-                               HELPER_CMDS_BINARY,
+                               GNUNET_OS_get_libexec_binary_path(HELPER_CMDS_BINARY),
                                ns->global_n,
                                ns->local_m,
                                NULL};

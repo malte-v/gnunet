@@ -40,7 +40,7 @@
 /**
  * Cmds Helper binary name
  */
-#define HELPER_CMDS_BINARY "./../testbed/gnunet-cmds-helper"
+#define HELPER_CMDS_BINARY "gnunet-cmds-helper"
 
 
 /**

@@ -62,6 +62,7 @@ connect_peers_run (void *cls,
   //size_t *hello_size;
   enum GNUNET_NetworkType nt = 0;
   char *peer_id;
+  struct GNUNET_PeerIdentity *id;
 
   peer1_cmd = GNUNET_TESTING_interpreter_lookup_command (cps->peer1_label);
   GNUNET_TRANSPORT_get_trait_application_handle (peer1_cmd,
@@ -74,21 +75,21 @@ connect_peers_run (void *cls,
        "hello: %s\n",
        hello);
 
-  /*GNUNET_TRANSPORT_get_trait_peer_id (peer1_cmd,
+  GNUNET_TRANSPORT_get_trait_peer_id (peer1_cmd,
                                     &id);
   LOG (GNUNET_ERROR_TYPE_ERROR,
        "pid %s\n",
-       GNUNET_i2s_full(id));*/
+       GNUNET_i2s_full(id));
 
   if(strstr(hello, "60002") != NULL)
     {
     addr = "tcp-192.168.15.2:60003";
-    peer_id = "4TTC9WBSVP9RJT6DVEZ7E0TDW7TQXC11NR1EMR2F8ARS87WZ2730";
+    peer_id = "F2F3X9G1YNCTXKK7A4J6M4ZM4BBSKC9DEXZVHCWQ475M0C7PNWCG";
     }
   else
     {
     addr = "tcp-192.168.15.1:60002";
-    peer_id = "F2F3X9G1YNCTXKK7A4J6M4ZM4BBSKC9DEXZVHCWQ475M0C7PNWCG";
+    peer_id = "4TTC9WBSVP9RJT6DVEZ7E0TDW7TQXC11NR1EMR2F8ARS87WZ2730";
     }
 
   LOG (GNUNET_ERROR_TYPE_ERROR,
@@ -139,6 +140,9 @@ connect_peers_finish (void *cls,
   struct GNUNET_HashCode hc;
   int node_number;
 
+  LOG (GNUNET_ERROR_TYPE_ERROR,
+       "Connect finished?\n");
+  
   peer1_cmd = GNUNET_TESTING_interpreter_lookup_command (cps->peer1_label);
   GNUNET_TRANSPORT_get_trait_connected_peers_map (peer1_cmd,
                                                 &connected_peers_map);

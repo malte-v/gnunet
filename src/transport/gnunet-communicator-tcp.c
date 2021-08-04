@@ -2710,7 +2710,7 @@ proto_read_kx (void *cls)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_INFO,
                 "Invalid TCP KX received from %s\n",
-                GNUNET_a2s (queue->address, queue->address_len));
+                GNUNET_a2s (pq->address, pq->address_len));
     gcry_cipher_close (queue->in_cipher);
     GNUNET_free (queue);
     free_proto_queue (pq);
