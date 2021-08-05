@@ -532,8 +532,8 @@ typedef void
 /**
  * Method called whenever a message is sent or received from a <i>room</i>.
  *
- * The flag <i>private_message</i> will be #GNUNET_YES if a message was
- * received privately, otherwise #GNUNET_NO.
+ * The <i>flags</i> will indicate with a bitmask if a message was
+ * received privately or if the message was sent by the client.
  *
  * @param[in/out] cls Closure from #GNUNET_MESSENGER_connect
  * @param[in] room Room handle
