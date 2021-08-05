@@ -882,7 +882,6 @@ GNUNET_error_type_to_string (enum GNUNET_ErrorType kind);
  _Pragma("GCC diagnostic push")                                 \
  _Pragma("GCC diagnostic ignored \"-Wtautological-compare\"")   \
     if (! (cond))                                               \
- _Pragma("GCC diagnostic pop")                                  \
     {                                                           \
       GNUNET_log (GNUNET_ERROR_TYPE_ERROR,                      \
                   _ ("Assertion failed at %s:%d. Aborting.\n"), \
@@ -890,6 +889,7 @@ GNUNET_error_type_to_string (enum GNUNET_ErrorType kind);
                   __LINE__);                                    \
       GNUNET_abort_ ();                                         \
     }                                                           \
+ _Pragma("GCC diagnostic pop")                                  \
   } while (0)
 #else
 /* older GCC/clangs do not support -Wtautological-compare */
