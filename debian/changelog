@@ -1,3 +1,9 @@
+gnunet (0.14.1-13) unstable; urgency=low
+
+  * Minor upstream fixes.
+
+ -- Florian Dold <florian@dold.me>  Fri, 06 Aug 2021 11:56:29 +0200
+
 gnunet (0.14.1-12) unstable; urgency=low
 
   * Lower debhelper compatibility level to 12.
