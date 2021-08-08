@@ -7,6 +7,9 @@ AM_MAKEINFOHTMLFLAGS = $(TEXINFO_HTMLFLAGS)
 
 
 dist_infoimage_DATA =                           		\
+    images/ascension_interaction.png \
+    images/ascension_ssd.png \
+    images/messenger_room.png \
 	images/gnunet-gtk-0-10-gns-a-done.png 			\
 	images/gnunet-gtk-0-10-gns-a.png 			\
 	images/daemon_lego_block.png 				\
@@ -40,7 +43,9 @@ dist_infoimage_DATA =                           		\
 	images/service_lego_block.svg				\
 	images/structure.dot                                    \
 	images/gns.dot	\
-	images/gns.jpg
+	images/gns.jpg \
+	images/tng.dot	\
+	images/tng.png
 
 
 info_TEXINFOS = 						\
