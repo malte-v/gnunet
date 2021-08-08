@@ -38,15 +38,8 @@ dist_infoimage_DATA =                           		\
 	images/gnunet-gtk-0-10-fs-search.png 			\
 	images/gnunet-tutorial-service.png 			\
 	images/gnunet-tutorial-system.png			\
-	images/daemon_lego_block.svg  				\
-	images/lego_stack.svg					\
-	images/service_lego_block.svg				\
-	images/structure.dot                                    \
-	images/gns.dot	\
 	images/gns.jpg \
-	images/tng.dot	\
 	images/tng.png
-
 
 info_TEXINFOS = 						\
 	gnunet.texi
@@ -88,24 +81,31 @@ gnunet_TEXINFOS = 						\
 EXTRA_DIST =							\
 	$(gnunet_TEXINFOS)					\
 	htmlxref.cnf						\
-	version.texi                                           \
+	version.texi                        \
 	run-gendocs.sh						\
-	docstyle.css                                            \
-        manual.css                                              \
-        reset.css                                               \
-        style.css
+	docstyle.css                        \
+    manual.css                          \
+    reset.css                           \
+    style.css                           \
+    images/daemon_lego_block.svg  		\
+	images/lego_stack.svg			    \
+	images/service_lego_block.svg		\
+	images/gns.dot	                    \
+	images/structure.dot                \
+	images/tng.dot
+
 
 
 DISTCLEANFILES = 						\
-	gnunet.cps						\
-	chapters/developer.cps					\
-	chapters/installation.cps				\
-	chapter/philosophy.cps					\
+	gnunet.cps						    \
+	chapters/developer.cps				\
+	chapters/installation.cps			\
+	chapter/philosophy.cps				\
 	chapters/user.cps					\
-	chapters/configuration.cps				\
-	chapters/terminology.cps				\
-	chapters/vocabulary.cps					\
-	fdl-1.3.cps						\
+	chapters/configuration.cps			\
+	chapters/terminology.cps			\
+	chapters/vocabulary.cps				\
+	fdl-1.3.cps						    \
 	agpl-3.0.cps						\
 	gpl-3.0.cps
 
