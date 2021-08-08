@@ -745,8 +745,7 @@ test_service_configuration (const char *service_name,
                                service_name,
                                "UNIXPATH",
                                _ ("not a valid filename"));
-    if (NULL != unixpath)
-      GNUNET_free (unixpath);
+    GNUNET_free (unixpath);
     return GNUNET_SYSERR;   /* UNIXPATH specified but invalid! */
   }
   GNUNET_free (unixpath);
