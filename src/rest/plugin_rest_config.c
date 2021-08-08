@@ -334,6 +334,7 @@ set_cont (struct GNUNET_REST_RequestHandle *con_handle,
   handle->proc (handle->proc_cls,
                 GNUNET_REST_create_response (NULL),
                 MHD_HTTP_OK);
+  GNUNET_free (cfg_fn);
   cleanup_handle (handle);
 }
 

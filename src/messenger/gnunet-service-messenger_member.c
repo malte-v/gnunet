@@ -88,6 +88,7 @@ callback_scan_for_sessions (void *cls, const char *filename)
     GNUNET_asprintf (&directory, "%s%c", filename, DIR_SEPARATOR);
 
     load_member_session(member, directory);
+    GNUNET_free (directory);
   }
 
   return GNUNET_OK;

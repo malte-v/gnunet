@@ -1020,6 +1020,7 @@ GNUNET_DISK_glob (const char *glob_pattern,
     LOG (GNUNET_ERROR_TYPE_ERROR,
          "unsupported glob pattern: '%s'\n",
          glob_pattern);
+    GNUNET_free (mypat);
     return -1;
   }
 
