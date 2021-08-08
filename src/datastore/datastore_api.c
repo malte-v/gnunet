@@ -1400,7 +1400,7 @@ GNUNET_DATASTORE_get_key (struct GNUNET_DATASTORE_Handle *h,
   LOG (GNUNET_ERROR_TYPE_DEBUG,
        "Asked to look for data of type %u under key `%s'\n",
        (unsigned int) type,
-       GNUNET_h2s (key));
+       (NULL != key) ? GNUNET_h2s (key) : "NULL");
   if (NULL == key)
   {
     env = GNUNET_MQ_msg (gm,
@@ -1430,7 +1430,7 @@ GNUNET_DATASTORE_get_key (struct GNUNET_DATASTORE_Handle *h,
   {
     LOG (GNUNET_ERROR_TYPE_DEBUG,
          "Could not queue request for `%s'\n",
-         GNUNET_h2s (key));
+         (NULL != key) ? GNUNET_h2s (key): "NULL");
     return NULL;
   }
 #if INSANE_STATISTICS

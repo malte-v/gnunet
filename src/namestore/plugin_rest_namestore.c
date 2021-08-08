@@ -955,6 +955,12 @@ list_ego (void *cls,
     state = ID_REST_STATE_POST_INIT;
     return;
   }
+  if (NULL == ego)
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
+                "Called with NULL ego\n");
+    return;
+  }
   if (ID_REST_STATE_INIT == state)
   {
     ego_entry = GNUNET_new (struct EgoEntry);
