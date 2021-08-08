@@ -169,8 +169,8 @@ case "${1}" in
 		# Update files and directories permissions.
 		# Assuming default values, this *should* not be changed.
 		echo -n "Updating files and directories permissions:"
-		chown -R ${_USERNAME}:${_GROUPNAME} /var/log/gnunetd
-		chown -R ${_USERNAME}:${_GROUPNAME} ${GNUNET_HOME}
+		chown ${_USERNAME}:${_GROUPNAME} /var/log/gnunetd
+		chown ${_USERNAME}:${_GROUPNAME} /var/log/gnunetd/*
 		# Secure access to the data directory
 		chmod 0700 "${GNUNET_HOME}" || true
 		# Restrict access on setuid binaries
