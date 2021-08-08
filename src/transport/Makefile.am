@@ -647,7 +647,6 @@ endif
 if ENABLE_TEST_RUN
 AM_TESTS_ENVIRONMENT=export GNUNET_PREFIX=$${GNUNET_PREFIX:-@libdir@};export PATH=$${GNUNET_PREFIX:-@prefix@}/bin:$$PATH;unset XDG_DATA_HOME;unset XDG_CONFIG_HOME;
 TESTS = \
- test_transport_api_cmd_simple_send \
  test_transport_address_switch_tcp \
  $(HTTP_SWITCH) \
  $(HTTPS_SWITCH) \
@@ -707,6 +706,7 @@ test_transport_api_slow_ats
 endif
 if HAVE_EXPERIMENTAL
 TESTS += \
+  test_transport_api_cmd_simple_send \
   test_transport_address_switch_udp \
   test_plugin_udp \
   test_transport_api_udp \

@@ -1236,14 +1236,12 @@ GNUNET_IDENTITY_public_key_from_string (const char *str,
                                         struct GNUNET_IDENTITY_PublicKey *key)
 {
   enum GNUNET_GenericReturnValue ret;
-  enum GNUNET_IDENTITY_KeyType ktype;
   ret = GNUNET_STRINGS_string_to_data (str,
                                        strlen (str),
                                        key,
                                        sizeof (*key));
   if (GNUNET_OK != ret)
     return GNUNET_SYSERR;
-  ktype = ntohl (key->type);
   return GNUNET_OK;
 
 }
@@ -1254,14 +1252,12 @@ GNUNET_IDENTITY_private_key_from_string (const char *str,
                                          struct GNUNET_IDENTITY_PrivateKey *key)
 {
   enum GNUNET_GenericReturnValue ret;
-  enum GNUNET_IDENTITY_KeyType ktype;
   ret = GNUNET_STRINGS_string_to_data (str,
                                        strlen (str),
                                        key,
                                        sizeof (*key));
   if (GNUNET_OK != ret)
     return GNUNET_SYSERR;
-  ktype = ntohl (key->type);
   return GNUNET_OK;
 }
 
