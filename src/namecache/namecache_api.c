@@ -228,6 +228,7 @@ handle_lookup_block_response (void *cls,
     char buf[size] GNUNET_ALIGN;
     struct GNUNET_GNSRECORD_Block *block;
 
+    memset (buf, 0, size);
     block = (struct GNUNET_GNSRECORD_Block *) buf;
     GNUNET_memcpy (block,
                    &msg[1],

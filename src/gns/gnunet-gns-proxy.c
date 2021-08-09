@@ -1264,7 +1264,7 @@ curl_check_hdr (void *buffer,
     }
     GNUNET_free (leho_host);
   }
-  if (0 == strcasecmp (MHD_HTTP_HEADER_ACCESS_CONTROL_ALLOW_ORIGIN,
+  else if (0 == strcasecmp (MHD_HTTP_HEADER_ACCESS_CONTROL_ALLOW_ORIGIN,
                        hdr_type))
   {
     char *leho_host;
