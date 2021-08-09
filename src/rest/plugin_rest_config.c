@@ -91,7 +91,6 @@ static struct RequestHandle *requests_head;
 static struct RequestHandle *requests_tail;
 
 
-
 /**
  * Cleanup request handle.
  *
@@ -199,7 +198,9 @@ get_cont (struct GNUNET_REST_RequestHandle *con_handle,
   }
   response = json_dumps (result, 0);
   resp = GNUNET_REST_create_response (response);
-  MHD_add_response_header (resp, "Content-Type", "application/json");
+  GNUNET_assert (MHD_NO != MHD_add_response_header (resp,
+                                                    "Content-Type",
+                                                    "application/json"));
   handle->proc (handle->proc_cls, resp, MHD_HTTP_OK);
   cleanup_handle (handle);
   GNUNET_free (response);
@@ -353,9 +354,9 @@ options_cont (struct GNUNET_REST_RequestHandle *con_handle,
   struct RequestHandle *handle = cls;
 
   resp = GNUNET_REST_create_response (NULL);
-  MHD_add_response_header (resp,
-                           "Access-Control-Allow-Methods",
-                           MHD_HTTP_METHOD_GET);
+  GNUNET_assert (MHD_NO != MHD_add_response_header (resp,
+                                                    "Access-Control-Allow-Methods",
+                                                    MHD_HTTP_METHOD_GET));
   handle->proc (handle->proc_cls, resp, MHD_HTTP_OK);
   cleanup_handle (handle);
 }
@@ -425,7 +426,7 @@ libgnunet_plugin_rest_config_init (void *cls)
   api->cls = &plugin;
   api->name = GNUNET_REST_API_NS_CONFIG;
   api->process_request = &rest_config_process_request;
-  GNUNET_log (GNUNET_ERROR_TYPE_INFO, _("CONFIG REST API initialized\n"));
+  GNUNET_log (GNUNET_ERROR_TYPE_INFO, _ ("CONFIG REST API initialized\n"));
   return api;
 }
 
