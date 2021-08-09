@@ -122,7 +122,7 @@ GNUNET_NETWORK_test_pf (int pf)
   }
   else
   {
-    close (s);
+    GNUNET_break (0 == close (s));
     ret = GNUNET_OK;
   }
   switch (pf)
