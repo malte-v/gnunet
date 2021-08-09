@@ -2146,11 +2146,15 @@ send_ibf (struct Operation *op,
 
   LOG (GNUNET_ERROR_TYPE_DEBUG,
        "sending ibf of size %u\n",
-       1 << ibf_size);
+       (unsigned int) ibf_size);
 
   {
     char name[64];
-    GNUNET_snprintf (name, sizeof(name), "# sent IBF (order %u)", ibf_size);
+
+    GNUNET_snprintf (name,
+                     sizeof(name),
+                     "# sent IBF (order %u)",
+                     ibf_size);
     GNUNET_STATISTICS_update (_GSS_statistics, name, 1, GNUNET_NO);
   }
 
