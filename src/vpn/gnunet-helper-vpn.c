@@ -107,7 +107,7 @@ init_tun (char *dev)
     fprintf (stderr,
              "File descriptor to large: %d",
              fd);
-    (void) close (fd);
+    GNUNET_break (0 == close (fd));
     return -1;
   }
 
@@ -127,7 +127,7 @@ init_tun (char *dev)
              "Error with ioctl on `%s': %s\n",
              "/dev/net/tun",
              strerror (errno));
-    (void) close (fd);
+    GNUNET_break (0 == close (fd));
     return -1;
   }
   strcpy (dev, ifr.ifr_name);
@@ -188,7 +188,7 @@ set_address6 (const char *dev,
              "ioctl failed at %d: %s\n",
              __LINE__,
              strerror (errno));
-    (void) close (fd);
+    GNUNET_break (0 == close (fd));
     exit (1);
   }
 
@@ -208,7 +208,7 @@ set_address6 (const char *dev,
              "ioctl failed at line %d: %s\n",
              __LINE__,
              strerror (errno));
-    (void) close (fd);
+    GNUNET_break (0 == close (fd));
     exit (1);
   }
 
@@ -223,7 +223,7 @@ set_address6 (const char *dev,
              "ioctl failed at line %d: %s\n",
              __LINE__,
              strerror (errno));
-    (void) close (fd);
+    GNUNET_break (0 == close (fd));
     exit (1);
   }
 
@@ -239,17 +239,11 @@ set_address6 (const char *dev,
              "ioctl failed at line %d: %s\n",
              __LINE__,
              strerror (errno));
-    (void) close (fd);
+    GNUNET_break (0 == close (fd));
     exit (1);
   }
 
-  if (0 != close (fd))
-  {
-    fprintf (stderr,
-             "close failed: %s\n",
-             strerror (errno));
-    exit (1);
-  }
+  GNUNET_assert (0 == close (fd));
 }
 
 
@@ -305,7 +299,7 @@ set_address4 (const char *dev,
              "ioctl failed at %d: %s\n",
              __LINE__,
              strerror (errno));
-    (void) close (fd);
+    GNUNET_break (0 == close (fd));
     exit (1);
   }
 
@@ -320,7 +314,7 @@ set_address4 (const char *dev,
     fprintf (stderr,
              "Failed to parse IPv4 address mask `%s'\n",
              mask);
-    (void) close (fd);
+    GNUNET_break (0 == close (fd));
     exit (1);
   }
 
@@ -333,7 +327,7 @@ set_address4 (const char *dev,
              "ioctl failed at line %d: %s\n",
              __LINE__,
              strerror (errno));
-    (void) close (fd);
+    GNUNET_break (0 == close (fd));
     exit (1);
   }
 
@@ -346,7 +340,7 @@ set_address4 (const char *dev,
              "ioctl failed at line %d: %s\n",
              __LINE__,
              strerror (errno));
-    (void) close (fd);
+    GNUNET_break (0 == close (fd));
     exit (1);
   }
 
@@ -360,18 +354,11 @@ set_address4 (const char *dev,
              "ioctl failed at line %d: %s\n",
              __LINE__,
              strerror (errno));
-    (void) close (fd);
+    GNUNET_break (0 == close (fd));
     exit (1);
   }
 
-  if (0 != close (fd))
-  {
-    fprintf (stderr,
-             "close failed: %s\n",
-             strerror (errno));
-    (void) close (fd);
-    exit (1);
-  }
+  GNUNET_assert (0 == close (fd));
 }
 
 
@@ -653,7 +640,7 @@ main (int argc, char **argv)
     {
       fprintf (stderr,
                "Fatal: prefix_len out of range\n");
-      close (fd_tun);
+      GNUNET_break (0 == close (fd_tun));
       return 1;
     }
 
@@ -701,6 +688,6 @@ main (int argc, char **argv)
   run (fd_tun);
   global_ret = 0;
 cleanup:
-  close (fd_tun);
+  GNUNET_break (0 == close (fd_tun));
   return global_ret;
 }
