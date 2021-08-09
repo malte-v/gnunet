@@ -1119,15 +1119,16 @@ estimate_best_mode_of_operation (uint64_t avg_element_size,
     ibf_bucket_count = IBF_MIN_SIZE;
   }
   uint64_t ibf_message_count = ceil ( ((float) ibf_bucket_count)
-                                      / MAX_BUCKETS_PER_MESSAGE);
+                                      / ((float) MAX_BUCKETS_PER_MESSAGE));
 
   uint64_t estimated_counter_size = ceil (
-    MIN (2 * log2l ((float) local_set_size / ibf_bucket_count), log2l (
-           local_set_size)));
+    MIN (2 * log2l (((float) local_set_size)
+                    / ((float) ibf_bucket_count)),
+         log2l (local_set_size)));
 
   long double counter_bytes = (float) estimated_counter_size / 8;
 
-  uint64_t ibf_bytes = ceil ((sizeof(struct IBFMessage) * ibf_message_count)
+  uint64_t ibf_bytes = ceil ((sizeof (struct IBFMessage) * ibf_message_count)
                              * 1.2   \
                              + (ibf_bucket_count * sizeof(struct IBF_Key)) * 1.2   \
                              + (ibf_bucket_count * sizeof(struct IBF_KeyHash))
@@ -1135,18 +1136,18 @@ estimate_best_mode_of_operation (uint64_t avg_element_size,
                              + (ibf_bucket_count * counter_bytes) * 1.2);
 
   /* Estimate full byte count for differential sync */
-  uint64_t element_size = (avg_element_size + sizeof(struct
-                                                     GNUNET_SETU_ElementMessage))   \
+  uint64_t element_size = (avg_element_size
+                           + sizeof (struct GNUNET_SETU_ElementMessage))   \
                           * estimated_total_diff;
   uint64_t done_size = sizeof_done_header;
-  uint64_t inquery_size = (sizeof(struct IBF_Key) + sizeof(struct
-                                                           InquiryMessage))
+  uint64_t inquery_size = (sizeof (struct IBF_Key)
+                           + sizeof (struct InquiryMessage))
                           * estimated_total_diff;
   uint64_t demand_size =
     (sizeof(struct GNUNET_HashCode) + sizeof(struct GNUNET_MessageHeader))
     * estimated_total_diff;
-  uint64_t offer_size = (sizeof(struct GNUNET_HashCode) + sizeof(struct
-                                                                 GNUNET_MessageHeader))
+  uint64_t offer_size = (sizeof (struct GNUNET_HashCode)
+                         + sizeof (struct GNUNET_MessageHeader))
                         * estimated_total_diff;
 
   uint64_t total_bytes_diff = (element_size + done_size + inquery_size
@@ -1183,12 +1184,13 @@ estimate_best_mode_of_operation (uint64_t avg_element_size,
  * @param allowed_phases
  * @param size_phases
  * @param op
- * @return GNUNET_YES if message permitted in phase and GNUNET_NO if not permitted in given
+ * @return #GNUNET_YES if message permitted in phase and #GNUNET_NO if not permitted in given
  * phase
  */
-static int
-check_valid_phase (const uint8_t allowed_phases[], size_t size_phases, struct
-                   Operation *op)
+static enum GNUNET_GenericReturnValue
+check_valid_phase (const uint8_t allowed_phases[],
+                   size_t size_phases,
+                   struct Operation *op)
 {
   /**
    * Iterate over allowed phases
