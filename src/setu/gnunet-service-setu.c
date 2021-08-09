@@ -4115,26 +4115,20 @@ handle_union_p2p_offer (void *cls,
     perf_store.demand.sent += 1;
     perf_store.demand.sent_var_bytes += sizeof(struct GNUNET_HashCode);
 #endif
-    ev = GNUNET_MQ_msg_header_extra (demands,
-                                     sizeof(struct GNUNET_HashCode),
-                                     GNUNET_MESSAGE_TYPE_SETU_P2P_DEMAND);
     /* Save send demand message for message control */
     if (GNUNET_YES !=
         update_message_control_flow (
           op->message_control_flow,
           MSG_CFS_SENT,
           hash,
-          DEMAND_MESSAGE)
-        )
+          DEMAND_MESSAGE))
     {
-      // GNUNET_free (ev);
       LOG (GNUNET_ERROR_TYPE_ERROR,
            "Double demand message sent found!\n");
       GNUNET_break (0);
       fail_union_operation (op);
       return;
     }
-    ;
 
     /* Mark offer as received received */
     if (GNUNET_YES !=
@@ -4142,37 +4136,31 @@ handle_union_p2p_offer (void *cls,
           op->message_control_flow,
           MSG_CFS_RECEIVED,
           hash,
-          OFFER_MESSAGE)
-        )
+          OFFER_MESSAGE))
     {
-      // GNUNET_free (ev);
       LOG (GNUNET_ERROR_TYPE_ERROR,
            "Double offer message received found!\n");
       GNUNET_break (0);
       fail_union_operation (op);
       return;
     }
-    ;
-
     /* Mark element to be expected to received */
     if (GNUNET_YES !=
         update_message_control_flow (
           op->message_control_flow,
           MSG_CFS_EXPECTED,
           hash,
-          ELEMENT_MESSAGE)
-        )
+          ELEMENT_MESSAGE))
     {
-      // GNUNET_free (ev);
       LOG (GNUNET_ERROR_TYPE_ERROR,
            "Element already expected!\n");
       GNUNET_break (0);
       fail_union_operation (op);
       return;
     }
-    ;
-
-
+    ev = GNUNET_MQ_msg_header_extra (demands,
+                                     sizeof(struct GNUNET_HashCode),
+                                     GNUNET_MESSAGE_TYPE_SETU_P2P_DEMAND);
     GNUNET_memcpy (&demands[1],
                    hash,
                    sizeof(struct GNUNET_HashCode));
