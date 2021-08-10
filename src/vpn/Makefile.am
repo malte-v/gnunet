@@ -31,7 +31,10 @@ bin_PROGRAMS = \
   gnunet-vpn
 
 gnunet_helper_vpn_SOURCES = \
-gnunet-helper-vpn.c
+  gnunet-helper-vpn.c
+gnunet_helper_vpn_LDADD = \
+  $(top_builddir)/src/util/libgnunetutil.la \
+  $(GN_LIBINTL)
 
 gnunet_service_vpn_SOURCES = \
  gnunet-service-vpn.c
