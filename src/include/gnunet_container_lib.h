@@ -2608,7 +2608,8 @@ GNUNET_CONTAINER_heap_node_get_cost (
  * @return #GNUNET_YES if we should continue to iterate,
  *         #GNUNET_NO if not.
  */
-typedef int (*GNUNET_CONTAINER_HeapIterator) (
+typedef int
+(*GNUNET_CONTAINER_HeapIterator) (
   void *cls,
   struct GNUNET_CONTAINER_HeapNode *node,
   void *element,

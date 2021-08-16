@@ -1007,6 +1007,7 @@ GNUNET_CONFIGURATION_parse (struct GNUNET_CONFIGURATION_Handle *cfg,
                cf->source_filename,
                parent->source_filename,
                filename);
+        GNUNET_free (fn);
         return GNUNET_SYSERR;
       }
     }

@@ -306,7 +306,7 @@ postgres_plugin_get (void *cls,
 {
   struct Plugin *plugin = cls;
   uint32_t type32 = (uint32_t) type;
-  struct GNUNET_TIME_Absolute now;
+  struct GNUNET_TIME_Absolute now = { 0 };
   struct GNUNET_PQ_QueryParam paramk[] = {
     GNUNET_PQ_query_param_auto_from_type (key),
     GNUNET_PQ_query_param_absolute_time (&now),
@@ -424,7 +424,7 @@ postgres_plugin_get_random (void *cls,
 {
   struct Plugin *plugin = cls;
   uint32_t off;
-  struct GNUNET_TIME_Absolute now;
+  struct GNUNET_TIME_Absolute now = { 0 };
   struct GNUNET_TIME_Absolute expiration_time;
   size_t data_size;
   void *data;

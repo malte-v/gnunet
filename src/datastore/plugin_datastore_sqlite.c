@@ -1029,7 +1029,7 @@ sqlite_plugin_get_replication (void *cls,
 {
   struct Plugin *plugin = cls;
   struct ReplCtx rc;
-  uint64_t rvalue;
+  uint64_t rvalue = 0;
   uint32_t repl;
   struct GNUNET_SQ_QueryParam params_sel_repl[] =
   { GNUNET_SQ_query_param_uint64 (&rvalue),
@@ -1096,7 +1096,7 @@ sqlite_plugin_get_expiration (void *cls,
 {
   struct Plugin *plugin = cls;
   sqlite3_stmt *stmt;
-  struct GNUNET_TIME_Absolute now;
+  struct GNUNET_TIME_Absolute now = { 0 };
   struct GNUNET_SQ_QueryParam params[] = { GNUNET_SQ_query_param_absolute_time (
                                              &now),
                                            GNUNET_SQ_query_param_end };

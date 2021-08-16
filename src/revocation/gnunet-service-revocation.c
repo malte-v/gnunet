@@ -949,6 +949,7 @@ run (void *cls,
     if (0 > ksize)
     {
       GNUNET_break_op (0);
+      GNUNET_free (rm);
       GNUNET_free (fn);
       return;
     }

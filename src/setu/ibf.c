@@ -462,11 +462,11 @@ unpack_counter (const struct InvertibleBloomFilter *ibf,
     /**
     * Pack data left in story before finishing
     */
-    while (bit_to_read_left >= 0)
+    while (true)
     {
       /**
-      * Stop decoding when end is reached
-      */
+       * Stop decoding when end is reached
+       */
       if (ibf_counter_ctr > (count - 1))
         return;
 
@@ -504,13 +504,9 @@ unpack_counter (const struct InvertibleBloomFilter *ibf,
           store = store | byte_read;
         }
         break;
-
       }
-
     }
-
   }
-
 }
 
 

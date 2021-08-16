@@ -316,7 +316,7 @@ open_dev_null (int target_fd, int flags)
   if (-1 == dup2 (fd, target_fd))
   {
     GNUNET_log_strerror (GNUNET_ERROR_TYPE_ERROR, "dup2");
-    (void) close (fd);
+    GNUNET_break (0 == close (fd));
     return;
   }
   GNUNET_break (0 == close (fd));
@@ -395,7 +395,7 @@ start_process (enum GNUNET_OS_InheritStdioFlags std_inheritance,
       if (NULL != childpipe_write)
         GNUNET_DISK_file_close (childpipe_write);
       if (0 <= dup_childpipe_read_fd)
-        close (dup_childpipe_read_fd);
+        GNUNET_break (0 == close (dup_childpipe_read_fd));
       return NULL;
     }
     childpipe_read_fd = dup_childpipe_read_fd;
@@ -474,7 +474,7 @@ start_process (enum GNUNET_OS_InheritStdioFlags std_inheritance,
     if (NULL != childpipe_write)
       GNUNET_DISK_file_close (childpipe_write);
     if (0 <= childpipe_read_fd)
-      close (childpipe_read_fd);
+      GNUNET_break (0 == close (childpipe_read_fd));
     errno = eno;
     return NULL;
   }
@@ -486,7 +486,7 @@ start_process (enum GNUNET_OS_InheritStdioFlags std_inheritance,
     gnunet_proc->control_pipe = childpipe_write;
     if (0 != (std_inheritance & GNUNET_OS_USE_PIPE_CONTROL))
     {
-      close (childpipe_read_fd);
+      GNUNET_break (0 == close (childpipe_read_fd));
     }
     GNUNET_array_grow (lscp, ls, 0);
     return gnunet_proc;
@@ -564,7 +564,7 @@ start_process (enum GNUNET_OS_InheritStdioFlags std_inheritance,
       {
         /* Bury any existing FD, no matter what; they should all be closed
          * on exec anyway and the important ones have been dup'ed away */
-        (void) close (tgt);
+        GNUNET_break (0 == close (tgt));
         GNUNET_assert (-1 != dup2 (lscp[i], tgt));
       }
       /* unset close-on-exec flag */

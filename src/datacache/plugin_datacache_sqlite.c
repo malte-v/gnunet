@@ -468,7 +468,7 @@ sqlite_plugin_get_random (void *cls,
   struct GNUNET_TIME_Absolute exp;
   size_t size;
   void *dat;
-  uint32_t off;
+  uint32_t off = 0;
   size_t psize;
   uint32_t type;
   struct GNUNET_PeerIdentity *path;
