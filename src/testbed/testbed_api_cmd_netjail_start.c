@@ -139,6 +139,24 @@ netjail_start_run (void *cls,
                                ns->local_m,
                                ns->global_n,
                                NULL};
+  unsigned int helper_check = GNUNET_OS_check_helper_binary (NETJAIL_START_SCRIPT,
+                                                             GNUNET_YES,
+                                                             NULL);
+
+  if (GNUNET_NO == helper_check)
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                "No SUID for %s!\n",
+                NETJAIL_START_SCRIPT);
+    GNUNET_TESTING_interpreter_fail ();
+  }
+  else if (GNUNET_NO == helper_check)
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                "%s not found!\n",
+                NETJAIL_START_SCRIPT);
+    GNUNET_TESTING_interpreter_fail ();
+  }
 
   ns->start_proc = GNUNET_OS_start_process_vap (GNUNET_OS_INHERIT_STD_ERR,
                                                 NULL,

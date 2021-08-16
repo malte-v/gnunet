@@ -54,6 +54,8 @@ struct HelperMessage
 struct NetJailState
 {
 
+  unsigned int *rv;
+
   struct HelperMessage *hp_messages_head;
 
   struct HelperMessage *hp_messages_tail;
@@ -285,8 +287,9 @@ helper_mst (void *cls, const struct GNUNET_MessageHeader *message)
 static void
 exp_cb (void *cls)
 {
+  struct NetJailState *ns = cls;
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Called exp_cb.\n");
-  GNUNET_TESTING_interpreter_fail ();
+  *ns->rv = 1;
 }
 
 
@@ -334,6 +337,9 @@ start_testbed (struct NetJailState *ns, struct
                                NULL};
   unsigned int m = atoi (m_char);
   unsigned int n = atoi (n_char);
+  unsigned int helper_check = GNUNET_OS_check_helper_binary (NETJAIL_EXEC_SCRIPT,
+                                                             GNUNET_YES,
+                                                             NULL);
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "m: %d n: %d\n",
@@ -363,6 +369,23 @@ start_testbed (struct NetJailState *ns, struct
                   "Unreadable or malformed configuration file `%s', exit ...\n"),
                 "test_testbed_api.conf");
                 }*/
+
+  
+
+  if (GNUNET_NO == helper_check)
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                "No SUID for %s!\n",
+                NETJAIL_EXEC_SCRIPT);
+    *ns->rv = 1;
+  }
+  else if (GNUNET_NO == helper_check)
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                "%s not found!\n",
+                NETJAIL_EXEC_SCRIPT);
+    *ns->rv = 1;
+  }
 
   GNUNET_array_append (ns->helper, ns->n_helper, GNUNET_HELPER_start (
                          GNUNET_YES,
@@ -405,7 +428,7 @@ start_testbed (struct NetJailState *ns, struct
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                 "Send handle is NULL!\n");
     GNUNET_free (msg);
-    GNUNET_TESTING_interpreter_fail ();
+    *ns->rv = 1;
   }
 }
 
@@ -524,7 +547,8 @@ struct GNUNET_TESTING_Command
 GNUNET_TESTBED_cmd_netjail_start_testbed (const char *label,
                                           char *local_m,
                                           char *global_n,
-                                          char *plugin_name)
+                                          char *plugin_name,
+                                          unsigned int *rv)
 {
   struct NetJailState *ns;
 
@@ -532,6 +556,7 @@ GNUNET_TESTBED_cmd_netjail_start_testbed (const char *label,
   ns->local_m = local_m;
   ns->global_n = global_n;
   ns->plugin_name = plugin_name;
+  ns->rv = rv;
 
   struct GNUNET_TESTING_Command cmd = {
     .cls = ns,

@@ -98,13 +98,13 @@ start_testcase (TESTBED_CMD_HELPER_write_cb write_message, char *router_ip,
                    n);
 
   LOG (GNUNET_ERROR_TYPE_ERROR,
-       "cfgname: %s\n",
+       "plugin cfgname: %s\n",
        cfgname);
 
   LOG (GNUNET_ERROR_TYPE_ERROR,
        "node ip: %s\n",
        node_ip);
-  
+
   testdir = GNUNET_malloc (strlen (BASE_DIR) + strlen (m) + strlen (n)
                            + 1);
 
@@ -142,11 +142,12 @@ start_testcase (TESTBED_CMD_HELPER_write_cb write_message, char *router_ip,
                                         "start-peer-1",
                                         "this is useless"),
     GNUNET_TRANSPORT_cmd_send_simple ("send-simple-1",
-                                    m,
-                                    n,
-                                    0,
-                                    "start-peer-1",
-                                    "this is useless"),
+                                      m,
+                                      n,
+                                      (atoi (n) - 1) * atoi (local_m) + atoi (
+                                        m),
+                                      "start-peer-1",
+                                      "this is useless"),
     GNUNET_TESTING_cmd_local_test_finished ("local-test-finished-1",
                                             write_message)
   };

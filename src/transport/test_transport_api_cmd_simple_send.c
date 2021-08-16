@@ -28,6 +28,10 @@
 #include "gnunet_testbed_ng_service.h"
 #include "gnunet_util_lib.h"
 
+#define TIMEOUT GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_SECONDS, 120)
+
+static unsigned int rv = 0;
+
 
 /**
  * Main function to run the test cases.
@@ -45,7 +49,8 @@ run (void *cls)
     GNUNET_TESTBED_cmd_netjail_start_testbed ("netjail-start-testbed-1",
                                               "2",
                                               "1",
-                                              "libgnunet_plugin_cmd_simple_send"),
+                                              "libgnunet_plugin_cmd_simple_send",
+                                              &rv),
     GNUNET_TESTBED_cmd_stop_testbed ("stop-testbed",
                                      "netjail-start-testbed-1",
                                      "2",
@@ -58,7 +63,7 @@ run (void *cls)
 
   GNUNET_TESTING_run (NULL,
                       commands,
-                      GNUNET_TIME_UNIT_FOREVER_REL);
+                      TIMEOUT);
 }
 
 
@@ -66,8 +71,6 @@ int
 main (int argc,
       char *const *argv)
 {
-  int rv = 0;
-
   GNUNET_log_setup ("test-netjail",
                     "DEBUG",
                     NULL);
