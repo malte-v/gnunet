@@ -26,8 +26,7 @@
 #include "platform.h"
 #include "gnunet_util_lib.h"
 #include "gnunet_testing_ng_lib.h"
-#include "testbed_api.h"
-#include "testbed_helper.h"
+#include "testing_cmds.h"
 
 
 struct SendPeerReadyState
@@ -68,7 +67,7 @@ send_peer_ready_run (void *cls,
   struct GNUNET_CMDS_PEER_STARTED *reply;
   size_t msg_length;
 
-  msg_length = sizeof(struct GNUNET_CMDS_HelperInit);// GNUNET_CMDS_PEER_STARTED);
+  msg_length = sizeof(struct GNUNET_CMDS_PEER_STARTED);
   reply = GNUNET_new (struct GNUNET_CMDS_PEER_STARTED);
   reply->header.type = htons (GNUNET_MESSAGE_TYPE_CMDS_HELPER_PEER_STARTED);
   reply->header.size = htons ((uint16_t) msg_length);

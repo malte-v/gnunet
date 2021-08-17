@@ -25,7 +25,6 @@
  */
 #include "platform.h"
 #include "gnunet_testing_ng_lib.h"
-#include "gnunet_testbed_ng_service.h"
 #include "gnunet_util_lib.h"
 
 #define TIMEOUT GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_SECONDS, 120)
@@ -49,7 +48,7 @@ run (void *cls)
     GNUNET_TESTING_cmd_netjail_start_testing_system ("netjail-start-testbed-1",
                                                      "2",
                                                      "1",
-                                                     "libgnunet_plugin_cmd_simple_send",
+                                                     "libgnunet_test_transport_plugin_cmd_simple_send",
                                                      &rv),
     GNUNET_TESTING_cmd_stop_testing_system ("stop-testbed",
                                             "netjail-start-testbed-1",

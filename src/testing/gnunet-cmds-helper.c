@@ -39,9 +39,8 @@
 #include "platform.h"
 #include "gnunet_util_lib.h"
 #include "gnunet_testing_lib.h"
-#include "gnunet_testbed_service.h"
-#include "testbed_helper.h"
-#include "testbed_api.h"
+#include "gnunet_testing_ng_lib.h"
+#include "testing_cmds.h"
 #include "gnunet_testing_plugin.h"
 #include <zlib.h>
 
@@ -124,7 +123,7 @@ struct Plugin *plugin;
 
 /**
  * The process handle to the testbed service
- 
+
 static struct GNUNET_OS_Process *cmd_binary_process;*/
 
 /**
@@ -284,7 +283,7 @@ child_death_task (void *cls)
 
   pr = GNUNET_DISK_pipe_handle (sigpipe, GNUNET_DISK_PIPE_END_READ);
   child_death_task_id = NULL;
-  // consume the signal 
+  // consume the signal
   GNUNET_break (0 < GNUNET_DISK_file_read (pr, &c, sizeof(c)));
   LOG_DEBUG ("Got SIGCHLD\n");
 
@@ -411,7 +410,7 @@ tokenizer_cb (void *cls, const struct GNUNET_MessageHeader *message)
     plugin = GNUNET_new (struct Plugin);
     plugin->api = GNUNET_PLUGIN_load (plugin_name,
                                       NULL);
-    plugin->library_name = GNUNET_strdup (basename(plugin_name));
+    plugin->library_name = GNUNET_strdup (basename (plugin_name));
 
     plugin->global_n = ni->global_n;
     plugin->local_m = ni->local_m;

@@ -115,7 +115,6 @@ gnunetinclude_HEADERS = \
   gnunet_strings_lib.h \
   gnunet_testbed_service.h \
   gnunet_testbed_logger_service.h \
-  gnunet_testbed_ng_service.h \
   gnunet_testing_lib.h \
   gnunet_testing_plugin.h \
   gnunet_testing_ng_lib.h \

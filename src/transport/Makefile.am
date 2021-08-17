@@ -398,20 +398,19 @@ plugin_LTLIBRARIES = \
   $(HTTP_SERVER_PLUGIN_LA) \
   $(HTTPS_SERVER_PLUGIN_LA) \
   $(WLAN_PLUGIN_LA) \
-  $(BT_PLUGIN_LA) 
-#  libgnunet_plugin_cmd_simple_send.la
+  $(BT_PLUGIN_LA) \
+  libgnunet_test_transport_plugin_cmd_simple_send.la
 
-#libgnunet_plugin_cmd_simple_send_la_SOURCES = \
-# plugin_cmd_simple_send.c
-#libgnunet_plugin_cmd_simple_send_la_LIBADD = \
-#  $(top_builddir)/src/util/libgnunetutil.la \
-#  $(top_builddir)/src/testing/libgnunettesting.la \
-#  $(top_builddir)/src/statistics/libgnunetstatistics.la \
-#  $(top_builddir)/src/testbed/libgnunettestbed.la \
-#  libgnunettransporttesting2.la \
-#  $(LTLIBINTL)
-#libgnunet_plugin_cmd_simple_send_la_LDFLAGS = \
-#  $(GN_PLUGIN_LDFLAGS)
+libgnunet_test_transport_plugin_cmd_simple_send_la_SOURCES = \
+ test_transport_plugin_cmd_simple_send.c
+libgnunet_test_transport_plugin_cmd_simple_send_la_LIBADD = \
+  $(top_builddir)/src/util/libgnunetutil.la \
+  $(top_builddir)/src/testing/libgnunettesting.la \
+  $(top_builddir)/src/statistics/libgnunetstatistics.la \
+  libgnunettransporttesting2.la \
+  $(LTLIBINTL)
+libgnunet_test_transport_plugin_cmd_simple_send_la_LDFLAGS = \
+  $(GN_PLUGIN_LDFLAGS)
 
 if HAVE_EXPERIMENTAL
 plugin_LTLIBRARIES += libgnunet_plugin_transport_udp.la

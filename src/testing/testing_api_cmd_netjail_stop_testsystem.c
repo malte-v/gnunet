@@ -25,9 +25,7 @@
  */
 #include "platform.h"
 #include "gnunet_testing_ng_lib.h"
-#include "gnunet_testbed_ng_service.h"
-#include "testbed_api.h"
-#include "testbed_api_hosts.h"
+#include "testing_cmds.h"
 
 
 struct StopHelperState

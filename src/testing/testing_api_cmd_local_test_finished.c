@@ -26,7 +26,7 @@
 #include "platform.h"
 #include "gnunet_util_lib.h"
 #include "gnunet_testing_ng_lib.h"
-#include "testbed_helper.h"
+#include "testing_cmds.h"
 
 /**
  * Generic logging shortcut

@@ -20,20 +20,20 @@
 
 /**
  * @file testing/testing_api_cmd_hello_world.c
- * @brief Command to start the netjail script.
+ * @brief Command to stop the netjail script.
  * @author t3sserakt
  */
 #include "platform.h"
 #include "gnunet_util_lib.h"
 #include "gnunet_testing_ng_lib.h"
-#include "gnunet_testbed_ng_service.h"
 
-#define NETJAIL_START_SCRIPT "./../testing/netjail_start.sh"
+
+#define NETJAIL_STOP_SCRIPT "./../testing/netjail_stop.sh"
+
+struct GNUNET_ChildWaitHandle *cwh;
 
 struct NetJailState
 {
-  struct GNUNET_ChildWaitHandle *cwh;
-
   char *local_m;
 
   char *global_n;
@@ -41,7 +41,7 @@ struct NetJailState
   /**
    * The process id of the start script.
    */
-  struct GNUNET_OS_Process *start_proc;
+  struct GNUNET_OS_Process *stop_proc;
 
   unsigned int finished;
 };
@@ -54,30 +54,26 @@ struct NetJailState
 * @param cmd current CMD being cleaned up.
 */
 static void
-netjail_start_cleanup (void *cls,
-                       const struct GNUNET_TESTING_Command *cmd)
+netjail_stop_cleanup (void *cls,
+                      const struct GNUNET_TESTING_Command *cmd)
 {
   struct NetJailState *ns = cls;
 
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "netjail_start_cleanup!\n");
-
-  if (NULL != ns->cwh)
+  if (NULL != cwh)
   {
-    GNUNET_wait_child_cancel (ns->cwh);
-    ns->cwh = NULL;
+    GNUNET_wait_child_cancel (cwh);
+    cwh = NULL;
   }
-  if (NULL != ns->start_proc)
+  if (NULL != ns->stop_proc)
   {
     GNUNET_assert (0 ==
-                   GNUNET_OS_process_kill (ns->start_proc,
+                   GNUNET_OS_process_kill (ns->stop_proc,
                                            SIGKILL));
     GNUNET_assert (GNUNET_OK ==
-                   GNUNET_OS_process_wait (ns->start_proc));
-    GNUNET_OS_process_destroy (ns->start_proc);
-    ns->start_proc = NULL;
+                   GNUNET_OS_process_wait (ns->stop_proc));
+    GNUNET_OS_process_destroy (ns->stop_proc);
+    ns->stop_proc = NULL;
   }
-  GNUNET_free (ns);
 }
 
 
@@ -91,13 +87,14 @@ netjail_start_cleanup (void *cls,
 * @return #GNUNET_OK on success.
 */
 static int
-netjail_start_traits (void *cls,
-                      const void **ret,
-                      const char *trait,
-                      unsigned int index)
+netjail_stop_traits (void *cls,
+                     const void **ret,
+                     const char *trait,
+                     unsigned int index)
 {
   return GNUNET_OK;
 }
+
 
 static void
 child_completed_callback (void *cls,
@@ -106,20 +103,18 @@ child_completed_callback (void *cls,
 {
   struct NetJailState *ns = cls;
 
+  cwh = NULL;
   if (0 == exit_code)
   {
     ns->finished = GNUNET_YES;
   }
   else
   {
-    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                "Child completed with an error!\n");
     ns->finished = GNUNET_SYSERR;
   }
-  GNUNET_OS_process_destroy (ns->start_proc);
-  ns->start_proc = NULL;
+  GNUNET_OS_process_destroy (ns->stop_proc);
+  ns->stop_proc = NULL;
 }
-
 
 
 /**
@@ -130,17 +125,17 @@ child_completed_callback (void *cls,
 * @param is interpreter state.
 */
 static void
-netjail_start_run (void *cls,
-                   const struct GNUNET_TESTING_Command *cmd,
-                   struct GNUNET_TESTING_Interpreter *is)
+netjail_stop_run (void *cls,
+                  const struct GNUNET_TESTING_Command *cmd,
+                  struct GNUNET_TESTING_Interpreter *is)
 {
   struct NetJailState *ns = cls;
-  char *const script_argv[] = {NETJAIL_START_SCRIPT,
+  char *const script_argv[] = {NETJAIL_STOP_SCRIPT,
                                ns->local_m,
                                ns->global_n,
                                NULL};
   unsigned int helper_check = GNUNET_OS_check_helper_binary (
-    NETJAIL_START_SCRIPT,
+    NETJAIL_STOP_SCRIPT,
     GNUNET_YES,
     NULL);
 
@@ -148,34 +143,36 @@ netjail_start_run (void *cls,
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                 "No SUID for %s!\n",
-                NETJAIL_START_SCRIPT);
+                NETJAIL_STOP_SCRIPT);
     GNUNET_TESTING_interpreter_fail ();
   }
   else if (GNUNET_NO == helper_check)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                 "%s not found!\n",
-                NETJAIL_START_SCRIPT);
+                NETJAIL_STOP_SCRIPT);
     GNUNET_TESTING_interpreter_fail ();
   }
 
-  ns->start_proc = GNUNET_OS_start_process_vap (GNUNET_OS_INHERIT_STD_ERR,
-                                                NULL,
-                                                NULL,
-                                                NULL,
-                                                NETJAIL_START_SCRIPT,
-                                                script_argv);
+  ns->stop_proc = GNUNET_OS_start_process_vap (GNUNET_OS_INHERIT_STD_ERR,
+                                               NULL,
+                                               NULL,
+                                               NULL,
+                                               NETJAIL_STOP_SCRIPT,
+                                               script_argv);
 
-  ns->cwh = GNUNET_wait_child (ns->start_proc,
-                               &child_completed_callback,
-                               ns);
-  GNUNET_break (NULL != ns->cwh);
+  cwh = GNUNET_wait_child (ns->stop_proc,
+                           &child_completed_callback,
+                           ns);
+  GNUNET_break (NULL != cwh);
+
 }
 
+
 static int
-netjail_start_finish (void *cls,
-                      GNUNET_SCHEDULER_TaskCallback cont,
-                      void *cont_cls)
+netjail_stop_finish (void *cls,
+                     GNUNET_SCHEDULER_TaskCallback cont,
+                     void *cont_cls)
 {
   struct NetJailState *ns = cls;
 
@@ -186,32 +183,32 @@ netjail_start_finish (void *cls,
   return ns->finished;
 }
 
+
 /**
  * Create command.
  *
  * @param label name for command.
- * @param binaryname to start.
+ * @param binaryname to stop.
  * @return command.
  */
 struct GNUNET_TESTING_Command
-GNUNET_TESTING_cmd_netjail_start (const char *label,
-                                  char *local_m,
-                                  char *global_n)
+GNUNET_TESTING_cmd_netjail_stop (const char *label,
+                                 char *local_m,
+                                 char *global_n)
 {
   struct NetJailState *ns;
 
   ns = GNUNET_new (struct NetJailState);
   ns->local_m = local_m;
   ns->global_n = global_n;
-  ns->finished = GNUNET_NO;
 
   struct GNUNET_TESTING_Command cmd = {
     .cls = ns,
     .label = label,
-    .run = &netjail_start_run,
-    .finish = &netjail_start_finish,
-    .cleanup = &netjail_start_cleanup,
-    .traits = &netjail_start_traits
+    .run = &netjail_stop_run,
+    .finish = &netjail_stop_finish,
+    .cleanup = &netjail_stop_cleanup,
+    .traits = &netjail_stop_traits
   };
 
   return cmd;
