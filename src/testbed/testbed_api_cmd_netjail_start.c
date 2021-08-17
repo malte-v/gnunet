@@ -28,7 +28,7 @@
 #include "gnunet_testing_ng_lib.h"
 #include "gnunet_testbed_ng_service.h"
 
-#define NETJAIL_START_SCRIPT "./../testbed/netjail_start.sh"
+#define NETJAIL_START_SCRIPT "./../testing/netjail_start.sh"
 
 struct NetJailState
 {
@@ -139,9 +139,10 @@ netjail_start_run (void *cls,
                                ns->local_m,
                                ns->global_n,
                                NULL};
-  unsigned int helper_check = GNUNET_OS_check_helper_binary (NETJAIL_START_SCRIPT,
-                                                             GNUNET_YES,
-                                                             NULL);
+  unsigned int helper_check = GNUNET_OS_check_helper_binary (
+    NETJAIL_START_SCRIPT,
+    GNUNET_YES,
+    NULL);
 
   if (GNUNET_NO == helper_check)
   {
@@ -193,7 +194,7 @@ netjail_start_finish (void *cls,
  * @return command.
  */
 struct GNUNET_TESTING_Command
-GNUNET_TESTBED_cmd_netjail_start (const char *label,
+GNUNET_TESTING_cmd_netjail_start (const char *label,
                                   char *local_m,
                                   char *global_n)
 {

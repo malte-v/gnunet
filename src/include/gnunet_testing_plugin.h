@@ -37,11 +37,11 @@ extern "C"
 #endif
 
 typedef void
-(*TESTBED_CMD_HELPER_write_cb) (struct GNUNET_MessageHeader *message, size_t
+(*TESTING_CMD_HELPER_write_cb) (struct GNUNET_MessageHeader *message, size_t
                                 msg_length);
 
 typedef void
-(*GNUNET_TESTING_PLUGIN_StartTestCase) (TESTBED_CMD_HELPER_write_cb
+(*GNUNET_TESTING_PLUGIN_StartTestCase) (TESTING_CMD_HELPER_write_cb
                                         write_message, char *router_ip,
                                         char *node_ip,
                                         char *n,

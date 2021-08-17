@@ -53,8 +53,8 @@ struct StopHelperState
 * @param cmd current CMD being cleaned up.
 */
 static void
-stop_testbed_cleanup (void *cls,
-                      const struct GNUNET_TESTING_Command *cmd)
+stop_testing_system_cleanup (void *cls,
+                             const struct GNUNET_TESTING_Command *cmd)
 {
 
 }
@@ -70,10 +70,10 @@ stop_testbed_cleanup (void *cls,
 * @return #GNUNET_OK on success.
 */
 static int
-stop_testbed_traits (void *cls,
-                     const void **ret,
-                     const char *trait,
-                     unsigned int index)
+stop_testing_system_traits (void *cls,
+                            const void **ret,
+                            const char *trait,
+                            unsigned int index)
 {
   return GNUNET_OK;
 }
@@ -87,9 +87,9 @@ stop_testbed_traits (void *cls,
 * @param is interpreter state.
 */
 static void
-stop_testbed_run (void *cls,
-                  const struct GNUNET_TESTING_Command *cmd,
-                  struct GNUNET_TESTING_Interpreter *is)
+stop_testing_system_run (void *cls,
+                         const struct GNUNET_TESTING_Command *cmd,
+                         struct GNUNET_TESTING_Interpreter *is)
 {
   struct StopHelperState *shs = cls;
   struct GNUNET_HELPER_Handle **helper;
@@ -97,7 +97,7 @@ stop_testbed_run (void *cls,
 
   start_helper_cmd = GNUNET_TESTING_interpreter_lookup_command (
     shs->helper_start_label);
-  GNUNET_TESTBED_get_trait_helper_handles (start_helper_cmd,
+  GNUNET_TESTING_get_trait_helper_handles (start_helper_cmd,
                                            &helper);
 
   for (int i = 1; i <= atoi (shs->global_n); i++) {
@@ -118,11 +118,11 @@ stop_testbed_run (void *cls,
  * @return command.
  */
 struct GNUNET_TESTING_Command
-GNUNET_TESTBED_cmd_stop_testbed (const char *label,
-                                 const char *helper_start_label,
-                                 char *local_m,
-                                 char *global_n
-                                 )
+GNUNET_TESTING_cmd_stop_testing_system (const char *label,
+                                        const char *helper_start_label,
+                                        char *local_m,
+                                        char *global_n
+                                        )
 {
   struct StopHelperState *shs;
 
@@ -134,9 +134,9 @@ GNUNET_TESTBED_cmd_stop_testbed (const char *label,
   struct GNUNET_TESTING_Command cmd = {
     .cls = shs,
     .label = label,
-    .run = &stop_testbed_run,
-    .cleanup = &stop_testbed_cleanup,
-    .traits = &stop_testbed_traits
+    .run = &stop_testing_system_run,
+    .cleanup = &stop_testing_system_cleanup,
+    .traits = &stop_testing_system_traits
   };
 
   return cmd;

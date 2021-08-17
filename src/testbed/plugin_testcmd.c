@@ -45,7 +45,7 @@ all_peers_started ()
 }
 
 static void
-start_testcase (TESTBED_CMD_HELPER_write_cb write_message, char *router_ip,
+start_testcase (TESTING_CMD_HELPER_write_cb write_message, char *router_ip,
                 char *node_ip,
                 char *n,
                 char *m,

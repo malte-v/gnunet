@@ -35,7 +35,7 @@
 
 struct LocalFinishedState
 {
-  TESTBED_CMD_HELPER_write_cb write_message;
+  TESTING_CMD_HELPER_write_cb write_message;
 
   struct GNUNET_CMDS_LOCAL_FINISHED *reply;
 };
@@ -107,7 +107,7 @@ local_test_finished_finish (void *cls,
  */
 struct GNUNET_TESTING_Command
 GNUNET_TESTING_cmd_local_test_finished (const char *label,
-                                        TESTBED_CMD_HELPER_write_cb
+                                        TESTING_CMD_HELPER_write_cb
                                         write_message)
 {
   struct LocalFinishedState *lfs;

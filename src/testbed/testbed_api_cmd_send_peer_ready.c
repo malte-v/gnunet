@@ -31,7 +31,7 @@
 
 struct SendPeerReadyState
 {
-  TESTBED_CMD_HELPER_write_cb write_message;
+  TESTING_CMD_HELPER_write_cb write_message;
 
   struct GNUNET_CMDS_PEER_STARTED *reply;
 };
@@ -84,7 +84,7 @@ send_peer_ready_run (void *cls,
  */
 struct GNUNET_TESTING_Command
 GNUNET_TESTING_cmd_send_peer_ready (const char *label,
-                                    TESTBED_CMD_HELPER_write_cb write_message)
+                                    TESTING_CMD_HELPER_write_cb write_message)
 {
   struct SendPeerReadyState *sprs;
 

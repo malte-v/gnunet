@@ -23,7 +23,6 @@ if HAVE_SQLITE
 endif
 
 libexec_PROGRAMS = \
-  gnunet-cmd \
   gnunet-cmds-helper \
   gnunet-service-testbed \
   gnunet-helper-testbed \
@@ -90,14 +89,6 @@ gnunet_helper_testbed_LDADD = $(XLIB) \
  libgnunettestbed.la \
  $(LTLIBINTL) $(Z_LIBS)
 
-gnunet_cmd_SOURCES = \
-  gnunet-cmd.c
-gnunet_cmd_LDADD = $(XLIB) \
- $(top_builddir)/src/util/libgnunetutil.la \
- $(top_builddir)/src/testing/libgnunettesting.la \
- libgnunettestbed.la \
- $(LTLIBINTL) $(Z_LIBS)
-
 gnunet_cmds_helper_SOURCES = \
   gnunet-cmds-helper.c
 gnunet_cmds_helper_LDADD = $(XLIB) \
@@ -138,8 +129,6 @@ libgnunettestbed_la_SOURCES = \
   testbed_api_cmd_netjail_stop.c \
   testbed_api.c testbed_api.h testbed.h \
   testbed_api_hosts.c testbed_api_hosts.h testbed_helper.h \
-  testbed_api_cmd_controller.c \
-  testbed_api_cmd_peer.c \
   testbed_api_operations.c testbed_api_operations.h \
   testbed_api_peers.c testbed_api_peers.h \
   testbed_api_services.c \

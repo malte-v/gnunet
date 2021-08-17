@@ -30,7 +30,7 @@
 #include "testbed_api_hosts.h"
 #include "testbed_helper.h"
 
-#define NETJAIL_EXEC_SCRIPT "./../testbed/netjail_exec.sh"
+#define NETJAIL_EXEC_SCRIPT "./../testing/netjail_exec.sh"
 
 struct HelperMessage;
 
@@ -87,23 +87,16 @@ struct NetJailState
 
   unsigned int n_msg;
 
-  unsigned int number_of_testbeds_started;
+  unsigned int number_of_testsystems_started;
 
   unsigned int number_of_peers_started;
 
   unsigned int number_of_local_test_finished;
 
-  /**
-   * The host where the controller is running
-   */
-  struct GNUNET_TESTBED_Host **host;
-
-  unsigned int n_host;
-
   char *plugin_name;
 };
 
-struct TestbedCount
+struct TestingSystemCount
 {
   unsigned int count;
 
@@ -168,14 +161,14 @@ netjail_exec_traits (void *cls,
 
 
 /**
- * Offer handles to testbed helper from trait
+ * Offer handles to testing cmd helper from trait
  *
  * @param cmd command to extract the message from.
  * @param pt pointer to message.
  * @return #GNUNET_OK on success.
  */
 int
-GNUNET_TESTBED_get_trait_helper_handles (const struct
+GNUNET_TESTING_get_trait_helper_handles (const struct
                                          GNUNET_TESTING_Command *cmd,
                                          struct GNUNET_HELPER_Handle ***helper)
 {
@@ -186,14 +179,14 @@ GNUNET_TESTBED_get_trait_helper_handles (const struct
 }
 
 /**
- * Offer handles to testbed helper from trait
+ * Offer messages received via testing cmd helper from trait
  *
  * @param cmd command to extract the message from.
  * @param pt pointer to message.
  * @return #GNUNET_OK on success.
  */
 int
-GNUNET_TESTBED_get_trait_helper_messages (const struct
+GNUNET_TESTING_get_trait_helper_messages (const struct
                                           GNUNET_TESTING_Command *cmd,
                                           struct HelperMessage ***
                                           hp_messages_head)
@@ -216,7 +209,7 @@ GNUNET_TESTBED_get_trait_helper_messages (const struct
 static void
 clear_msg (void *cls, int result)
 {
-  struct TestbedCount *tbc = cls;
+  struct TestingSystemCount *tbc = cls;
   struct NetJailState *ns = tbc->ns;
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
@@ -244,7 +237,7 @@ clear_msg (void *cls, int result)
 static int
 helper_mst (void *cls, const struct GNUNET_MessageHeader *message)
 {
-  struct TestbedCount *tbc = cls;
+  struct TestingSystemCount *tbc = cls;
   struct NetJailState *ns = tbc->ns;
   struct HelperMessage *hp_msg;
 
@@ -253,10 +246,9 @@ helper_mst (void *cls, const struct GNUNET_MessageHeader *message)
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                 "helper_mst tbc->count: %d\n",
                 tbc->count);
-    // GNUNET_TESTBED_extract_cfg (host, message);
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                 "Received message from helper.\n");
-    ns->number_of_testbeds_started++;
+    ns->number_of_testsystems_started++;
   }
   else if (GNUNET_MESSAGE_TYPE_CMDS_HELPER_PEER_STARTED == ntohs (
              message->type))
@@ -320,57 +312,38 @@ create_helper_init_msg_ (char *m_char,
 
 
 static void
-start_testbed (struct NetJailState *ns, struct
-               GNUNET_CONFIGURATION_Handle *config,
-               char *m_char,
-               char *n_char)
+start_helper (struct NetJailState *ns, struct
+              GNUNET_CONFIGURATION_Handle *config,
+              char *m_char,
+              char *n_char)
 {
   // struct GNUNET_CONFIGURATION_Handle *cfg;
   struct GNUNET_CMDS_HelperInit *msg;
-  struct TestbedCount *tbc;
+  struct TestingSystemCount *tbc;
   char *const script_argv[] = {NETJAIL_EXEC_SCRIPT,
                                m_char,
                                n_char,
-                               GNUNET_OS_get_libexec_binary_path(HELPER_CMDS_BINARY),
+                               GNUNET_OS_get_libexec_binary_path (
+                                 HELPER_CMDS_BINARY),
                                ns->global_n,
                                ns->local_m,
                                NULL};
   unsigned int m = atoi (m_char);
   unsigned int n = atoi (n_char);
-  unsigned int helper_check = GNUNET_OS_check_helper_binary (NETJAIL_EXEC_SCRIPT,
-                                                             GNUNET_YES,
-                                                             NULL);
+  unsigned int helper_check = GNUNET_OS_check_helper_binary (
+    NETJAIL_EXEC_SCRIPT,
+    GNUNET_YES,
+    NULL);
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "m: %d n: %d\n",
               m,
               n);
 
-  tbc = GNUNET_new (struct TestbedCount);
+  tbc = GNUNET_new (struct TestingSystemCount);
   tbc->ns = ns;
   tbc->count = (n - 1) * atoi (ns->local_m) + m;
 
-  // cfg = GNUNET_CONFIGURATION_dup (config);
-
-  // TODO We do not need this?
-  /*GNUNET_array_append (ns->host, ns->n_host,
-                       GNUNET_TESTBED_host_create_with_id (tbc->count - 1,
-                                                           NULL,
-                                                           NULL,
-                                                           cfg,
-                                                           0));*/
-
-  /*if ((GNUNET_YES != GNUNET_DISK_file_test ("test_testbed_api.conf")) ||
-      (GNUNET_SYSERR == GNUNET_CONFIGURATION_load (config,
-                                                   "test_testbed_api.conf")))
-  {
-    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                _ (
-                  "Unreadable or malformed configuration file `%s', exit ...\n"),
-                "test_testbed_api.conf");
-                }*/
-
-  
 
   if (GNUNET_NO == helper_check)
   {
@@ -396,13 +369,13 @@ start_testbed (struct NetJailState *ns, struct
                          tbc));
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                    "First using helper %d %d\n",
+              "First using helper %d %d\n",
               tbc->count - 1,
               ns->n_helper);
   struct GNUNET_HELPER_Handle *helper = ns->helper[tbc->count - 1];
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                    "First using helper %d %d %p\n",
+              "First using helper %d %d %p\n",
               tbc->count - 1,
               ns->n_helper,
               helper);
@@ -456,9 +429,9 @@ netjail_exec_run (void *cls,
     {
       sprintf (str_n, "%d", i);
       sprintf (str_m, "%d", j);
-      start_testbed (ns, config,
-                     str_m,
-                     str_n);
+      start_helper (ns, config,
+                    str_m,
+                    str_n);
     }
   }
 }
@@ -475,7 +448,7 @@ netjail_start_finish (void *cls,
   struct GNUNET_CMDS_ALL_PEERS_STARTED *reply;
   size_t msg_length;
   struct GNUNET_HELPER_Handle *helper;
-  struct TestbedCount *tbc;
+  struct TestingSystemCount *tbc;
 
   if (ns->number_of_local_test_finished == total_number)
   {
@@ -483,11 +456,11 @@ netjail_start_finish (void *cls,
     cont (cont_cls);
   }
 
-  if (ns->number_of_testbeds_started == total_number)
+  if (ns->number_of_testsystems_started == total_number)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                 "All helpers started!\n");
-    ns->number_of_testbeds_started = 0;
+    ns->number_of_testsystems_started = 0;
   }
 
   if (ns->number_of_peers_started == total_number)
@@ -498,7 +471,7 @@ netjail_start_finish (void *cls,
     for (int i = 1; i <= atoi (ns->global_n); i++) {
       for (int j = 1; j <= atoi (ns->local_m); j++)
       {
-        tbc = GNUNET_new (struct TestbedCount);
+        tbc = GNUNET_new (struct TestingSystemCount);
         tbc->ns = ns;
         // TODO This needs to be more generic. As we send more messages back and forth, we can not grow the arrays again and again, because this is to error prone.
         tbc->count = (i - 1) * atoi (ns->local_m) + j + total_number;
@@ -544,11 +517,11 @@ netjail_start_finish (void *cls,
  * @return command.
  */
 struct GNUNET_TESTING_Command
-GNUNET_TESTBED_cmd_netjail_start_testbed (const char *label,
-                                          char *local_m,
-                                          char *global_n,
-                                          char *plugin_name,
-                                          unsigned int *rv)
+GNUNET_TESTING_cmd_netjail_start_testing_system (const char *label,
+                                                 char *local_m,
+                                                 char *global_n,
+                                                 char *plugin_name,
+                                                 unsigned int *rv)
 {
   struct NetJailState *ns;
 

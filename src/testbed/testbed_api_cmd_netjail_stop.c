@@ -29,7 +29,7 @@
 #include "gnunet_testbed_ng_service.h"
 
 
-#define NETJAIL_STOP_SCRIPT "./../testbed/netjail_stop.sh"
+#define NETJAIL_STOP_SCRIPT "./../testing/netjail_stop.sh"
 
 struct GNUNET_ChildWaitHandle *cwh;
 
@@ -135,9 +135,10 @@ netjail_stop_run (void *cls,
                                ns->local_m,
                                ns->global_n,
                                NULL};
-  unsigned int helper_check = GNUNET_OS_check_helper_binary (NETJAIL_STOP_SCRIPT,
-                                                             GNUNET_YES,
-                                                             NULL);
+  unsigned int helper_check = GNUNET_OS_check_helper_binary (
+    NETJAIL_STOP_SCRIPT,
+    GNUNET_YES,
+    NULL);
 
   if (GNUNET_NO == helper_check)
   {
@@ -192,7 +193,7 @@ netjail_stop_finish (void *cls,
  * @return command.
  */
 struct GNUNET_TESTING_Command
-GNUNET_TESTBED_cmd_netjail_stop (const char *label,
+GNUNET_TESTING_cmd_netjail_stop (const char *label,
                                  char *local_m,
                                  char *global_n)
 {
