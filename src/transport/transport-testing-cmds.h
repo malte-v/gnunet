@@ -1,6 +1,6 @@
 /*
      This file is part of GNUnet.
-     Copyright (C) 2006, 2009, 2015, 2016 GNUnet e.V.
+     Copyright (C) 2021 GNUnet e.V.
 
      GNUnet is free software: you can redistribute it and/or modify it
      under the terms of the GNU Affero General Public License as published
@@ -44,10 +44,10 @@ GNUNET_TRANSPORT_cmd_connect_peers (const char *label,
 
 struct GNUNET_TESTING_Command
 GNUNET_TRANSPORT_cmd_send_simple (const char *label,
-                                char *m,
-                                char *n,
-                                uint32_t num,
-                                const char *peer1_label,
+                                  char *m,
+                                  char *n,
+                                  uint32_t num,
+                                  const char *peer1_label,
                                   const char *peer2_label);
 
 int
@@ -60,7 +60,8 @@ GNUNET_TRANSPORT_get_trait_connected_peers_map (const struct
                                                 GNUNET_TESTING_Command
                                                 *cmd,
                                                 struct
-                                                GNUNET_CONTAINER_MultiShortmap **
+                                                GNUNET_CONTAINER_MultiShortmap *
+                                                *
                                                 connected_peers_map);
 int
 GNUNET_TRANSPORT_get_trait_hello_size (const struct
