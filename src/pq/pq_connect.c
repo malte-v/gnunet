@@ -348,7 +348,7 @@ GNUNET_PQ_reconnect (struct GNUNET_PQ_Context *db)
                          0);
       if (GNUNET_NO == ret)
       {
-        GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+        GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
                     "Failed to find SQL file to load database versioning logic\n");
         PQfinish (db->conn);
         db->conn = NULL;
