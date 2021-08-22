@@ -388,7 +388,7 @@ register_notify (void *cls,
   struct GNUNET_DB_EventHandler *eh = value;
 
   manage_subscribe (db,
-                    "LISTEN ",
+                    "LISTEN X",
                     eh);
   return GNUNET_OK;
 }
@@ -440,7 +440,7 @@ GNUNET_PQ_event_listen (struct GNUNET_PQ_Context *db,
               fd);
   }
   manage_subscribe (db,
-                    "LISTEN ",
+                    "LISTEN X",
                     eh);
   GNUNET_assert (0 ==
                  pthread_mutex_unlock (&db->notify_lock));
@@ -461,7 +461,7 @@ GNUNET_PQ_event_listen_cancel (struct GNUNET_DB_EventHandler *eh)
                                                         eh));
 
   manage_subscribe (db,
-                    "UNLISTEN ",
+                    "UNLISTEN X",
                     eh);
   if ( (NULL != db->sc) &&
        (0 == GNUNET_CONTAINER_multishortmap_size (db->channel_map)) )
@@ -486,7 +486,7 @@ GNUNET_PQ_event_notify (struct GNUNET_PQ_Context *db,
   PGresult *result;
 
   end = stpcpy (sql,
-                "NOTIFY ");
+                "NOTIFY X");
   end = es_to_channel (es,
                        end);
   end = stpcpy (end,
