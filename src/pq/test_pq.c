@@ -240,63 +240,6 @@ run_queries (struct GNUNET_PQ_Context *db)
 }
 
 
-static void
-event_cb (void *cls,
-          const void *extra,
-          size_t extra_size)
-{
-  unsigned int *cnt = cls;
-
-  GNUNET_assert (5 == extra_size);
-  GNUNET_assert (0 == memcmp ("world",
-                              extra,
-                              5));
-  (*cnt)++;
-}
-
-
-/**
- * Run subscribe/notify tests.
- *
- * @param db database handle
- * @return 0 on success
- */
-static int
-test_notify (struct GNUNET_PQ_Context *db)
-{
-  struct GNUNET_DB_EventHeaderP e1 = {
-    .size = htons (sizeof (e1)),
-    .type = htons (1)
-  };
-  struct GNUNET_DB_EventHeaderP e2 = {
-    .size = htons (sizeof (e2)),
-    .type = htons (2)
-  };
-  unsigned int called = 0;
-  struct GNUNET_DB_EventHandler *eh;
-
-  eh = GNUNET_PQ_event_listen (db,
-                               &e1,
-                               &event_cb,
-                               &called);
-  GNUNET_assert (NULL != eh);
-  GNUNET_PQ_event_notify (db,
-                          &e2,
-                          "hello",
-                          5);
-  GNUNET_PQ_event_do_poll (db);
-  GNUNET_assert (0 == called);
-  GNUNET_PQ_event_notify (db,
-                          &e1,
-                          "world",
-                          5);
-  GNUNET_PQ_event_do_poll (db);
-  GNUNET_assert (1 == called);
-  GNUNET_PQ_event_listen_cancel (eh);
-  return 0;
-}
-
-
 /**
  * Task called on shutdown.
  *
@@ -305,7 +248,6 @@ test_notify (struct GNUNET_PQ_Context *db)
 static void
 event_end (void *cls)
 {
-  GNUNET_PQ_event_scheduler_stop (db);
   GNUNET_PQ_event_listen_cancel (eh);
   eh = NULL;
   if (NULL != tt)
@@ -368,9 +310,9 @@ sched_tests (void *cls)
   tt = GNUNET_SCHEDULER_add_delayed (GNUNET_TIME_UNIT_SECONDS,
                                      &timeout_cb,
                                      NULL);
-  GNUNET_PQ_event_scheduler_start (db);
   eh = GNUNET_PQ_event_listen (db,
                                &es,
+                               GNUNET_TIME_UNIT_FOREVER_REL,
                                &event_sched_cb,
                                NULL);
   GNUNET_PQ_reconnect (db);
@@ -404,7 +346,7 @@ main (int argc,
   };
 
   GNUNET_log_setup ("test-pq",
-                    "WARNING",
+                    "INFO",
                     NULL);
   db = GNUNET_PQ_connect ("postgres:///gnunetcheck",
                           NULL,
@@ -433,8 +375,6 @@ main (int argc,
     return 1;
   }
   ret = run_queries (db);
-  ret |= test_notify (db);
-  ret |= test_notify (db);
   if (0 != ret)
   {
     GNUNET_break (0);

@@ -28,6 +28,7 @@
 #include "gnunet_util_lib.h"
 #include "gnunet_pq_lib.h"
 
+
 /**
  * Handle to Postgres database.
  */
@@ -59,24 +60,9 @@ struct GNUNET_PQ_Context
   char *load_path;
 
   /**
-   * Function to call on Postgres FDs.
-   */
-  GNUNET_PQ_SocketCallback sc;
-
-  /**
-   * Closure for @e sc.
-   */
-  void *sc_cls;
-
-  /**
    * Map managing event subscriptions.
    */
   struct GNUNET_CONTAINER_MultiShortmap *channel_map;
-
-  /**
-   * Lock to access @e channel_map.
-   */
-  pthread_mutex_t notify_lock;
 
   /**
    * Task responsible for processing events.
@@ -87,7 +73,7 @@ struct GNUNET_PQ_Context
    * File descriptor wrapper for @e event_task.
    */
   struct GNUNET_NETWORK_Handle *rfd;
-  
+
   /**
    * Is scheduling via the GNUnet scheduler desired?
    */
@@ -100,9 +86,29 @@ struct GNUNET_PQ_Context
  * after a disconnect.
  *
  * @param db the DB handle
+ * @param fd socket to listen on
  */
 void
-GNUNET_PQ_event_reconnect_ (struct GNUNET_PQ_Context *db);
+GNUNET_PQ_event_reconnect_ (struct GNUNET_PQ_Context *db,
+                            int fd);
+
+
+/**
+ * Run poll event loop using the GNUnet scheduler.
+ *
+ * @param db database handle
+ */
+void
+GNUNET_PQ_event_scheduler_start_ (struct GNUNET_PQ_Context *db);
+
+
+/**
+ * Stop running poll event loop using the GNUnet scheduler.
+ *
+ * @param db database handle
+ */
+void
+GNUNET_PQ_event_scheduler_stop_ (struct GNUNET_PQ_Context *db);
 
 
 #endif

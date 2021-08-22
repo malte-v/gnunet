@@ -853,33 +853,6 @@ GNUNET_PQ_reconnect (struct GNUNET_PQ_Context *db);
 
 
 /**
- * Function called whenever the socket needed for
- * notifications from postgres changes.
- *
- * @param cls closure
- * @param fd socket to listen on, -1 for none
- */
-typedef void
-(*GNUNET_PQ_SocketCallback)(void *cls,
-                            int fd);
-
-
-/**
- * Obtain the file descriptor to poll on for notifications.
- * Useful if the GNUnet scheduler is NOT to be used for
- * such notifications.
- *
- * @param db database handle
- * @param sc function to call with the socket
- * @param sc_cls closure for @a sc
- */
-void
-GNUNET_PQ_event_set_socket_callback (struct GNUNET_PQ_Context *db,
-                                     GNUNET_PQ_SocketCallback sc,
-                                     void *sc_cls);
-
-
-/**
  * Poll for database events now.  Used if the event FD
  * is ready and the application wants to trigger applicable
  * events.
@@ -893,24 +866,6 @@ GNUNET_PQ_event_do_poll (struct GNUNET_PQ_Context *db);
 
 
 /**
- * Run poll event loop using the GNUnet scheduler.
- *
- * @param db database handle
- */
-void
-GNUNET_PQ_event_scheduler_start (struct GNUNET_PQ_Context *db);
-
-
-/**
- * Stop running poll event loop using the GNUnet scheduler.
- *
- * @param db database handle
- */
-void
-GNUNET_PQ_event_scheduler_stop (struct GNUNET_PQ_Context *db);
-
-
-/**
  * Register callback to be invoked on events of type @a es.
  *
  * Unlike many other calls, this function is thread-safe
@@ -921,14 +876,16 @@ GNUNET_PQ_event_scheduler_stop (struct GNUNET_PQ_Context *db);
  *
  * @param db database context to use
  * @param es specification of the event to listen for
+ * @param timeout when to trigger @a cb based on timeout
  * @param cb function to call when the event happens, possibly
- *         multiple times (until #GNUNET_PQ_event_listen_cancel() is invoked)
+ *         multiple times (until #GNUNET_PQ_event_listen_cancel() is invoked), including on timeout
  * @param cb_cls closure for @a cb
  * @return handle useful to cancel the listener
  */
 struct GNUNET_DB_EventHandler *
 GNUNET_PQ_event_listen (struct GNUNET_PQ_Context *db,
                         const struct GNUNET_DB_EventHeaderP *es,
+                        struct GNUNET_TIME_Relative timeout,
                         GNUNET_DB_EventCallback cb,
                         void *cb_cls);
 

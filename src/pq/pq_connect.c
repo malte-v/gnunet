@@ -103,9 +103,6 @@ GNUNET_PQ_connect (const char *config_str,
   }
   db->channel_map = GNUNET_CONTAINER_multishortmap_create (16,
                                                            GNUNET_YES);
-  GNUNET_assert (0 ==
-                 pthread_mutex_init (&db->notify_lock,
-                                     NULL));
   GNUNET_PQ_reconnect (db);
   if (NULL == db->conn)
   {
@@ -294,9 +291,8 @@ GNUNET_PQ_reconnect_if_down (struct GNUNET_PQ_Context *db)
 void
 GNUNET_PQ_reconnect (struct GNUNET_PQ_Context *db)
 {
-  if (NULL != db->sc)
-    db->sc (db->sc_cls,
-            -1);
+  GNUNET_PQ_event_reconnect_ (db,
+                              -1);
   if (NULL != db->conn)
     PQfinish (db->conn);
   db->conn = PQconnectdb (db->config_str);
@@ -416,11 +412,8 @@ GNUNET_PQ_reconnect (struct GNUNET_PQ_Context *db)
     db->conn = NULL;
     return;
   }
-  GNUNET_PQ_event_reconnect_ (db);
-  if ( (NULL != db->sc) &&
-       (0 != GNUNET_CONTAINER_multishortmap_size (db->channel_map)) )
-    db->sc (db->sc_cls,
-            PQsocket (db->conn));
+  GNUNET_PQ_event_reconnect_ (db,
+                              PQsocket (db->conn));
 }
 
 
@@ -473,8 +466,6 @@ GNUNET_PQ_disconnect (struct GNUNET_PQ_Context *db)
   GNUNET_assert (0 ==
                  GNUNET_CONTAINER_multishortmap_size (db->channel_map));
   GNUNET_CONTAINER_multishortmap_destroy (db->channel_map);
-  GNUNET_assert (0 ==
-                 pthread_mutex_destroy (&db->notify_lock));
   GNUNET_free (db->es);
   GNUNET_free (db->ps);
   GNUNET_free (db->load_path);
