@@ -581,7 +581,7 @@ AS_IF([test "x$activate_texinfo4" = "xyes"],
   TEXINFO_HTMLFLAGS="--no-split --css-include=style.css --css-include=manual.css"
  ],[
   AM_CONDITIONAL([ACTIVATE_TEXINFO4],false)
-  AC_DEFINE([INCLUDE_MANPAGES],[0],[Using texinfo version 5 or later switches])
+  AC_DEFINE([ACTIVATE_TEXINFO04],[0],[Using texinfo version 5 or later switches])
   TEXINFO_HTMLFLAGS="--no-split --css-ref='../style.css' --css-ref='../manual.css'"
 
  ])
@@ -949,7 +949,7 @@ AC_ARG_WITH(libogg,
                       ogg=1,)])
 AM_CONDITIONAL(HAVE_OGG, [test "$ogg" = 1])
 AS_IF([test x"$ogg" = x1],
-      [AC_DEFINE([HAVE_OGG],[1],[Have ogg])]
+      [AC_DEFINE([HAVE_OGG],[1],[Have ogg])],
       [AC_DEFINE([HAVE_OGG],[0],[Lacking ogg])])
 
 
@@ -1299,8 +1299,9 @@ gl_LIBUNISTRING
 AS_IF([test $HAVE_LIBUNISTRING != yes],
       [AC_MSG_ERROR([GNUnet requires libunistring])])
 
-AS_VERSION_COMPARE([$LIBUNISTRING_VERSION],[0.9.1.1],
-  [AC_MSG_ERROR([GNUnet requires libunistring >= 0.9.1.1])])
+# Currently broken on Debian :-(
+#AS_VERSION_COMPARE([$LIBUNISTRING_VERSION],[0.9.1.1],
+#  [AC_MSG_ERROR([GNUnet requires libunistring >= 0.9.1.1, found $LIBUNISTRING_VERSION])])
 
 AC_CHECK_HEADERS([unistr.h],
                  ,
