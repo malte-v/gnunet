@@ -47,7 +47,6 @@ struct GNUNET_OS_Process
    */
   pid_t pid;
 
-
   /**
    * Pipe we use to signal the process.
    * NULL if unused, or if process was deemed uncontrollable.
@@ -301,7 +300,8 @@ GNUNET_OS_process_destroy (struct GNUNET_OS_Process *proc)
  * @param flags open flags (O_RDONLY, O_WRONLY)
  */
 static void
-open_dev_null (int target_fd, int flags)
+open_dev_null (int target_fd,
+               int flags)
 {
   int fd;
 
