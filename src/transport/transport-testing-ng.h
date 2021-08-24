@@ -22,50 +22,86 @@
  * @author t3sserakt
  */
 
-struct TngState
+struct StartPeerState
 {
   /**
-   * Handle to operation
+   * Receive callback
    */
-  struct GNUNET_TESTBED_Operation *operation;
+  struct GNUNET_MQ_MessageHandler *handlers;
+
+  const char *cfgname;
 
   /**
-   * Flag indicating if service is ready.
+   * Peer's configuration
    */
-  int service_ready;
+  struct GNUNET_CONFIGURATION_Handle *cfg;
+
+  struct GNUNET_TESTING_Peer *peer;
 
   /**
-   * Abort task identifier
+   * Peer identity
    */
-  struct GNUNET_SCHEDULER_Task *abort_task;
+  struct GNUNET_PeerIdentity id;
 
   /**
-   * Label of peer command.
+   * Peer's transport service handle
    */
-  const char *peer_label;
+  struct GNUNET_TRANSPORT_CoreHandle *th;
 
   /**
-   * Name of service to start.
+   * Application handle
    */
-  const char *servicename;
+  struct GNUNET_TRANSPORT_ApplicationHandle *ah;
 
   /**
-   * Peer identity of the system.
+   * Peer's PEERSTORE Handle
    */
-  struct GNUNET_PeerIdentity *peer_identity;
+  struct GNUNET_PEERSTORE_Handle *ph;
 
   /**
-   * Message handler for transport service.
+   * Hello get task
    */
-  const struct GNUNET_MQ_MessageHandler *handlers;
+  struct GNUNET_SCHEDULER_Task *rh_task;
 
   /**
-   * Notify connect callback
+   * Peer's transport get hello handle to retrieve peer's HELLO message
    */
-  GNUNET_TRANSPORT_NotifyConnect nc;
+  struct GNUNET_PEERSTORE_IterateContext *pic;
 
   /**
-   * Closure for the @a nc callback
+   * Hello
    */
-  void *cb_cls;
+  char *hello;
+
+  /**
+   * Hello size
+   */
+  size_t hello_size;
+
+  char *m;
+
+  char *n;
+
+  char *local_m;
+
+  unsigned int finished;
+
+  const char *system_label;
+
+  /**
+   * An unique number to identify the peer
+   */
+  unsigned int no;
+
+  struct GNUNET_CONTAINER_MultiShortmap *connected_peers_map;
+
+  struct GNUNET_TESTING_System *tl_system;
+
 };
+
+
+int
+GNUNET_TRANSPORT_get_trait_state (const struct
+                                  GNUNET_TESTING_Command
+                                  *cmd,
+                                  struct StartPeerState **sps);

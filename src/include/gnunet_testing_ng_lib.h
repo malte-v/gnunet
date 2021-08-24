@@ -838,9 +838,15 @@ GNUNET_TESTING_get_trait_test_system (const struct
                                       GNUNET_TESTING_Command *cmd,
                                       struct GNUNET_TESTING_System **test_system);
 
+
 struct GNUNET_TESTING_Command
 GNUNET_TESTING_cmd_system_create (const char *label,
                                   const char *testdir);
+
+
+struct GNUNET_TESTING_Command
+GNUNET_TESTING_cmd_system_destroy (const char *label,
+                                   const char *create_label);
 
 
 /**
