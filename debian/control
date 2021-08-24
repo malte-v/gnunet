@@ -95,7 +95,6 @@ Section: libdevel
 Architecture: any
 Depends:
  libgnunet (= ${binary:Version}),
- gnunet (= ${binary:Version}),
  libextractor-dev (>=1:0.6.3),
  libgcrypt20-dev (>=1.6),
  libmicrohttpd-dev (>=0.9.33),
