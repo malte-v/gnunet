@@ -150,4 +150,5 @@ test_testing_sharedservices_LDADD = \
 
 EXTRA_DIST = \
   test_testing_defaults.conf \
-  test_testing_sharedservices.conf
+  test_testing_sharedservices.conf \
+  testing_cmds.h
