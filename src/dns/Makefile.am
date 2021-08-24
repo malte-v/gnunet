@@ -83,10 +83,6 @@ libgnunet_plugin_block_dns_la_LIBADD = \
   $(top_builddir)/src/block/libgnunetblockgroup.la \
   $(top_builddir)/src/block/libgnunetblock.la \
   $(top_builddir)/src/util/libgnunetutil.la
-libgnunet_plugin_block_dns_la_DEPENDENCIES = \
-  $(top_builddir)/src/block/libgnunetblockgroup.la \
-  $(top_builddir)/src/block/libgnunetblock.la \
-  $(top_builddir)/src/util/libgnunetutil.la
 libgnunet_plugin_block_dns_la_LDFLAGS = \
   $(GN_LIBINTL) \
   $(top_builddir)/src/block/$(GN_PLUGIN_LDFLAGS)
@@ -99,5 +95,3 @@ endif
 
 EXTRA_DIST = \
   $(check_SCRIPTS)
-
-

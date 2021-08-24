@@ -115,12 +115,6 @@ libgnunettestbed_la_LIBADD = $(XLIB) \
  $(top_builddir)/src/arm/libgnunetarm.la \
  $(top_builddir)/src/util/libgnunetutil.la \
  $(LTLIBINTL)
-libgnunettestbed_la_DEPENDENCIES = \
- $(top_builddir)/src/statistics/libgnunetstatistics.la \
- $(top_builddir)/src/transport/libgnunettransport.la \
- $(top_builddir)/src/hello/libgnunethello.la \
- $(top_builddir)/src/testing/libgnunettesting.la \
- $(top_builddir)/src/util/libgnunetutil.la
 libgnunettestbed_la_LDFLAGS = \
  $(GN_LIB_LDFLAGS) \
  -version-info 0:0:0

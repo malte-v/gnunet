@@ -361,8 +361,6 @@ test_os_start_process_SOURCES = \
  test_os_start_process.c
 test_os_start_process_LDADD = \
  libgnunetutil.la
-test_os_start_process_DEPENDENCIES = \
- libgnunetutil.la
 
 test_client_nc_SOURCES = \
  test_client.c

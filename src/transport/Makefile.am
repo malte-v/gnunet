@@ -156,13 +156,6 @@ libgnunettransporttesting_la_LIBADD = \
   $(top_builddir)/src/testing/libgnunettesting.la \
   $(top_builddir)/src/arm/libgnunetarm.la \
   $(GN_LIBINTL)
-libgnunettransporttesting_la_DEPENDENCIES = \
-  libgnunettransport.la \
-  $(top_builddir)/src/hello/libgnunethello.la \
-  $(top_builddir)/src/ats/libgnunetats.la \
-  $(top_builddir)/src/util/libgnunetutil.la \
-  $(top_builddir)/src/testing/libgnunettesting.la \
-  $(top_builddir)/src/arm/libgnunetarm.la
 libgnunettransporttesting_la_LDFLAGS = \
  $(GN_LIB_LDFLAGS)
 
@@ -190,7 +183,8 @@ libgnunettransporttesting2_la_LIBADD = \
   $(top_builddir)/src/util/libgnunetutil.la
 libgnunettransporttesting2_la_LDFLAGS = \
   $(GN_LIBINTL) \
-  $(GN_LIB_LDFLAGS)
+  $(GN_LIB_LDFLAGS) \
+  -version-info 0:0:0
 
 libgnunettransport_la_SOURCES = \
   transport.h \
@@ -208,10 +202,6 @@ libgnunettransport_la_LIBADD = \
   $(top_builddir)/src/ats/libgnunetats.la \
   $(top_builddir)/src/util/libgnunetutil.la \
   $(GN_LIBINTL)
-libgnunettransport_la_DEPENDENCIES = \
-  $(top_builddir)/src/hello/libgnunethello.la \
-  $(top_builddir)/src/ats/libgnunetats.la \
-  $(top_builddir)/src/util/libgnunetutil.la
 libgnunettransport_la_LDFLAGS = \
   $(GN_LIB_LDFLAGS)  \
   -version-info 4:0:2
@@ -406,16 +396,23 @@ plugin_LTLIBRARIES = \
 libgnunet_test_transport_plugin_cmd_simple_send_la_SOURCES = \
  test_transport_plugin_cmd_simple_send.c
 libgnunet_test_transport_plugin_cmd_simple_send_la_LIBADD = \
-  $(top_builddir)/src/util/libgnunetutil.la \
-  $(top_builddir)/src/testing/libgnunettesting.la \
-  $(top_builddir)/src/statistics/libgnunetstatistics.la \
   libgnunettransporttesting2.la \
+  libgnunettransportapplication.la \
+  libgnunettransport.la \
+  $(top_builddir)/src/testing/libgnunettesting.la \
+  $(top_builddir)/src/peerstore/libgnunetpeerstore.la \
+  $(top_builddir)/src/statistics/libgnunetstatistics.la \
+  $(top_builddir)/src/hello/libgnunethello.la \
+  $(top_builddir)/src/ats/libgnunetats.la \
+  $(top_builddir)/src/arm/libgnunetarm.la \
+  $(top_builddir)/src/util/libgnunetutil.la \
   $(LTLIBINTL)
 libgnunet_test_transport_plugin_cmd_simple_send_la_LDFLAGS = \
   $(GN_PLUGIN_LDFLAGS)
 
 if HAVE_EXPERIMENTAL
-plugin_LTLIBRARIES += libgnunet_plugin_transport_udp.la
+plugin_LTLIBRARIES += \
+  libgnunet_plugin_transport_udp.la
 endif
 
 # Note: real plugins of course need to be added
@@ -731,8 +728,8 @@ test_transport_api_cmd_simple_send_LDADD = \
  $(top_builddir)/src/testing/libgnunettesting.la \
  $(top_builddir)/src/util/libgnunetutil.la \
  $(top_builddir)/src/testbed/libgnunettestbed.la \
- libgnunettransport.la \
  $(top_builddir)/src/hello/libgnunethello.la \
+ libgnunettransport.la \
  libgnunettransporttesting.la
 
 test_transport_testing_startstop_SOURCES = \

@@ -191,7 +191,7 @@ struct TestingSystemCount
 };
 
 /**
-* Code to clean up ressource this cmd used.
+* Code to clean up resource this cmd used.
 *
 * @param cls closure
 * @param cmd current CMD being cleaned up.
@@ -275,6 +275,7 @@ GNUNET_TESTING_get_trait_helper_handles (const struct
                       "helper_handles",
                       (unsigned int) 0);
 }
+
 
 /**
  * Offer messages received via testing cmd helper from trait
@@ -362,6 +363,7 @@ helper_mst (void *cls, const struct GNUNET_MessageHeader *message)
   return GNUNET_OK;
 }
 
+
 /**
  * Callback called if there was an exception during execution of the helper.
  *
@@ -373,6 +375,7 @@ exp_cb (void *cls)
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Called exp_cb.\n");
   *ns->rv = 1;
 }
+
 
 /**
  * Function to initialize a init message for the helper.
@@ -506,7 +509,8 @@ netjail_exec_run (void *cls,
   struct GNUNET_CONFIGURATION_Handle *config =
     GNUNET_CONFIGURATION_create ();
 
-  for (int i = 1; i <= atoi (ns->global_n); i++) {
+  for (int i = 1; i <= atoi (ns->global_n); i++)
+  {
     for (int j = 1; j <= atoi (ns->local_m); j++)
     {
       sprintf (str_n, "%d", i);
@@ -554,7 +558,8 @@ netjail_start_finish (void *cls,
 
   if (ns->number_of_peers_started == total_number)
   {
-    for (int i = 1; i <= atoi (ns->global_n); i++) {
+    for (int i = 1; i <= atoi (ns->global_n); i++)
+    {
       for (int j = 1; j <= atoi (ns->local_m); j++)
       {
         tbc = GNUNET_new (struct TestingSystemCount);

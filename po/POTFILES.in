@@ -415,7 +415,6 @@ src/testbed/gnunet_mpi_test.c
 src/testbed/gnunet_testbed_mpi_spawn.c
 src/testbed/testbed_api.c
 src/testbed/testbed_api_barriers.c
-src/testbed/testbed_api_cmd_netjail_start_testbed.c
 src/testbed/testbed_api_hosts.c
 src/testbed/testbed_api_operations.c
 src/testbed/testbed_api_peers.c
@@ -441,6 +440,7 @@ src/testing/testing_api_cmd_netjail_stop.c
 src/testing/testing_api_cmd_netjail_stop_testsystem.c
 src/testing/testing_api_cmd_send_peer_ready.c
 src/testing/testing_api_cmd_system_create.c
+src/testing/testing_api_cmd_system_destroy.c
 src/testing/testing_api_loop.c
 src/testing/testing_api_trait_cmd.c
 src/testing/testing_api_trait_process.c
@@ -499,6 +499,7 @@ src/transport/transport_api_blacklist.c
 src/transport/transport_api_cmd_connecting_peers.c
 src/transport/transport_api_cmd_send_simple.c
 src/transport/transport_api_cmd_start_peer.c
+src/transport/transport_api_cmd_stop_peer.c
 src/transport/transport_api_core.c
 src/transport/transport_api_hello_get.c
 src/transport/transport_api_manipulation.c

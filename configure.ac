@@ -21,7 +21,7 @@
 #
 AC_PREREQ([2.69])
 # Checks for programs.
-AC_INIT([gnunet],[0.15.1],[bug-gnunet@gnu.org])
+AC_INIT([gnunet],[0.15.2],[bug-gnunet@gnu.org])
 AC_CONFIG_AUX_DIR([build-aux])
 
 # check for legacy option that is no longer supported (#5627) and fail hard
@@ -1921,7 +1921,6 @@ src/arm/arm.conf
 src/ats/Makefile
 src/ats/ats.conf
 src/ats-tool/Makefile
-src/ats-tests/Makefile
 src/auction/Makefile
 src/block/Makefile
 src/cadet/Makefile

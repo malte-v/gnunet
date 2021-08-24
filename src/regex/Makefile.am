@@ -53,9 +53,6 @@ libgnunetregex_internal_a_SOURCES = \
   regex_internal_lib.h \
   regex_internal.h regex_internal.c \
   regex_internal_dht.c
-libgnunetregex_internal_a_DEPENDENCIES = \
-  libgnunetregexblock.la
-
 
 libgnunetregex_la_SOURCES = \
   regex_api_announce.c \

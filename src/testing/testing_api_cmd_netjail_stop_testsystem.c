@@ -49,7 +49,7 @@ struct StopHelperState
 
 
 /**
-* Code to clean up ressource this cmd used.
+* Code to clean up resource this cmd used.
 *
 * @param cls closure
 * @param cmd current CMD being cleaned up.
@@ -97,7 +97,8 @@ stop_testing_system_run (void *cls,
   GNUNET_TESTING_get_trait_helper_handles (start_helper_cmd,
                                            &helper);
 
-  for (int i = 1; i <= atoi (shs->global_n); i++) {
+  for (int i = 1; i <= atoi (shs->global_n); i++)
+  {
     for (int j = 1; j <= atoi (shs->local_m); j++)
     {
       GNUNET_HELPER_stop (helper[(i - 1) * atoi (shs->local_m) + j - 1],

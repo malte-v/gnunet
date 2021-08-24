@@ -69,9 +69,9 @@ hello_iter_cb (void *cb_cls,
 }
 
 
-
 /**
- * Function to start the retrival task to retrieve the hello of this peer from the peerstore.
+ * Function to start the retrieval task to retrieve the hello of this peer
+ * from the peerstore.
  *
  */
 static void
@@ -169,6 +169,7 @@ notify_connect (void *cls,
   // TODO what does the handler function need?
   return ret;
 }
+
 
 /**
  * The run method of this cmd will start all services of a peer to test the transport service.
@@ -309,6 +310,7 @@ start_peer_run (void *cls,
   sps->rh_task = GNUNET_SCHEDULER_add_now (retrieve_hello, sps);
 }
 
+
 /**
  * The cleanup function of this cmd frees resources the cmd allocated.
  *
@@ -433,6 +435,7 @@ GNUNET_TRANSPORT_get_trait_hello_size (const struct
                       "hello_size",
                       (unsigned int) 4);
 }
+
 
 /**
  * Function to get the trait with the hello.
