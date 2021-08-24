@@ -28,6 +28,10 @@
 #include "gnunet_testing_ng_lib.h"
 #include "gnunet_testing_lib.h"
 
+/**
+ * Struct to hold information for callbacks.
+ *
+ */
 struct TestSystemState
 {
   struct GNUNET_TESTING_System *test_system;
@@ -36,6 +40,10 @@ struct TestSystemState
 };
 
 
+/**
+ * The run method of this cmd will setup a test environment for a node.
+ *
+ */
 static void
 system_create_run (void *cls,
                    const struct GNUNET_TESTING_Command *cmd,
@@ -54,6 +62,11 @@ system_create_run (void *cls,
               "system created\n");
 }
 
+
+/**
+ * This function prepares an array with traits.
+ *
+ */
 static int
 system_create_traits (void *cls,
                       const void **ret,
@@ -79,6 +92,12 @@ system_create_traits (void *cls,
 }
 
 
+/**
+ * Function to get the trait with struct GNUNET_TESTING_System
+ *
+ * @param[out] test_system The struct GNUNET_TESTING_System.
+ * @return #GNUNET_OK if no error occurred, #GNUNET_SYSERR otherwise.
+ */
 int
 GNUNET_TESTING_get_trait_test_system (const struct
                                       GNUNET_TESTING_Command *cmd,
@@ -91,13 +110,16 @@ GNUNET_TESTING_get_trait_test_system (const struct
 }
 
 
+/**
+ * The cleanup function of this cmd frees resources the cmd allocated.
+ *
+ */
 static void
 system_create_cleanup (void *cls,
                        const struct GNUNET_TESTING_Command *cmd)
 {
   struct TestSystemState *tss = cls;
 
-  GNUNET_free (tss->test_system);
   GNUNET_free (tss);
 }
 
@@ -106,6 +128,7 @@ system_create_cleanup (void *cls,
  * Create command.
  *
  * @param label name for command.
+ * @param label name for the test environment directory.
  * @return command.
  */
 struct GNUNET_TESTING_Command

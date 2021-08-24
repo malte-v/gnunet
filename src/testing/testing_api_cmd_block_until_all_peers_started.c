@@ -32,12 +32,24 @@
  */
 #define LOG(kind, ...) GNUNET_log (kind, __VA_ARGS__)
 
+/**
+ * Struct with information for callbacks.
+ *
+ */
 struct BlockState
 {
+  /**
+   * Flag to indicate if all peers have started.
+   *
+   */
   unsigned int *all_peers_started;
 };
 
 
+/**
+ * Trait function of this cmd does nothing.
+ *
+ */
 static int
 block_until_all_peers_started_traits (void *cls,
                                       const void **ret,
@@ -48,6 +60,10 @@ block_until_all_peers_started_traits (void *cls,
 }
 
 
+/**
+ * The cleanup function of this cmd frees resources the cmd allocated.
+ *
+ */
 static void
 block_until_all_peers_started_cleanup (void *cls,
                                        const struct GNUNET_TESTING_Command *cmd)
@@ -58,16 +74,24 @@ block_until_all_peers_started_cleanup (void *cls,
 }
 
 
+/**
+ * This function does nothing but to start the cmd.
+ *
+ */
 static void
 block_until_all_peers_started_run (void *cls,
                                    const struct GNUNET_TESTING_Command *cmd,
                                    struct GNUNET_TESTING_Interpreter *is)
 {
-  LOG (GNUNET_ERROR_TYPE_ERROR,
+  LOG (GNUNET_ERROR_TYPE_DEBUG,
        "block_until_all_peers_started_run!\n");
 }
 
 
+/**
+ * Function to check if BlockState#all_peers_started is GNUNET_YES. In that case interpreter_next will be called.
+ *
+ */
 static int
 block_until_all_peers_started_finish (void *cls,
                                       GNUNET_SCHEDULER_TaskCallback cont,
@@ -76,19 +100,9 @@ block_until_all_peers_started_finish (void *cls,
   struct BlockState *bs = cls;
   unsigned int *ret = bs->all_peers_started;
 
-  LOG (GNUNET_ERROR_TYPE_ERROR,
-       "We got here 10\n");
-
   if (GNUNET_YES == *ret)
   {
-    LOG (GNUNET_ERROR_TYPE_ERROR,
-         "We do not need to block anymore!\n");
     cont (cont_cls);
-  }
-  else
-  {
-    LOG (GNUNET_ERROR_TYPE_ERROR,
-         "You shall not pass!\n");
   }
 
   return *ret;
@@ -99,6 +113,7 @@ block_until_all_peers_started_finish (void *cls,
  * Create command.
  *
  * @param label name for command.
+ * @param all_peers_started Flag which will be set from outside.
  * @return command.
  */
 struct GNUNET_TESTING_Command
@@ -107,10 +122,6 @@ GNUNET_TESTING_cmd_block_until_all_peers_started (const char *label,
                                                   all_peers_started)
 {
   struct BlockState *bs;
-
-  LOG (GNUNET_ERROR_TYPE_ERROR,
-       "we have all_peers_started: %u\n",
-       *all_peers_started);
 
   bs = GNUNET_new (struct BlockState);
   bs->all_peers_started = all_peers_started;

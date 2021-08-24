@@ -36,16 +36,30 @@
  */
 #define LOG(kind, ...) GNUNET_log (kind, __VA_ARGS__)
 
+/**
+ * Struct to store information needed in callbacks.
+ *
+ */
 struct ConnectPeersState
 {
-  const char *peer1_label;
+  /**
+   * Label of the cmd to start a peer.
+   *
+   */
+  const char *start_peer_label;
 
-  const char *peer2_label;
-
+  /**
+   * The peer identity of this peer.
+   *
+   */
   struct GNUNET_PeerIdentity *id;
 };
 
 
+/**
+ * The run method of this cmd will connect to peers.
+ *
+ */
 static void
 connect_peers_run (void *cls,
                    const struct GNUNET_TESTING_Command *cmd,
@@ -53,47 +67,38 @@ connect_peers_run (void *cls,
 {
   struct ConnectPeersState *cps = cls;
   const struct GNUNET_TESTING_Command *peer1_cmd;
-  //const struct GNUNET_TESTING_Command *peer2_cmd;
+  // const struct GNUNET_TESTING_Command *peer2_cmd;
   struct GNUNET_TRANSPORT_ApplicationHandle *ah;
   struct GNUNET_PeerIdentity *peer = GNUNET_new (struct GNUNET_PeerIdentity);
   char *addr;
-  //struct GNUNET_TIME_Absolute t;
+  // struct GNUNET_TIME_Absolute t;
   char *hello;
-  //size_t *hello_size;
+  // size_t *hello_size;
   enum GNUNET_NetworkType nt = 0;
   char *peer_id;
   struct GNUNET_PeerIdentity *id;
 
-  peer1_cmd = GNUNET_TESTING_interpreter_lookup_command (cps->peer1_label);
+  peer1_cmd = GNUNET_TESTING_interpreter_lookup_command (cps->start_peer_label);
   GNUNET_TRANSPORT_get_trait_application_handle (peer1_cmd,
                                                  &ah);
 
   GNUNET_TRANSPORT_get_trait_hello (peer1_cmd,
                                     &hello);
 
-  LOG (GNUNET_ERROR_TYPE_ERROR,
-       "hello: %s\n",
-       hello);
-
   GNUNET_TRANSPORT_get_trait_peer_id (peer1_cmd,
-                                    &id);
-  LOG (GNUNET_ERROR_TYPE_ERROR,
-       "pid %s\n",
-       GNUNET_i2s_full(id));
+                                      &id);
 
-  if(strstr(hello, "60002") != NULL)
-    {
+  if (strstr (hello, "60002") != NULL)
+  {
     addr = "tcp-192.168.15.2:60003";
     peer_id = "F2F3X9G1YNCTXKK7A4J6M4ZM4BBSKC9DEXZVHCWQ475M0C7PNWCG";
-    }
+  }
   else
-    {
+  {
     addr = "tcp-192.168.15.1:60002";
     peer_id = "4TTC9WBSVP9RJT6DVEZ7E0TDW7TQXC11NR1EMR2F8ARS87WZ2730";
-    }
+  }
 
-  LOG (GNUNET_ERROR_TYPE_ERROR,
-       "get pub key\n");
   GNUNET_CRYPTO_eddsa_public_key_from_string (peer_id,
                                               strlen (peer_id),
                                               &peer->public_key);
@@ -116,10 +121,9 @@ connect_peers_run (void *cls,
                                        &nt,
                                        &t);*/
 
-  //----------------------------------------------
+  // ----------------------------------------------
 
-  LOG (GNUNET_ERROR_TYPE_ERROR,
-       "application validate\n");
+
   GNUNET_TRANSPORT_application_validate (ah,
                                          peer,
                                          nt,
@@ -127,6 +131,10 @@ connect_peers_run (void *cls,
 }
 
 
+/**
+ * The finish function of this cmd will check if the peer we are trying to connect to is in the connected peers map of the start peer cmd for this peer.
+ *
+ */
 static int
 connect_peers_finish (void *cls,
                       GNUNET_SCHEDULER_TaskCallback cont,
@@ -140,36 +148,34 @@ connect_peers_finish (void *cls,
   struct GNUNET_HashCode hc;
   int node_number;
 
-  LOG (GNUNET_ERROR_TYPE_ERROR,
-       "Connect finished?\n");
-  
-  peer1_cmd = GNUNET_TESTING_interpreter_lookup_command (cps->peer1_label);
+  peer1_cmd = GNUNET_TESTING_interpreter_lookup_command (cps->start_peer_label);
   GNUNET_TRANSPORT_get_trait_connected_peers_map (peer1_cmd,
-                                                &connected_peers_map);
+                                                  &connected_peers_map);
 
   node_number = 1;
-    GNUNET_CRYPTO_hash (&node_number, sizeof(node_number), &hc);
-    
+  GNUNET_CRYPTO_hash (&node_number, sizeof(node_number), &hc);
+
   // TODO we need to store with a key identifying the netns node in the future. For now we have only one connecting node.
   memcpy (key,
           &hc,
           sizeof (*key));
   ret = GNUNET_CONTAINER_multishortmap_contains (connected_peers_map,
-                                                key);
+                                                 key);
 
   if (GNUNET_YES == ret)
   {
     cont (cont_cls);
-    LOG (GNUNET_ERROR_TYPE_ERROR,
-       "connect peer finish\n");
   }
 
+  GNUNET_free (key);
   return ret;
-  /*cont (cont_cls);
-    return GNUNET_OK;*/
 }
 
 
+/**
+ * Trait function of this cmd does nothing.
+ *
+ */
 static int
 connect_peers_traits (void *cls,
                       const void **ret,
@@ -180,12 +186,17 @@ connect_peers_traits (void *cls,
 }
 
 
+/**
+ * The cleanup function of this cmd frees resources the cmd allocated.
+ *
+ */
 static void
 connect_peers_cleanup (void *cls,
                        const struct GNUNET_TESTING_Command *cmd)
 {
   struct ConnectPeersState *cps = cls;
 
+  GNUNET_free (cps->id);
   GNUNET_free (cps);
 }
 
@@ -194,18 +205,17 @@ connect_peers_cleanup (void *cls,
  * Create command.
  *
  * @param label name for command.
+ * @param start_peer_label Label of the cmd to start a peer.
  * @return command.
  */
 struct GNUNET_TESTING_Command
 GNUNET_TRANSPORT_cmd_connect_peers (const char *label,
-                                    const char *peer1_label,
-                                    const char *peer2_label)
+                                    const char *start_peer_label)
 {
   struct ConnectPeersState *cps;
 
   cps = GNUNET_new (struct ConnectPeersState);
-  cps->peer1_label = peer1_label;
-  cps->peer2_label = peer2_label;
+  cps->start_peer_label = start_peer_label;
 
 
   struct GNUNET_TESTING_Command cmd = {

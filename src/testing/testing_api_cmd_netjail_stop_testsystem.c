@@ -28,6 +28,10 @@
 #include "testing_cmds.h"
 
 
+/**
+ * Struct to store information handed over to callbacks.
+ *
+ */
 struct StopHelperState
 {
 
@@ -45,7 +49,7 @@ struct StopHelperState
 
 
 /**
-*
+* Code to clean up ressource this cmd used.
 *
 * @param cls closure
 * @param cmd current CMD being cleaned up.
@@ -59,14 +63,9 @@ stop_testing_system_cleanup (void *cls,
 
 
 /**
-*
-*
-* @param cls closure.
-* @param[out] ret result
-* @param trait name of the trait.
-* @param index index number of the object to offer.
-* @return #GNUNET_OK on success.
-*/
+ * Trait function of this cmd does nothing.
+ *
+ */
 static int
 stop_testing_system_traits (void *cls,
                             const void **ret,
@@ -78,7 +77,7 @@ stop_testing_system_traits (void *cls,
 
 
 /**
-* Run the "hello world" CMD.
+* This function stops the helper process for each node.
 *
 * @param cls closure.
 * @param cmd CMD being run.
@@ -110,9 +109,11 @@ stop_testing_system_run (void *cls,
 
 /**
  * Create command.
- *
+ * @param helper_start_label label of the cmd to start the test system.
  * @param label name for command.
- * @param binaryname to exec.
+ * @param .
+ * @param local_m Number of nodes in a network namespace. //TODO make this a unsigned int
+ * @param global_n Number of network namespaces. //TODO make this a unsigned int
  * @return command.
  */
 struct GNUNET_TESTING_Command

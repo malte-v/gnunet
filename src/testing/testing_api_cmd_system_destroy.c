@@ -53,16 +53,10 @@ system_destroy_run (void *cls,
   const struct GNUNET_TESTING_Command *system_cmd;
   struct GNUNET_TESTING_System *tl_system;
 
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "system destroy\n");
-
   system_cmd = GNUNET_TESTING_interpreter_lookup_command (tss->create_label);
   GNUNET_TESTING_get_trait_test_system (system_cmd,
                                         &tl_system);
   GNUNET_TESTING_system_destroy (tl_system, GNUNET_YES);
-
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "system destroyed\n");
 }
 
 

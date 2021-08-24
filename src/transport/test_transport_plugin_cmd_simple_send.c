@@ -160,13 +160,6 @@ start_testcase (TESTING_CMD_HELPER_write_cb write_message, char *router_ip,
                    m,
                    n);
 
-  /*testdir = GNUNET_malloc (strlen (BASE_DIR) + strlen (m) + strlen (n)
-                           + 1);
-
-  strcpy (testdir, BASE_DIR);
-  strcat (testdir, m);
-  strcat (testdir, n);*/
-
   struct GNUNET_MQ_MessageHandler handlers[] = {
     GNUNET_MQ_hd_var_size (test,
                            GNUNET_TRANSPORT_TESTING_SIMPLE_MTYPE,

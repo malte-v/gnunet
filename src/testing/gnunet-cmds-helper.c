@@ -47,7 +47,7 @@
 
 /**
  * Generic logging shortcut
- */
+testing_api_cmd_block_until_all_peers_started.c */
 #define LOG(kind, ...) GNUNET_log (kind, __VA_ARGS__)
 
 /**
@@ -74,27 +74,71 @@ struct Plugin
    */
   struct GNUNET_TESTING_PluginFunctions *api;
 
+  /**
+   * IP address of the specific node the helper is running for.
+   *
+   */
   char *node_ip;
 
+  /**
+   * Name of the test case plugin.
+   *
+   */
   char *plugin_name;
 
+  /**
+   * The number of namespaces
+   *
+   */
   char *global_n;
 
+  /**
+   * The number of local nodes per namespace.
+   *
+   */
   char *local_m;
 
+  /**
+   * The number of the namespace this node is in.
+   *
+   */
   char *n;
 
+  /**
+   * The number of the node in the namespace.
+   *
+   */
   char *m;
 };
 
+/**
+ * Struct with information about a specific node and the whole network namespace setup.
+ *
+ */
 struct NodeIdentifier
 {
+  /**
+   * The number of the namespace this node is in.
+   *
+   */
   char *n;
 
+  /**
+   * The number of the node in the namespace.
+   *
+   */
   char *m;
 
+  /**
+   * The number of namespaces
+   *
+   */
   char *global_n;
 
+  /**
+   * The number of local nodes per namespace.
+   *
+   */
   char *local_m;
 };
 
@@ -162,11 +206,6 @@ static struct GNUNET_SCHEDULER_Task *read_task_id;
 static struct GNUNET_SCHEDULER_Task *write_task_id;
 
 /**
- * Task to kill the child
- */
-static struct GNUNET_SCHEDULER_Task *child_death_task_id;
-
-/**
  * Are we done reading messages from stdin?
  */
 static int done_reading;
@@ -187,8 +226,6 @@ shutdown_task (void *cls)
 {
 
   LOG_DEBUG ("Shutting down.\n");
-  LOG (GNUNET_ERROR_TYPE_ERROR,
-       "Shutting down tokenizer!\n");
 
   if (NULL != read_task_id)
   {
@@ -203,11 +240,6 @@ shutdown_task (void *cls)
     write_task_id = NULL;
     GNUNET_free (wc->data);
     GNUNET_free (wc);
-  }
-  if (NULL != child_death_task_id)
-  {
-    GNUNET_SCHEDULER_cancel (child_death_task_id);
-    child_death_task_id = NULL;
   }
   if (NULL != stdin_fd)
     (void) GNUNET_DISK_file_close (stdin_fd);
@@ -235,9 +267,6 @@ write_task (void *cls)
   struct WriteContext *wc = cls;
   ssize_t bytes_wrote;
 
-  LOG (GNUNET_ERROR_TYPE_ERROR,
-       "Writing data!\n");
-
   GNUNET_assert (NULL != wc);
   write_task_id = NULL;
   bytes_wrote = GNUNET_DISK_file_write (stdout_fd,
@@ -256,12 +285,8 @@ write_task (void *cls)
   {
     GNUNET_free (wc->data);
     GNUNET_free (wc);
-    LOG (GNUNET_ERROR_TYPE_ERROR,
-         "Written successfully!\n");
     return;
   }
-  LOG (GNUNET_ERROR_TYPE_ERROR,
-       "Written data!\n");
   write_task_id = GNUNET_SCHEDULER_add_write_file (GNUNET_TIME_UNIT_FOREVER_REL,
                                                    stdout_fd,
                                                    &write_task,
@@ -270,39 +295,14 @@ write_task (void *cls)
 
 
 /**
- * Task triggered whenever we receive a SIGCHLD (child
- * process died).
+ * Callback to write a message to the master loop.
  *
- * @param cls closure, NULL if we need to self-restart
  */
-/*static void
-child_death_task (void *cls)
-{
-  const struct GNUNET_DISK_FileHandle *pr;
-  char c[16];
-
-  pr = GNUNET_DISK_pipe_handle (sigpipe, GNUNET_DISK_PIPE_END_READ);
-  child_death_task_id = NULL;
-  // consume the signal
-  GNUNET_break (0 < GNUNET_DISK_file_read (pr, &c, sizeof(c)));
-  LOG_DEBUG ("Got SIGCHLD\n");
-
-  LOG_DEBUG ("Child hasn't died.  Resuming to monitor its status\n");
-  child_death_task_id =
-    GNUNET_SCHEDULER_add_read_file (GNUNET_TIME_UNIT_FOREVER_REL,
-                                    pr,
-                                    &child_death_task,
-                                    NULL);
-}*/
-
-
 static void
 write_message (struct GNUNET_MessageHeader *message, size_t msg_length)
 {
   struct WriteContext *wc;
 
-  LOG (GNUNET_ERROR_TYPE_ERROR,
-       "enter write_message!\n");
   wc = GNUNET_new (struct WriteContext);
   wc->length = msg_length;
   wc->data = message;
@@ -311,35 +311,7 @@ write_message (struct GNUNET_MessageHeader *message, size_t msg_length)
     stdout_fd,
     &write_task,
     wc);
-  LOG (GNUNET_ERROR_TYPE_ERROR,
-       "leave write_message!\n");
 }
-
-
-/**
- * Function to run the test cases.
- *
- * @param cls plugin to use.
- *
- */
-/*static void
-run_plugin (void *cls)
-{
-  struct Plugin *plugin = cls;
-  char *router_ip;
-  char *node_ip;
-
-  router_ip = GNUNET_malloc (strlen (ROUTER_BASE_IP) + strlen (plugin->m) + 1);
-  strcpy (router_ip, ROUTER_BASE_IP);
-  strcat (router_ip, plugin->m);
-
-  node_ip = GNUNET_malloc (strlen (NODE_BASE_IP) + strlen (plugin->n) + 1);
-  strcat (node_ip, NODE_BASE_IP);
-  strcat (node_ip, plugin->n);
-
-  plugin->api->start_testcase (&write_message, router_ip, node_ip);
-
-}*/
 
 
 /**
@@ -368,9 +340,6 @@ tokenizer_cb (void *cls, const struct GNUNET_MessageHeader *message)
   char *router_ip;
   char *node_ip;
 
-  LOG (GNUNET_ERROR_TYPE_ERROR,
-       "tokenizer \n");
-
   msize = ntohs (message->size);
   if (GNUNET_MESSAGE_TYPE_CMDS_HELPER_INIT == ntohs (message->type))
   {
@@ -389,23 +358,6 @@ tokenizer_cb (void *cls, const struct GNUNET_MessageHeader *message)
                     plugin_name_size + 1);
 
     binary = GNUNET_OS_get_libexec_binary_path ("gnunet-cmd");
-
-    LOG (GNUNET_ERROR_TYPE_ERROR,
-         "plugin_name: %s \n",
-         plugin_name);
-
-    // cmd_binary_process = GNUNET_OS_start_process (
-    /*GNUNET_OS_INHERIT_STD_ERR  verbose? ,
-      NULL,
-      NULL,
-      NULL,
-      binary,
-      plugin_name,
-      ni->global_n,
-      ni->local_m,
-      ni->n,
-      ni->m,
-      NULL);*/
 
     plugin = GNUNET_new (struct Plugin);
     plugin->api = GNUNET_PLUGIN_load (plugin_name,
@@ -429,51 +381,15 @@ tokenizer_cb (void *cls, const struct GNUNET_MessageHeader *message)
     plugin->api->start_testcase (&write_message, router_ip, node_ip, plugin->m,
                                  plugin->n, plugin->local_m);
 
-    LOG (GNUNET_ERROR_TYPE_ERROR,
-         "We got here!\n");
-
-    /*if (NULL == cmd_binary_process)
-    {
-      LOG (GNUNET_ERROR_TYPE_ERROR,
-           "Starting plugin failed!\n");
-      return GNUNET_SYSERR;
-      }*/
-
-    LOG (GNUNET_ERROR_TYPE_ERROR,
-         "We got here 2!\n");
-
-    LOG (GNUNET_ERROR_TYPE_ERROR,
-         "global_n: %s local_n: %s n: %s m: %s.\n",
-         ni->global_n,
-         ni->local_m,
-         ni->n,
-         ni->m);
-
-    LOG (GNUNET_ERROR_TYPE_ERROR,
-         "We got here 3!\n");
-
     GNUNET_free (binary);
-
-    // done_reading = GNUNET_YES;
 
     msg_length = sizeof(struct GNUNET_CMDS_HelperReply);
     reply = GNUNET_new (struct GNUNET_CMDS_HelperReply);
     reply->header.type = htons (GNUNET_MESSAGE_TYPE_CMDS_HELPER_REPLY);
     reply->header.size = htons ((uint16_t) msg_length);
 
-    LOG (GNUNET_ERROR_TYPE_ERROR,
-         "We got here 4!\n");
-
     write_message ((struct GNUNET_MessageHeader *) reply, msg_length);
 
-    LOG (GNUNET_ERROR_TYPE_ERROR,
-         "We got here 5!\n");
-
-    /*child_death_task_id = GNUNET_SCHEDULER_add_read_file (
-      GNUNET_TIME_UNIT_FOREVER_REL,
-      GNUNET_DISK_pipe_handle (sigpipe, GNUNET_DISK_PIPE_END_READ),
-      &child_death_task,
-      NULL);*/
     return GNUNET_OK;
   }
   else if (GNUNET_MESSAGE_TYPE_CMDS_HELPER_ALL_PEERS_STARTED == ntohs (
@@ -514,8 +430,6 @@ read_task (void *cls)
   if ((GNUNET_SYSERR == sread) || (0 == sread))
   {
     LOG_DEBUG ("STDIN closed\n");
-    LOG (GNUNET_ERROR_TYPE_ERROR,
-         "tokenizer shutting down during reading!\n");
     GNUNET_SCHEDULER_shutdown ();
     return;
   }
@@ -529,8 +443,6 @@ read_task (void *cls)
     return;
   }
   LOG_DEBUG ("Read %u bytes\n", (unsigned int) sread);
-  LOG (GNUNET_ERROR_TYPE_ERROR,
-       "Read %u bytes\n", (unsigned int) sread);
   /* FIXME: could introduce a GNUNET_MST_read2 to read
      directly from 'stdin_fd' and save a memcpy() here */
   if (GNUNET_OK !=
@@ -624,13 +536,6 @@ main (int argc, char **argv)
   ni->n = argv[3];
   ni->m = argv[4];
 
-  LOG (GNUNET_ERROR_TYPE_ERROR,
-       "global_n: %s local_n: %s n: %s m: %s.\n",
-       ni->global_n,
-       ni->local_m,
-       ni->n,
-       ni->m);
-
   status = GNUNET_OK;
   if (NULL ==
       (sigpipe = GNUNET_DISK_pipe (GNUNET_DISK_PF_NONE)))
@@ -647,8 +552,7 @@ main (int argc, char **argv)
                             options,
                             &run,
                             ni);
-  LOG (GNUNET_ERROR_TYPE_ERROR,
-       "run finished\n");
+
   GNUNET_SIGNAL_handler_uninstall (shc_chld);
   shc_chld = NULL;
   GNUNET_DISK_pipe_close (sigpipe);

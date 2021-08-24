@@ -35,6 +35,7 @@
 
 struct GNUNET_TESTING_Interpreter *is;
 
+
 /**
  * Closure used to sync an asynchronous with an synchronous command.
  */
@@ -57,6 +58,7 @@ struct SyncTaskClosure
   struct GNUNET_TESTING_Interpreter *is;
 };
 
+
 /**
 * Closure used to run the finish task.
 */
@@ -73,6 +75,7 @@ struct FinishTaskClosure
    */
   struct GNUNET_TESTING_Interpreter *is;
 };
+
 
 /**
  * Lookup command by label.
@@ -185,6 +188,10 @@ interpreter_next (void *cls)
 }
 
 
+/**
+ * This function checks if the finish function of a command returns GNUNET_YES, when the command is finished. In this case the finish function might have called interpreter_next. IF GNUNET_NO was returned this function is added to the scheduler again. In case of an error interpreter_fail is called.
+ *
+ */
 static void
 run_finish_task_next (void *cls)
 {
@@ -212,6 +219,12 @@ run_finish_task_next (void *cls)
 }
 
 
+/**
+ * This function checks if the finish function of an asynchronous command returns GNUNET_YES, when the command is finished. In this case the finish function might have called interpreter_next. IF GNUNET_NO was returned this function is added to the scheduler again. In case of an error interpreter_fail is called.
+ *
+ * //TODO run_finish_task_next and this function can be merged.
+ *
+ */
 static void
 run_finish_task_sync (void *cls)
 {
@@ -248,13 +261,17 @@ run_finish_task_sync (void *cls)
   }
   else
   {
-    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                 "Sync task finished with an error.\n");
     GNUNET_TESTING_interpreter_fail ();
   }
 }
 
 
+/**
+ * run method of the command created by the interpreter to wait for another command to finish.
+ *
+ */
 static void
 start_finish_on_ref (void *cls,
                      const struct GNUNET_TESTING_Command *cmd,
@@ -277,6 +294,17 @@ start_finish_on_ref (void *cls,
 }
 
 
+/**
+ * Create (synchronous) command that waits for another command to finish.
+ * If @a cmd_ref did not finish after @a timeout, this command will fail
+ * the test case.
+ *
+ * @param finish_label label for this command
+ * @param cmd_ref reference to a previous command which we should
+ *        wait for (call `finish()` on)
+ * @param timeout how long to wait at most for @a cmd_ref to finish
+ * @return a finish-command.
+ */
 const struct GNUNET_TESTING_Command
 GNUNET_TESTING_cmd_finish (const char *finish_label,
                            const char *cmd_ref,
@@ -340,7 +368,7 @@ GNUNET_TESTING_interpreter_fail ()
     while (GNUNET_TESTING_cmd_is_batch (cmd))
     {
       cmd = GNUNET_TESTING_cmd_batch_get_current (cmd);
-      GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+      GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                   "Batch is at command `%s'\n",
                   cmd->label);
     }
@@ -354,7 +382,7 @@ GNUNET_TESTING_interpreter_fail ()
 
   if (NULL == cmd->label)
   {
-    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                 "Failed at command `%s'\n",
                 cmd->label);
 
@@ -415,7 +443,7 @@ interpreter_run (void *cls)
   if (NULL == cmd->label)
   {
 
-    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                 "Running command END %p\n",
                 is);
     is->result = GNUNET_OK;
@@ -424,7 +452,7 @@ interpreter_run (void *cls)
   }
   else if (NULL != cmd)
   {
-    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                 "Running command `%s' %p\n",
                 cmd->label,
                 is);
@@ -478,8 +506,14 @@ do_shutdown (void *cls)
   for (unsigned int j = 0;
        NULL != (cmd = &is->commands[j])->label;
        j++) {
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "Cleaning up cmd %s\n",
+                cmd->label);
     cmd->cleanup (cmd->cls,
                   cmd);
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "Cleaned up cmd %s\n",
+                cmd->label);
   }
 
   if (NULL != is->finish_task)

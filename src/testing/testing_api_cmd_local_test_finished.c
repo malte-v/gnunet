@@ -33,14 +33,31 @@
  */
 #define LOG(kind, ...) GNUNET_log (kind, __VA_ARGS__)
 
+
+/**
+ * Struct to hold information for callbacks.
+ *
+ */
 struct LocalFinishedState
 {
+  /**
+   * Callback to write messages to the master loop.
+   *
+   */
   TESTING_CMD_HELPER_write_cb write_message;
 
+  /**
+   * The message send back to the master loop.
+   *
+   */
   struct GNUNET_CMDS_LOCAL_FINISHED *reply;
 };
 
 
+/**
+ * Trait function of this cmd does nothing.
+ *
+ */
 static int
 local_test_finished_traits (void *cls,
                             const void **ret,
@@ -51,6 +68,10 @@ local_test_finished_traits (void *cls,
 }
 
 
+/**
+ * The cleanup function of this cmd frees resources the cmd allocated.
+ *
+ */
 static void
 local_test_finished_cleanup (void *cls,
                              const struct GNUNET_TESTING_Command *cmd)
@@ -62,6 +83,10 @@ local_test_finished_cleanup (void *cls,
 }
 
 
+/**
+ * This function sends a GNUNET_MESSAGE_TYPE_CMDS_HELPER_LOCAL_FINISHED message to the master loop.
+ *
+ */
 static void
 local_test_finished_run (void *cls,
                          const struct GNUNET_TESTING_Command *cmd,
@@ -72,28 +97,25 @@ local_test_finished_run (void *cls,
   struct GNUNET_CMDS_LOCAL_FINISHED *reply;
   size_t msg_length;
 
-  LOG (GNUNET_ERROR_TYPE_ERROR,
-       "We got here 12!\n");
-
   msg_length = sizeof(struct GNUNET_CMDS_LOCAL_FINISHED);
   reply = GNUNET_new (struct GNUNET_CMDS_LOCAL_FINISHED);
   reply->header.type = htons (GNUNET_MESSAGE_TYPE_CMDS_HELPER_LOCAL_FINISHED);
   reply->header.size = htons ((uint16_t) msg_length);
   lfs->reply = reply;
   lfs->write_message ((struct GNUNET_MessageHeader *) reply, msg_length);
-
-  LOG (GNUNET_ERROR_TYPE_ERROR,
-       "We got here 13!\n");
 }
 
 
+/**
+ * This finish function will stop the local loop without shutting down the scheduler, because we do not call the continuation, which is the interpreter_next method.
+ *
+ */
 static int
 local_test_finished_finish (void *cls,
                             GNUNET_SCHEDULER_TaskCallback cont,
                             void *cont_cls)
 {
-  // This will stop the local loop without shutting down the scheduler, because we do not call the continuation, which is the interpreter_next method.
-  LOG (GNUNET_ERROR_TYPE_ERROR,
+  LOG (GNUNET_ERROR_TYPE_DEBUG,
        "Stopping local loop\n");
   return GNUNET_YES;
 }
@@ -103,6 +125,7 @@ local_test_finished_finish (void *cls,
  * Create command.
  *
  * @param label name for command.
+ * @param write_message Callback to write messages to the master loop.
  * @return command.
  */
 struct GNUNET_TESTING_Command
@@ -111,9 +134,6 @@ GNUNET_TESTING_cmd_local_test_finished (const char *label,
                                         write_message)
 {
   struct LocalFinishedState *lfs;
-
-  LOG (GNUNET_ERROR_TYPE_ERROR,
-       "We got here 11!\n");
 
   lfs = GNUNET_new (struct LocalFinishedState);
   lfs->write_message = write_message;

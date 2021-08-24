@@ -29,19 +29,42 @@
 #include "transport-testing2.h"
 #include "transport-testing-cmds.h"
 
+/**
+ * Struct to hold information for callbacks.
+ *
+ */
 struct SendSimpleState
 {
+  /**
+   * The number of the local node of the actual network namespace.
+   *
+   */
   char *m;
 
+  /**
+   * The number of the actual namespace.
+   *
+   */
   char *n;
 
+  /**
+   * Number globally identifying the node.
+   *
+   */
   uint32_t num;
 
-  const char *peer1_label;
-
-  const char *peer2_label;
+  /**
+   * Label of the cmd to start a peer.
+   *
+   */
+  const char *start_peer_label;
 };
 
+
+/**
+ * Trait function of this cmd does nothing.
+ *
+ */
 static int
 send_simple_traits (void *cls,
                     const void **ret,
@@ -52,6 +75,10 @@ send_simple_traits (void *cls,
 }
 
 
+/**
+ * The cleanup function of this cmd frees resources the cmd allocated.
+ *
+ */
 static void
 send_simple_cleanup (void *cls,
                      const struct GNUNET_TESTING_Command *cmd)
@@ -62,6 +89,10 @@ send_simple_cleanup (void *cls,
 }
 
 
+/**
+ * The run method of this cmd will send a simple message to the connected peer.
+ *
+ */
 static void
 send_simple_run (void *cls,
                  const struct GNUNET_TESTING_Command *cmd,
@@ -72,14 +103,12 @@ send_simple_run (void *cls,
   struct GNUNET_TRANSPORT_TESTING_TestMessage *test;
   struct GNUNET_MQ_Handle *mq;
   struct GNUNET_CONTAINER_MultiShortmap *connected_peers_map;
-  //struct GNUNET_PeerIdentity *id;
   const struct GNUNET_TESTING_Command *peer1_cmd;
-  //const struct GNUNET_TESTING_Command *peer2_cmd;
   struct GNUNET_ShortHashCode *key = GNUNET_new (struct GNUNET_ShortHashCode);
   struct GNUNET_HashCode hc;
   int node_number;
 
-  peer1_cmd = GNUNET_TESTING_interpreter_lookup_command (sss->peer1_label);
+  peer1_cmd = GNUNET_TESTING_interpreter_lookup_command (sss->start_peer_label);
   GNUNET_TRANSPORT_get_trait_connected_peers_map (peer1_cmd,
                                                   &connected_peers_map);
 
@@ -88,9 +117,9 @@ send_simple_run (void *cls,
   memcpy (key,
           &hc,
           sizeof (*key));
-  
+
   mq = GNUNET_CONTAINER_multishortmap_get (connected_peers_map,
-                                          key);
+                                           key);
 
   env = GNUNET_MQ_msg_extra (test,
                              2600 - sizeof(*test),
@@ -99,12 +128,9 @@ send_simple_run (void *cls,
   memset (&test[1],
           sss->num,
           2600 - sizeof(*test));
-  /*GNUNET_MQ_notify_sent (env,
-                         cont,
-                         cont_cls);*/
   GNUNET_MQ_send (mq,
                   env);
-
+  GNUNET_free (key);
 
 }
 
@@ -113,15 +139,18 @@ send_simple_run (void *cls,
  * Create command.
  *
  * @param label name for command.
+ * @param m The number of the local node of the actual network namespace.
+ * @param n The number of the actual namespace.
+ * @param num Number globally identifying the node.
+ * @param start_peer_label Label of the cmd to start a peer.
  * @return command.
  */
 struct GNUNET_TESTING_Command
 GNUNET_TRANSPORT_cmd_send_simple (const char *label,
-                                char *m,
-                                char *n,
-                                uint32_t num,
-                                const char *peer1_label,
-                                const char *peer2_label)
+                                  char *m,
+                                  char *n,
+                                  uint32_t num,
+                                  const char *start_peer_label)
 {
   struct SendSimpleState *sss;
 
@@ -129,7 +158,7 @@ GNUNET_TRANSPORT_cmd_send_simple (const char *label,
   sss->m = m;
   sss->n = n;
   sss->num = num;
-  sss->peer1_label = peer1_label;
+  sss->start_peer_label = start_peer_label;
 
   struct GNUNET_TESTING_Command cmd = {
     .cls = sss,

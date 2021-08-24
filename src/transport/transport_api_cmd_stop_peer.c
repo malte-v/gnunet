@@ -92,7 +92,7 @@ stop_peer_run (void *cls,
     if (GNUNET_OK !=
         GNUNET_TESTING_peer_stop (sps->peer))
     {
-      LOG (GNUNET_ERROR_TYPE_DEBUG,
+      LOG (GNUNET_ERROR_TYPE_ERROR,
            "Testing lib failed to stop peer %u (`%s')\n",
            sps->no,
            GNUNET_i2s (&sps->id));

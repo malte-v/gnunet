@@ -879,12 +879,15 @@ queue_destroy (struct Queue *queue)
   struct GNUNET_HashCode h_sock;
   int sockfd;
 
-  sockfd = GNUNET_NETWORK_get_fd (queue->listen_sock);
-  GNUNET_CRYPTO_hash (&sockfd,
-                      sizeof(int),
-                      &h_sock);
+  if (NULL != queue->listen_sock)
+  {
+    sockfd = GNUNET_NETWORK_get_fd (queue->listen_sock);
+    GNUNET_CRYPTO_hash (&sockfd,
+                        sizeof(int),
+                        &h_sock);
 
-  lt = GNUNET_CONTAINER_multihashmap_get (lt_map, &h_sock);
+    lt = GNUNET_CONTAINER_multihashmap_get (lt_map, &h_sock);
+  }
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Disconnecting queue for peer `%s'\n",
@@ -1900,9 +1903,9 @@ queue_read (void *cls)
                                      BUF_SIZE - queue->cread_off);
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Received %lu bytes from TCP queue\n", rcvd);
-    GNUNET_log_from_nocheck (GNUNET_ERROR_TYPE_DEBUG,
+  GNUNET_log_from_nocheck (GNUNET_ERROR_TYPE_DEBUG,
                            "transport",
-              "Received %lu bytes from TCP queue\n", rcvd);
+                           "Received %lu bytes from TCP queue\n", rcvd);
   if (-1 == rcvd)
   {
     if ((EAGAIN != errno) && (EINTR != errno))
@@ -2678,9 +2681,9 @@ proto_read_kx (void *cls)
                                      sizeof(pq->ibuf) - pq->ibuf_off);
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Received %lu bytes for KX\n", rcvd);
-      GNUNET_log_from_nocheck (GNUNET_ERROR_TYPE_DEBUG,
+  GNUNET_log_from_nocheck (GNUNET_ERROR_TYPE_DEBUG,
                            "transport",
-              "Received %lu bytes for KX\n", rcvd);
+                           "Received %lu bytes for KX\n", rcvd);
   if (-1 == rcvd)
   {
     if ((EAGAIN != errno) && (EINTR != errno))
@@ -2830,10 +2833,10 @@ queue_read_kx (void *cls)
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Received %lu bytes for KX\n",
               rcvd);
-      GNUNET_log_from_nocheck (GNUNET_ERROR_TYPE_DEBUG,
+  GNUNET_log_from_nocheck (GNUNET_ERROR_TYPE_DEBUG,
                            "transport",
-              "Received %lu bytes for KX\n",
-              rcvd);
+                           "Received %lu bytes for KX\n",
+                           rcvd);
   if (-1 == rcvd)
   {
     if ((EAGAIN != errno) && (EINTR != errno))
@@ -3082,9 +3085,9 @@ do_shutdown (void *cls)
   GNUNET_CONTAINER_multihashmap_iterate (lt_map, &get_lt_delete_it, NULL);
   GNUNET_CONTAINER_multipeermap_iterate (queue_map, &get_queue_delete_it, NULL);
   GNUNET_CONTAINER_multipeermap_destroy (queue_map);
-  GNUNET_TRANSPORT_communicator_address_remove_all (ch);
   if (NULL != ch)
   {
+    GNUNET_TRANSPORT_communicator_address_remove_all (ch);
     GNUNET_TRANSPORT_communicator_disconnect (ch);
     ch = NULL;
   }

@@ -29,6 +29,10 @@
 
 #define TIMEOUT GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_SECONDS, 120)
 
+/**
+  * Return value of the test.
+  *
+  */
 static unsigned int rv = 0;
 
 
@@ -42,19 +46,19 @@ static void
 run (void *cls)
 {
   struct GNUNET_TESTING_Command commands[] = {
-    GNUNET_TESTING_cmd_netjail_start ("netjail-start-1",
+    GNUNET_TESTING_cmd_netjail_start ("netjail-start",
                                       "2",
                                       "1"),
-    GNUNET_TESTING_cmd_netjail_start_testing_system ("netjail-start-testbed-1",
+    GNUNET_TESTING_cmd_netjail_start_testing_system ("netjail-start-testbed  ",
                                                      "2",
                                                      "1",
                                                      "libgnunet_test_transport_plugin_cmd_simple_send",
                                                      &rv),
     GNUNET_TESTING_cmd_stop_testing_system ("stop-testbed",
-                                            "netjail-start-testbed-1",
+                                            "netjail-start-testbed  ",
                                             "2",
                                             "1"),
-    GNUNET_TESTING_cmd_netjail_stop ("netjail-stop-1",
+    GNUNET_TESTING_cmd_netjail_stop ("netjail-stop  ",
                                      "2",
                                      "1"),
     GNUNET_TESTING_cmd_end ()

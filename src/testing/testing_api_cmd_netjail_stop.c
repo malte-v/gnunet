@@ -30,12 +30,19 @@
 
 #define NETJAIL_STOP_SCRIPT "./../testing/netjail_stop.sh"
 
+// Child Wait handle
 struct GNUNET_ChildWaitHandle *cwh;
 
+/**
+ * Struct to hold information for callbacks.
+ *
+ */
 struct NetJailState
 {
+  // Number of local nodes in each namespace.
   char *local_m;
 
+  // The number of namespaces.
   char *global_n;
 
   /**
@@ -43,16 +50,15 @@ struct NetJailState
    */
   struct GNUNET_OS_Process *stop_proc;
 
+  // Flag indication if the script finished.
   unsigned int finished;
 };
 
 
 /**
-*
-*
-* @param cls closure
-* @param cmd current CMD being cleaned up.
-*/
+ * The cleanup function of this cmd frees resources the cmd allocated.
+ *
+ */
 static void
 netjail_stop_cleanup (void *cls,
                       const struct GNUNET_TESTING_Command *cmd)
@@ -78,14 +84,9 @@ netjail_stop_cleanup (void *cls,
 
 
 /**
-*
-*
-* @param cls closure.
-* @param[out] ret result
-* @param trait name of the trait.
-* @param index index number of the object to offer.
-* @return #GNUNET_OK on success.
-*/
+ * Trait function of this cmd does nothing.
+ *
+ */
 static int
 netjail_stop_traits (void *cls,
                      const void **ret,
@@ -96,6 +97,10 @@ netjail_stop_traits (void *cls,
 }
 
 
+/**
+ * Callback which will be called if the setup script finished.
+ *
+ */
 static void
 child_completed_callback (void *cls,
                           enum GNUNET_OS_ProcessStatusType type,
@@ -118,7 +123,7 @@ child_completed_callback (void *cls,
 
 
 /**
-* Run the "hello world" CMD.
+* The run method starts the script which deletes the network namespaces.
 *
 * @param cls closure.
 * @param cmd CMD being run.
@@ -169,6 +174,10 @@ netjail_stop_run (void *cls,
 }
 
 
+/**
+ * This function checks the flag NetJailState#finished, if this cmd finished.
+ *
+ */
 static int
 netjail_stop_finish (void *cls,
                      GNUNET_SCHEDULER_TaskCallback cont,
@@ -188,7 +197,8 @@ netjail_stop_finish (void *cls,
  * Create command.
  *
  * @param label name for command.
- * @param binaryname to stop.
+ * @param local_m Number of local nodes in each namespace.
+ * @param global_n The number of namespaces.
  * @return command.
  */
 struct GNUNET_TESTING_Command

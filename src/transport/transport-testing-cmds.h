@@ -38,17 +38,19 @@ GNUNET_TRANSPORT_cmd_start_peer (const char *label,
                                  const char *cfgname);
 
 struct GNUNET_TESTING_Command
+GNUNET_TRANSPORT_cmd_stop_peer (const char *label,
+                                const char *start_label);
+
+struct GNUNET_TESTING_Command
 GNUNET_TRANSPORT_cmd_connect_peers (const char *label,
-                                    const char *peer1_label,
-                                    const char *peer2_label);
+                                    const char *start_peer_label);
 
 struct GNUNET_TESTING_Command
 GNUNET_TRANSPORT_cmd_send_simple (const char *label,
                                   char *m,
                                   char *n,
                                   uint32_t num,
-                                  const char *peer1_label,
-                                  const char *peer2_label);
+                                  const char *start_peer_label);
 
 int
 GNUNET_TRANSPORT_get_trait_peer_id (const struct
