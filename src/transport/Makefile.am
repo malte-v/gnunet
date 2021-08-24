@@ -169,8 +169,10 @@ libgnunettransporttesting_la_LDFLAGS = \
 libgnunettransporttesting2_la_SOURCES = \
   transport_api_cmd_connecting_peers.c \
   transport_api_cmd_start_peer.c \
+  transport_api_cmd_stop_peer.c \
   transport_api_cmd_send_simple.c \
   transport-testing2.c transport-testing2.h \
+  transport-testing-ng.h \
   transport-testing-cmds.h \
   transport-testing-filenames2.c \
   transport-testing-loggers2.c \

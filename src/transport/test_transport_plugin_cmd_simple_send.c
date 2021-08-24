@@ -37,10 +37,30 @@
 
 #define BASE_DIR "testdir"
 
-struct GNUNET_MQ_MessageHandler *handlers;
+/**
+ * The name for a specific test environment directory.
+ *
+ */
+char *testdir;
 
+/**
+ * The name for the configuration file of the specific node.
+ *
+ */
+char *cfgname;
+
+/**
+ * Flag indicating if all peers have been started.
+ *
+ */
 unsigned int are_all_peers_started;
 
+
+/**
+ * Function called to check a message of type GNUNET_TRANSPORT_TESTING_SIMPLE_MTYPE being
+ * received.
+ *
+ */
 static int
 check_test (void *cls,
             const struct GNUNET_TRANSPORT_TESTING_TestMessage *message)
@@ -48,6 +68,12 @@ check_test (void *cls,
   return GNUNET_OK;
 }
 
+
+/**
+ * Function called to handle a message of type GNUNET_TRANSPORT_TESTING_SIMPLE_MTYPE
+ * being received.
+ *
+ */
 static void
 handle_test (void *cls,
              const struct GNUNET_TRANSPORT_TESTING_TestMessage *message)
@@ -56,6 +82,12 @@ handle_test (void *cls,
        "message received\n");
 }
 
+
+/**
+ * Function called to check a message of type GNUNET_TRANSPORT_TESTING_SIMPLE_MTYPE2
+ * being received.
+ *
+ */
 static int
 check_test2 (void *cls,
              const struct GNUNET_TRANSPORT_TESTING_TestMessage *message)
@@ -63,6 +95,12 @@ check_test2 (void *cls,
   return GNUNET_OK;
 }
 
+
+/**
+ * Function called to handle a message of type GNUNET_TRANSPORT_TESTING_SIMPLE_MTYPE2
+ * being received.
+ *
+ */
 static void
 handle_test2 (void *cls,
               const struct GNUNET_TRANSPORT_TESTING_TestMessage *message)
@@ -71,6 +109,11 @@ handle_test2 (void *cls,
        "message received\n");
 }
 
+
+/**
+ * Callback to set the flag indicating all peers started. Will be called via the plugin api.
+ *
+ */
 static void
 all_peers_started ()
 {
@@ -80,6 +123,17 @@ all_peers_started ()
        are_all_peers_started);
 }
 
+
+/**
+ * Function to start a local test case.
+ *
+ * @param write_message Callback to send a message to the master loop.
+ * @param router_ip Global address of the network namespace.
+ * @param node_ip Local address of a node i a network namespace.
+ * @param m The number of the node in a network namespace.
+ * @param n The number of the network namespace.
+ * @param local_m The number of nodes in a network namespace.
+ */
 static void
 start_testcase (TESTING_CMD_HELPER_write_cb write_message, char *router_ip,
                 char *node_ip,
@@ -87,12 +141,9 @@ start_testcase (TESTING_CMD_HELPER_write_cb write_message, char *router_ip,
                 char *n,
                 char *local_m)
 {
-  char *testdir;
-  char *cfgname;
 
   GNUNET_asprintf (&cfgname,
-                   "%s%s.conf",
-                   "test_transport_api2_tcp_node",
+                   "test_transport_api2_tcp_node%s.conf",
                    n);
 
   LOG (GNUNET_ERROR_TYPE_ERROR,
@@ -103,12 +154,18 @@ start_testcase (TESTING_CMD_HELPER_write_cb write_message, char *router_ip,
        "node ip: %s\n",
        node_ip);
 
-  testdir = GNUNET_malloc (strlen (BASE_DIR) + strlen (m) + strlen (n)
+  GNUNET_asprintf (&testdir,
+                   "%s%s%s",
+                   BASE_DIR,
+                   m,
+                   n);
+
+  /*testdir = GNUNET_malloc (strlen (BASE_DIR) + strlen (m) + strlen (n)
                            + 1);
 
   strcpy (testdir, BASE_DIR);
   strcat (testdir, m);
-  strcat (testdir, n);
+  strcat (testdir, n);*/
 
   struct GNUNET_MQ_MessageHandler handlers[] = {
     GNUNET_MQ_hd_var_size (test,
@@ -123,30 +180,32 @@ start_testcase (TESTING_CMD_HELPER_write_cb write_message, char *router_ip,
   };
 
   struct GNUNET_TESTING_Command commands[] = {
-    GNUNET_TESTING_cmd_system_create ("system-create-1",
+    GNUNET_TESTING_cmd_system_create ("system-create",
                                       testdir),
-    GNUNET_TRANSPORT_cmd_start_peer ("start-peer-1",
-                                     "system-create-1",
+    GNUNET_TRANSPORT_cmd_start_peer ("start-peer",
+                                     "system-create",
                                      m,
                                      n,
                                      local_m,
                                      handlers,
                                      cfgname),
-    GNUNET_TESTING_cmd_send_peer_ready ("send-peer-ready-1",
+    GNUNET_TESTING_cmd_send_peer_ready ("send-peer-ready",
                                         write_message),
-    GNUNET_TESTING_cmd_block_until_all_peers_started ("block-1",
+    GNUNET_TESTING_cmd_block_until_all_peers_started ("block",
                                                       &are_all_peers_started),
-    GNUNET_TRANSPORT_cmd_connect_peers ("connect-peers-1",
-                                        "start-peer-1",
-                                        "this is useless"),
-    GNUNET_TRANSPORT_cmd_send_simple ("send-simple-1",
+    GNUNET_TRANSPORT_cmd_connect_peers ("connect-peers",
+                                        "start-peer"),
+    GNUNET_TRANSPORT_cmd_send_simple ("send-simple",
                                       m,
                                       n,
                                       (atoi (n) - 1) * atoi (local_m) + atoi (
                                         m),
-                                      "start-peer-1",
-                                      "this is useless"),
-    GNUNET_TESTING_cmd_local_test_finished ("local-test-finished-1",
+                                      "start-peer"),
+    GNUNET_TRANSPORT_cmd_stop_peer ("stop-peer",
+                                    "start-peer"),
+    GNUNET_TESTING_cmd_system_destroy ("system-destroy",
+                                       "system-create"),
+    GNUNET_TESTING_cmd_local_test_finished ("local-test-finished",
                                             write_message)
   };
 
@@ -187,6 +246,8 @@ libgnunet_test_transport_plugin_cmd_simple_send_done (void *cls)
   struct GNUNET_TESTING_PluginFunctions *api = cls;
 
   GNUNET_free (api);
+  GNUNET_free (testdir);
+  GNUNET_free (cfgname);
   return NULL;
 }
 
