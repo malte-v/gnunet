@@ -73,11 +73,6 @@ struct GNUNET_PQ_Context
    * File descriptor wrapper for @e event_task.
    */
   struct GNUNET_NETWORK_Handle *rfd;
-
-  /**
-   * Is scheduling via the GNUnet scheduler desired?
-   */
-  bool scheduler_on;
 };
 
 
@@ -91,24 +86,6 @@ struct GNUNET_PQ_Context
 void
 GNUNET_PQ_event_reconnect_ (struct GNUNET_PQ_Context *db,
                             int fd);
-
-
-/**
- * Run poll event loop using the GNUnet scheduler.
- *
- * @param db database handle
- */
-void
-GNUNET_PQ_event_scheduler_start_ (struct GNUNET_PQ_Context *db);
-
-
-/**
- * Stop running poll event loop using the GNUnet scheduler.
- *
- * @param db database handle
- */
-void
-GNUNET_PQ_event_scheduler_stop_ (struct GNUNET_PQ_Context *db);
 
 
 #endif

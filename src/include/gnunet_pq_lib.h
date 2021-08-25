@@ -853,19 +853,6 @@ GNUNET_PQ_reconnect (struct GNUNET_PQ_Context *db);
 
 
 /**
- * Poll for database events now.  Used if the event FD
- * is ready and the application wants to trigger applicable
- * events.
- * Useful if the GNUnet scheduler is NOT to be used for
- * such notifications.
- *
- * @param db database handle
- */
-void
-GNUNET_PQ_event_do_poll (struct GNUNET_PQ_Context *db);
-
-
-/**
  * Register callback to be invoked on events of type @a es.
  *
  * Unlike many other calls, this function is thread-safe
