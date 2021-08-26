@@ -240,9 +240,9 @@ chmod u+s $(DESTDIR)$(libexecdir)/gnunet-helper-transport-bluetooth
 chown root $(DESTDIR)$(libexecdir)/gnunet-helper-dns
 chgrp $(GNUNETDNS_GROUP) $(DESTDIR)$(libexecdir)/gnunet-helper-dns
 chmod 4750 $(DESTDIR)$(libexecdir)/gnunet-helper-dns
-chgrp $(GNUNETDNS_GROUP) $(DESTDIR)$(libexecdir)/gnunet-helper-dns
-chown gnunet:$(GNUNETDNS_GROUP) $(DESTDIR)$(libexecdir)/gnunet-helper-dns
-chmod 2750 $(DESTDIR)$(libexecdir)/gnunet-helper-dns
+chgrp $(GNUNETDNS_GROUP) $(DESTDIR)$(libexecdir)/gnunet-service-dns
+chown gnunet:$(GNUNETDNS_GROUP) $(DESTDIR)$(libexecdir)/gnunet-service-dns
+chmod 2750 $(DESTDIR)$(libexecdir)/gnunet-service-dns
 chown root:root $(DESTDIR)$(libexecdir)/gnunet-helper-exit
 chmod u+s $(DESTDIR)$(libexecdir)/gnunet-helper-exit
 chown root:root $(DESTDIR)$(libexecdir)/gnunet-helper-nat-server
