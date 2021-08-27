@@ -2350,7 +2350,6 @@ GNUNET_CONFIGURATION_default_filename (void)
 
   if (GNUNET_OK == GNUNET_DISK_file_test_read (cfg_fn))
     return cfg_fn;
-
   GNUNET_free (cfg_fn);
 
   /* Fall back to /etc/ for the default configuration.
@@ -2359,24 +2358,21 @@ GNUNET_CONFIGURATION_default_filename (void)
   GNUNET_asprintf (&cfg_fn,
                    "/etc/%s",
                    pd->config_file);
-
   if (GNUNET_OK == GNUNET_DISK_file_test_read (cfg_fn))
     return cfg_fn;
-
   GNUNET_free (cfg_fn);
 
   GNUNET_asprintf (&cfg_fn,
                    "/etc/%s",
                    pd->config_file);
-
   if (GNUNET_OK == GNUNET_DISK_file_test_read (cfg_fn))
     return cfg_fn;
+  GNUNET_free (cfg_fn);
 
   GNUNET_asprintf (&cfg_fn,
                    "/etc/%s/%s",
                    pd->project_dirname,
                    pd->config_file);
-
   if (GNUNET_OK == GNUNET_DISK_file_test_read (cfg_fn))
     return cfg_fn;
 
