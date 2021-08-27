@@ -87,7 +87,8 @@ GNUNET_JSON_parse_free (struct GNUNET_JSON_Specification *spec)
 {
   for (unsigned int i = 0; NULL != spec[i].parser; i++)
     if (NULL != spec[i].cleaner)
-      spec[i].cleaner (spec[i].cls, &spec[i]);
+      spec[i].cleaner (spec[i].cls,
+                       &spec[i]);
 }
 
 
