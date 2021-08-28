@@ -1,12 +1,12 @@
 [Unit]
-Description=A framework for secure peer-to-peer networking
+Description=GNUnet system service
+After=network.target
 
 [Service]
-EnvironmentFile=/etc/default/gnunet
-User=${GNUNET_USER}
-Type=forking
-ExecStart=/usr/bin/gnunet-arm -s -c /etc/gnunet.conf
-ExecStop=/usr/bin/gnunet-arm -e -c /etc/gnunet.conf
+Type=simple
+User=gnunet
+ExecStart=/usr/lib/gnunet/libexec/gnunet-service-arm -c /etc/gnunet.conf
+StateDirectory=gnunet
 
 [Install]
 WantedBy=multi-user.target
