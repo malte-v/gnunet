@@ -35,6 +35,12 @@ override_dh_auto_install-arch:
 
 override_dh_auto_install-indep:
 
+override_dh_installsystemd:
+	# Do not enable or start the GNUnet service by default.
+	dh_installsystemd -pgnunet --name=gnunet --no-start --no-enable
+	# Final invocation to generate daemon reload
+	dh_installsystemd
+
 execute_after_dh_auto_install:
 	dh_link -plibgnunet-dev \
 		usr/lib/$(DEB_HOST_MULTIARCH)/gnunet/nss/libnss_gns.so.2 usr/lib/$(DEB_HOST_MULTIARCH)/libnss_gns.so \

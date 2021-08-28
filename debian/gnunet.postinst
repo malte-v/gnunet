@@ -42,11 +42,8 @@ case "${1}" in
 	configure)
 		db_version 2.0
 
-		db_get gnunet-systempeer/username
-		_USERNAME="${RET:-gnunet}"
-
-		db_get gnunet-systempeer/groupname
-		_GROUPNAME="${RET:-gnunet}"
+		_USERNAME="gnunet"
+		_GROUPNAME="gnunet"
 
 		db_get gnunet-systempeer/autostart
 		_AUTOSTART="${RET}" # boolean
@@ -169,8 +166,6 @@ case "${1}" in
 		# Update files and directories permissions.
 		# Assuming default values, this *should* not be changed.
 		echo -n "Updating files and directories permissions:"
-		chown ${_USERNAME}:${_GROUPNAME} /var/log/gnunetd
-		chown ${_USERNAME}:${_GROUPNAME} /var/log/gnunetd/*
 		# Secure access to the data directory
 		chmod 0700 "${GNUNET_HOME}" || true
 		# Restrict access on setuid binaries
@@ -202,25 +197,6 @@ case "${1}" in
 		fi
 		echo  " done."
 
-		# Writing new values to configuration file
-		echo -n "Writing new configuration file:"
-		CONFIG_NEW=$(tempfile)
-
-cat > "${CONFIG_NEW}" <<EOF
-# This file controls the behaviour of the GNUnet init script.
-# It will be parsed as a shell script.
-# please do not edit by hand, use 'dpkg-reconfigure gnunet-systempeer'.
-
-GNUNET_USER=${_USERNAME}
-GNUNET_GROUP=${_GROUPNAME}
-GNUNET_AUTOSTART="${_AUTOSTART}"
-EOF
-
-		cp -f "${CONFIG_NEW}" "${CONFIG_FILE}"
-		echo " done."
-
-		# Cleaning
-		rm -f "${CONFIG_NEW}"
 		echo "All done."
 
 		;;
