@@ -68,7 +68,7 @@ static const struct GNUNET_OS_ProjectData default_pd = {
   .config_file = "gnunet.conf",
   .user_config_file = "~/.config/gnunet.conf",
   .is_gnu = 1,
-  .gettext_domain = PACKAGE,
+  .gettext_domain = "gnunet",
   .gettext_path = NULL,
   .agpl_url = GNUNET_AGPL_URL,
 };
