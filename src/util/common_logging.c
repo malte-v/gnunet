@@ -1014,8 +1014,10 @@ mylog (enum GNUNET_ErrorType kind,
     }
     else
     {
-      if (0 == strftime (date2, DATE_STR_SIZE, "%b %d %H:%M:%S-%%06u", tmptr))
+      /* RFC 3339 timestamp, with snprintf placeholder for microseconds */
+      if (0 == strftime (date2, DATE_STR_SIZE, "%Y-%m-%dT%H:%M:%S.%%06u%z", tmptr))
         abort ();
+      /* Fill in microseconds */
       if (0 > snprintf (date, sizeof(date), date2, timeofday.tv_usec))
         abort ();
     }
