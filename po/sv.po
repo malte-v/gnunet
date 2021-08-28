@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: GNUnet 0.7.0b\n"
 "Report-Msgid-Bugs-To: gnunet-developers@mail.gnu.org\n"
-"POT-Creation-Date: 2021-08-24 15:42+0200\n"
+"POT-Creation-Date: 2021-08-28 16:52+0200\n"
 "PO-Revision-Date: 2006-01-21 17:16+0100\n"
 "Last-Translator: Daniel Nylander <po@danielnylander.se>\n"
 "Language-Team: Swedish <tp-sv@listor.tp-sv.se>\n"
@@ -4897,7 +4897,7 @@ msgstr "Misslyckades att läsa kompislista från \"%s\"\n"
 msgid "Identity REST API initialized\n"
 msgstr " Anslutning misslyckades\n"
 
-#: src/json/json.c:119
+#: src/json/json.c:120
 #, fuzzy, c-format
 msgid "Failed to parse JSON in option `%s': %s (%s)\n"
 msgstr "Misslyckades att läsa kompislista från \"%s\"\n"

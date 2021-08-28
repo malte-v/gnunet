@@ -922,7 +922,7 @@ Mon Dec 16 09:33:36 2019 +0100
 
 Sat 07 Dec 2019 02:38:53 PM CET
   Protocol-breaking change, using more standards-compliant
-  EdDSA and RSA operations. Also changing POW function to 
+  EdDSA and RSA operations. Also changing POW function to
   make it less ASIC-compatible. This marks the switch to
   the 0.12.0 protocol family.
 
