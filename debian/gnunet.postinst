@@ -56,11 +56,8 @@ configure)
 
   db_stop
 
-  CONFIG_FILE="/etc/default/gnunet"
-
   # Read default values
   GNUNET_HOME="/var/lib/gnunet"
-  eval $(grep GNUNET_HOME /etc/gnunet.conf | tr -d '[:blank:]')
 
   # Creating gnunet group if needed
   if ! getent group ${_GROUPNAME} >/dev/null; then
