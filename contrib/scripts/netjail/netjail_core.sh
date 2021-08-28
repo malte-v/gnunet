@@ -2,12 +2,31 @@
 # 
 
 JAILOR=${SUDO_USER:?must run in sudo}
+PREFIX=${PPID:?must run from a parent process}
 
 # running with `sudo` is required to be
 # able running the actual commands as the
 # original user.
 
 export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+
+# initialize the numbering to ensure unique names
+
+NAMESPACE_NUM=${NAMESPACE_FD:?must have a file for ids}
+INTERFACE_NUM=${INTERFACE_FD:?must have a file for ids}
+
+netjail_read_inc() {
+	local FD=$1
+	local NUM=$(cat $FD)
+	NUM=${NUM:-0}
+	
+	local RES=$NUM
+	NUM=$(($NUM + 1))
+	
+	echo $NUM > $FD
+	
+	printf "$RES"
+}
 
 netjail_opt() {
 	local OPT=$1
@@ -73,15 +92,14 @@ netjail_check_bin() {
 	fi
 }
 
-netjail_print_name() {
-	printf "%s%02x%02x" $1 $2 ${3:-0}
-}
-
 netjail_bridge() {
-	local BRIDGE=$1
+	local NUM=$(netjail_read_inc $INTERFACE_NUM)
+	local BRIDGE=$(printf "%06x-%08x" $PREFIX $NUM)
 
 	ip link add $BRIDGE type bridge
 	ip link set dev $BRIDGE up
+	
+	printf "%s" $BRIDGE
 }
 
 netjail_bridge_clear() {
@@ -91,9 +109,12 @@ netjail_bridge_clear() {
 }
 
 netjail_node() {
-	local NODE=$1
+	local NUM=$(netjail_read_inc $NAMESPACE_NUM)
+	local NODE=$(printf "%06x-%08x" $PREFIX $NUM)
 
 	ip netns add $NODE
+	
+	printf "%s" $NODE
 }
 
 netjail_node_clear() {
@@ -108,8 +129,11 @@ netjail_node_link_bridge() {
 	local ADDRESS=$3
 	local MASK=$4
 	
-	local LINK_IF="$NODE-$BRIDGE-0"
-	local LINK_BR="$NODE-$BRIDGE-1"
+	local NUM_IF=$(netjail_read_inc $INTERFACE_NUM)
+	local NUM_BR=$(netjail_read_inc $INTERFACE_NUM)
+	
+	local LINK_IF=$(printf "%06x-%08x" $PREFIX $NUM_IF)
+	local LINK_BR=$(printf "%06x-%08x" $PREFIX $NUM_BR)
 
 	ip link add $LINK_IF type veth peer name $LINK_BR
 	ip link set $LINK_IF netns $NODE
@@ -120,13 +144,12 @@ netjail_node_link_bridge() {
 	ip -n $NODE link set up dev lo
 
 	ip link set $LINK_BR up
+	
+	printf "%s" $LINK_BR
 }
 
 netjail_node_unlink_bridge() {
-	local NODE=$1
-	local BRIDGE=$2
-	
-	local LINK_BR="$NODE-$BRIDGE-1"
+	local LINK_BR=$1
 
 	ip link delete $LINK_BR
 }
