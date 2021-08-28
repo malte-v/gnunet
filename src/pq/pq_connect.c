@@ -143,7 +143,7 @@ apply_patch (struct GNUNET_PQ_Context *db,
               "Applying SQL file `%s' on database %s\n",
               buf,
               db->config_str);
-  psql = GNUNET_OS_start_process (GNUNET_OS_INHERIT_STD_NONE,
+  psql = GNUNET_OS_start_process (GNUNET_OS_INHERIT_STD_ERR,
                                   NULL,
                                   NULL,
                                   NULL,
@@ -172,7 +172,7 @@ apply_patch (struct GNUNET_PQ_Context *db,
        (0 != code) )
   {
     GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
-                "Could not run PSQL on file %s: %d\n",
+                "Could not run PSQL on file %s: psql exit code was %d\n",
                 buf,
                 (int) code);
     return GNUNET_SYSERR;
