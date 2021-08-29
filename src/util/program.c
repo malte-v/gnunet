@@ -244,12 +244,23 @@ GNUNET_PROGRAM_run2 (int argc,
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                 "Loading configuration from entry point specified as option (%s)\n",
                 cc.cfgfile);
-    if ((GNUNET_YES != GNUNET_DISK_file_test (cc.cfgfile)) ||
-        (GNUNET_SYSERR == GNUNET_CONFIGURATION_load (cfg, cc.cfgfile)))
+    if (GNUNET_YES !=
+        GNUNET_DISK_file_test (cc.cfgfile))
     {
       GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                  _ (
-                    "Unreadable or malformed configuration file `%s', exit ...\n"),
+                  _ ("Unreadable configuration file `%s', exiting ...\n"),
+                  cc.cfgfile);
+      ret = GNUNET_SYSERR;
+      GNUNET_free (allopts);
+      GNUNET_free (lpfx);
+      goto cleanup;
+    }
+    if (GNUNET_SYSERR ==
+        GNUNET_CONFIGURATION_load (cfg,
+                                   cc.cfgfile))
+    {
+      GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                  _ ("Malformed configuration file `%s', exiting ...\n"),
                   cc.cfgfile);
       ret = GNUNET_SYSERR;
       GNUNET_free (allopts);
@@ -259,38 +270,31 @@ GNUNET_PROGRAM_run2 (int argc,
   }
   else
   {
-    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                "Loading configuration default entry point (%s)\n",
-                cc.cfgfile);
-    if ((NULL != cfg_fn) && (GNUNET_YES == GNUNET_DISK_file_test (cfg_fn)))
+    if ( (NULL != cfg_fn) &&
+         (GNUNET_YES !=
+          GNUNET_DISK_file_test (cfg_fn)) )
     {
-      if (GNUNET_SYSERR == GNUNET_CONFIGURATION_load (cfg, cfg_fn))
-      {
-        GNUNET_log (
-          GNUNET_ERROR_TYPE_ERROR,
-          _ (
-            "Unreadable or malformed default configuration file `%s', exit ...\n"),
-          cfg_fn);
-        ret = GNUNET_SYSERR;
-        GNUNET_free (allopts);
-        GNUNET_free (lpfx);
-        goto cleanup;
-      }
+      GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                  _ ("Unreadable configuration file `%s'. Exiting ...\n"),
+                  cfg_fn);
+      ret = GNUNET_SYSERR;
+      GNUNET_free (allopts);
+      GNUNET_free (lpfx);
+      goto cleanup;
     }
-    else if (NULL != cfg_fn)
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "Loading configuration from entry point `%s'\n",
+                cc.cfgfile);
+    if (GNUNET_SYSERR ==
+        GNUNET_CONFIGURATION_load (cfg,
+                                   cfg_fn))
     {
-      GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                  "Loading configuration without entry point\n");
-      GNUNET_free (cfg_fn);
-      if (GNUNET_OK != GNUNET_CONFIGURATION_load (cfg, NULL))
-      {
-        GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                    _ ("Unreadable or malformed configuration, exit ...\n"));
-        ret = GNUNET_SYSERR;
-        GNUNET_free (allopts);
-        GNUNET_free (lpfx);
-        goto cleanup;
-      }
+      GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                  _ ("Malformed configuration. Exiting ...\n"));
+      ret = GNUNET_SYSERR;
+      GNUNET_free (allopts);
+      GNUNET_free (lpfx);
+      goto cleanup;
     }
   }
   GNUNET_free (allopts);
@@ -346,7 +350,7 @@ GNUNET_PROGRAM_run2 (int argc,
     cc.task (cc.task_cls, cc.args, cc.cfgfile, cc.cfg);
   }
   ret = GNUNET_OK;
-  cleanup:
+cleanup:
   GNUNET_CONFIGURATION_destroy (cfg);
   GNUNET_free (cc.cfgfile);
   GNUNET_free (cfg_fn);
