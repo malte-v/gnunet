@@ -697,7 +697,8 @@ TESTS = \
  $(HTTP_API_TIMEOUT_TEST) \
  $(HTTPS_API_TIMEOUT_TEST) \
  $(WLAN_TIMEOUT_TEST) \
- $(BT_TIMEOUT_TEST)
+ $(BT_TIMEOUT_TEST) \
+ $(check_SCRIPTS)
 if HAVE_GETOPT_BINARY
 TESTS += \
 test_transport_api_slow_ats
@@ -721,6 +722,9 @@ TESTS += \
   test_communicator_bidirect-tcp
 endif
 endif
+
+check_SCRIPTS= \
+  test_transport_simple_send.sh
 
 test_transport_api_cmd_simple_send_SOURCES = \
  test_transport_api_cmd_simple_send.c
