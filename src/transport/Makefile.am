@@ -556,7 +556,7 @@ libgnunet_plugin_transport_https_server_la_CFLAGS = \
 
 if HAVE_TESTING
 check_PROGRAMS = \
- test_transport_api_cmd_simple_send \
+ test_transport_simple_send \
  test_transport_address_switch_tcp \
  test_transport_testing_startstop \
  test_transport_testing_restart \
@@ -705,7 +705,7 @@ test_transport_api_slow_ats
 endif
 if HAVE_EXPERIMENTAL
 TESTS += \
-  test_transport_api_cmd_simple_send \
+  test_transport_simple_send \
   test_transport_address_switch_udp \
   test_plugin_udp \
   test_transport_api_udp \
@@ -726,9 +726,9 @@ endif
 check_SCRIPTS= \
   test_transport_simple_send.sh
 
-test_transport_api_cmd_simple_send_SOURCES = \
- test_transport_api_cmd_simple_send.c
-test_transport_api_cmd_simple_send_LDADD = \
+test_transport_simple_send_SOURCES = \
+ test_transport_simple_send.c
+test_transport_simple_send_LDADD = \
  $(top_builddir)/src/testing/libgnunettesting.la \
  $(top_builddir)/src/util/libgnunetutil.la \
  $(top_builddir)/src/testbed/libgnunettestbed.la \

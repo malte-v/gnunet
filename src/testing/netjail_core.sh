@@ -1,7 +1,7 @@
 #!/bin/sh
 # 
 
-JAILOR=${SUDO_USER:?must run in sudo}
+
 
 # running with `sudo` is required to be
 # able running the actual commands as the
@@ -90,6 +90,7 @@ netjail_node_add_default() {
 }
 
 netjail_node_exec() {
+    JAILOR=${SUDO_USER:?must run in sudo}
 	NODE=$1
 	FD_IN=$2
 	FD_OUT=$3
@@ -99,9 +100,17 @@ netjail_node_exec() {
 }
 
 netjail_node_exec_without_fds() {
+    JAILOR=${SUDO_USER:?must run in sudo}
 	NODE=$1
 	shift 1
 
 	ip netns exec $NODE sudo -u $JAILOR -- $@
+}
+
+netjail_node_exec_without_fds_and_sudo() {
+	NODE=$1
+	shift 1
+
+	ip netns exec $NODE $@
 }
 
