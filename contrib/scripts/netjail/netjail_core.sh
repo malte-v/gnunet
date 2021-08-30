@@ -10,22 +10,20 @@ PREFIX=${PPID:?must run from a parent process}
 
 export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
 
-# initialize the numbering to ensure unique names
+export RESULT=
+export NAMESPACE_NUM=0
+export INTERFACE_NUM=0
 
-NAMESPACE_NUM=${NAMESPACE_FD:?must have a file for ids}
-INTERFACE_NUM=${INTERFACE_FD:?must have a file for ids}
+netjail_next_namespace() {
+	local NUM=$NAMESPACE_NUM
+	NAMESPACE_NUM=$(($NAMESPACE_NUM + 1))
+	RESULT=$NUM
+}
 
-netjail_read_inc() {
-	local FD=$1
-	local NUM=$(cat $FD)
-	NUM=${NUM:-0}
-	
-	local RES=$NUM
-	NUM=$(($NUM + 1))
-	
-	echo $NUM > $FD
-	
-	printf "$RES"
+netjail_next_interface() {
+	local NUM=$INTERFACE_NUM
+	INTERFACE_NUM=$(($INTERFACE_NUM + 1))
+	RESULT=$NUM
 }
 
 netjail_opt() {
@@ -36,7 +34,7 @@ netjail_opt() {
 
 	while [ $# -gt 0 ]; do
 		if [ "$1" = "$OPT" ]; then
-			printf "%d" $INDEX
+			RESULT=$INDEX
 			return
 		fi
 
@@ -44,7 +42,7 @@ netjail_opt() {
 		shift 1
 	done
 
-	printf "%d" 0
+	RESULT=0
 }
 
 netjail_opts() {
@@ -61,7 +59,7 @@ netjail_opts() {
 		shift 1
 	done
 	
-	printf "$DEF"
+	RESULT="$DEF"
 }
 
 netjail_check() {
@@ -93,13 +91,14 @@ netjail_check_bin() {
 }
 
 netjail_bridge() {
-	local NUM=$(netjail_read_inc $INTERFACE_NUM)
+	netjail_next_interface
+	local NUM=$RESULT
 	local BRIDGE=$(printf "%06x-%08x" $PREFIX $NUM)
 
 	ip link add $BRIDGE type bridge
 	ip link set dev $BRIDGE up
 	
-	printf "%s" $BRIDGE
+	RESULT=$BRIDGE
 }
 
 netjail_bridge_clear() {
@@ -109,12 +108,13 @@ netjail_bridge_clear() {
 }
 
 netjail_node() {
-	local NUM=$(netjail_read_inc $NAMESPACE_NUM)
+	netjail_next_namespace
+	local NUM=$RESULT
 	local NODE=$(printf "%06x-%08x" $PREFIX $NUM)
 
 	ip netns add $NODE
 	
-	printf "%s" $NODE
+	RESULT=$NODE
 }
 
 netjail_node_clear() {
@@ -129,8 +129,10 @@ netjail_node_link_bridge() {
 	local ADDRESS=$3
 	local MASK=$4
 	
-	local NUM_IF=$(netjail_read_inc $INTERFACE_NUM)
-	local NUM_BR=$(netjail_read_inc $INTERFACE_NUM)
+	netjail_next_interface
+	local NUM_IF=$RESULT
+	netjail_next_interface
+	local NUM_BR=$RESULT
 	
 	local LINK_IF=$(printf "%06x-%08x" $PREFIX $NUM_IF)
 	local LINK_BR=$(printf "%06x-%08x" $PREFIX $NUM_BR)
@@ -145,7 +147,7 @@ netjail_node_link_bridge() {
 
 	ip link set $LINK_BR up
 	
-	printf "%s" $LINK_BR
+	RESULT=$LINK_BR
 }
 
 netjail_node_unlink_bridge() {

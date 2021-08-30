@@ -1,10 +1,5 @@
 #!/bin/sh
 
-NAMESPACE_FD=$(mktemp)
-INTERFACE_FD=$(mktemp)
-
-trap "rm -f $NAMESPACE_FD $INTERFACE_FD; exit" ERR EXIT
-
 . "./netjail_core.sh"
 
 set -eu
@@ -21,11 +16,14 @@ shift 2
 netjail_check $(($LOCAL_M * $GLOBAL_N))
 
 # Starts optionally an amount of nodes without NAT starting with "92.68.151.1"
-KNOWN=$(netjail_opt '--known' $@)
-KNOWN_NUM=$(netjail_opts '--known' 0 $@)
+netjail_opt '--known' $@
+KNOWN=$RESULT
+netjail_opts '--known' 0 $@
+KNOWN_NUM=$RESULT
 
 # Starts optionally 'stunserver' on "92.68.150.254":
-STUN=$(netjail_opt '--stun' $@)
+netjail_opt '--stun' $@
+STUN=$RESULT
 
 if [ $KNOWN -gt 0 ]; then
 	shift 2
@@ -50,28 +48,37 @@ KNOWN_GROUP="92.68.151"
 CLEANUP=0
 echo "Start [local: $LOCAL_GROUP.0/24, global: $GLOBAL_GROUP.0/16, stun: $STUN]"
 
-NETWORK_NET=$(netjail_bridge)
+netjail_bridge
+NETWORK_NET=$RESULT
 
 for X in $(seq $KNOWN); do
-	KNOWN_NODES[$X]=$(netjail_node)
-	KNOWN_LINKS[$X]=$(netjail_node_link_bridge ${KNOWN_NODES[$X]} $NETWORK_NET "$KNOWN_GROUP.$X" 16)
+	netjail_node
+	KNOWN_NODES[$X]=$RESULT
+	netjail_node_link_bridge ${KNOWN_NODES[$X]} $NETWORK_NET "$KNOWN_GROUP.$X" 16
+	KNOWN_LINKS[$X]=$RESULT
 done
 
 declare -A NODES
 declare -A NODE_LINKS
 
 for N in $(seq $GLOBAL_N); do
-	ROUTERS[$N]=$(netjail_node)
-	NETWORK_LINKS[$N]=$(netjail_node_link_bridge ${ROUTERS[$N]} $NETWORK_NET "$GLOBAL_GROUP.$N" 16)
-	ROUTER_NETS[$N]=$(netjail_bridge)
+	netjail_node
+	ROUTERS[$N]=$RESULT
+	netjail_node_link_bridge ${ROUTERS[$N]} $NETWORK_NET "$GLOBAL_GROUP.$N" 16
+	NETWORK_LINKS[$N]=$RESULT
+	netjail_bridge
+	ROUTER_NETS[$N]=$RESULT
 	
 	for M in $(seq $LOCAL_M); do
-		NODES[$N,$M]=$(netjail_node)
-		NODE_LINKS[$N,$M]=$(netjail_node_link_bridge ${NODES[$N,$M]} ${ROUTER_NETS[$N]} "$LOCAL_GROUP.$M" 24)
+		netjail_node
+		NODES[$N,$M]=$RESULT
+		netjail_node_link_bridge ${NODES[$N,$M]} ${ROUTER_NETS[$N]} "$LOCAL_GROUP.$M" 24
+		NODE_LINKS[$N,$M]=$RESULT
 	done
 
 	ROUTER_ADDR="$LOCAL_GROUP.$(($LOCAL_M+1))"
-	ROUTER_LINKS[$N]=$(netjail_node_link_bridge ${ROUTERS[$N]} ${ROUTER_NETS[$N]} $ROUTER_ADDR 24)
+	netjail_node_link_bridge ${ROUTERS[$N]} ${ROUTER_NETS[$N]} $ROUTER_ADDR 24
+	ROUTER_LINKS[$N]=$RESULT
 	
 	netjail_node_add_nat ${ROUTERS[$N]} $ROUTER_ADDR 24
 	
@@ -84,8 +91,10 @@ WAITING=""
 KILLING=""
 
 if [ $STUN -gt 0 ]; then
-	STUN_NODE=$(netjail_node)
-	STUN_LINK=$(netjail_node_link_bridge $STUN_NODE $NETWORK_NET "$GLOBAL_GROUP.254" 16)
+	netjail_node
+	STUN_NODE=$RESULT
+	netjail_node_link_bridge $STUN_NODE $NETWORK_NET "$GLOBAL_GROUP.254" 16
+	STUN_LINK=$RESULT
 
 	netjail_node_exec $STUN_NODE 0 1 stunserver &
 	KILLING="$!"
