@@ -135,7 +135,7 @@ enum GNUNET_GenericReturnValue
  * tree where gnunet_config.h is unavailable
  */
 #ifndef GNUNET_EXTRA_LOGGING
-#define GNUNET_EXTRA_LOGGING 0
+#define GNUNET_EXTRA_LOGGING 1
 #endif
 
 /**
