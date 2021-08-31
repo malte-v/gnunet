@@ -1,7 +1,7 @@
 # Autoconf macro for working with GNUnet
 # This file is in the public domain.
 #
-# AM_PATH_GNUNET([MINIMUM-VERSION = 0.14.2, [ACTION-IF-FOUND, [ACTION-IF-NOT-FOUND]]])
+# AM_PATH_GNUNET([MINIMUM-VERSION = 0.15.3, [ACTION-IF-FOUND, [ACTION-IF-NOT-FOUND]]])
 # Find the GNUnet installation, either automatically or through the
 # --with-gnunet-prefix flag
 #
@@ -19,14 +19,19 @@ AC_DEFUN([AM_PATH_GNUNET],
                              [PATH to the GNUnet installation])],
              [gnunet_prefix="$withval"],
              [gnunet_prefix=""])
+ AC_ARG_ENABLE([debug-log],
+               [AS_HELP_STRING([--disable-debug-log],
+                               [Disable all DEBUG-level logging])],
+               [],
+               [enable_debug_log=yes])
  AC_ARG_VAR([GNUNET_CONFIG],[The gnunet-config tool])
- min_gnunet_version=m4_if([$1], ,0.14.2,$1)
+ min_gnunet_version=m4_if([$1], ,0.15.3,$1)
  # Make sure the specified version is at least the version with
  # the features required to use this macro
- AS_VERSION_COMPARE([$min_gnunet_version],[0.14.2],
+ AS_VERSION_COMPARE([$min_gnunet_version],[0.15.3],
                     [AC_MSG_WARN([The specified GNUnet version $min_gnunet_version is too old.])
-                     AC_MSG_WARN([The minimum version has been set to 0.14.2])
-                     min_gnunet_version="0.14.2"])
+                     AC_MSG_WARN([The minimum version has been set to 0.15.3])
+                     min_gnunet_version="0.15.3"])
  AS_IF([test "x${GNUNET_CONFIG+set}" != "xset"],
        [PKG_CHECK_MODULES([GNUNET],[gnunetutil >= $min_gnunet_version],
                           [gnunet_pkgconfig=yes],[gnunet_pkgconfig=no])
@@ -57,7 +62,11 @@ AC_DEFUN([AM_PATH_GNUNET],
               AC_SUBST([GNUNET_CFLAGS])])
         AS_IF([test "x${GNUNET_LIBS+set}" != "xset"],
               [GNUNET_LIBS=`$GNUNET_CONFIG --libs`
-               AC_SUBST([GNUNET_LIBS])])])
+               AC_SUBST([GNUNET_LIBS])])
+        AS_IF([test "x$enable_debug_log" = "xno"],
+              [AC_DEFINE([GNUNET_EXTRA_LOGGING],
+                         [0],
+                         [0 if debug messages should be culled])])])
  AS_UNSET([gnunet_result])
  AS_UNSET([min_gnunet_version])
 ])
