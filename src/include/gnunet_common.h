@@ -884,7 +884,7 @@ GNUNET_error_type_to_string (enum GNUNET_ErrorType kind);
     if (! (cond))                                               \
     {                                                           \
       GNUNET_log (GNUNET_ERROR_TYPE_ERROR,                      \
-                  _ ("Assertion failed at %s:%d. Aborting.\n"), \
+                  dgettext ("gnunet", "Assertion failed at %s:%d. Aborting.\n"), \
                   __FILE__,                                     \
                   __LINE__);                                    \
       GNUNET_abort_ ();                                         \
@@ -899,7 +899,7 @@ GNUNET_error_type_to_string (enum GNUNET_ErrorType kind);
     if (! (cond))                                               \
     {                                                           \
       GNUNET_log (GNUNET_ERROR_TYPE_ERROR,                      \
-                  _ ("Assertion failed at %s:%d. Aborting.\n"), \
+                  dgettext ("gnunet", "Assertion failed at %s:%d. Aborting.\n"), \
                   __FILE__,                                     \
                   __LINE__);                                    \
       GNUNET_abort_ ();                                         \
@@ -917,7 +917,7 @@ GNUNET_error_type_to_string (enum GNUNET_ErrorType kind);
     if (! (cond))                                               \
     {                                                           \
       GNUNET_log (GNUNET_ERROR_TYPE_ERROR,                      \
-                  _ ("Assertion failed at %s:%d. Aborting.\n"), \
+                  dgettext ("gnunet", "Assertion failed at %s:%d. Aborting.\n"), \
                   f,                                            \
                   l);                                           \
       GNUNET_abort_ ();                                         \
@@ -939,7 +939,7 @@ GNUNET_error_type_to_string (enum GNUNET_ErrorType kind);
     {                                                                \
       GNUNET_log_from (GNUNET_ERROR_TYPE_ERROR,                      \
                        comp,                                         \
-                       _ ("Assertion failed at %s:%d. Aborting.\n"), \
+                       dgettext ("gnunet", "Assertion failed at %s:%d. Aborting.\n"), \
                        __FILE__,                                     \
                        __LINE__);                                    \
       GNUNET_abort_ ();                                              \
