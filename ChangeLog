@@ -1,3 +1,30 @@
+Wed, 1 Sep 2021 10:28:09 +0200 (d51000320)
+add fix for GNUnet directory permissions by madmurphy - Christian Grothoff
+
+Mon, 30 Aug 2021 09:35:40 +0200 (9eb417e72)
+exec' - Christian Grothoff
+
+Sat, 28 Aug 2021 21:50:06 +0200 (2994fa434)
+improve error message and inherit stderr as suggested by Florian - Christian Grothoff
+
+Sat, 28 Aug 2021 18:42:53 +0200 (c6528ac77)
+debian: systemd installation - Florian Dold
+
+Sat, 28 Aug 2021 18:31:33 +0200 (eacbf5923)
+debian: clean up - Florian Dold
+
+Sat, 28 Aug 2021 18:27:45 +0200 (ec6b80f07)
+debian: more fixes and formatting - Florian Dold
+
+Sat, 28 Aug 2021 18:27:11 +0200 (830bc7ab2)
+debian: more fixes - Florian Dold
+
+Sat, 28 Aug 2021 18:23:05 +0200 (941ea7f20)
+debian: various packaging fixes - Florian Dold
+
+Sat, 28 Aug 2021 17:46:26 +0200 (b317b3e11)
+use ISO 8609 / RFC 3339 timestamps for logging - Florian Dold
+
 Sat, 28 Aug 2021 16:54:38 +0200 (e74fadf93)
 release GNUnet 0.15.3 - Christian Grothoff
 
