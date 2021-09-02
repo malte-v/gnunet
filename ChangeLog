@@ -1,3 +1,48 @@
+Tue, 24 Aug 2021 16:12:34 +0200 (a0e689f5e)
+debian: libgnunet-dev should not depend on GNUnet - Florian Dold
+
+Sun, 8 Aug 2021 22:10:55 +0200 (b71740271)
+debian: do not pollute skel (see Debian Policy Section 10.7.5.) - Florian Dold
+
+Sun, 8 Aug 2021 21:20:09 +0200 (2de19bb85)
+debian: leave out debian version '0', as lintian complains - Florian Dold
+
+Sun, 8 Aug 2021 21:14:42 +0200 (788f1edbe)
+debian: bump version (0.15.0-1) - Florian Dold
+
+Fri, 6 Aug 2021 11:56:36 +0200 (564a1945e)
+debian: bump version - Florian Dold
+
+Wed, 4 Aug 2021 20:41:25 +0200 (ff5075e7f)
+do not generate tautological comparisson warnings for assertions (if gcc/clang version supports them) - Christian Grothoff
+
+Wed, 4 Aug 2021 15:09:17 +0200 (873381c65)
+first cmd for a simple tng test running. part of cleanup and sanity check when starting missing - t3sserakt
+
+Sun, 1 Aug 2021 16:23:32 +0200 (372516f77)
+0 for absolute time is special, and should be treated as such in JSON generation - Christian Grothoff
+
+Sun, 1 Aug 2021 14:53:14 +0200 (c98bf47a8)
+PQ: fix notification API bugs - Christian Grothoff
+
+Sun, 1 Aug 2021 12:26:20 +0200 (2032f3ce3)
+debian: compat level, removal of user units, tweaks - Florian Dold
+
+Sat, 31 Jul 2021 22:42:45 +0200 (d02ea47f5)
+JSON: allow NULL-passing to GNUNET_JSON_pack_data_varsize - Christian Grothoff
+
+Sat, 31 Jul 2021 20:04:51 +0200 (be8bbf724)
+debian: bump version - Florian Dold
+
+Sat, 31 Jul 2021 16:47:33 +0200 (9b3442d2f)
+debian:  Do not remove users/groups in postrm - Florian Dold
+
+Sat, 31 Jul 2021 16:08:36 +0200 (aa0f0adef)
+debian: fix date - Florian Dold
+
+Sat, 31 Jul 2021 12:58:00 +0200 (e3dc68562)
+debian: bump version to 0.14.1-9 - Florian Dold
+
 Fri, 30 Jul 2021 22:20:05 +0200 (dccf60f89)
 config: handle syntax error instead of dereferencing NULL pointer - Florian Dold
 
