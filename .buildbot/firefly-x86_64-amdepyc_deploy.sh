@@ -1,7 +1,6 @@
 #!/bin/bash
 
 # Deploy docs from buildbot
-
 cd doc
 make html
 cd ..
