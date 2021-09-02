@@ -1,3 +1,15 @@
+Sat, 28 Aug 2021 16:54:38 +0200 (e74fadf93)
+release GNUnet 0.15.3 - Christian Grothoff
+
+Sat, 28 Aug 2021 12:54:32 +0200 (1757980da)
+partial fix for problems raised by Alessio on the ML - Christian Grothoff
+
+Sat, 28 Aug 2021 12:50:20 +0200 (66e906c25)
+partial fix for problems raised by Alessio on the ML - Christian Grothoff
+
+Wed, 25 Aug 2021 12:52:12 +0200 (45532e7bc)
+further simplify libgnunetpq event API and implementation, also trigger events on 'loopback' that are not socket-activated - Christian Grothoff
+
 Tue, 24 Aug 2021 16:12:34 +0200 (a0e689f5e)
 debian: libgnunet-dev should not depend on GNUnet - Florian Dold
 
