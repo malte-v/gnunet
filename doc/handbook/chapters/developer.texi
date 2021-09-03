@@ -689,6 +689,7 @@ Here you can find some rules to help you write code for GNUnet.
 @menu
 * Naming conventions::
 * Coding style::
+* Continuous integration::
 * Commit messages and developer branches::
 @end menu
 
@@ -1093,6 +1094,33 @@ fun (short i,
 @end example
 
 @end itemize
+
+@cindex Continuous integration
+@node Continuous integration
+@subsection Continuous integration
+
+The continuous integration buildbot can be found at @uref{https://buildbot.gnunet.org}.
+Repositories need to be enabled by a buildbot admin in order to participate
+in the builds.
+
+The buildbot can be configured to process scripts in your repository root under @code{.buildbot/}:
+
+The files @code{build.sh},  @code{install.sh} and @code{test.sh} are executed
+in order if present. If you want a specific worker to behave differently,
+you can provide a worker specific script, e.g. @code{myworker_build.sh}.
+In this case, the generic step will not be executed.
+
+For the @code{gnunet.git} repository, you may use "!tarball" or "!coverity" in
+your commit messages.
+"!tarball" will trigger a @code{make dist} of the gnunet source and verify that it
+can be compiled. The artifact will then be published to @uref{https://buildbot.gnunet.org/artifacts}.
+This is a good way to create a tarball for a release as it verifies the build
+on another machine.
+
+The "!coverity" trigger will trigger a coverity build and submit the results
+for analysis to coverity: @uref{https://scan.coverity.com/}.
+Only developers with accounts for the GNUnet project on coverity.com are able to
+see the analysis results.
 
 @cindex Commit messages and developer branches
 @node Commit messages and developer branches
