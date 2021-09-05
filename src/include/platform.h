@@ -170,18 +170,12 @@
 #include "compat.h"
 
 #include <locale.h>
-#ifndef FRAMEWORK_BUILD
 #include "gettext.h"
 /**
  * GNU gettext support macro.
  */
 #define _(String) dgettext (PACKAGE, String)
 #define LIBEXTRACTOR_GETTEXT_DOMAIN "libextractor"
-#else
-#include "libintlemu.h"
-#define _(String) dgettext ("org.gnunet.gnunet", String)
-#define LIBEXTRACTOR_GETTEXT_DOMAIN "org.gnunet.libextractor"
-#endif
 
 #include <sys/mman.h>
 
