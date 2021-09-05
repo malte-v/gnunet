@@ -632,6 +632,164 @@ GNUNET_CONFIGURATION_append_value_filename (struct
                                             const char *option,
                                             const char *value);
 
+
+/**
+ * Closure for #GNUNET_CONFIGURATION_config_tool_run()
+ * with settings for what should be done with the
+ * configuration.
+ */
+struct GNUNET_CONFIGURATION_ConfigSettings
+{
+
+  /**
+   * Name of the section
+   */
+  char *section;
+
+  /**
+   * Name of the option
+   */
+  char *option;
+
+  /**
+   * Value to set
+   */
+  char *value;
+
+  /**
+   * Backend to check if the respective plugin is
+   * loadable. NULL if no check is to be performed.
+   * The value is the "basename" of the plugin to load.
+   */
+  char *backend_check;
+
+  /**
+   * Treat option as a filename.
+   */
+  int is_filename;
+
+  /**
+   * Whether to show the sections.
+   */
+  int list_sections;
+
+  /**
+   * Should we write out the configuration file, even if no value was changed?
+   */
+  int rewrite;
+
+  /**
+   * Should we give extra diagnostics?
+   */
+  int diagnostics;
+
+  /**
+   * Should the generated configuration file contain the whole configuration?
+   */
+  int full;
+
+
+  /**
+   * Return value from the operation, to be returned
+   * from 'main'.
+   */
+  int global_ret;
+
+};
+
+
+/**
+ * Macro that expands to a set of GNUNET-getopt directives
+ * to initialize a `struct GNUNET_CONFIGURATION_ConfigSettings`
+ * from the command line.
+ *
+ * @param cs configuration settings to initialize
+ */
+#define GNUNET_CONFIGURATION_CONFIG_OPTIONS(cs) \
+  GNUNET_GETOPT_option_exclusive ( \
+    GNUNET_GETOPT_option_string ( \
+      'b', \
+      "supported-backend", \
+      "BACKEND", \
+      gettext_noop ( \
+        "test if the current installation supports the specified BACKEND"), \
+      &(cs)->backend_check)), \
+  GNUNET_GETOPT_option_flag ( \
+    'F', \
+    "full", \
+    gettext_noop ( \
+      "write the full configuration file, including default values"), \
+    &(cs)->full), \
+  GNUNET_GETOPT_option_flag ( \
+    'f', \
+    "filename", \
+    gettext_noop ("interpret option value as a filename (with $-expansion)"), \
+    &(cs)->is_filename), \
+  GNUNET_GETOPT_option_string ('o', \
+                               "option", \
+                               "OPTION", \
+                               gettext_noop ("name of the option to access"), \
+                               &(cs)->option), \
+  GNUNET_GETOPT_option_flag ( \
+    'r', \
+    "rewrite", \
+    gettext_noop ( \
+      "rewrite the configuration file, even if nothing changed"), \
+    &(cs)->rewrite), \
+  GNUNET_GETOPT_option_flag ( \
+    'd', \
+    "diagnostics", \
+    gettext_noop ( \
+      "output extra diagnostics"), \
+    &(cs)->diagnostics), \
+  GNUNET_GETOPT_option_flag ('S', \
+                             "list-sections", \
+                             gettext_noop ( \
+                               "print available configuration sections"), \
+                             &(cs)->list_sections), \
+  GNUNET_GETOPT_option_string ('s', \
+                               "section", \
+                               "SECTION", \
+                               gettext_noop ( \
+                                 "name of the section to access"), \
+                               &(cs)->section), \
+  GNUNET_GETOPT_option_string ('V', \
+                               "value", \
+                               "VALUE", \
+                               gettext_noop ("value to set"), \
+                               &(cs)->value)
+
+
+/**
+ * Free resources assoicated with @a cs.
+ *
+ * @param[in] cs settings to free (actual memory
+ *     of @a cs itself is not released)
+ */
+void
+GNUNET_CONFIGURATION_config_settings_free (
+  struct GNUNET_CONFIGURATION_ConfigSettings *cs);
+
+
+/**
+ * Main task to run to perform operations typical for
+ * gnunet-config as per the configuration settings
+ * given in @a cls.
+ *
+ * @param cls closure with the `struct GNUNET_CONFIGURATION_ConfigSettings`
+ * @param args remaining command-line arguments
+ * @param cfgfile name of the configuration file used (for saving,
+ *                                                     can be NULL!)
+ * @param cfg configuration
+ */
+void
+GNUNET_CONFIGURATION_config_tool_run (
+  void *cls,
+  char *const *args,
+  const char *cfgfile,
+  const struct GNUNET_CONFIGURATION_Handle *cfg);
+
+
 #if 0                           /* keep Emacsens' auto-indent happy */
 {
 #endif
