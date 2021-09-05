@@ -1,4 +1,4 @@
-1/*
+/*
      This file is part of GNUnet.
      Copyright (C) 2006, 2008, 2009, 2018 GNUnet e.V.
 
