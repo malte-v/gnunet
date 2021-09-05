@@ -642,6 +642,14 @@ struct GNUNET_CONFIGURATION_ConfigSettings
 {
 
   /**
+   * Must be set to the API version, i.e.
+   * #GNUNET_UTIL_VERSION. Used to detect
+   * which version of the struct the client
+   * is using.
+   */
+  unsigned int api_version;
+
+  /**
    * Name of the section
    */
   char *section;
@@ -655,13 +663,6 @@ struct GNUNET_CONFIGURATION_ConfigSettings
    * Value to set
    */
   char *value;
-
-  /**
-   * Backend to check if the respective plugin is
-   * loadable. NULL if no check is to be performed.
-   * The value is the "basename" of the plugin to load.
-   */
-  char *backend_check;
 
   /**
    * Treat option as a filename.
@@ -706,14 +707,6 @@ struct GNUNET_CONFIGURATION_ConfigSettings
  * @param cs configuration settings to initialize
  */
 #define GNUNET_CONFIGURATION_CONFIG_OPTIONS(cs) \
-  GNUNET_GETOPT_option_exclusive ( \
-    GNUNET_GETOPT_option_string ( \
-      'b', \
-      "supported-backend", \
-      "BACKEND", \
-      gettext_noop ( \
-        "test if the current installation supports the specified BACKEND"), \
-      &(cs)->backend_check)), \
   GNUNET_GETOPT_option_flag ( \
     'F', \
     "full", \

@@ -115,19 +115,6 @@ GNUNET_CONFIGURATION_config_tool_run (
   struct GNUNET_CONFIGURATION_Handle *ncfg = NULL;
 
   (void) args;
-  if (NULL != cs->backend_check)
-  {
-    char *name;
-
-    GNUNET_asprintf (&name,
-                     "libgnunet_plugin_%s",
-                     cs->backend_check);
-    cs->global_ret = (GNUNET_OK ==
-                      GNUNET_PLUGIN_test (name)) ? 0 : 77;
-    GNUNET_free (name);
-    return;
-  }
-
   if (cs->diagnostics)
   {
     /* Re-parse the configuration with diagnostics enabled. */
@@ -309,7 +296,6 @@ GNUNET_CONFIGURATION_config_settings_free (
   GNUNET_free (cs->option);
   GNUNET_free (cs->section);
   GNUNET_free (cs->value);
-  GNUNET_free (cs->backend_check);
 }
 
 

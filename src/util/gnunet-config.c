@@ -28,6 +28,52 @@
 
 
 /**
+ * Backend to check if the respective plugin is
+ * loadable. NULL if no check is to be performed.
+ * The value is the "basename" of the plugin to load.
+ */
+static char *backend_check;
+
+
+/**
+ * Main task to run to perform operations typical for
+ * gnunet-config as per the configuration settings
+ * given in @a cls.
+ *
+ * @param cls closure with the `struct GNUNET_CONFIGURATION_ConfigSettings`
+ * @param args remaining command-line arguments
+ * @param cfgfile name of the configuration file used (for saving,
+ *                                                     can be NULL!)
+ * @param cfg configuration
+ */
+static void
+run (void *cls,
+     char *const *args,
+     const char *cfgfile,
+     const struct GNUNET_CONFIGURATION_Handle *cfg)
+{
+  struct GNUNET_CONFIGURATION_ConfigSettings *cs = cls;
+
+  if (NULL != backend_check)
+  {
+    char *name;
+
+    GNUNET_asprintf (&name,
+                     "libgnunet_plugin_%s",
+                     backend_check);
+    cs->global_ret = (GNUNET_OK ==
+                      GNUNET_PLUGIN_test (name)) ? 0 : 77;
+    GNUNET_free (name);
+    return;
+  }
+  GNUNET_CONFIGURATION_config_tool_run (cs,
+                                        args,
+                                        cfgfile,
+                                        cfg);
+}
+
+
+/**
  * Program to manipulate configuration files.
  *
  * @param argc number of arguments from the command line
@@ -39,9 +85,18 @@ main (int argc,
       char *const *argv)
 {
   struct GNUNET_CONFIGURATION_ConfigSettings cs = {
+    .api_version = GNUNET_UTIL_VERSION,
     .global_ret = EXIT_SUCCESS
   };
   struct GNUNET_GETOPT_CommandLineOption options[] = {
+    GNUNET_GETOPT_option_exclusive (
+      GNUNET_GETOPT_option_string (
+        'b',
+        "supported-backend",
+        "BACKEND",
+        gettext_noop (
+          "test if the current installation supports the specified BACKEND"),
+        &backend_check)),
     GNUNET_CONFIGURATION_CONFIG_OPTIONS (&cs),
     GNUNET_GETOPT_OPTION_END
   };
@@ -57,7 +112,7 @@ main (int argc,
                         "gnunet-config [OPTIONS]",
                         gettext_noop ("Manipulate GNUnet configuration files"),
                         options,
-                        &GNUNET_CONFIGURATION_config_tool_run,
+                        &run,
                         &cs);
   GNUNET_free_nz ((void *) argv);
   GNUNET_CONFIGURATION_config_settings_free (&cs);
