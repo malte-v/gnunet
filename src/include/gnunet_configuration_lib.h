@@ -1,4 +1,4 @@
-/*
+1/*
      This file is part of GNUnet.
      Copyright (C) 2006, 2008, 2009, 2018 GNUnet e.V.
 
@@ -754,7 +754,7 @@ struct GNUNET_CONFIGURATION_ConfigSettings
 
 
 /**
- * Free resources assoicated with @a cs.
+ * Free resources associated with @a cs.
  *
  * @param[in] cs settings to free (actual memory
  *     of @a cs itself is not released)
