@@ -40,10 +40,12 @@ static char *backend_check;
  */
 static int cflags;
 
+
 /**
  * If printing the value of LIBS has been requested.
  */
 static int libs;
+
 
 /**
  * If printing the value of PREFIX has been requested.
@@ -75,6 +77,7 @@ run (void *cls,
   {
     char *prefixdir = GNUNET_OS_installation_get_path (GNUNET_OS_IPK_PREFIX);
     char *libdir = GNUNET_OS_installation_get_path (GNUNET_OS_IPK_LIBDIR);
+
     if (1 == cflags)
     {
       fprintf (stdout, "-I%sinclude\n", prefixdir);
@@ -87,6 +90,7 @@ run (void *cls,
     {
       fprintf (stdout, "%s\n", prefixdir);
     }
+    cs->global_ret = 0;
     GNUNET_free (prefixdir);
     GNUNET_free (libdir);
     return;
