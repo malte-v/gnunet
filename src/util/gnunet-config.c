@@ -134,21 +134,24 @@ main (int argc,
         gettext_noop (
           "test if the current installation supports the specified BACKEND"),
         &backend_check)),
-    GNUNET_GETOPT_option_flag ('C',
-                               "cflags",
-                               gettext_noop (
-                                 "Provide an appropriate value for CFLAGS to applications building on top of GNUnet"),
-                               &cflags),
-    GNUNET_GETOPT_option_flag ('j',
-                               "libs",
-                               gettext_noop (
-                                 "Provide an appropriate value for LIBS to applications building on top of GNUnet"),
-                               &libs),
-    GNUNET_GETOPT_option_flag ('p',
-                               "prefix",
-                               gettext_noop (
-                                 "Provide the path under which GNUnet was installed"),
-                               &prefix),
+    GNUNET_GETOPT_option_flag (
+      'C',
+      "cflags",
+      gettext_noop (
+        "Provide an appropriate value for CFLAGS to applications building on top of GNUnet"),
+      &cflags),
+    GNUNET_GETOPT_option_flag (
+      'j',
+      "libs",
+      gettext_noop (
+        "Provide an appropriate value for LIBS to applications building on top of GNUnet"),
+      &libs),
+    GNUNET_GETOPT_option_flag (
+      'p',
+      "prefix",
+      gettext_noop (
+        "Provide the path under which GNUnet was installed"),
+      &prefix),
     GNUNET_CONFIGURATION_CONFIG_OPTIONS (&cs),
     GNUNET_GETOPT_OPTION_END
   };
