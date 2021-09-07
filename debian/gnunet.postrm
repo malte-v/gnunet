@@ -2,25 +2,12 @@
 
 set -e
 
-pathfind() {
-	OLDIFS="$IFS"
-	IFS=:
-	for p in $PATH; do
-		if [ -x "$p/$*" ]; then
-			IFS="$OLDIFS"
-			return 0
-		fi
-	done
-	IFS="$OLDIFS"
-	return 1
-}
-
 remove_gns() {
-	# abort if /etc/nsswitch.conf does not exist
-	if ! [ -e /etc/nsswitch.conf ]; then
-		return
-	fi
-	perl -i -pe '
+  # abort if /etc/nsswitch.conf does not exist
+  if ! [ -e /etc/nsswitch.conf ]; then
+    return
+  fi
+  perl -i -pe '
 		my @remove=(
 			"gns [NOTFOUND=return]",
 		);
@@ -35,67 +22,44 @@ remove_gns() {
 	' /etc/nsswitch.conf
 }
 
+_USERNAME="gnunet"
+_GROUPNAME="gnunet"
+GNUNETDNS_GROUP="gnunetdns"
+if [ -e /usr/share/debconf/confmodule ]; then
+  . /usr/share/debconf/confmodule
+  db_version 2.0
+
+  db_get gnunet-dns/libnsswitch
+  _LIBNSSWITCH="${RET}"
+fi
 
 case "${1}" in
-	purge)
-		if [ -e /usr/share/debconf/confmodule ]
-		then
-			. /usr/share/debconf/confmodule
-			db_version 2.0
+purge)
+  if $_LIBNSSWITCH; then
+    rm -rf /usr/lib/x86_64-linux-gnu/usr/libnss_gns.so.2
+    rm -rf /usr/lib/x86_64-linux-gnu/usr/libnss_gns4.so.2
+    rm -rf /usr/lib/x86_64-linux-gnu/usr/libnss_gns6.so.2
+    remove_gns
+  fi
 
-			db_get gnunet-systempeer/username
-			_USERNAME="${RET:-gnunet}"
+  rm -rf /var/log/gnunet.log /var/lib/gnunet /etc/default/gnunet
+  ;;
 
-			db_get gnunet-systempeer/groupname
-			_GROUPNAME="${RET:-gnunet}"
+remove | upgrade | failed-upgrade | abort-install | abort-upgrade | disappear)
 
-			db_get gnunet-dns/libnsswitch
-			_LIBNSSWITCH="${RET}"
-		else
-			_USERNAME="gnunet"
-			_GROUPNAME="gnunet"
-		fi
+  if $_LIBNSSWITCH; then
+    rm -rf /usr/lib/x86_64-linux-gnu/usr/libnss_gns.so.2
+    rm -rf /usr/lib/x86_64-linux-gnu/usr/libnss_gns4.so.2
+    rm -rf /usr/lib/x86_64-linux-gnu/usr/libnss_gns6.so.2
+    remove_gns
+  fi
 
-		GNUNETDNS_GROUP="gnunetdns"
+  ;;
 
-		if $_LIBNSSWITCH
-		then
-			rm -rf /usr/lib/x86_64-linux-gnu/usr/libnss_gns.so.2
-			rm -rf /usr/lib/x86_64-linux-gnu/usr/libnss_gns4.so.2
-			rm -rf /usr/lib/x86_64-linux-gnu/usr/libnss_gns6.so.2
-			remove_gns
-		fi
-
-		if pathfind deluser
-		then
-			deluser --quiet --system ${_USERNAME} || true
-		fi
-
-		if pathfind delgroup
-		then
-			delgroup --quiet --system --only-if-empty ${_GROUPNAME} || true
-			delgroup --quiet --system --only-if-empty ${GNUNETDNS_GROUP} || true
-		fi
-
-		rm -rf /var/log/gnunet.log /var/lib/gnunet /etc/default/gnunet
-		;;
-
-	remove|upgrade|failed-upgrade|abort-install|abort-upgrade|disappear)
-
-		if $_LIBNSSWITCH
-		then
-			rm -rf /usr/lib/x86_64-linux-gnu/usr/libnss_gns.so.2
-			rm -rf /usr/lib/x86_64-linux-gnu/usr/libnss_gns4.so.2
-			rm -rf /usr/lib/x86_64-linux-gnu/usr/libnss_gns6.so.2
-			remove_gns
-		fi
-
-		;;
-
-	*)
-		echo "postrm called with unknown argument \`${1}'" >&2
-		exit 1
-		;;
+*)
+  echo "postrm called with unknown argument \`${1}'" >&2
+  exit 1
+  ;;
 esac
 
 #DEBHELPER#

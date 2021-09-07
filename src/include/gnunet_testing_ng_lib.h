@@ -838,8 +838,82 @@ GNUNET_TESTING_get_trait_test_system (const struct
                                       GNUNET_TESTING_Command *cmd,
                                       struct GNUNET_TESTING_System **test_system);
 
+
 struct GNUNET_TESTING_Command
 GNUNET_TESTING_cmd_system_create (const char *label,
                                   const char *testdir);
 
+
+struct GNUNET_TESTING_Command
+GNUNET_TESTING_cmd_system_destroy (const char *label,
+                                   const char *create_label);
+
+
+/**
+ * Create command.
+ *
+ * @param label name for command.
+ * @param binaryname to start.
+ * @return command.
+ */
+struct GNUNET_TESTING_Command
+GNUNET_TESTING_cmd_netjail_start (const char *label,
+                                  char *local_m,
+                                  char *global_n);
+
+
+/**
+ * Create command.
+ *
+ * @param label name for command.
+ * @param binaryname to exec.
+ * @return command.
+ */
+struct GNUNET_TESTING_Command
+GNUNET_TESTING_cmd_netjail_start_testing_system (const char *label,
+                                                 char *local_m,
+                                                 char *global_n,
+                                                 char *plugin_name,
+                                                 unsigned int *rv);
+
+
+/**
+ * Create command.
+ *
+ * @param label name for command.
+ * @param binaryname to stop.
+ * @return command.
+ */
+struct GNUNET_TESTING_Command
+GNUNET_TESTING_cmd_netjail_stop (const char *label,
+                                 char *local_m,
+                                 char *global_n);
+
+
+struct GNUNET_TESTING_Command
+GNUNET_TESTING_cmd_stop_testing_system (const char *label,
+                                        const char *helper_start_label,
+                                        char *local_m,
+                                        char *global_n);
+
+
+int
+GNUNET_TESTING_get_trait_helper_handles (const struct
+                                         GNUNET_TESTING_Command *cmd,
+                                         struct GNUNET_HELPER_Handle ***helper);
+
+
+struct GNUNET_TESTING_Command
+GNUNET_TESTING_cmd_block_until_all_peers_started (const char *label,
+                                                  unsigned int *
+                                                  all_peers_started);
+
+struct GNUNET_TESTING_Command
+GNUNET_TESTING_cmd_send_peer_ready (const char *label,
+                                    TESTING_CMD_HELPER_write_cb write_message);
+
+struct GNUNET_TESTING_Command
+GNUNET_TESTING_cmd_local_test_finished (const char *label,
+                                        TESTING_CMD_HELPER_write_cb
+                                        write_message);
 #endif

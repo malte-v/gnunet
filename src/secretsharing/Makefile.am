@@ -24,6 +24,7 @@ gnunet_secretsharing_profiler_SOURCES = \
  gnunet-secretsharing-profiler.c
 gnunet_secretsharing_profiler_LDADD = \
   libgnunetsecretsharing.la \
+  $(top_builddir)/src/testing/libgnunettesting.la \
   $(top_builddir)/src/testbed/libgnunettestbed.la \
   $(top_builddir)/src/util/libgnunetutil.la \
   $(GN_LIBINTL)

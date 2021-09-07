@@ -29,8 +29,8 @@
 
 /**
  * Handle for an active LISTENer to the database.
- */ 
-struct GNUNET_PQ_EventHandler
+ */
+struct GNUNET_DB_EventHandler
 {
   /**
    * Channel name.
@@ -40,7 +40,7 @@ struct GNUNET_PQ_EventHandler
   /**
    * Function to call on events.
    */
-  GNUNET_PQ_EventCallback cb;
+  GNUNET_DB_EventCallback cb;
 
   /**
    * Closure for @e cb.
@@ -51,9 +51,12 @@ struct GNUNET_PQ_EventHandler
    * Database context this event handler is with.
    */
   struct GNUNET_PQ_Context *db;
+
+  /**
+   * Task to run on timeout.
+   */
+  struct GNUNET_SCHEDULER_Task *timeout_task;
 };
-
-
 
 
 /**
@@ -63,7 +66,7 @@ struct GNUNET_PQ_EventHandler
  * @param[out] sh short hash to set
  */
 static void
-es_to_sh (const struct GNUNET_PQ_EventHeaderP *es,
+es_to_sh (const struct GNUNET_DB_EventHeaderP *es,
           struct GNUNET_ShortHashCode *sh)
 {
   struct GNUNET_HashCode h_channel;
@@ -103,6 +106,24 @@ sh_to_channel (struct GNUNET_ShortHashCode *sh,
 
 
 /**
+ * Convert @a sh to a Postgres identifier.
+ *
+ * @param identifier to convert
+ * @param[out] sh set to short hash
+ * @return #GNUNET_OK on success
+ */
+static enum GNUNET_GenericReturnValue
+channel_to_sh (const char *identifier,
+               struct GNUNET_ShortHashCode *sh)
+{
+  return GNUNET_STRINGS_string_to_data (identifier,
+                                        strlen (identifier),
+                                        sh,
+                                        sizeof (*sh));
+}
+
+
+/**
  * Convert @a es to a Postgres identifier.
  *
  * @param es spec to hash to an identifier
@@ -111,7 +132,7 @@ sh_to_channel (struct GNUNET_ShortHashCode *sh,
  * @return end position of the identifier
  */
 static char *
-es_to_channel (const struct GNUNET_PQ_EventHeaderP *es,
+es_to_channel (const struct GNUNET_DB_EventHeaderP *es,
                char identifier[64])
 {
   struct GNUNET_ShortHashCode sh;
@@ -141,12 +162,12 @@ struct NotifyContext
 
 
 /**
- * Function called on every event handler that 
+ * Function called on every event handler that
  * needs to be triggered.
  *
  * @param cls a `struct NotifyContext`
  * @param sh channel name
- * @param value a `struct GNUNET_PQ_EventHandler`
+ * @param value a `struct GNUNET_DB_EventHandler`
  * @return #GNUNET_OK continue to iterate
  */
 static int
@@ -155,45 +176,27 @@ do_notify (void *cls,
            void *value)
 {
   struct NotifyContext *ctx = cls;
-  struct GNUNET_PQ_EventHandler *eh = value;
+  struct GNUNET_DB_EventHandler *eh = value;
 
   eh->cb (eh->cb_cls,
           ctx->extra,
           ctx->extra_size);
   return GNUNET_OK;
-} 
-
-
-void
-GNUNET_PQ_event_set_socket_callback (struct GNUNET_PQ_Context *db,
-                                     GNUNET_PQ_SocketCallback sc,
-                                     void *sc_cls)
-{
-  int fd;
-
-  db->sc = sc;
-  db->sc_cls = sc_cls;
-  if (NULL == sc)
-    return;
-  GNUNET_assert (0 ==
-                 pthread_mutex_lock (&db->notify_lock));
-  fd = PQsocket (db->conn);
-  if ( (-1 != fd) &&
-       (0 != GNUNET_CONTAINER_multishortmap_size (db->channel_map)) )
-    sc (sc_cls,
-        fd);
-  GNUNET_assert (0 ==
-                 pthread_mutex_unlock (&db->notify_lock));
 }
 
 
-void
-GNUNET_PQ_event_do_poll (struct GNUNET_PQ_Context *db)
+static void
+event_do_poll (struct GNUNET_PQ_Context *db)
 {
   PGnotify *n;
 
-  GNUNET_assert (0 ==
-                 pthread_mutex_lock (&db->notify_lock));
+  GNUNET_log (GNUNET_ERROR_TYPE_INFO,
+              "PG poll job active\n");
+  if (1 !=
+      PQconsumeInput (db->conn))
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                "Failed to read from Postgres: %s\n",
+                PQerrorMessage (db->conn));
   while (NULL != (n = PQnotifies (db->conn)))
   {
     struct GNUNET_ShortHashCode sh;
@@ -201,15 +204,22 @@ GNUNET_PQ_event_do_poll (struct GNUNET_PQ_Context *db)
       .extra = NULL
     };
 
-    if (GNUNET_OK !=
-        GNUNET_STRINGS_string_to_data (n->relname,
-                                       strlen (n->relname),
-                                       &sh,
-                                       sizeof (sh)))
+    if ('X' != toupper ((int) n->relname[0]))
     {
       GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
                   "Ignoring notification for unsupported channel identifier `%s'\n",
                   n->relname);
+      PQfreemem (n);
+      continue;
+    }
+    if (GNUNET_OK !=
+        channel_to_sh (&n->relname[1],
+                       &sh))
+    {
+      GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
+                  "Ignoring notification for unsupported channel identifier `%s'\n",
+                  n->relname);
+      PQfreemem (n);
       continue;
     }
     if ( (NULL != n->extra) &&
@@ -223,36 +233,97 @@ GNUNET_PQ_event_do_poll (struct GNUNET_PQ_Context *db)
                   "Ignoring notification for unsupported extra data `%s' on channel `%s'\n",
                   n->extra,
                   n->relname);
+      PQfreemem (n);
       continue;
     }
-    GNUNET_CONTAINER_multishortmap_iterate (db->channel_map,
-                                            &do_notify,
-                                            &ctx);
+    GNUNET_log (GNUNET_ERROR_TYPE_INFO,
+                "Received notification %s with extra data `%.*s'\n",
+                n->relname,
+                (int) ctx.extra_size,
+                (const char *) ctx.extra);
+    GNUNET_CONTAINER_multishortmap_get_multiple (db->channel_map,
+                                                 &sh,
+                                                 &do_notify,
+                                                 &ctx);
     GNUNET_free (ctx.extra);
+    PQfreemem (n);
   }
-  GNUNET_assert (0 ==
-                 pthread_mutex_unlock (&db->notify_lock));
 }
 
 
-void
-GNUNET_PQ_event_scheduler_start (struct GNUNET_PQ_Context *db)
+/**
+ * The GNUnet scheduler notifies us that we need to
+ * trigger the DB event poller.
+ *
+ * @param cls a `struct GNUNET_PQ_Context *`
+ */
+static void
+do_scheduler_notify (void *cls)
 {
-  GNUNET_break (0); // FIXME: not implemented
+  struct GNUNET_PQ_Context *db = cls;
+
+  db->event_task = NULL;
+  GNUNET_assert (NULL != db->rfd);
+  event_do_poll (db);
+  GNUNET_log (GNUNET_ERROR_TYPE_INFO,
+              "Resubscribing\n");
+  db->event_task
+    = GNUNET_SCHEDULER_add_read_net (GNUNET_TIME_UNIT_FOREVER_REL,
+                                     db->rfd,
+                                     &do_scheduler_notify,
+                                     db);
 }
 
 
-void
-GNUNET_PQ_event_scheduler_stop (struct GNUNET_PQ_Context *db)
+/**
+ * Function called when the Postgres FD changes and we need
+ * to update the scheduler event loop task.
+ *
+ * @param cls a `struct GNUNET_PQ_Context *`
+ * @param fd the file descriptor, possibly -1
+ */
+static void
+scheduler_fd_cb (void *cls,
+                 int fd)
 {
-  GNUNET_break (0); // FIXME: not implemented
+  struct GNUNET_PQ_Context *db = cls;
+
+  GNUNET_log (GNUNET_ERROR_TYPE_INFO,
+              "New poll FD is %d\n",
+              fd);
+  if (NULL != db->event_task)
+  {
+    GNUNET_SCHEDULER_cancel (db->event_task);
+    db->event_task = NULL;
+  }
+  GNUNET_free (db->rfd);
+  if (-1 == fd)
+    return;
+  if (0 == GNUNET_CONTAINER_multishortmap_size (db->channel_map))
+    return;
+  GNUNET_log (GNUNET_ERROR_TYPE_INFO,
+              "Activating poll job on %d\n",
+              fd);
+  db->rfd = GNUNET_NETWORK_socket_box_native (fd);
+  db->event_task
+    = GNUNET_SCHEDULER_add_read_net (GNUNET_TIME_UNIT_ZERO,
+                                     db->rfd,
+                                     &do_scheduler_notify,
+                                     db);
 }
 
 
+/**
+ * Helper function to trigger an SQL @a cmd on @a db
+ *
+ * @param db database to send command to
+ * @param cmd prefix of the command to send
+ * @param eh details about the event
+ */
 static void
 manage_subscribe (struct GNUNET_PQ_Context *db,
                   const char *cmd,
-                  struct GNUNET_PQ_EventHandler *eh)
+                  struct GNUNET_DB_EventHandler *eh)
 {
   char sql[16 + 64];
   char *end;
@@ -262,6 +333,9 @@ manage_subscribe (struct GNUNET_PQ_Context *db,
                 cmd);
   end = sh_to_channel (&eh->sh,
                        end);
+  GNUNET_log (GNUNET_ERROR_TYPE_INFO,
+              "Executing PQ command `%s'\n",
+              sql);
   result = PQexec (db->conn,
                    sql);
   if (PGRES_COMMAND_OK != PQresultStatus (result))
@@ -282,76 +356,134 @@ manage_subscribe (struct GNUNET_PQ_Context *db,
 }
 
 
-struct GNUNET_PQ_EventHandler *
+/**
+ * Re-subscribe to notifications after disconnect.
+ *
+ * @param cls the DB context
+ * @param sh the short hash of the channel
+ * @param eh the event handler
+ * @return #GNUNET_OK to continue to iterate
+ */
+static int
+register_notify (void *cls,
+                 const struct GNUNET_ShortHashCode *sh,
+                 void *value)
+{
+  struct GNUNET_PQ_Context *db = cls;
+  struct GNUNET_DB_EventHandler *eh = value;
+
+  manage_subscribe (db,
+                    "LISTEN X",
+                    eh);
+  return GNUNET_OK;
+}
+
+
+void
+GNUNET_PQ_event_reconnect_ (struct GNUNET_PQ_Context *db,
+                            int fd)
+{
+  GNUNET_log (GNUNET_ERROR_TYPE_INFO,
+              "Change in PQ event FD to %d\n",
+              fd);
+  scheduler_fd_cb (db,
+                   fd);
+  GNUNET_CONTAINER_multishortmap_iterate (db->channel_map,
+                                          &register_notify,
+                                          db);
+}
+
+
+/**
+ * Function run on timeout for an event. Triggers
+ * the notification, but does NOT clear the handler.
+ *
+ * @param cls a `struct GNUNET_DB_EventHandler *`
+ */
+static void
+event_timeout (void *cls)
+{
+  struct GNUNET_DB_EventHandler *eh = cls;
+
+  eh->timeout_task = NULL;
+  eh->cb (eh->cb_cls,
+          NULL,
+          0);
+}
+
+
+struct GNUNET_DB_EventHandler *
 GNUNET_PQ_event_listen (struct GNUNET_PQ_Context *db,
-                        const struct GNUNET_PQ_EventHeaderP *es,
-                        GNUNET_PQ_EventCallback cb,
+                        const struct GNUNET_DB_EventHeaderP *es,
+                        struct GNUNET_TIME_Relative timeout,
+                        GNUNET_DB_EventCallback cb,
                         void *cb_cls)
 {
-  struct GNUNET_PQ_EventHandler *eh;
-  bool was_zero;
+  struct GNUNET_DB_EventHandler *eh;
 
-  eh = GNUNET_new (struct GNUNET_PQ_EventHandler);
+  eh = GNUNET_new (struct GNUNET_DB_EventHandler);
   eh->db = db;
   es_to_sh (es,
             &eh->sh);
   eh->cb = cb;
   eh->cb_cls = cb_cls;
-  GNUNET_assert (0 ==
-                 pthread_mutex_lock (&db->notify_lock));
-  was_zero = (0 == GNUNET_CONTAINER_multishortmap_size (db->channel_map));
   GNUNET_assert (GNUNET_OK ==
                  GNUNET_CONTAINER_multishortmap_put (db->channel_map,
-                                                         &eh->sh,
-                                                         eh,
-                                                         GNUNET_CONTAINER_MULTIHASHMAPOPTION_MULTIPLE));
-  if ( (NULL != db->sc) &&
-       was_zero)
+                                                     &eh->sh,
+                                                     eh,
+                                                     GNUNET_CONTAINER_MULTIHASHMAPOPTION_MULTIPLE));
+  if (NULL == db->event_task)
   {
-    int fd = PQsocket (db->conn);
-    
-    if (-1 != fd)
-      db->sc (db->sc_cls,
-              fd);
+    GNUNET_log (GNUNET_ERROR_TYPE_INFO,
+                "Starting event scheduler\n");
+    scheduler_fd_cb (db,
+                     PQsocket (db->conn));
   }
   manage_subscribe (db,
-                    "LISTEN ",
+                    "LISTEN X",
                     eh);
-  GNUNET_assert (0 ==
-                 pthread_mutex_unlock (&db->notify_lock));
+  eh->timeout_task = GNUNET_SCHEDULER_add_delayed (timeout,
+                                                   &event_timeout,
+                                                   eh);
   return eh;
 }
 
 
 void
-GNUNET_PQ_event_listen_cancel (struct GNUNET_PQ_EventHandler *eh)
+GNUNET_PQ_event_listen_cancel (struct GNUNET_DB_EventHandler *eh)
 {
   struct GNUNET_PQ_Context *db = eh->db;
 
-  GNUNET_assert (0 ==
-                 pthread_mutex_lock (&db->notify_lock));
   GNUNET_assert (GNUNET_OK ==
                  GNUNET_CONTAINER_multishortmap_remove (db->channel_map,
-                                                    &eh->sh,
-                                                    eh));
-    
+                                                        &eh->sh,
+                                                        eh));
   manage_subscribe (db,
-                    "UNLISTEN ",
+                    "UNLISTEN X",
                     eh);
-  if ( (NULL != db->sc) &&
-       (0 == GNUNET_CONTAINER_multishortmap_size (db->channel_map)) )
+  if (0 == GNUNET_CONTAINER_multishortmap_size (db->channel_map))
   {
-    db->sc (db->sc_cls,
-            -1);
+    GNUNET_log (GNUNET_ERROR_TYPE_INFO,
+                "Stopping PQ event scheduler job\n");
+    GNUNET_free (db->rfd);
+    if (NULL != db->event_task)
+    {
+      GNUNET_SCHEDULER_cancel (db->event_task);
+      db->event_task = NULL;
+    }
   }
-  GNUNET_assert (0 ==
-                 pthread_mutex_unlock (&db->notify_lock));
+  if (NULL != eh->timeout_task)
+  {
+    GNUNET_SCHEDULER_cancel (eh->timeout_task);
+    eh->timeout_task = NULL;
+  }
+  GNUNET_free (eh);
 }
 
 
 void
 GNUNET_PQ_event_notify (struct GNUNET_PQ_Context *db,
-                        const struct GNUNET_PQ_EventHeaderP *es,
+                        const struct GNUNET_DB_EventHeaderP *es,
                         const void *extra,
                         size_t extra_size)
 {
@@ -360,11 +492,11 @@ GNUNET_PQ_event_notify (struct GNUNET_PQ_Context *db,
   PGresult *result;
 
   end = stpcpy (sql,
-                "NOTIFY ");
+                "NOTIFY X");
   end = es_to_channel (es,
                        end);
   end = stpcpy (end,
-                "'");
+                ", '");
   end = GNUNET_STRINGS_data_to_string (extra,
                                        extra_size,
                                        end,
@@ -373,6 +505,9 @@ GNUNET_PQ_event_notify (struct GNUNET_PQ_Context *db,
   *end = '\0';
   end = stpcpy (end,
                 "'");
+  GNUNET_log (GNUNET_ERROR_TYPE_INFO,
+              "Executing command `%s'\n",
+              sql);
   result = PQexec (db->conn,
                    sql);
   if (PGRES_COMMAND_OK != PQresultStatus (result))
@@ -390,7 +525,8 @@ GNUNET_PQ_event_notify (struct GNUNET_PQ_Context *db,
                      PQerrorMessage (db->conn));
   }
   PQclear (result);
+  event_do_poll (db);
 }
 
-/* end of pq_event.c */
 
+/* end of pq_event.c */

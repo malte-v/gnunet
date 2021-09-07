@@ -729,7 +729,7 @@ postgres_plugin_get_expiration (void *cls,
                                 void *proc_cls)
 {
   struct Plugin *plugin = cls;
-  struct GNUNET_TIME_Absolute now;
+  struct GNUNET_TIME_Absolute now = { 0 };
   struct GNUNET_PQ_QueryParam params[] = {
     GNUNET_PQ_query_param_absolute_time (&now),
     GNUNET_PQ_query_param_end

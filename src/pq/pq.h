@@ -28,6 +28,7 @@
 #include "gnunet_util_lib.h"
 #include "gnunet_pq_lib.h"
 
+
 /**
  * Handle to Postgres database.
  */
@@ -59,24 +60,32 @@ struct GNUNET_PQ_Context
   char *load_path;
 
   /**
-   * Function to call on Postgres FDs.
-   */
-  GNUNET_PQ_SocketCallback sc;
-
-  /**
-   * Closure for @e sc.
-   */
-  void *sc_cls;
-
-  /**
    * Map managing event subscriptions.
    */
   struct GNUNET_CONTAINER_MultiShortmap *channel_map;
 
   /**
-   * Lock to access @e channel_map.
+   * Task responsible for processing events.
    */
-  pthread_mutex_t notify_lock;
+  struct GNUNET_SCHEDULER_Task *event_task;
+
+  /**
+   * File descriptor wrapper for @e event_task.
+   */
+  struct GNUNET_NETWORK_Handle *rfd;
 };
+
+
+/**
+ * Internal API. Reconnect should re-register notifications
+ * after a disconnect.
+ *
+ * @param db the DB handle
+ * @param fd socket to listen on
+ */
+void
+GNUNET_PQ_event_reconnect_ (struct GNUNET_PQ_Context *db,
+                            int fd);
+
 
 #endif

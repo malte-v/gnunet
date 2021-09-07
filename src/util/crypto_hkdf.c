@@ -77,7 +77,11 @@ static const void *
 doHMAC (gcry_md_hd_t mac, const void *key, size_t key_len, const void *buf,
         size_t buf_len)
 {
-  gcry_md_setkey (mac, key, key_len);
+  if (GPG_ERR_NO_ERROR != gcry_md_setkey (mac, key, key_len))
+  {
+    GNUNET_break (0);
+    return NULL;
+  }
   gcry_md_write (mac, buf, buf_len);
 
   return (const void *) gcry_md_read (mac, 0);

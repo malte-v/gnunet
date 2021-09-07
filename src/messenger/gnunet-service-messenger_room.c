@@ -1144,6 +1144,7 @@ load_room (struct GNUNET_MESSENGER_SrvRoom *room)
     GNUNET_asprintf (&last_messages_file, "%s%s", room_dir, "last_messages.list");
 
     load_message_state(&(room->state), room_dir);
+    GNUNET_free (last_messages_file);
   }
 
   GNUNET_free(room_dir);

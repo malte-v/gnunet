@@ -35,6 +35,9 @@ override_dh_auto_install-arch:
 
 override_dh_auto_install-indep:
 
+override_dh_installsystemd:
+	dh_installsystemd -pgnunet --no-start --no-enable gnunet.service
+
 execute_after_dh_auto_install:
 	dh_link -plibgnunet-dev \
 		usr/lib/$(DEB_HOST_MULTIARCH)/gnunet/nss/libnss_gns.so.2 usr/lib/$(DEB_HOST_MULTIARCH)/libnss_gns.so \
@@ -46,7 +49,9 @@ override_dh_auto_clean:
 	rm -rf contrib/gnunet_janitor.py contrib/gnunet_pyexpect.py libltdl/ \
 		src/integration-tests/*.py
 
-# Remove files already present in libgnunet from main gnunet package
+# Remove files already present in libgnunet from main gnunet package and libgnunet-dev package
 override_dh_install:
 	dh_install
 	cd debian/libgnunet; find . -type f,l -exec rm -f ../gnunet/{} \;
+	cd debian/libgnunet; find . -type f,l -exec rm -f ../libgnunet-dev/{} \;
+	cd debian/gnunet; find . -type f,l -exec rm -f ../libgnunet-dev/{} \;

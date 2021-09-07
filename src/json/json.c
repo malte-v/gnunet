@@ -28,19 +28,6 @@
 #include "gnunet_json_lib.h"
 
 
-/**
- * Navigate and parse data in a JSON tree.  Tries to parse the @a root
- * to find all of the values given in the @a spec.  If one of the
- * entries in @a spec cannot be found or parsed, the name of the JSON
- * field is returned in @a error_json_name, and the offset of the
- * entry in @a spec is returned in @a error_line.
- *
- * @param root the JSON node to start the navigation at.
- * @param spec parse specification array
- * @param[out] error_json_name which JSON field was problematic
- * @param[out] which index into @a spec did we encounter an error
- * @return #GNUNET_OK on success, #GNUNET_SYSERR on error
- */
 enum GNUNET_GenericReturnValue
 GNUNET_JSON_parse (const json_t *root,
                    struct GNUNET_JSON_Specification *spec,
@@ -85,12 +72,6 @@ GNUNET_JSON_parse (const json_t *root,
 }
 
 
-/**
- * Set the "optional" flag for a parser specification entry.
- *
- * @param spec specification to modify
- * @return spec copy of @a spec with optional bit set
- */
 struct GNUNET_JSON_Specification
 GNUNET_JSON_spec_mark_optional (struct GNUNET_JSON_Specification spec)
 {
@@ -101,18 +82,13 @@ GNUNET_JSON_spec_mark_optional (struct GNUNET_JSON_Specification spec)
 }
 
 
-/**
- * Frees all elements allocated during a #GNUNET_JSON_parse()
- * operation.
- *
- * @param spec specification of the parse operation
- */
 void
 GNUNET_JSON_parse_free (struct GNUNET_JSON_Specification *spec)
 {
   for (unsigned int i = 0; NULL != spec[i].parser; i++)
     if (NULL != spec[i].cleaner)
-      spec[i].cleaner (spec[i].cls, &spec[i]);
+      spec[i].cleaner (spec[i].cls,
+                       &spec[i]);
 }
 
 
@@ -151,15 +127,6 @@ set_json (struct GNUNET_GETOPT_CommandLineProcessorContext *ctx,
 }
 
 
-/**
- * Allow user to specify a JSON input value.
- *
- * @param shortName short name of the option
- * @param name long name of the option
- * @param argumentHelp help text for the option argument
- * @param description long help text for the option
- * @param[out] val set to the JSON specified at the command line
- */
 struct GNUNET_GETOPT_CommandLineOption
 GNUNET_JSON_getopt (char shortName,
                     const char *name,

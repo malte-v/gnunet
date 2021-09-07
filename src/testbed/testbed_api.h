@@ -37,11 +37,6 @@
  */
 #define HELPER_TESTBED_BINARY "gnunet-helper-testbed"
 
-/**
- * Cmds Helper binary name
- */
-#define HELPER_CMDS_BINARY "gnunet-cmds-helper"
-
 
 /**
  * Enumeration of operations
@@ -184,6 +179,7 @@ struct OperationContext
  */
 typedef void
 (*TESTBED_opcq_empty_cb) (void *cls);
+
 
 /**
  * Handle to interact with a GNUnet testbed controller.  Each

@@ -24,6 +24,7 @@
  */
 #include "platform.h"
 #include "pq.h"
+#include <pthread.h>
 
 
 /**
@@ -63,28 +64,6 @@ pq_notice_processor_cb (void *arg,
 }
 
 
-/**
- * Create a connection to the Postgres database using @a config_str for the
- * configuration.  Initialize logging via GNUnet's log routines and disable
- * Postgres's logger.  Also ensures that the statements in @a load_path and @a
- * es are executed whenever we (re)connect to the database, and that the
- * prepared statements in @a ps are "ready".  If statements in @es fail that
- * were created with #GNUNET_PQ_make_execute(), then the entire operation
- * fails.
- *
- * In @a load_path, a list of "$XXXX.sql" files is expected where $XXXX
- * must be a sequence of contiguous integer values starting at 0000.
- * These files are then loaded in sequence using "psql $config_str" before
- * running statements from @e es.  The directory is inspected again on
- * reconnect.
- *
- * @param config_str configuration to use
- * @param load_path path to directory with SQL transactions to run, can be NULL
- * @param es #GNUNET_PQ_PREPARED_STATEMENT_END-terminated
- *            array of statements to execute upon EACH connection, can be NULL
- * @param ps array of prepared statements to prepare, can be NULL
- * @return NULL on error
- */
 struct GNUNET_PQ_Context *
 GNUNET_PQ_connect (const char *config_str,
                    const char *load_path,
@@ -122,6 +101,8 @@ GNUNET_PQ_connect (const char *config_str,
             ps,
             plen * sizeof (struct GNUNET_PQ_PreparedStatement));
   }
+  db->channel_map = GNUNET_CONTAINER_multishortmap_create (16,
+                                                           GNUNET_YES);
   GNUNET_PQ_reconnect (db);
   if (NULL == db->conn)
   {
@@ -142,7 +123,7 @@ GNUNET_PQ_connect (const char *config_str,
  * @param i patch number to append to the @a load_path
  * @return #GNUNET_OK on success, #GNUNET_NO if patch @a i does not exist, #GNUNET_SYSERR on error
  */
-static int
+static enum GNUNET_GenericReturnValue
 apply_patch (struct GNUNET_PQ_Context *db,
              const char *load_path,
              unsigned int i)
@@ -162,7 +143,7 @@ apply_patch (struct GNUNET_PQ_Context *db,
               "Applying SQL file `%s' on database %s\n",
               buf,
               db->config_str);
-  psql = GNUNET_OS_start_process (GNUNET_OS_INHERIT_STD_NONE,
+  psql = GNUNET_OS_start_process (GNUNET_OS_INHERIT_STD_ERR,
                                   NULL,
                                   NULL,
                                   NULL,
@@ -191,7 +172,7 @@ apply_patch (struct GNUNET_PQ_Context *db,
        (0 != code) )
   {
     GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
-                "Could not run PSQL on file %s: %d\n",
+                "Could not run PSQL on file %s: psql exit code was %d\n",
                 buf,
                 (int) code);
     return GNUNET_SYSERR;
@@ -200,15 +181,6 @@ apply_patch (struct GNUNET_PQ_Context *db,
 }
 
 
-/**
- * Within the @a db context, run all the SQL files
- * from the @a load_path from 0000-9999.sql (as long
- * as the files exist contiguously).
- *
- * @param db database context to use
- * @param load_path where to find the XXXX.sql files
- * @return #GNUNET_OK on success
- */
 enum GNUNET_GenericReturnValue
 GNUNET_PQ_run_sql (struct GNUNET_PQ_Context *db,
                    const char *load_path)
@@ -304,11 +276,6 @@ GNUNET_PQ_run_sql (struct GNUNET_PQ_Context *db,
 }
 
 
-/**
- * Reinitialize the database @a db if the connection is down.
- *
- * @param db database connection to reinitialize
- */
 void
 GNUNET_PQ_reconnect_if_down (struct GNUNET_PQ_Context *db)
 {
@@ -321,14 +288,11 @@ GNUNET_PQ_reconnect_if_down (struct GNUNET_PQ_Context *db)
 }
 
 
-/**
- * Reinitialize the database @a db.
- *
- * @param db database connection to reinitialize
- */
 void
 GNUNET_PQ_reconnect (struct GNUNET_PQ_Context *db)
 {
+  GNUNET_PQ_event_reconnect_ (db,
+                              -1);
   if (NULL != db->conn)
     PQfinish (db->conn);
   db->conn = PQconnectdb (db->config_str);
@@ -380,7 +344,7 @@ GNUNET_PQ_reconnect (struct GNUNET_PQ_Context *db)
                          0);
       if (GNUNET_NO == ret)
       {
-        GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+        GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
                     "Failed to find SQL file to load database versioning logic\n");
         PQfinish (db->conn);
         db->conn = NULL;
@@ -448,26 +412,11 @@ GNUNET_PQ_reconnect (struct GNUNET_PQ_Context *db)
     db->conn = NULL;
     return;
   }
+  GNUNET_PQ_event_reconnect_ (db,
+                              PQsocket (db->conn));
 }
 
 
-/**
- * Connect to a postgres database using the configuration
- * option "CONFIG" in @a section.  Also ensures that the
- * statements in @a es are executed whenever we (re)connect to the
- * database, and that the prepared statements in @a ps are "ready".
- *
- * The caller does not have to ensure that @a es and @a ps remain allocated
- * and initialized in memory until #GNUNET_PQ_disconnect() is called, as a copy will be made.
- *
- * @param cfg configuration
- * @param section configuration section to use to get Postgres configuration options
- * @param load_path_suffix suffix to append to the SQL_DIR in the configuration
- * @param es #GNUNET_PQ_PREPARED_STATEMENT_END-terminated
- *            array of statements to execute upon EACH connection, can be NULL
- * @param ps array of prepared statements to prepare, can be NULL
- * @return the postgres handle, NULL on error
- */
 struct GNUNET_PQ_Context *
 GNUNET_PQ_connect_with_cfg (const struct GNUNET_CONFIGURATION_Handle *cfg,
                             const char *section,
@@ -509,15 +458,14 @@ GNUNET_PQ_connect_with_cfg (const struct GNUNET_CONFIGURATION_Handle *cfg,
 }
 
 
-/**
- * Disconnect from the database, destroying the prepared statements
- * and releasing other associated resources.
- *
- * @param db database handle to disconnect (will be free'd)
- */
 void
 GNUNET_PQ_disconnect (struct GNUNET_PQ_Context *db)
 {
+  if (NULL == db)
+    return;
+  GNUNET_assert (0 ==
+                 GNUNET_CONTAINER_multishortmap_size (db->channel_map));
+  GNUNET_CONTAINER_multishortmap_destroy (db->channel_map);
   GNUNET_free (db->es);
   GNUNET_free (db->ps);
   GNUNET_free (db->load_path);

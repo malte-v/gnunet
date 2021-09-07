@@ -977,9 +977,12 @@ GNUNET_ARM_request_service_start (struct GNUNET_ARM_Handle *h,
   {
     GNUNET_log_strerror (GNUNET_ERROR_TYPE_WARNING,
                          "pipe");
-  } else {
+    ret = GNUNET_ARM_RESULT_START_FAILED;
+  }
+  else
+  {
     wsig = GNUNET_DISK_pipe_detach_end (sig,
-                                      GNUNET_DISK_PIPE_END_WRITE);
+                                        GNUNET_DISK_PIPE_END_WRITE);
     ret = start_arm_service (h,
                              std_inheritance,
                              wsig);

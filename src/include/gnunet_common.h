@@ -1,6 +1,6 @@
 /*
      This file is part of GNUnet.
-     Copyright (C) 2006-2020 GNUnet e.V.
+     Copyright (C) 2006-2021 GNUnet e.V.
 
      GNUnet is free software: you can redistribute it and/or modify it
      under the terms of the GNU Affero General Public License as published
@@ -135,7 +135,7 @@ enum GNUNET_GenericReturnValue
  * tree where gnunet_config.h is unavailable
  */
 #ifndef GNUNET_EXTRA_LOGGING
-#define GNUNET_EXTRA_LOGGING 0
+#define GNUNET_EXTRA_LOGGING 1
 #endif
 
 /**
@@ -875,19 +875,37 @@ GNUNET_error_type_to_string (enum GNUNET_ErrorType kind);
  * @ingroup logging
  * Use this for fatal errors that cannot be handled
  */
+#if __GNUC__ >= 6  || __clang_major__ >= 6
+#define GNUNET_assert(cond)                                     \
+  do                                                            \
+  {                                                             \
+ _Pragma("GCC diagnostic push")                                 \
+ _Pragma("GCC diagnostic ignored \"-Wtautological-compare\"")   \
+    if (! (cond))                                               \
+    {                                                           \
+      GNUNET_log (GNUNET_ERROR_TYPE_ERROR,                      \
+                  dgettext ("gnunet", "Assertion failed at %s:%d. Aborting.\n"), \
+                  __FILE__,                                     \
+                  __LINE__);                                    \
+      GNUNET_abort_ ();                                         \
+    }                                                           \
+ _Pragma("GCC diagnostic pop")                                  \
+  } while (0)
+#else
+/* older GCC/clangs do not support -Wtautological-compare */
 #define GNUNET_assert(cond)                                     \
   do                                                            \
   {                                                             \
     if (! (cond))                                               \
     {                                                           \
       GNUNET_log (GNUNET_ERROR_TYPE_ERROR,                      \
-                  _ ("Assertion failed at %s:%d. Aborting.\n"), \
+                  dgettext ("gnunet", "Assertion failed at %s:%d. Aborting.\n"), \
                   __FILE__,                                     \
                   __LINE__);                                    \
       GNUNET_abort_ ();                                         \
     }                                                           \
   } while (0)
-
+#endif
 
 /**
  * @ingroup logging
@@ -899,7 +917,7 @@ GNUNET_error_type_to_string (enum GNUNET_ErrorType kind);
     if (! (cond))                                               \
     {                                                           \
       GNUNET_log (GNUNET_ERROR_TYPE_ERROR,                      \
-                  _ ("Assertion failed at %s:%d. Aborting.\n"), \
+                  dgettext ("gnunet", "Assertion failed at %s:%d. Aborting.\n"), \
                   f,                                            \
                   l);                                           \
       GNUNET_abort_ ();                                         \
@@ -921,7 +939,7 @@ GNUNET_error_type_to_string (enum GNUNET_ErrorType kind);
     {                                                                \
       GNUNET_log_from (GNUNET_ERROR_TYPE_ERROR,                      \
                        comp,                                         \
-                       _ ("Assertion failed at %s:%d. Aborting.\n"), \
+                       dgettext ("gnunet", "Assertion failed at %s:%d. Aborting.\n"), \
                        __FILE__,                                     \
                        __LINE__);                                    \
       GNUNET_abort_ ();                                              \
@@ -962,7 +980,7 @@ GNUNET_error_type_to_string (enum GNUNET_ErrorType kind);
     if (! (cond))                                     \
     {                                                 \
       GNUNET_log (GNUNET_ERROR_TYPE_ERROR,            \
-                  _ ("Assertion failed at %s:%d.\n"), \
+                  dgettext ("gnunet", "Assertion failed at %s:%d.\n"),   \
                   __FILE__,                           \
                   __LINE__);                          \
     }                                                 \
@@ -984,7 +1002,7 @@ GNUNET_error_type_to_string (enum GNUNET_ErrorType kind);
     if (! (cond))                                                         \
     {                                                                     \
       GNUNET_log (GNUNET_ERROR_TYPE_WARNING | GNUNET_ERROR_TYPE_BULK,     \
-                  _ ("External protocol violation detected at %s:%d.\n"), \
+                  dgettext ("gnunet", "External protocol violation detected at %s:%d.\n"), \
                   __FILE__,                                               \
                   __LINE__);                                              \
     }                                                                     \
@@ -1001,7 +1019,7 @@ GNUNET_error_type_to_string (enum GNUNET_ErrorType kind);
   do                                                         \
   {                                                          \
     GNUNET_log (level,                                       \
-                _ ("`%s' failed at %s:%d with error: %s\n"), \
+                dgettext ("gnunet", "`%s' failed at %s:%d with error: %s\n"), \
                 cmd,                                         \
                 __FILE__,                                    \
                 __LINE__,                                    \
@@ -1020,7 +1038,7 @@ GNUNET_error_type_to_string (enum GNUNET_ErrorType kind);
   {                                                               \
     GNUNET_log_from (level,                                       \
                      component,                                   \
-                     _ ("`%s' failed at %s:%d with error: %s\n"), \
+                     dgettext ("gnunet", "`%s' failed at %s:%d with error: %s\n"), \
                      cmd,                                         \
                      __FILE__,                                    \
                      __LINE__,                                    \
@@ -1038,7 +1056,7 @@ GNUNET_error_type_to_string (enum GNUNET_ErrorType kind);
   do                                                                      \
   {                                                                       \
     GNUNET_log (level,                                                    \
-                _ ("`%s' failed on file `%s' at %s:%d with error: %s\n"), \
+                dgettext ("gnunet", "`%s' failed on file `%s' at %s:%d with error: %s\n"), \
                 cmd,                                                      \
                 filename,                                                 \
                 __FILE__,                                                 \
@@ -1058,7 +1076,7 @@ GNUNET_error_type_to_string (enum GNUNET_ErrorType kind);
   {                                                                            \
     GNUNET_log_from (level,                                                    \
                      component,                                                \
-                     _ ("`%s' failed on file `%s' at %s:%d with error: %s\n"), \
+                     dgettext ("gnunet", "`%s' failed on file `%s' at %s:%d with error: %s\n"), \
                      cmd,                                                      \
                      filename,                                                 \
                      __FILE__,                                                 \

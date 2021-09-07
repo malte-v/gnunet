@@ -122,7 +122,7 @@ GNUNET_NETWORK_test_pf (int pf)
   }
   else
   {
-    close (s);
+    GNUNET_break (0 == close (s));
     ret = GNUNET_OK;
   }
   switch (pf)
@@ -506,15 +506,15 @@ GNUNET_NETWORK_socket_bind (struct GNUNET_NETWORK_Handle *desc,
 #endif
   if (AF_UNIX == address->sa_family)
     GNUNET_NETWORK_unix_precheck ((const struct sockaddr_un *) address);
+
   {
     const int on = 1;
 
-    /* This is required here for TCP sockets, but only on UNIX */
-    if ((SOCK_STREAM == desc->type) &&
-        (0 != setsockopt (desc->fd,
-                          SOL_SOCKET,
-                          SO_REUSEADDR,
-                          &on, sizeof(on))))
+    if ( (SOCK_STREAM == desc->type) &&
+         (0 != setsockopt (desc->fd,
+                           SOL_SOCKET,
+                           SO_REUSEADDR,
+                           &on, sizeof(on))) )
       LOG_STRERROR (GNUNET_ERROR_TYPE_DEBUG,
                     "setsockopt");
   }
@@ -883,15 +883,13 @@ GNUNET_NETWORK_socket_setsockopt (struct GNUNET_NETWORK_Handle *fd,
                                   const void *option_value,
                                   socklen_t option_len)
 {
-  int ret;
-
-  ret = setsockopt (fd->fd,
-                    level,
-                    option_name,
-                    option_value,
-                    option_len);
-
-  return ret == 0 ? GNUNET_OK : GNUNET_SYSERR;
+  return (0 == setsockopt (fd->fd,
+                           level,
+                           option_name,
+                           option_value,
+                           option_len))
+    ? GNUNET_OK
+    : GNUNET_SYSERR;
 }
 
 

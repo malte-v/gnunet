@@ -894,7 +894,7 @@ get_distance (const struct GNUNET_HashCode *target,
               unsigned int bucket)
 {
   uint64_t lsb = 0;
-  
+
   for (unsigned int i = bucket + 1;
        (i < sizeof(struct GNUNET_HashCode) * 8) &&
        (i < bucket + 1 + 64);
@@ -997,14 +997,15 @@ select_peer (const struct GNUNET_HashCode *key,
     chosen = NULL;
     for (bc = 0; bc <= closest_bucket; bc++)
     {
-      pos = k_buckets[bc].head;
       count = 0;
-      while ( (pos != NULL) &&
-              (count < bucket_size) )
+      for (pos = k_buckets[bc].head;
+           (pos != NULL) &&
+           (count < bucket_size);
+           pos = pos->next)
       {
         unsigned int bucket;
         uint64_t dist;
-        
+
         bucket = GNUNET_CRYPTO_hash_matching_bits (key,
                                                    &pos->phash);
         dist = get_distance (key,
@@ -1037,7 +1038,6 @@ select_peer (const struct GNUNET_HashCode *key,
           chosen = NULL;
         }
         count++;
-        pos = pos->next;
       }
     }
     if (NULL == chosen)

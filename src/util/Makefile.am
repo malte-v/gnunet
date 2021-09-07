@@ -49,7 +49,7 @@ libgnunetutil_la_SOURCES = \
   common_endian.c \
   common_logging.c \
   configuration.c \
-  configuration_loader.c \
+  configuration_helper.c \
   consttime_memcmp.c \
   container_bloomfilter.c \
   container_heap.c \
@@ -243,11 +243,11 @@ gnunet_qr_LDADD = \
 gnunet_qr_LDFLAGS= -lzbar
 
 plugin_LTLIBRARIES = \
-  libgnunet_plugin_test.la
+  libgnunet_plugin_utiltest.la
 
-libgnunet_plugin_test_la_SOURCES = \
+libgnunet_plugin_utiltest_la_SOURCES = \
   test_plugin_plug.c
-libgnunet_plugin_test_la_LDFLAGS = \
+libgnunet_plugin_utiltest_la_LDFLAGS = \
  $(GN_PLUGIN_LDFLAGS)
 
 if HAVE_BENCHMARKS
@@ -361,8 +361,6 @@ test_regex_LDADD = \
 test_os_start_process_SOURCES = \
  test_os_start_process.c
 test_os_start_process_LDADD = \
- libgnunetutil.la
-test_os_start_process_DEPENDENCIES = \
  libgnunetutil.la
 
 test_client_nc_SOURCES = \

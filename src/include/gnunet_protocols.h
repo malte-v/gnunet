@@ -1784,6 +1784,13 @@ extern "C" {
  */
 #define GNUNET_MESSAGE_TYPE_SETU_P2P_OVER 572
 
+/**
+ * Signals other peer that all elements are sent.
+ */
+
+#define GNUNET_MESSAGE_TYPE_SETU_P2P_SEND_FULL 710
+
+
 
 /*******************************************************************************
  * SETI message types

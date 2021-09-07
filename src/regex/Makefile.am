@@ -53,9 +53,6 @@ libgnunetregex_internal_a_SOURCES = \
   regex_internal_lib.h \
   regex_internal.h regex_internal.c \
   regex_internal_dht.c
-libgnunetregex_internal_a_DEPENDENCIES = \
-  libgnunetregexblock.la
-
 
 libgnunetregex_la_SOURCES = \
   regex_api_announce.c \
@@ -126,6 +123,7 @@ gnunet_regex_profiler_SOURCES = \
   gnunet-regex-profiler.c
 gnunet_regex_profiler_LDADD = -lm \
   $(top_builddir)/src/arm/libgnunetarm.la \
+  $(top_builddir)/src/testing/libgnunettesting.la \
   $(top_builddir)/src/testbed/libgnunettestbed.la \
   libgnunetregex_internal.a \
   $(top_builddir)/src/dht/libgnunetdht.la \

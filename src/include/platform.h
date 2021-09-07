@@ -22,7 +22,7 @@
  * @author Nils Durner
  * @author Christian Grothoff
  *
- * @file
+ * @file gnunet/src/include/platform.h
  * Platform specific includes and defines.
  *
  * This file should never be included by installed
@@ -170,18 +170,12 @@
 #include "compat.h"
 
 #include <locale.h>
-#ifndef FRAMEWORK_BUILD
 #include "gettext.h"
 /**
  * GNU gettext support macro.
  */
 #define _(String) dgettext (PACKAGE, String)
 #define LIBEXTRACTOR_GETTEXT_DOMAIN "libextractor"
-#else
-#include "libintlemu.h"
-#define _(String) dgettext ("org.gnunet.gnunet", String)
-#define LIBEXTRACTOR_GETTEXT_DOMAIN "org.gnunet.libextractor"
-#endif
 
 #include <sys/mman.h>
 
@@ -250,6 +244,32 @@ atoll (const char *nptr);
 #define GNUNET_THREAD_LOCAL __thread
 #else
 #define GNUNET_THREAD_LOCAL
+#endif
+
+
+/* LSB-style exit status codes */
+#ifndef EXIT_INVALIDARGUMENT
+#define EXIT_INVALIDARGUMENT 2
+#endif
+
+#ifndef EXIT_NOTIMPLEMENTED
+#define EXIT_NOTIMPLEMENTED 3
+#endif
+
+#ifndef EXIT_NOPERMISSION
+#define EXIT_NOPERMISSION 4
+#endif
+
+#ifndef EXIT_NOTINSTALLED
+#define EXIT_NOTINSTALLED 5
+#endif
+
+#ifndef EXIT_NOTCONFIGURED
+#define EXIT_NOTCONFIGURED 6
+#endif
+
+#ifndef EXIT_NOTRUNNING
+#define EXIT_NOTRUNNING 7
 #endif
 
 /**

@@ -25,6 +25,7 @@
 #ifndef GNUNET_DB_LIB_H
 #define GNUNET_DB_LIB_H
 
+#include "gnunet_common.h"
 
 /**
  * Status code returned from functions running database commands.
@@ -60,5 +61,48 @@ enum GNUNET_DB_QueryStatus
                                         /* Larger values may be returned for SELECT statements
                                            that returned more than one result. */
 };
+
+
+/**
+ * Handle for an active LISTENer to a database.
+ */
+struct GNUNET_DB_EventHandler;
+
+/**
+ * Function called on events received from Postgres.
+ *
+ * @param cls closure
+ * @param extra additional event data provided
+ * @param extra_size number of bytes in @a extra
+ */
+typedef void
+(*GNUNET_DB_EventCallback)(void *cls,
+                           const void *extra,
+                           size_t extra_size);
+
+GNUNET_NETWORK_STRUCT_BEGIN
+
+
+/**
+ * Header of a structure that describes an
+ * event channel we may subscribe to or notify on.
+ */
+struct GNUNET_DB_EventHeaderP
+{
+  /**
+   * The length of the struct (in bytes, including the length field itself),
+   * in big-endian format.
+   */
+  uint16_t size GNUNET_PACKED;
+
+  /**
+   * The type of the message (GNUNET_DB_EVENT_TYPE_XXXX), in big-endian format.
+   */
+  uint16_t type GNUNET_PACKED;
+
+};
+
+GNUNET_NETWORK_STRUCT_END
+
 
 #endif

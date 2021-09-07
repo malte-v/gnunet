@@ -24,7 +24,6 @@ libgnunetpq_la_LIBADD = -lpq \
 libgnunetpq_la_LDFLAGS = \
  $(POSTGRESQL_LDFLAGS) \
  $(GN_LIB_LDFLAGS) \
-  -lpthread \
   -version-info 1:0:0
 
 if ENABLE_TEST_RUN

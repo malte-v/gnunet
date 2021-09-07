@@ -1,25 +1,6 @@
-Template: gnunet-systempeer/username
-Type: string
-Default: gnunet
-_Description: GNUnet user:
- Please choose the user that the GNUnet server process will run as.
- .
- This should be a dedicated account. If the specified account does not
- already exist, it will automatically be created, with no login shell.
-
-Template: gnunet-systempeer/groupname
-Type: string
-Default: gnunet
-_Description: GNUnet group:
- Please choose the group that the GNUnet peer process will run as.
- .
- This should be a dedicated group, not one that already owns data.
- Only the members of this group will have access to GNUnet data, and
- be allowed to start and stop the GNUnet server.
-
 Template: gnunet-systempeer/autostart
 Type: boolean
-Default: true
+Default: false
 _Description: Should the GNUnet server be launched on boot?
  If you choose this option, a GNUnet peer will be launched each time
  the system is started. Otherwise, you will need to launch
@@ -27,7 +8,7 @@ _Description: Should the GNUnet server be launched on boot?
 
 Template: gnunet-dns/libnsswitch
 Type: boolean
-Default: true
+Default: false
 _Description: Should GNS be hooked into the system resolution process?
  If you choose this option, GNS will be hooked into the system
  resolution process. Records that can be resolved using GNS are
@@ -37,7 +18,7 @@ _Description: Should GNS be hooked into the system resolution process?
 
 Template: gnunet-user/proxy
 Type: boolean
-Default: true
+Default: false
 _Description: Use the GNU Name System in Firefox/Chromium by default?"
  If you choose this option the proxy settings for Firefox and Chromium will be
  adjusted to use a user local running gnunet-gns-proxy to delegate DNS requests

@@ -23,8 +23,6 @@ if HAVE_SQLITE
 endif
 
 libexec_PROGRAMS = \
-  gnunet-cmd \
-  gnunet-cmds-helper \
   gnunet-service-testbed \
   gnunet-helper-testbed \
   gnunet-daemon-testbed-blacklist \
@@ -36,20 +34,6 @@ bin_PROGRAMS = \
 
 noinst_PROGRAMS = \
   $(generate_underlay)
-
-plugin_LTLIBRARIES = \
-  libgnunet_plugin_testcmd.la
-
-libgnunet_plugin_testcmd_la_SOURCES = \
-  plugin_testcmd.c
-libgnunet_plugin_testcmd_la_LIBADD = \
-  $(top_builddir)/src/util/libgnunetutil.la \
-  $(top_builddir)/src/testing/libgnunettesting.la \
-  $(top_builddir)/src/statistics/libgnunetstatistics.la \
-  libgnunettestbed.la \
-  $(LTLIBINTL)
-libgnunet_plugin_testcmd_la_LDFLAGS = \
- $(GN_PLUGIN_LDFLAGS)
 
 gnunet_service_testbed_SOURCES = \
   gnunet-service-testbed.c gnunet-service-testbed.h \
@@ -75,6 +59,7 @@ gnunet_service_testbed_LDADD = $(XLIB) \
 gnunet_testbed_profiler_SOURCES = \
   gnunet-testbed-profiler.c
 gnunet_testbed_profiler_LDADD = $(XLIB) \
+ $(top_builddir)/src/testing/libgnunettesting.la \
  $(top_builddir)/src/util/libgnunetutil.la \
  libgnunettestbed.la
 gnunet_testbed_profiler_LDFLAGS = \
@@ -85,23 +70,6 @@ gnunet_helper_testbed_SOURCES = \
 gnunet_helper_testbed_LDADD = $(XLIB) \
  $(top_builddir)/src/util/libgnunetutil.la \
  $(top_builddir)/src/testing/libgnunettesting.la \
- libgnunettestbed.la \
- $(LTLIBINTL) $(Z_LIBS)
-
-gnunet_cmd_SOURCES = \
-  gnunet-cmd.c
-gnunet_cmd_LDADD = $(XLIB) \
- $(top_builddir)/src/util/libgnunetutil.la \
- $(top_builddir)/src/testing/libgnunettesting.la \
- libgnunettestbed.la \
- $(LTLIBINTL) $(Z_LIBS)
-
-gnunet_cmds_helper_SOURCES = \
-  gnunet-cmds-helper.c
-gnunet_cmds_helper_LDADD = $(XLIB) \
- $(top_builddir)/src/util/libgnunetutil.la \
- $(top_builddir)/src/testing/libgnunettesting.la \
- $(top_builddir)/src/transport/libgnunettransport.la \
  libgnunettestbed.la \
  $(LTLIBINTL) $(Z_LIBS)
 
@@ -127,17 +95,8 @@ lib_LTLIBRARIES = \
   libgnunettestbed.la
 
 libgnunettestbed_la_SOURCES = \
-  testbed_api_cmd_local_test_finished.c \
-  testbed_api_cmd_send_peer_ready.c \
-  testbed_api_cmd_block_until_all_peers_started.c \
-  testbed_api_cmd_netjail_start.c \
-  testbed_api_cmd_netjail_start_testbed.c \
-  testbed_api_cmd_netjail_stop_testbed.c \
-  testbed_api_cmd_netjail_stop.c \
   testbed_api.c testbed_api.h testbed.h \
   testbed_api_hosts.c testbed_api_hosts.h testbed_helper.h \
-  testbed_api_cmd_controller.c \
-  testbed_api_cmd_peer.c \
   testbed_api_operations.c testbed_api_operations.h \
   testbed_api_peers.c testbed_api_peers.h \
   testbed_api_services.c \
@@ -156,24 +115,18 @@ libgnunettestbed_la_LIBADD = $(XLIB) \
  $(top_builddir)/src/arm/libgnunetarm.la \
  $(top_builddir)/src/util/libgnunetutil.la \
  $(LTLIBINTL)
-libgnunettestbed_la_DEPENDENCIES = \
- $(top_builddir)/src/statistics/libgnunetstatistics.la \
- $(top_builddir)/src/transport/libgnunettransport.la \
- $(top_builddir)/src/hello/libgnunethello.la \
- $(top_builddir)/src/testing/libgnunettesting.la \
- $(top_builddir)/src/util/libgnunetutil.la
 libgnunettestbed_la_LDFLAGS = \
  $(GN_LIB_LDFLAGS) \
  -version-info 0:0:0
 
 generate_underlay_topology_SOURCES = generate-underlay-topology.c
 generate_underlay_topology_LDADD = $(XLIB) \
+ $(top_builddir)/src/testing/libgnunettesting.la \
  $(top_builddir)/src/util/libgnunetutil.la \
  libgnunettestbed.la \
  $(LTLIBINTL) -lsqlite3
 
 check_PROGRAMS = \
-  test_testbed_api_cmd_netjail \
   test_testbed_api_hosts \
   test_gnunet_helper_testbed \
   test_testbed_api_controllerlink \
@@ -208,7 +161,6 @@ check_PROGRAMS = \
 if ENABLE_TEST_RUN
  AM_TESTS_ENVIRONMENT=export GNUNET_PREFIX=$${GNUNET_PREFIX:-@libdir@};export PATH=$${GNUNET_PREFIX:-@prefix@}/bin:$$PATH;unset XDG_DATA_HOME;unset XDG_CONFIG_HOME;
  TESTS = \
-  test_testbed_api_cmd_netjail \
   test_testbed_api \
   test_testbed_api_sd \
   test_testbed_api_operations \
@@ -238,13 +190,6 @@ if ENABLE_TEST_RUN
   test_testbed_api_barriers \
   $(underlay_testcases)
 endif
-
-test_testbed_api_cmd_netjail_SOURCES = \
- test_testbed_api_cmd_netjail.c
-test_testbed_api_cmd_netjail_LDADD = \
- $(top_builddir)/src/testing/libgnunettesting.la \
- $(top_builddir)/src/util/libgnunetutil.la \
- libgnunettestbed.la
 
 test_testbed_api_SOURCES = \
  test_testbed_api.c

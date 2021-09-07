@@ -185,15 +185,15 @@ do_shutdown (void *cls)
   }
   if (NULL != notfound_page)
   {
-    MHD_destroy_response (main_page->response);
-    GNUNET_free (main_page->handle);
-    GNUNET_free (main_page);
+    MHD_destroy_response (notfound_page->response);
+    GNUNET_free (notfound_page->handle);
+    GNUNET_free (notfound_page);
   }
   if (NULL != forbidden_page)
   {
-    MHD_destroy_response (main_page->response);
-    GNUNET_free (main_page->handle);
-    GNUNET_free (main_page);
+    MHD_destroy_response (forbidden_page->response);
+    GNUNET_free (forbidden_page->handle);
+    GNUNET_free (forbidden_page);
   }
 
   if (NULL != namestore)

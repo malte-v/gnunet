@@ -1,13 +1,9 @@
 etc/gnunet.conf
 usr/bin/
+usr/libexec/gnunet-cmds-helper
 usr/lib/*/gnunet/
 usr/lib/*/*.so.*
 usr/share/man/
 usr/share/info/
 usr/share/doc/gnunet/
 usr/share/gnunet/
-debian/etc/skel/.config/ etc/skel/
-debian/etc/skel/.config/gnunet.conf etc/skel/.config/
-debian/etc/skel/.config/systemd etc/skel/.config/
-debian/etc/skel/.config/systemd/gnunet-user-gns-proxy.service etc/skel/.config/systemd/
-debian/etc/skel/.config/systemd/gnunet-userpeer.service etc/skel/.config/systemd/

@@ -22,6 +22,7 @@
  * @brief set union operation
  * @author Florian Dold
  * @author Christian Grothoff
+ * @author Elias Summermatter
  */
 #include "platform.h"
 #include "gnunet_util_lib.h"
@@ -50,33 +51,61 @@
  */
 #define SE_STRATA_COUNT 32
 
+
 /**
- * Size of the IBFs in the strata estimator.
+ * Primes for all 4 different strata estimators 61,67,71,73,79,83,89,97 348
+ * Based on the bsc thesis of Elias Summermatter (2021)
  */
-#define SE_IBF_SIZE 80
+#define SE_IBFS_TOTAL_SIZE 632
 
 /**
  * The hash num parameter for the difference digests and strata estimators.
  */
-#define SE_IBF_HASH_NUM 4
+#define SE_IBF_HASH_NUM 3
 
 /**
  * Number of buckets that can be transmitted in one message.
  */
-#define MAX_BUCKETS_PER_MESSAGE ((1 << 15) / IBF_BUCKET_SIZE)
+#define MAX_BUCKETS_PER_MESSAGE ((1 << 16) / IBF_BUCKET_SIZE)
 
 /**
- * The maximum size of an ibf we use is 2^(MAX_IBF_ORDER).
+ * The maximum size of an ibf we use is MAX_IBF_SIZE=2^20.
  * Choose this value so that computing the IBF is still cheaper
  * than transmitting all values.
  */
-#define MAX_IBF_ORDER (20)
+#define MAX_IBF_SIZE 1048576
+
 
 /**
- * Number of buckets used in the ibf per estimated
- * difference.
+ * Minimal size of an ibf
+ * Based on the bsc thesis of Elias Summermatter (2021)
  */
-#define IBF_ALPHA 4
+#define IBF_MIN_SIZE 37
+
+/**
+ * AVG RTT for differential sync when k=2 and Factor = 2
+ * Based on the bsc thesis of Elias Summermatter (2021)
+ */
+#define DIFFERENTIAL_RTT_MEAN 3.65145
+
+/**
+ * Security level used for byzantine checks (2^80)
+ */
+
+#define SECURITY_LEVEL 80
+
+/**
+ * Is the estimated probability for a new round this values
+ * is based on the bsc thesis of Elias Summermatter (2021)
+ */
+
+#define PROBABILITY_FOR_NEW_ROUND 0.15
+
+/**
+ * Measure the performance in a csv
+ */
+
+#define MEASURE_PERFORMANCE 0
 
 
 /**
@@ -144,6 +173,28 @@ enum UnionOperationPhase
    * the local peer missing
    */
   PHASE_FULL_RECEIVING
+};
+
+/**
+ * Different modes of operations
+ */
+
+enum MODE_OF_OPERATION
+{
+  /**
+   * Mode just synchronizes the difference between sets
+   */
+  DIFFERENTIAL_SYNC,
+
+  /**
+  * Mode send full set sending local set first
+  */
+  FULL_SYNC_LOCAL_SENDING_FIRST,
+
+  /**
+  * Mode request full set from remote peer
+  */
+  FULL_SYNC_REMOTE_SENDING_FIRST
 };
 
 
@@ -277,7 +328,7 @@ struct Operation
    * Copy of the set's strata estimator at the time of
    * creation of this operation.
    */
-  struct StrataEstimator *se;
+  struct MultiStrataEstimator *se;
 
   /**
    * The IBF we currently receive.
@@ -320,7 +371,7 @@ struct Operation
   /**
    * Number of ibf buckets already received into the @a remote_ibf.
    */
-  unsigned int ibf_buckets_received;
+  uint64_t ibf_buckets_received;
 
   /**
    * Salt that we're using for sending IBFs
@@ -386,7 +437,7 @@ struct Operation
    * Lower bound for the set size, used only when
    * byzantine mode is enabled.
    */
-  int byzantine_lower_bound;
+  uint64_t byzantine_lower_bound;
 
   /**
    * Unique request id for the request from a remote peer, sent to the
@@ -401,21 +452,83 @@ struct Operation
    */
   unsigned int generation_created;
 
-  /**
-   * User defined Bandwidth Round Trips Tradeoff
-   */
-  double rtt_bandwidth_tradeoff;
 
   /**
-   * Number of Element per bucket  in IBF
-   */
-  unsigned int ibf_number_buckets_per_element;
+  * User defined Bandwidth Round Trips Tradeoff
+  */
+  uint64_t rtt_bandwidth_tradeoff;
+
 
   /**
-   * Number of buckets in IBF
-   */
-  unsigned ibf_bucket_number;
+  * Number of Element per bucket  in IBF
+  */
+  uint8_t ibf_number_buckets_per_element;
 
+
+  /**
+   * Set difference is multiplied with this factor
+   * to gennerate large enough IBF
+   */
+  uint8_t ibf_bucket_number_factor;
+
+  /**
+   *  Defines which site a client is
+   *  0 = Initiating peer
+   *  1 = Receiving peer
+   */
+  uint8_t peer_site;
+
+
+  /**
+   * Local peer element count
+   */
+  uint64_t local_element_count;
+
+  /**
+   * Mode of operation that was chosen by the algorithm
+   */
+  uint8_t mode_of_operation;
+
+  /**
+   * Hashmap to keep track of the send/received messages
+   */
+  struct GNUNET_CONTAINER_MultiHashMap *message_control_flow;
+
+  /**
+  * Hashmap to keep track of the send/received inquiries (ibf keys)
+  */
+  struct GNUNET_CONTAINER_MultiHashMap *inquiries_sent;
+
+
+  /**
+  * Total size of local set
+  */
+  uint64_t total_elements_size_local;
+
+  /**
+   * Limit of number of elements in set
+   */
+  uint64_t byzantine_upper_bound;
+
+  /**
+   * is the count of already passed differential sync iterations
+   */
+  uint8_t differential_sync_iterations;
+
+  /**
+   * Estimated or committed set difference at the start
+  */
+  uint64_t remote_set_diff;
+
+  /**
+  * Estimated or committed set difference at the start
+  */
+  uint64_t local_set_diff;
+
+  /**
+   * Boolean to enforce an active passive switch
+   */
+  bool active_passive_switch_required;
 };
 
 
@@ -429,6 +542,16 @@ struct SetContent
    * Maps `struct GNUNET_HashCode *` to `struct ElementEntry *`.
    */
   struct GNUNET_CONTAINER_MultiHashMap *elements;
+
+  /**
+   * Maps `struct GNUNET_HashCode *` to `struct ElementEntry *` randomized.
+   */
+  struct GNUNET_CONTAINER_MultiHashMap *elements_randomized;
+
+  /**
+   * Salt to construct the randomized element map
+   */
+  uint64_t elements_randomized_salt;
 
   /**
    * Number of references to the content.
@@ -478,7 +601,7 @@ struct Set
    * The strata estimator is only generated once for each set.  The IBF keys
    * are derived from the element hashes with salt=0.
    */
-  struct StrataEstimator *se;
+  struct MultiStrataEstimator *se;
 
   /**
    * Evaluate operations are held in a linked list.
@@ -635,96 +758,687 @@ static int in_shutdown;
  */
 static uint32_t suggest_id;
 
+#if MEASURE_PERFORMANCE
+/**
+ * Handles configuration file for setu performance test
+ *
+ */
+static const struct GNUNET_CONFIGURATION_Handle *setu_cfg;
+
 
 /**
- * Added Roundtripscounter
+ * Stores the performance data for induvidual message
  */
 
 
-struct perf_num_send_resived_msg {
-    int sent;
-    int sent_var_bytes;
-    int received;
-    int received_var_bytes;
-};
-
-
-struct perf_rtt_struct
+struct perf_num_send_received_msg
 {
-    struct perf_num_send_resived_msg operation_request;
-    struct perf_num_send_resived_msg se;
-    struct perf_num_send_resived_msg request_full;
-    struct perf_num_send_resived_msg element_full;
-    struct perf_num_send_resived_msg full_done;
-    struct perf_num_send_resived_msg ibf;
-    struct perf_num_send_resived_msg inquery;
-    struct perf_num_send_resived_msg element;
-    struct perf_num_send_resived_msg demand;
-    struct perf_num_send_resived_msg offer;
-    struct perf_num_send_resived_msg done;
-    struct perf_num_send_resived_msg over;
+  uint64_t sent;
+  uint64_t sent_var_bytes;
+  uint64_t received;
+  uint64_t received_var_bytes;
 };
 
-struct perf_rtt_struct perf_rtt;
+/**
+ *  Main struct to measure performance (data/rtts)
+ */
+struct per_store_struct
+{
+  struct perf_num_send_received_msg operation_request;
+  struct perf_num_send_received_msg se;
+  struct perf_num_send_received_msg request_full;
+  struct perf_num_send_received_msg element_full;
+  struct perf_num_send_received_msg full_done;
+  struct perf_num_send_received_msg ibf;
+  struct perf_num_send_received_msg inquery;
+  struct perf_num_send_received_msg element;
+  struct perf_num_send_received_msg demand;
+  struct perf_num_send_received_msg offer;
+  struct perf_num_send_received_msg done;
+  struct perf_num_send_received_msg over;
+  uint64_t se_diff;
+  uint64_t se_diff_remote;
+  uint64_t se_diff_local;
+  uint64_t active_passive_switches;
+  uint8_t mode_of_operation;
+};
+
+struct per_store_struct perf_store;
+#endif
+
+/**
+ * Different states to control the messages flow in differential mode
+ */
+
+enum MESSAGE_CONTROL_FLOW_STATE
+{
+  /**
+   *  Initial message state
+   */
+  MSG_CFS_UNINITIALIZED,
+
+  /**
+   *  Track that a message has been sent
+   */
+  MSG_CFS_SENT,
+
+  /**
+   *  Track that receiving this message is expected
+   */
+  MSG_CFS_EXPECTED,
+
+  /**
+   * Track that message has been received
+   */
+  MSG_CFS_RECEIVED,
+};
+
+/**
+ * Message types to track in message control flow
+ */
+
+enum MESSAGE_TYPE
+{
+  /**
+   * Offer message type
+   */
+  OFFER_MESSAGE,
+
+  /**
+   * Demand message type
+   */
+  DEMAND_MESSAGE,
+
+  /**
+   * Element message type
+   */
+  ELEMENT_MESSAGE,
+};
 
 
-static int
-sum_sent_received_bytes(int size, struct perf_num_send_resived_msg perf_rtt_struct) {
-    return  (size * perf_rtt_struct.sent) +
-            (size * perf_rtt_struct.received) +
-            perf_rtt_struct.sent_var_bytes +
-            perf_rtt_struct.received_var_bytes;
+/**
+ * Struct to tracked messages in message control flow
+ */
+struct messageControlFlowElement
+{
+  /**
+   * Track the message control state of the offer message
+   */
+  enum MESSAGE_CONTROL_FLOW_STATE offer;
+  /**
+   * Track the message control state of the demand message
+   */
+  enum MESSAGE_CONTROL_FLOW_STATE demand;
+  /**
+   * Track the message control state of the element message
+   */
+  enum MESSAGE_CONTROL_FLOW_STATE element;
+};
+
+
+#if MEASURE_PERFORMANCE
+
+/**
+ * Loads different configuration to perform performance tests
+ *
+ * @param op operation handle
+ */
+static void
+load_config (struct Operation *op)
+{
+  long long number;
+  float fl;
+
+  setu_cfg = GNUNET_CONFIGURATION_create ();
+  GNUNET_CONFIGURATION_load (setu_cfg,
+                             "perf_setu.conf");
+  GNUNET_CONFIGURATION_get_value_float (setu_cfg,
+                                        "IBF",
+                                        "BUCKET_NUMBER_FACTOR",
+                                        &fl);
+  op->ibf_bucket_number_factor = fl;
+  GNUNET_CONFIGURATION_get_value_number (setu_cfg,
+                                         "IBF",
+                                         "NUMBER_PER_BUCKET",
+                                         &number);
+  op->ibf_number_buckets_per_element = number;
+  GNUNET_CONFIGURATION_get_value_number (setu_cfg,
+                                         "PERFORMANCE",
+                                         "TRADEOFF",
+                                         &number);
+  op->rtt_bandwidth_tradeoff = number;
+  GNUNET_CONFIGURATION_get_value_number (setu_cfg,
+                                         "BOUNDARIES",
+                                         "UPPER_ELEMENT",
+                                         &number);
+  op->byzantine_upper_bound = number;
+  op->peer_site = 0;
 }
 
-static float
-calculate_perf_rtt() {
-    /**
-     *  Calculate RTT of init phase normally always 1
-     */
-    float rtt = 1;
-    int bytes_transmitted = 0;
+
+/**
+ * Function to calculate total bytes used for performance measurement
+ * @param size
+ * @param perf_num_send_received_msg
+ * @return bytes used
+ */
+static int
+sum_sent_received_bytes (uint64_t size,
+                         struct perf_num_send_received_msg
+                         perf_num_send_received_msg)
+{
+  return (size * perf_num_send_received_msg.sent)
+         + (size * perf_num_send_received_msg.received)
+         + perf_num_send_received_msg.sent_var_bytes
+         + perf_num_send_received_msg.received_var_bytes;
+}
+
+
+/**
+ * Function that calculates the perfmance values and writes them down
+ */
+static void
+calculate_perf_store ()
+{
+
+  /**
+   *  Calculate RTT of init phase normally always 1
+   */
+  float rtt = 1;
+  int bytes_transmitted = 0;
+
+  /**
+   *  Calculate RGNUNET_SETU_AcceptMessageRT of Fullsync normally 1 or 1.5 depending
+   */
+  if ((perf_store.element_full.received != 0) ||
+      (perf_store.element_full.sent != 0)
+      )
+    rtt += 1;
+
+  if ((perf_store.request_full.received != 0) ||
+      (perf_store.request_full.sent != 0)
+      )
+    rtt += 0.5;
+
+  /**
+   *  In case of a differential sync 3 rtt's are needed.
+   *  for every active/passive switch additional 3.5 rtt's are used
+   */
+  if ((perf_store.element.received != 0) ||
+      (perf_store.element.sent != 0))
+  {
+    int iterations = perf_store.active_passive_switches;
+
+    if (iterations > 0)
+      rtt += iterations * 0.5;
+    rtt +=  2.5;
+  }
+
+
+  /**
+   * Calculate data sended size
+   */
+  bytes_transmitted += sum_sent_received_bytes (sizeof(struct
+                                                       GNUNET_SETU_ResultMessage),
+                                                perf_store.request_full);
+
+  bytes_transmitted += sum_sent_received_bytes (sizeof(struct
+                                                       GNUNET_SETU_ElementMessage),
+                                                perf_store.element_full);
+  bytes_transmitted += sum_sent_received_bytes (sizeof(struct
+                                                       GNUNET_SETU_ElementMessage),
+                                                perf_store.element);
+  // bytes_transmitted += sum_sent_received_bytes(sizeof(GNUNET_MESSAGE_TYPE_SETU_P2P_OPERATION_REQUEST), perf_store.operation_request);
+  bytes_transmitted += sum_sent_received_bytes (sizeof(struct
+                                                       StrataEstimatorMessage),
+                                                perf_store.se);
+  bytes_transmitted += sum_sent_received_bytes (4, perf_store.full_done);
+  bytes_transmitted += sum_sent_received_bytes (sizeof(struct IBFMessage),
+                                                perf_store.ibf);
+  bytes_transmitted += sum_sent_received_bytes (sizeof(struct InquiryMessage),
+                                                perf_store.inquery);
+  bytes_transmitted += sum_sent_received_bytes (sizeof(struct
+                                                       GNUNET_MessageHeader),
+                                                perf_store.demand);
+  bytes_transmitted += sum_sent_received_bytes (sizeof(struct
+                                                       GNUNET_MessageHeader),
+                                                perf_store.offer);
+  bytes_transmitted += sum_sent_received_bytes (4, perf_store.done);
+
+  /**
+   * Write IBF failure rate for different BUCKET_NUMBER_FACTOR
+   */
+  float factor;
+  GNUNET_CONFIGURATION_get_value_float (setu_cfg,"IBF", "BUCKET_NUMBER_FACTOR",
+                                        &factor);
+  long long num_per_bucket;
+  GNUNET_CONFIGURATION_get_value_number (setu_cfg,"IBF", "NUMBER_PER_BUCKET",
+                                         &num_per_bucket);
+
+
+  int decoded = 0;
+  if (perf_store.active_passive_switches == 0)
+    decoded = 1;
+  int ibf_bytes_transmitted = sum_sent_received_bytes (sizeof(struct
+                                                              IBFMessage),
+                                                       perf_store.ibf);
+
+  FILE *out1 = fopen ("perf_data.csv", "a");
+  fprintf (out1, "%d,%f,%d,%d,%f,%d,%d,%d,%d,%d\n",num_per_bucket,factor,
+           decoded,ibf_bytes_transmitted,rtt,perf_store.se_diff,
+           bytes_transmitted,
+           perf_store.se_diff_local,perf_store.se_diff_remote,
+           perf_store.mode_of_operation);
+  fclose (out1);
+
+}
+
+
+#endif
+/**
+ * Function that chooses the optimal mode of operation depending on
+ * operation parameters.
+ * @param avg_element_size
+ * @param local_set_size
+ * @param remote_set_size
+ * @param est_set_diff_remote
+ * @param est_set_diff_local
+ * @param bandwith_latency_tradeoff
+ * @param ibf_bucket_number_factor
+ * @return calcuated mode of operation
+ */
+static uint8_t
+estimate_best_mode_of_operation (uint64_t avg_element_size,
+                                 uint64_t local_set_size,
+                                 uint64_t remote_set_size,
+                                 uint64_t est_set_diff_remote,
+                                 uint64_t est_set_diff_local,
+                                 uint64_t bandwith_latency_tradeoff,
+                                 uint64_t ibf_bucket_number_factor)
+{
+
+  /*
+   * In case of initial sync fall to predefined states
+   */
+
+  if (0 == local_set_size)
+    return FULL_SYNC_REMOTE_SENDING_FIRST;
+  if (0 == remote_set_size)
+    return FULL_SYNC_LOCAL_SENDING_FIRST;
+
+  /*
+  * Calculate bytes for full Sync
+  */
+
+  uint8_t sizeof_full_done_header = 4;
+  uint8_t sizeof_done_header = 4;
+  uint8_t rtt_min_full = 2;
+  uint8_t sizeof_request_full = 4;
+  uint64_t estimated_total_diff = (est_set_diff_remote + est_set_diff_local);
+
+  /* Estimate byte required if we send first */
+  uint64_t total_elements_to_send_local_send_first = est_set_diff_remote
+                                                     + local_set_size;
+
+  uint64_t total_bytes_full_local_send_first = (avg_element_size
+                                                *
+                                                total_elements_to_send_local_send_first)   \
+                                               + (
+    total_elements_to_send_local_send_first * sizeof(struct
+                                                     GNUNET_SETU_ElementMessage))   \
+                                               + (sizeof_full_done_header * 2)   \
+                                               + rtt_min_full
+                                               * bandwith_latency_tradeoff;
+
+  /* Estimate bytes required if we request from remote peer */
+  uint64_t total_elements_to_send_remote_send_first = est_set_diff_local
+                                                      + remote_set_size;
+
+  uint64_t total_bytes_full_remote_send_first = (avg_element_size
+                                                 *
+                                                 total_elements_to_send_remote_send_first)   \
+                                                + (
+    total_elements_to_send_remote_send_first * sizeof(struct
+                                                      GNUNET_SETU_ElementMessage))   \
+                                                + (sizeof_full_done_header * 2)   \
+                                                + (rtt_min_full + 0.5)
+                                                * bandwith_latency_tradeoff   \
+                                                + sizeof_request_full;
+
+  /*
+  * Calculate bytes for differential Sync
+  */
+
+  /* Estimate bytes required by IBF transmission*/
+
+  long double ibf_bucket_count = estimated_total_diff
+                                 * ibf_bucket_number_factor;
+
+  if (ibf_bucket_count <= IBF_MIN_SIZE)
+  {
+    ibf_bucket_count = IBF_MIN_SIZE;
+  }
+  uint64_t ibf_message_count = ceil ( ((float) ibf_bucket_count)
+                                      / ((float) MAX_BUCKETS_PER_MESSAGE));
+
+  uint64_t estimated_counter_size = ceil (
+    MIN (2 * log2l (((float) local_set_size)
+                    / ((float) ibf_bucket_count)),
+         log2l (local_set_size)));
+
+  long double counter_bytes = (float) estimated_counter_size / 8;
+
+  uint64_t ibf_bytes = ceil ((sizeof (struct IBFMessage) * ibf_message_count)
+                             * 1.2   \
+                             + (ibf_bucket_count * sizeof(struct IBF_Key)) * 1.2   \
+                             + (ibf_bucket_count * sizeof(struct IBF_KeyHash))
+                             * 1.2   \
+                             + (ibf_bucket_count * counter_bytes) * 1.2);
+
+  /* Estimate full byte count for differential sync */
+  uint64_t element_size = (avg_element_size
+                           + sizeof (struct GNUNET_SETU_ElementMessage))   \
+                          * estimated_total_diff;
+  uint64_t done_size = sizeof_done_header;
+  uint64_t inquery_size = (sizeof (struct IBF_Key)
+                           + sizeof (struct InquiryMessage))
+                          * estimated_total_diff;
+  uint64_t demand_size =
+    (sizeof(struct GNUNET_HashCode) + sizeof(struct GNUNET_MessageHeader))
+    * estimated_total_diff;
+  uint64_t offer_size = (sizeof (struct GNUNET_HashCode)
+                         + sizeof (struct GNUNET_MessageHeader))
+                        * estimated_total_diff;
+
+  uint64_t total_bytes_diff = (element_size + done_size + inquery_size
+                               + demand_size + offer_size + ibf_bytes)   \
+                              + (DIFFERENTIAL_RTT_MEAN
+                                 * bandwith_latency_tradeoff);
+
+  uint64_t full_min = MIN (total_bytes_full_local_send_first,
+                           total_bytes_full_remote_send_first);
+
+  /* Decide between full and differential sync */
+
+  if (full_min < total_bytes_diff)
+  {
+    /* Decide between sending all element first or receiving all elements */
+    if (total_bytes_full_remote_send_first > total_bytes_full_local_send_first)
+    {
+      return FULL_SYNC_LOCAL_SENDING_FIRST;
+    }
+    else
+    {
+      return FULL_SYNC_REMOTE_SENDING_FIRST;
+    }
+  }
+  else
+  {
+    return DIFFERENTIAL_SYNC;
+  }
+}
+
+
+/**
+ * Validates the if a message is received in a correct phase
+ * @param allowed_phases
+ * @param size_phases
+ * @param op
+ * @return #GNUNET_YES if message permitted in phase and #GNUNET_NO if not permitted in given
+ * phase
+ */
+static enum GNUNET_GenericReturnValue
+check_valid_phase (const uint8_t allowed_phases[],
+                   size_t size_phases,
+                   struct Operation *op)
+{
+  /**
+   * Iterate over allowed phases
+   */
+  for (uint32_t phase_ctr = 0; phase_ctr < size_phases; phase_ctr++)
+  {
+    uint8_t phase = allowed_phases[phase_ctr];
+    if (phase == op->phase)
+    {
+      LOG (GNUNET_ERROR_TYPE_DEBUG,
+           "Message received in valid phase\n");
+      return GNUNET_YES;
+    }
+  }
+  LOG (GNUNET_ERROR_TYPE_ERROR,
+       "Received message in invalid phase: %u\n", op->phase);
+  return GNUNET_NO;
+}
+
+
+/**
+ * Function to update, track and validate message received in differential
+ * sync. This function tracks states of messages and check it against different
+ * constraints as described in Summermatter's BSc Thesis (2021)
+ * @param hash_map: Hashmap to store message control flow
+ * @param new_mcfs: The new message control flow state an given message type should be set to
+ * @param hash_code: Hash code of the element
+ * @param mt: The message type for which the message control flow state should be set
+ * @return GNUNET_YES message is valid in message control flow GNUNET_NO when message is not valid
+ * at this point in message flow
+ */
+static int
+update_message_control_flow (struct GNUNET_CONTAINER_MultiHashMap *hash_map,
+                             enum MESSAGE_CONTROL_FLOW_STATE new_mcfs,
+                             const struct GNUNET_HashCode *hash_code,
+                             enum MESSAGE_TYPE mt)
+{
+  struct messageControlFlowElement *cfe = NULL;
+  enum MESSAGE_CONTROL_FLOW_STATE *mcfs;
+
+  /**
+   * Check logic for forbidden messages
+   */
+
+  cfe = GNUNET_CONTAINER_multihashmap_get (hash_map, hash_code);
+  if ((ELEMENT_MESSAGE == mt) && (cfe != NULL))
+  {
+    if ((new_mcfs != MSG_CFS_SENT) && (MSG_CFS_RECEIVED != cfe->offer))
+    {
+      LOG (GNUNET_ERROR_TYPE_ERROR,
+           "Received an element without sent offer!\n");
+      return GNUNET_NO;
+    }
+    /* Check that only requested elements are received! */
+    if ((ELEMENT_MESSAGE == mt) && (new_mcfs != MSG_CFS_SENT) && (cfe->demand !=
+                                                                  MSG_CFS_SENT))
+    {
+      LOG (GNUNET_ERROR_TYPE_ERROR,
+           "Received an element that was not demanded\n");
+      return GNUNET_NO;
+    }
+  }
+
+  /**
+   * In case the element hash is not in the hashmap create a new entry
+   */
+
+  if (NULL == cfe)
+  {
+    cfe = GNUNET_new (struct messageControlFlowElement);
+    if (GNUNET_SYSERR == GNUNET_CONTAINER_multihashmap_put (hash_map, hash_code,
+                                                            cfe,
+                                                            GNUNET_CONTAINER_MULTIHASHMAPOPTION_UNIQUE_ONLY))
+    {
+      GNUNET_free (cfe);
+      return GNUNET_SYSERR;
+    }
+  }
+
+  /**
+   * Set state of message
+   */
+
+  if (OFFER_MESSAGE == mt)
+  {
+    mcfs = &cfe->offer;
+  }
+  else if (DEMAND_MESSAGE == mt)
+  {
+    mcfs = &cfe->demand;
+  }
+  else if (ELEMENT_MESSAGE == mt)
+  {
+    mcfs = &cfe->element;
+  }
+  else
+  {
+    return GNUNET_SYSERR;
+  }
+
+  /**
+   * Check if state is allowed
+   */
+
+  if (new_mcfs <= *mcfs)
+  {
+    return GNUNET_NO;
+  }
+
+  *mcfs = new_mcfs;
+  return GNUNET_YES;
+}
+
+
+/**
+ * Validate if a message in differential sync si already received before.
+ * @param hash_map
+ * @param hash_code
+ * @param mt
+ * @return GNUNET_YES when message is already in store if message is not in store return GNUNET_NO
+ */
+static int
+is_message_in_message_control_flow (struct
+                                    GNUNET_CONTAINER_MultiHashMap *hash_map,
+                                    struct GNUNET_HashCode *hash_code,
+                                    enum MESSAGE_TYPE mt)
+{
+  struct messageControlFlowElement *cfe = NULL;
+  enum MESSAGE_CONTROL_FLOW_STATE *mcfs;
+
+  cfe = GNUNET_CONTAINER_multihashmap_get (hash_map, hash_code);
+
+  /**
+  * Set state of message
+  */
+
+  if (cfe != NULL)
+  {
+    if (OFFER_MESSAGE == mt)
+    {
+      mcfs = &cfe->offer;
+    }
+    else if (DEMAND_MESSAGE == mt)
+    {
+      mcfs = &cfe->demand;
+    }
+    else if (ELEMENT_MESSAGE == mt)
+    {
+      mcfs = &cfe->element;
+    }
+    else
+    {
+      return GNUNET_SYSERR;
+    }
 
     /**
-     *  Calculate RGNUNET_SETU_AcceptMessageRT of Fullsync normally 1 or 1.5 depending
+     * Evaluate if set is in message
      */
-     if (( perf_rtt.element_full.received != 0 ) ||
-         ( perf_rtt.element_full.sent != 0)
-        ) rtt += 1;
+    if (*mcfs != MSG_CFS_UNINITIALIZED)
+    {
+      return GNUNET_YES;
+    }
+  }
+  return GNUNET_NO;
+}
 
-     if (( perf_rtt.request_full.received != 0 ) ||
-        ( perf_rtt.request_full.sent != 0)
-         ) rtt += 0.5;
 
-    /**
-     *  In case of a differential sync 3 rtt's are needed.
-     *  for every active/passive switch additional 3.5 rtt's are used
-     */
+/**
+ * Iterator for determining if all demands have been
+ * satisfied
+ *
+ * @param cls the union operation `struct Operation *`
+ * @param key unused
+ * @param value the `struct ElementEntry *` to insert
+ *        into the key-to-element mapping
+ * @return #GNUNET_YES (to continue iterating)
+ */
+static int
+determinate_done_message_iterator (void *cls,
+                                   const struct GNUNET_HashCode *key,
+                                   void *value)
+{
+  struct messageControlFlowElement *mcfe = value;
 
-    int iterations = perf_rtt.ibf.received;
-    if(iterations > 1)
-        rtt += (iterations - 1 ) * 0.5;
-    rtt += 3 * iterations;
+  if (((mcfe->element == MSG_CFS_SENT) || (mcfe->element == MSG_CFS_RECEIVED) ))
+  {
+    return GNUNET_YES;
+  }
+  return GNUNET_NO;
+}
 
-    /**
-     * Calculate data sended size
-     */
-    bytes_transmitted += sum_sent_received_bytes(sizeof(GNUNET_MESSAGE_TYPE_SETU_P2P_REQUEST_FULL), perf_rtt.request_full);
-    bytes_transmitted += sum_sent_received_bytes(sizeof(GNUNET_MESSAGE_TYPE_SETU_P2P_FULL_ELEMENT), perf_rtt.element_full);
-    bytes_transmitted += sum_sent_received_bytes(sizeof(GNUNET_MESSAGE_TYPE_SETU_P2P_ELEMENTS), perf_rtt.element);
-    bytes_transmitted += sum_sent_received_bytes(sizeof(GNUNET_MESSAGE_TYPE_SETU_P2P_OPERATION_REQUEST), perf_rtt.operation_request);
-    bytes_transmitted += sum_sent_received_bytes(sizeof(GNUNET_MESSAGE_TYPE_SETU_P2P_SE), perf_rtt.se);
-    bytes_transmitted += sum_sent_received_bytes(sizeof(GNUNET_MESSAGE_TYPE_SETU_P2P_FULL_DONE), perf_rtt.full_done);
-    bytes_transmitted += sum_sent_received_bytes(sizeof(GNUNET_MESSAGE_TYPE_SETU_P2P_IBF), perf_rtt.ibf);
-    bytes_transmitted += sum_sent_received_bytes(sizeof(GNUNET_MESSAGE_TYPE_SETU_P2P_INQUIRY), perf_rtt.inquery);
-    bytes_transmitted += sum_sent_received_bytes(sizeof(GNUNET_MESSAGE_TYPE_SETU_P2P_DEMAND), perf_rtt.demand);
-    bytes_transmitted += sum_sent_received_bytes(sizeof(GNUNET_MESSAGE_TYPE_SETU_P2P_OFFER), perf_rtt.offer);
-    bytes_transmitted += sum_sent_received_bytes(sizeof(GNUNET_MESSAGE_TYPE_SETU_P2P_DONE), perf_rtt.done);
 
-    LOG(GNUNET_ERROR_TYPE_ERROR,"Bytes Transmitted: %d\n", bytes_transmitted);
+/**
+ * Iterator for determining average size
+ *
+ * @param cls the union operation `struct Operation *`
+ * @param key unused
+ * @param value the `struct ElementEntry *` to insert
+ *        into the key-to-element mapping
+ * @return #GNUNET_YES (to continue iterating)
+ */
+static int
+determinate_avg_element_size_iterator (void *cls,
+                                       const struct GNUNET_HashCode *key,
+                                       void *value)
+{
+  struct Operation *op = cls;
+  struct GNUNET_SETU_Element *element = value;
+  op->total_elements_size_local += element->size;
+  return GNUNET_YES;
+}
 
-    LOG(GNUNET_ERROR_TYPE_ERROR,"Reached tradeoff bandwidth/rtt: %f\n", (bytes_transmitted / rtt ));
 
-    return rtt;
+/**
+ * Create randomized element hashmap for full sending
+ *
+ * @param cls the union operation `struct Operation *`
+ * @param key unused
+ * @param value the `struct ElementEntry *` to insert
+ *        into the key-to-element mapping
+ * @return #GNUNET_YES (to continue iterating)
+ */
+static int
+create_randomized_element_iterator (void *cls,
+                                    const struct GNUNET_HashCode *key,
+                                    void *value)
+{
+  struct Operation *op = cls;
+
+  struct GNUNET_HashContext *hashed_key_context =
+    GNUNET_CRYPTO_hash_context_start ();
+  struct GNUNET_HashCode new_key;
+
+  /**
+   * Hash element with new salt to randomize hashmap
+   */
+  GNUNET_CRYPTO_hash_context_read (hashed_key_context,
+                                   &key,
+                                   sizeof(struct IBF_Key));
+  GNUNET_CRYPTO_hash_context_read (hashed_key_context,
+                                   &op->set->content->elements_randomized_salt,
+                                   sizeof(uint32_t));
+  GNUNET_CRYPTO_hash_context_finish (hashed_key_context,
+                                     &new_key);
+  GNUNET_CONTAINER_multihashmap_put (op->set->content->elements_randomized,
+                                     &new_key,value,
+                                     GNUNET_CONTAINER_MULTIHASHMAPOPTION_REPLACE);
+  return GNUNET_YES;
 }
 
 
@@ -805,6 +1519,36 @@ send_client_done (void *cls)
                                       op->key_to_element));
   GNUNET_MQ_send (op->set->cs->mq,
                   ev);
+}
+
+
+/**
+ * Check if all given byzantine parameters are in given boundaries
+ * @param op
+ * @return indicator if all given byzantine parameters are in given boundaries
+ */
+
+static int
+check_byzantine_bounds (struct Operation *op)
+{
+  if (op->byzantine != GNUNET_YES)
+    return GNUNET_OK;
+
+  /**
+   * Check  upper byzantine bounds
+   */
+  if (op->remote_element_count + op->remote_set_diff >
+      op->byzantine_upper_bound)
+    return GNUNET_SYSERR;
+  if (op->local_element_count + op->local_set_diff > op->byzantine_upper_bound)
+    return GNUNET_SYSERR;
+
+  /**
+  * Check lower byzantine bounds
+  */
+  if (op->remote_element_count < op->byzantine_lower_bound)
+    return GNUNET_SYSERR;
+  return GNUNET_OK;
 }
 
 
@@ -977,6 +1721,101 @@ fail_union_operation (struct Operation *op)
 
 
 /**
+ * Function that checks if full sync is plausible
+ * @param initial_local_elements_in_set
+ * @param estimated_set_difference
+ * @param repeated_elements
+ * @param fresh_elements
+ * @param op
+ * @return GNUNET_OK if
+ */
+
+static void
+full_sync_plausibility_check (struct Operation *op)
+{
+  if (GNUNET_YES != op->byzantine)
+    return;
+
+  int security_level_lb = -1 * SECURITY_LEVEL;
+  uint64_t duplicates = op->received_fresh - op->received_total;
+
+  /*
+   * Protect full sync from receiving double element when in FULL SENDING
+   */
+  if (PHASE_FULL_SENDING == op->phase)
+  {
+    if (duplicates > 0)
+    {
+      LOG (GNUNET_ERROR_TYPE_ERROR,
+           "PROTOCOL VIOLATION: Received duplicate element in full receiving "
+           "mode of operation this is not allowed! Duplicates: %llu\n",
+           (unsigned long long) duplicates);
+      GNUNET_break_op (0);
+      fail_union_operation (op);
+      return;
+    }
+
+  }
+
+  /*
+   * Protect full sync with probabilistic algorithm
+   */
+  if (PHASE_FULL_RECEIVING == op->phase)
+  {
+    if (0 == op->remote_set_diff)
+      op->remote_set_diff = 1;
+
+    long double base = (1 - (long double) (op->remote_set_diff
+                                           / (long double) (op->initial_size
+                                                            + op->
+                                                            remote_set_diff)));
+    long double exponent = (op->received_total - (op->received_fresh * ((long
+                                                                         double)
+                                                                        op->
+                                                                        initial_size
+                                                                        / (long
+                                                                           double)
+                                                                        op->
+                                                                        remote_set_diff)));
+    long double value = exponent * (log2l (base) / log2l (2));
+    if ((value < security_level_lb) || (value > SECURITY_LEVEL) )
+    {
+      LOG (GNUNET_ERROR_TYPE_ERROR,
+           "PROTOCOL VIOLATION: Other peer violated probabilistic rule for receiving "
+           "to many duplicated full element : %LF\n",
+           value);
+      GNUNET_break_op (0);
+      fail_union_operation (op);
+      return;
+    }
+  }
+}
+
+
+/**
+ * Limit active passive switches in differential sync to configured security level
+ * @param op
+ */
+static void
+check_max_differential_rounds (struct Operation *op)
+{
+  double probability = op->differential_sync_iterations * (log2l (
+                                                             PROBABILITY_FOR_NEW_ROUND)
+                                                           / log2l (2));
+  if ((-1 * SECURITY_LEVEL) > probability)
+  {
+    LOG (GNUNET_ERROR_TYPE_ERROR,
+         "PROTOCOL VIOLATION: Other peer violated probabilistic rule for to many active passive "
+         "switches in differential sync: %u\n",
+         op->differential_sync_iterations);
+    GNUNET_break_op (0);
+    fail_union_operation (op);
+    return;
+  }
+}
+
+
+/**
  * Derive the IBF key from a hash code and
  * a salt.
  *
@@ -1004,12 +1843,12 @@ get_ibf_key (const struct GNUNET_HashCode *src)
 struct GetElementContext
 {
   /**
-   * FIXME.
+   * Gnunet hash code in context
    */
   struct GNUNET_HashCode hash;
 
   /**
-   * FIXME.
+   * Pointer to the key entry
    */
   struct KeyEntry *k;
 };
@@ -1122,7 +1961,7 @@ salt_key (const struct IBF_Key *k_in,
           uint32_t salt,
           struct IBF_Key *k_out)
 {
-  int s = salt % 64;
+  int s = (salt * 7) % 64;
   uint64_t x = k_in->key_val;
 
   /* rotate ibf key */
@@ -1132,14 +1971,14 @@ salt_key (const struct IBF_Key *k_in,
 
 
 /**
- * FIXME.
+ * Reverse modification done in the salt_key function
  */
 static void
 unsalt_key (const struct IBF_Key *k_in,
             uint32_t salt,
             struct IBF_Key *k_out)
 {
-  int s = salt % 64;
+  int s = (salt * 7) % 64;
   uint64_t x = k_in->key_val;
 
   x = (x << s) | (x >> (64 - s));
@@ -1258,7 +2097,9 @@ prepare_ibf (struct Operation *op,
 
   if (NULL != op->local_ibf)
     ibf_destroy (op->local_ibf);
-  op->local_ibf = ibf_create (size, SE_IBF_HASH_NUM);
+  // op->local_ibf = ibf_create (size, SE_IBF_HASH_NUM);
+  op->local_ibf = ibf_create (size,
+                              ((uint8_t) op->ibf_number_buckets_per_element));
   if (NULL == op->local_ibf)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
@@ -1283,13 +2124,23 @@ prepare_ibf (struct Operation *op,
  */
 static int
 send_ibf (struct Operation *op,
-          uint16_t ibf_order)
+          uint32_t ibf_size)
 {
-  unsigned int buckets_sent = 0;
+  uint64_t buckets_sent = 0;
   struct InvertibleBloomFilter *ibf;
+  op->differential_sync_iterations++;
 
+  /**
+   * Enforce min size of IBF
+   */
+  uint32_t ibf_min_size = IBF_MIN_SIZE;
+
+  if (ibf_size < ibf_min_size)
+  {
+    ibf_size = ibf_min_size;
+  }
   if (GNUNET_OK !=
-      prepare_ibf (op, 1 << ibf_order))
+      prepare_ibf (op, ibf_size))
   {
     /* allocation failed */
     return GNUNET_SYSERR;
@@ -1297,45 +2148,52 @@ send_ibf (struct Operation *op,
 
   LOG (GNUNET_ERROR_TYPE_DEBUG,
        "sending ibf of size %u\n",
-       1 << ibf_order);
+       (unsigned int) ibf_size);
 
   {
     char name[64];
-    GNUNET_snprintf (name, sizeof(name), "# sent IBF (order %u)", ibf_order);
+
+    GNUNET_snprintf (name,
+                     sizeof(name),
+                     "# sent IBF (order %u)",
+                     ibf_size);
     GNUNET_STATISTICS_update (_GSS_statistics, name, 1, GNUNET_NO);
   }
 
   ibf = op->local_ibf;
 
-  while (buckets_sent < (1 << ibf_order))
+  while (buckets_sent < ibf_size)
   {
     unsigned int buckets_in_message;
     struct GNUNET_MQ_Envelope *ev;
     struct IBFMessage *msg;
 
-    buckets_in_message = (1 << ibf_order) - buckets_sent;
+    buckets_in_message = ibf_size - buckets_sent;
     /* limit to maximum */
     if (buckets_in_message > MAX_BUCKETS_PER_MESSAGE)
       buckets_in_message = MAX_BUCKETS_PER_MESSAGE;
 
-    perf_rtt.ibf.sent += 1;
-    perf_rtt.ibf.sent_var_bytes += ( buckets_in_message * IBF_BUCKET_SIZE );
+#if MEASURE_PERFORMANCE
+    perf_store.ibf.sent += 1;
+    perf_store.ibf.sent_var_bytes += (buckets_in_message * IBF_BUCKET_SIZE);
+#endif
     ev = GNUNET_MQ_msg_extra (msg,
                               buckets_in_message * IBF_BUCKET_SIZE,
                               GNUNET_MESSAGE_TYPE_SETU_P2P_IBF);
-    msg->reserved1 = 0;
-    msg->reserved2 = 0;
-    msg->order = ibf_order;
+    msg->ibf_size = ibf_size;
     msg->offset = htonl (buckets_sent);
     msg->salt = htonl (op->salt_send);
+    msg->ibf_counter_bit_length = ibf_get_max_counter (ibf);
+
+
     ibf_write_slice (ibf, buckets_sent,
-                     buckets_in_message, &msg[1]);
+                     buckets_in_message, &msg[1], msg->ibf_counter_bit_length);
     buckets_sent += buckets_in_message;
     LOG (GNUNET_ERROR_TYPE_DEBUG,
-         "ibf chunk size %u, %u/%u sent\n",
-         buckets_in_message,
-         buckets_sent,
-         1 << ibf_order);
+         "ibf chunk size %u, %llu/%u sent\n",
+         (unsigned int) buckets_in_message,
+         (unsigned long long) buckets_sent,
+         (unsigned int) ibf_size);
     GNUNET_MQ_send (op->mq, ev);
   }
 
@@ -1354,17 +2212,26 @@ send_ibf (struct Operation *op,
  * @return the required size of the ibf
  */
 static unsigned int
-get_order_from_difference (unsigned int diff)
+get_size_from_difference (unsigned int diff, int number_buckets_per_element,
+                          float ibf_bucket_number_factor)
 {
-  unsigned int ibf_order;
+  /** Make ibf estimation size odd reasoning can be found in BSc Thesis of
+   * Elias Summermatter (2021) in section 3.11 **/
+  return (((int) (diff * ibf_bucket_number_factor)) | 1);
 
-  ibf_order = 2;
-  while (((1 << ibf_order) < (IBF_ALPHA * diff) ||
-          ((1 << ibf_order) < SE_IBF_HASH_NUM)) &&
-         (ibf_order < MAX_IBF_ORDER))
-    ibf_order++;
-  // add one for correction
-  return ibf_order + 1;
+}
+
+
+static unsigned int
+get_next_ibf_size (float ibf_bucket_number_factor, unsigned int
+                   decoded_elements, unsigned int last_ibf_size)
+{
+  unsigned int next_size = (unsigned int) ((last_ibf_size * 2)
+                                           - (ibf_bucket_number_factor
+                                              * decoded_elements));
+  /** Make ibf estimation size odd reasoning can be found in BSc Thesis of
+  * Elias Summermatter (2021) in section 3.11 **/
+  return next_size | 1;
 }
 
 
@@ -1391,8 +2258,10 @@ send_full_element_iterator (void *cls,
   LOG (GNUNET_ERROR_TYPE_DEBUG,
        "Sending element %s\n",
        GNUNET_h2s (key));
-  perf_rtt.element_full.received += 1;
-  perf_rtt.element_full.received_var_bytes += el->size;
+#if MEASURE_PERFORMANCE
+  perf_store.element_full.received += 1;
+  perf_store.element_full.received_var_bytes += el->size;
+#endif
   ev = GNUNET_MQ_msg_extra (emsg,
                             el->size,
                             GNUNET_MESSAGE_TYPE_SETU_P2P_FULL_ELEMENT);
@@ -1421,10 +2290,25 @@ send_full_set (struct Operation *op)
        "Dedicing to transmit the full set\n");
   /* FIXME: use a more memory-friendly way of doing this with an
      iterator, just as we do in the non-full case! */
+
+  // Randomize Elements to send
+  op->set->content->elements_randomized = GNUNET_CONTAINER_multihashmap_create (
+    32,GNUNET_NO);
+  op->set->content->elements_randomized_salt = GNUNET_CRYPTO_random_u64 (
+    GNUNET_CRYPTO_QUALITY_NONCE,
+    UINT64_MAX);
   (void) GNUNET_CONTAINER_multihashmap_iterate (op->set->content->elements,
-                                                &send_full_element_iterator,
+                                                &
+                                                create_randomized_element_iterator,
                                                 op);
-  perf_rtt.full_done.sent += 1;
+
+  (void) GNUNET_CONTAINER_multihashmap_iterate (
+    op->set->content->elements_randomized,
+    &send_full_element_iterator,
+    op);
+#if MEASURE_PERFORMANCE
+  perf_store.full_done.sent += 1;
+#endif
   ev = GNUNET_MQ_msg_header (GNUNET_MESSAGE_TYPE_SETU_P2P_FULL_DONE);
   GNUNET_MQ_send (op->mq,
                   ev);
@@ -1454,7 +2338,7 @@ check_union_p2p_strata_estimator (void *cls,
                      msg->header.type));
   len = ntohs (msg->header.size) - sizeof(struct StrataEstimatorMessage);
   if ((GNUNET_NO == is_compressed) &&
-      (len != SE_STRATA_COUNT * SE_IBF_SIZE * IBF_BUCKET_SIZE))
+      (len != SE_STRATA_COUNT * SE_IBFS_TOTAL_SIZE * IBF_BUCKET_SIZE))
   {
     GNUNET_break (0);
     return GNUNET_SYSERR;
@@ -1473,14 +2357,44 @@ static void
 handle_union_p2p_strata_estimator (void *cls,
                                    const struct StrataEstimatorMessage *msg)
 {
-  perf_rtt.se.received += 1;
-  perf_rtt.se.received_var_bytes += ntohs (msg->header.size) - sizeof(struct StrataEstimatorMessage);
+#if MEASURE_PERFORMANCE
+  perf_store.se.received += 1;
+  perf_store.se.received_var_bytes += ntohs (msg->header.size) - sizeof(struct
+                                                                        StrataEstimatorMessage);
+#endif
   struct Operation *op = cls;
-  struct StrataEstimator *remote_se;
+  struct MultiStrataEstimator *remote_se;
   unsigned int diff;
   uint64_t other_size;
   size_t len;
   int is_compressed;
+  op->local_element_count = GNUNET_CONTAINER_multihashmap_size (
+    op->set->content->elements);
+  // Setting peer site to receiving peer
+  op->peer_site = 1;
+
+  /**
+   * Check that the message is received only in supported phase
+   */
+  uint8_t allowed_phases[] = {PHASE_EXPECT_SE};
+  if (GNUNET_OK !=
+      check_valid_phase (allowed_phases,sizeof(allowed_phases),op))
+  {
+    GNUNET_break (0);
+    fail_union_operation (op);
+    return;
+  }
+
+  /** Only allow 1,2,4,8 SEs **/
+  if ((msg->se_count > 8) || (__builtin_popcount ((int) msg->se_count) != 1))
+  {
+    LOG (GNUNET_ERROR_TYPE_ERROR,
+         "PROTOCOL VIOLATION: Invalid number of se transmitted by other peer %u\n",
+         msg->se_count);
+    GNUNET_break_op (0);
+    fail_union_operation (op);
+    return;
+  }
 
   is_compressed = (GNUNET_MESSAGE_TYPE_SETU_P2P_SEC == htons (
                      msg->header.type));
@@ -1490,8 +2404,20 @@ handle_union_p2p_strata_estimator (void *cls,
                             GNUNET_NO);
   len = ntohs (msg->header.size) - sizeof(struct StrataEstimatorMessage);
   other_size = GNUNET_ntohll (msg->set_size);
+  op->remote_element_count = other_size;
+
+  if (op->byzantine_upper_bound < op->remote_element_count)
+  {
+    LOG (GNUNET_ERROR_TYPE_ERROR,
+         "Exceeded configured upper bound <%lu> of element: %u\n",
+         op->byzantine_upper_bound,
+         op->remote_element_count);
+    fail_union_operation (op);
+    return;
+  }
+
   remote_se = strata_estimator_create (SE_STRATA_COUNT,
-                                       SE_IBF_SIZE,
+                                       SE_IBFS_TOTAL_SIZE,
                                        SE_IBF_HASH_NUM);
   if (NULL == remote_se)
   {
@@ -1503,6 +2429,8 @@ handle_union_p2p_strata_estimator (void *cls,
       strata_estimator_read (&msg[1],
                              len,
                              is_compressed,
+                             msg->se_count,
+                             SE_IBFS_TOTAL_SIZE,
                              remote_se))
   {
     /* decompression failed */
@@ -1511,11 +2439,76 @@ handle_union_p2p_strata_estimator (void *cls,
     return;
   }
   GNUNET_assert (NULL != op->se);
-  diff = strata_estimator_difference (remote_se,
-                                      op->se);
+  strata_estimator_difference (remote_se,
+                               op->se);
 
-  if (diff > 200)
-    diff = diff * 3 / 2;
+  /* Calculate remote local diff */
+  long diff_remote = remote_se->stratas[0]->strata[0]->remote_decoded_count;
+  long diff_local = remote_se->stratas[0]->strata[0]->local_decoded_count;
+
+  /* Prevent estimations from overshooting max element */
+  if (diff_remote + op->remote_element_count > op->byzantine_upper_bound)
+    diff_remote = op->byzantine_upper_bound - op->remote_element_count;
+  if (diff_local + op->local_element_count > op->byzantine_upper_bound)
+    diff_local = op->byzantine_upper_bound - op->local_element_count;
+  if ((diff_remote < 0) || (diff_local < 0))
+  {
+    strata_estimator_destroy (remote_se);
+    LOG (GNUNET_ERROR_TYPE_ERROR,
+         "PROTOCOL VIOLATION: More element is set as upper boundary or other peer is "
+         "malicious: remote diff %ld, local diff: %ld\n",
+         diff_remote, diff_local);
+    GNUNET_break_op (0);
+    fail_union_operation (op);
+    return;
+  }
+
+  /* Make estimation more precise in initial sync cases */
+  if (0 == op->remote_element_count)
+  {
+    diff_remote = 0;
+    diff_local = op->local_element_count;
+  }
+  if (0 == op->local_element_count)
+  {
+    diff_local = 0;
+    diff_remote = op->remote_element_count;
+  }
+
+  diff = diff_remote + diff_local;
+  op->remote_set_diff = diff_remote;
+
+  /** Calculate avg element size if not initial sync **/
+  uint64_t avg_element_size = 0;
+  if (0 < op->local_element_count)
+  {
+    op->total_elements_size_local = 0;
+    GNUNET_CONTAINER_multihashmap_iterate (op->set->content->elements,
+                                           &
+                                           determinate_avg_element_size_iterator,
+                                           op);
+    avg_element_size = op->total_elements_size_local / op->local_element_count;
+  }
+
+  op->mode_of_operation = estimate_best_mode_of_operation (avg_element_size,
+                                                           GNUNET_CONTAINER_multihashmap_size (
+                                                             op->set->content->
+                                                             elements),
+                                                           op->
+                                                           remote_element_count,
+                                                           diff_remote,
+                                                           diff_local,
+                                                           op->
+                                                           rtt_bandwidth_tradeoff,
+                                                           op->
+                                                           ibf_bucket_number_factor);
+
+#if MEASURE_PERFORMANCE
+  perf_store.se_diff_local = diff_local;
+  perf_store.se_diff_remote = diff_remote;
+  perf_store.se_diff = diff;
+  perf_store.mode_of_operation = op->mode_of_operation;
+#endif
 
   strata_estimator_destroy (remote_se);
   strata_estimator_destroy (op->se);
@@ -1523,7 +2516,8 @@ handle_union_p2p_strata_estimator (void *cls,
   LOG (GNUNET_ERROR_TYPE_DEBUG,
        "got se diff=%d, using ibf size %d\n",
        diff,
-       1U << get_order_from_difference (diff));
+       1U << get_size_from_difference (diff, op->ibf_number_buckets_per_element,
+                                       op->ibf_bucket_number_factor));
 
   {
     char *set_debug;
@@ -1546,16 +2540,8 @@ handle_union_p2p_strata_estimator (void *cls,
     return;
   }
 
-    LOG (GNUNET_ERROR_TYPE_ERROR,
-         "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx: %f\n", op->rtt_bandwidth_tradeoff);
-
-
-  /**
-   * Added rtt_bandwidth_tradeoff directly need future improvements
-   */
   if ((GNUNET_YES == op->force_full) ||
-      (diff > op->initial_size / 4) ||
-      (0 == other_size))
+      (op->mode_of_operation != DIFFERENTIAL_SYNC))
   {
     LOG (GNUNET_ERROR_TYPE_DEBUG,
          "Deciding to go for full set transmission (diff=%d, own set=%llu)\n",
@@ -1565,9 +2551,17 @@ handle_union_p2p_strata_estimator (void *cls,
                               "# of full sends",
                               1,
                               GNUNET_NO);
-    if ((op->initial_size <= other_size) ||
-        (0 == other_size))
+    if (FULL_SYNC_LOCAL_SENDING_FIRST == op->mode_of_operation)
     {
+      struct TransmitFullMessage *signal_msg;
+      struct GNUNET_MQ_Envelope *ev;
+      ev = GNUNET_MQ_msg_extra (signal_msg,sizeof(struct TransmitFullMessage),
+                                GNUNET_MESSAGE_TYPE_SETU_P2P_SEND_FULL);
+      signal_msg->remote_set_difference = htonl (diff_local);
+      signal_msg->remote_set_size = htonl (op->local_element_count);
+      signal_msg->local_set_difference = htonl (diff_remote);
+      GNUNET_MQ_send (op->mq,
+                      ev);
       send_full_set (op);
     }
     else
@@ -1577,9 +2571,15 @@ handle_union_p2p_strata_estimator (void *cls,
       LOG (GNUNET_ERROR_TYPE_DEBUG,
            "Telling other peer that we expect its full set\n");
       op->phase = PHASE_FULL_RECEIVING;
-      perf_rtt.request_full.sent += 1;
-      ev = GNUNET_MQ_msg_header (
-        GNUNET_MESSAGE_TYPE_SETU_P2P_REQUEST_FULL);
+#if MEASURE_PERFORMANCE
+      perf_store.request_full.sent += 1;
+#endif
+      struct TransmitFullMessage *signal_msg;
+      ev = GNUNET_MQ_msg_extra (signal_msg,sizeof(struct TransmitFullMessage),
+                                GNUNET_MESSAGE_TYPE_SETU_P2P_REQUEST_FULL);
+      signal_msg->remote_set_difference = htonl (diff_local);
+      signal_msg->remote_set_size = htonl (op->local_element_count);
+      signal_msg->local_set_difference = htonl (diff_remote);
       GNUNET_MQ_send (op->mq,
                       ev);
     }
@@ -1592,7 +2592,9 @@ handle_union_p2p_strata_estimator (void *cls,
                               GNUNET_NO);
     if (GNUNET_OK !=
         send_ibf (op,
-                  get_order_from_difference (diff)))
+                  get_size_from_difference (diff,
+                                            op->ibf_number_buckets_per_element,
+                                            op->ibf_bucket_number_factor)))
     {
       /* Internal error, best we can do is shut the connection */
       GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
@@ -1625,15 +2627,64 @@ send_offers_iterator (void *cls,
 
   /* Detect 32-bit key collision for the 64-bit IBF keys. */
   if (ke->ibf_key.key_val != sec->ibf_key.key_val)
+  {
+    op->active_passive_switch_required = true;
     return GNUNET_YES;
+  }
 
-  perf_rtt.offer.sent += 1;
-  perf_rtt.offer.sent_var_bytes += sizeof(struct GNUNET_HashCode);
+  /* Prevent implementation from sending a offer multiple times in case of roll switch */
+  if (GNUNET_YES ==
+      is_message_in_message_control_flow (
+        op->message_control_flow,
+        &ke->element->element_hash,
+        OFFER_MESSAGE)
+      )
+  {
+    LOG (GNUNET_ERROR_TYPE_DEBUG,
+         "Skipping already sent processed element offer!\n");
+    return GNUNET_YES;
+  }
 
+  /* Save send offer message for message control */
+  if (GNUNET_YES !=
+      update_message_control_flow (
+        op->message_control_flow,
+        MSG_CFS_SENT,
+        &ke->element->element_hash,
+        OFFER_MESSAGE)
+      )
+  {
+    LOG (GNUNET_ERROR_TYPE_ERROR,
+         "Double offer message sent found!\n");
+    GNUNET_break (0);
+    fail_union_operation (op);
+    return GNUNET_NO;
+  }
+  ;
+
+  /* Mark element to be expected to received */
+  if (GNUNET_YES !=
+      update_message_control_flow (
+        op->message_control_flow,
+        MSG_CFS_EXPECTED,
+        &ke->element->element_hash,
+        DEMAND_MESSAGE)
+      )
+  {
+    LOG (GNUNET_ERROR_TYPE_ERROR,
+         "Double demand received found!\n");
+    GNUNET_break (0);
+    fail_union_operation (op);
+    return GNUNET_NO;
+  }
+  ;
+#if MEASURE_PERFORMANCE
+  perf_store.offer.sent += 1;
+  perf_store.offer.sent_var_bytes += sizeof(struct GNUNET_HashCode);
+#endif
   ev = GNUNET_MQ_msg_header_extra (mh,
                                    sizeof(struct GNUNET_HashCode),
                                    GNUNET_MESSAGE_TYPE_SETU_P2P_OFFER);
-
   GNUNET_assert (NULL != ev);
   *(struct GNUNET_HashCode *) &mh[1] = ke->element->element_hash;
   LOG (GNUNET_ERROR_TYPE_DEBUG,
@@ -1651,7 +2702,7 @@ send_offers_iterator (void *cls,
  * @param op union operation
  * @param ibf_key IBF key of interest
  */
-static void
+void
 send_offers_for_key (struct Operation *op,
                      struct IBF_Key ibf_key)
 {
@@ -1694,6 +2745,7 @@ decode_and_send (struct Operation *op)
     /* allocation failed */
     return GNUNET_SYSERR;
   }
+
   diff_ibf = ibf_dup (op->local_ibf);
   ibf_subtract (diff_ibf,
                 op->remote_ibf);
@@ -1706,7 +2758,7 @@ decode_and_send (struct Operation *op)
        diff_ibf->size);
 
   num_decoded = 0;
-  key.key_val = 0; /* just to avoid compiler thinking we use undef'ed variable */
+  key.key_val = 0;   /* just to avoid compiler thinking we use undef'ed variable */
 
   while (1)
   {
@@ -1738,23 +2790,36 @@ decode_and_send (struct Operation *op)
     if ((GNUNET_SYSERR == res) ||
         (GNUNET_YES == cycle_detected))
     {
-      int next_order;
-      next_order = 0;
-      while (1 << next_order < diff_ibf->size)
-        next_order++;
-      next_order++;
-      if (next_order <= MAX_IBF_ORDER)
+      uint32_t next_size;
+      /** Enforce odd ibf size **/
+
+      next_size = get_next_ibf_size (op->ibf_bucket_number_factor, num_decoded,
+                                     diff_ibf->size);
+      /** Make ibf estimation size odd reasoning can be found in BSc Thesis of
+        * Elias Summermatter (2021) in section 3.11 **/
+      uint32_t ibf_min_size = IBF_MIN_SIZE | 1;
+
+      if (next_size<ibf_min_size)
+        next_size = ibf_min_size;
+
+
+      if (next_size <= MAX_IBF_SIZE)
       {
         LOG (GNUNET_ERROR_TYPE_DEBUG,
              "decoding failed, sending larger ibf (size %u)\n",
-             1 << next_order);
+             next_size);
         GNUNET_STATISTICS_update (_GSS_statistics,
                                   "# of IBF retries",
                                   1,
                                   GNUNET_NO);
-        op->salt_send++;
+#if MEASURE_PERFORMANCE
+        perf_store.active_passive_switches += 1;
+#endif
+
+        op->salt_send = op->salt_receive++;
+
         if (GNUNET_OK !=
-            send_ibf (op, next_order))
+            send_ibf (op, next_size))
         {
           /* Internal error, best we can do is shut the connection */
           GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
@@ -1786,7 +2851,9 @@ decode_and_send (struct Operation *op)
       LOG (GNUNET_ERROR_TYPE_DEBUG,
            "transmitted all values, sending DONE\n");
 
-      perf_rtt.done.sent += 1;
+#if MEASURE_PERFORMANCE
+      perf_store.done.sent += 1;
+#endif
       ev = GNUNET_MQ_msg_header (GNUNET_MESSAGE_TYPE_SETU_P2P_DONE);
       GNUNET_MQ_send (op->mq, ev);
       /* We now wait until we get a DONE message back
@@ -1797,7 +2864,6 @@ decode_and_send (struct Operation *op)
     if (1 == side)
     {
       struct IBF_Key unsalted_key;
-
       unsalt_key (&key,
                   op->salt_receive,
                   &unsalted_key);
@@ -1809,8 +2875,29 @@ decode_and_send (struct Operation *op)
       struct GNUNET_MQ_Envelope *ev;
       struct InquiryMessage *msg;
 
-      perf_rtt.inquery.sent += 1;
-      perf_rtt.inquery.sent_var_bytes += sizeof(struct IBF_Key);
+#if MEASURE_PERFORMANCE
+      perf_store.inquery.sent += 1;
+      perf_store.inquery.sent_var_bytes += sizeof(struct IBF_Key);
+#endif
+
+      /** Add sent inquiries to hashmap for flow control **/
+      struct GNUNET_HashContext *hashed_key_context =
+        GNUNET_CRYPTO_hash_context_start ();
+      struct GNUNET_HashCode *hashed_key = (struct
+                                            GNUNET_HashCode*) GNUNET_malloc (
+        sizeof(struct GNUNET_HashCode));
+      enum MESSAGE_CONTROL_FLOW_STATE mcfs = MSG_CFS_SENT;
+      GNUNET_CRYPTO_hash_context_read (hashed_key_context,
+                                       &key,
+                                       sizeof(struct IBF_Key));
+      GNUNET_CRYPTO_hash_context_finish (hashed_key_context,
+                                         hashed_key);
+      GNUNET_CONTAINER_multihashmap_put (op->inquiries_sent,
+                                         hashed_key,
+                                         &mcfs,
+                                         GNUNET_CONTAINER_MULTIHASHMAPOPTION_REPLACE
+                                         );
+
       /* It may be nice to merge multiple requests, but with CADET's corking it is not worth
        * the effort additional complexity. */
       ev = GNUNET_MQ_msg_extra (msg,
@@ -1832,6 +2919,100 @@ decode_and_send (struct Operation *op)
   }
   ibf_destroy (diff_ibf);
   return GNUNET_OK;
+}
+
+
+/**
+ * Check send full message received from other peer
+ * @param cls
+ * @param msg
+ * @return
+ */
+
+static int
+check_union_p2p_send_full (void *cls,
+                           const struct TransmitFullMessage *msg)
+{
+  return GNUNET_OK;
+}
+
+
+/**
+ * Handle send full message received from other peer
+ *
+ * @param cls
+ * @param msg
+ */
+static void
+handle_union_p2p_send_full (void *cls,
+                            const struct TransmitFullMessage *msg)
+{
+  struct Operation *op = cls;
+
+  /**
+  * Check that the message is received only in supported phase
+  */
+  uint8_t allowed_phases[] = {PHASE_EXPECT_IBF};
+  if (GNUNET_OK !=
+      check_valid_phase (allowed_phases,sizeof(allowed_phases),op))
+  {
+    GNUNET_break (0);
+    fail_union_operation (op);
+    return;
+  }
+
+  /** write received values to operator**/
+  op->remote_element_count = ntohl (msg->remote_set_size);
+  op->remote_set_diff = ntohl (msg->remote_set_difference);
+  op->local_set_diff = ntohl (msg->local_set_difference);
+
+  /** Check byzantine limits **/
+  if (check_byzantine_bounds (op) != GNUNET_OK)
+  {
+    LOG (GNUNET_ERROR_TYPE_ERROR,
+         "PROTOCOL VIOLATION: Parameters transmitted from other peer do not satisfie byzantine "
+         "criteria\n");
+    GNUNET_break_op (0);
+    fail_union_operation (op);
+    return;
+  }
+
+  /** Calculate avg element size if not initial sync **/
+  op->local_element_count = GNUNET_CONTAINER_multihashmap_size (
+    op->set->content->elements);
+  uint64_t avg_element_size = 0;
+  if (0 < op->local_element_count)
+  {
+    op->total_elements_size_local = 0;
+    GNUNET_CONTAINER_multihashmap_iterate (op->set->content->elements,
+                                           &
+                                           determinate_avg_element_size_iterator,
+                                           op);
+    avg_element_size = op->total_elements_size_local / op->local_element_count;
+  }
+
+  /** Validate mode of operation **/
+  int mode_of_operation = estimate_best_mode_of_operation (avg_element_size,
+                                                           op->
+                                                           remote_element_count,
+                                                           op->
+                                                           local_element_count,
+                                                           op->local_set_diff,
+                                                           op->remote_set_diff,
+                                                           op->
+                                                           rtt_bandwidth_tradeoff,
+                                                           op->
+                                                           ibf_bucket_number_factor);
+  if (FULL_SYNC_LOCAL_SENDING_FIRST != mode_of_operation)
+  {
+    LOG (GNUNET_ERROR_TYPE_ERROR,
+         "PROTOCOL VIOLATION: Remote peer choose to send his full set first but correct mode would have been"
+         " : %d\n", mode_of_operation);
+    GNUNET_break_op (0);
+    fail_union_operation (op);
+    return;
+  }
+  op->phase = PHASE_FULL_RECEIVING;
 }
 
 
@@ -1872,7 +3053,8 @@ check_union_p2p_ibf (void *cls,
       GNUNET_break_op (0);
       return GNUNET_SYSERR;
     }
-    if (1 << msg->order != op->remote_ibf->size)
+
+    if (msg->ibf_size != op->remote_ibf->size)
     {
       GNUNET_break_op (0);
       return GNUNET_SYSERR;
@@ -1909,9 +3091,26 @@ handle_union_p2p_ibf (void *cls,
 {
   struct Operation *op = cls;
   unsigned int buckets_in_message;
+  /**
+ * Check that the message is received only in supported phase
+ */
+  uint8_t allowed_phases[] = {PHASE_EXPECT_IBF, PHASE_EXPECT_IBF_LAST,
+                              PHASE_PASSIVE_DECODING};
+  if (GNUNET_OK !=
+      check_valid_phase (allowed_phases,sizeof(allowed_phases),op))
+  {
+    GNUNET_break (0);
+    fail_union_operation (op);
+    return;
+  }
+  op->differential_sync_iterations++;
+  check_max_differential_rounds (op);
+  op->active_passive_switch_required = false;
 
-  perf_rtt.ibf.received += 1;
-  perf_rtt.ibf.received_var_bytes += (ntohs (msg->header.size) - sizeof *msg);
+#if MEASURE_PERFORMANCE
+  perf_store.ibf.received += 1;
+  perf_store.ibf.received_var_bytes += (ntohs (msg->header.size) - sizeof *msg);
+#endif
 
   buckets_in_message = (ntohs (msg->header.size) - sizeof *msg)
                        / IBF_BUCKET_SIZE;
@@ -1922,8 +3121,10 @@ handle_union_p2p_ibf (void *cls,
     GNUNET_assert (NULL == op->remote_ibf);
     LOG (GNUNET_ERROR_TYPE_DEBUG,
          "Creating new ibf of size %u\n",
-         1 << msg->order);
-    op->remote_ibf = ibf_create (1 << msg->order, SE_IBF_HASH_NUM);
+         ntohl (msg->ibf_size));
+    // op->remote_ibf = ibf_create (1 << msg->order, SE_IBF_HASH_NUM);
+    op->remote_ibf = ibf_create (msg->ibf_size,
+                                 ((uint8_t) op->ibf_number_buckets_per_element));
     op->salt_receive = ntohl (msg->salt);
     LOG (GNUNET_ERROR_TYPE_DEBUG,
          "Receiving new IBF with salt %u\n",
@@ -1954,7 +3155,7 @@ handle_union_p2p_ibf (void *cls,
   ibf_read_slice (&msg[1],
                   op->ibf_buckets_received,
                   buckets_in_message,
-                  op->remote_ibf);
+                  op->remote_ibf, msg->ibf_counter_bit_length);
   op->ibf_buckets_received += buckets_in_message;
 
   if (op->ibf_buckets_received == op->remote_ibf->size)
@@ -2030,18 +3231,24 @@ maybe_finish (struct Operation *op)
 
   num_demanded = GNUNET_CONTAINER_multihashmap_size (
     op->demanded_hashes);
-
+  int send_done  =  GNUNET_CONTAINER_multihashmap_iterate (
+    op->message_control_flow,
+    &
+    determinate_done_message_iterator,
+    op);
   if (PHASE_FINISH_WAITING == op->phase)
   {
     LOG (GNUNET_ERROR_TYPE_DEBUG,
-         "In PHASE_FINISH_WAITING, pending %u demands\n",
-         num_demanded);
-    if (0 == num_demanded)
+         "In PHASE_FINISH_WAITING, pending %u demands -> %d\n",
+         num_demanded, op->peer_site);
+    if (-1 != send_done)
     {
       struct GNUNET_MQ_Envelope *ev;
 
       op->phase = PHASE_FINISHED;
-      perf_rtt.done.sent += 1;
+#if MEASURE_PERFORMANCE
+      perf_store.done.sent += 1;
+#endif
       ev = GNUNET_MQ_msg_header (GNUNET_MESSAGE_TYPE_SETU_P2P_DONE);
       GNUNET_MQ_send (op->mq,
                       ev);
@@ -2052,9 +3259,9 @@ maybe_finish (struct Operation *op)
   if (PHASE_FINISH_CLOSING == op->phase)
   {
     LOG (GNUNET_ERROR_TYPE_DEBUG,
-         "In PHASE_FINISH_CLOSING, pending %u demands\n",
-         num_demanded);
-    if (0 == num_demanded)
+         "In PHASE_FINISH_CLOSING, pending %u demands %d\n",
+         num_demanded, op->peer_site);
+    if (-1 != send_done)
     {
       op->phase = PHASE_FINISHED;
       send_client_done (op);
@@ -2102,11 +3309,25 @@ handle_union_p2p_elements (void *cls,
   struct KeyEntry *ke;
   uint16_t element_size;
 
+  /**
+  * Check that the message is received only in supported phase
+  */
+  uint8_t allowed_phases[] = {PHASE_ACTIVE_DECODING, PHASE_PASSIVE_DECODING,
+                              PHASE_FINISH_WAITING, PHASE_FINISH_CLOSING};
+  if (GNUNET_OK !=
+      check_valid_phase (allowed_phases,sizeof(allowed_phases),op))
+  {
+    GNUNET_break (0);
+    fail_union_operation (op);
+    return;
+  }
 
   element_size = ntohs (emsg->header.size) - sizeof(struct
                                                     GNUNET_SETU_ElementMessage);
-  perf_rtt.element.received += 1;
-  perf_rtt.element.received_var_bytes += element_size;
+#if MEASURE_PERFORMANCE
+  perf_store.element.received += 1;
+  perf_store.element.received_var_bytes += element_size;
+#endif
 
   ee = GNUNET_malloc (sizeof(struct ElementEntry) + element_size);
   GNUNET_memcpy (&ee[1],
@@ -2125,6 +3346,21 @@ handle_union_p2p_elements (void *cls,
   {
     /* We got something we didn't demand, since it's not in our map. */
     GNUNET_break_op (0);
+    fail_union_operation (op);
+    return;
+  }
+
+  if (GNUNET_OK !=
+      update_message_control_flow (
+        op->message_control_flow,
+        MSG_CFS_RECEIVED,
+        &ee->element_hash,
+        ELEMENT_MESSAGE)
+      )
+  {
+    LOG (GNUNET_ERROR_TYPE_ERROR,
+         "An element has been received more than once!\n");
+    GNUNET_break (0);
     fail_union_operation (op);
     return;
   }
@@ -2217,33 +3453,25 @@ handle_union_p2p_full_element (void *cls,
   struct KeyEntry *ke;
   uint16_t element_size;
 
-
-
-  if(PHASE_EXPECT_IBF == op->phase) {
-      op->phase = PHASE_FULL_RECEIVING;
-  }
-
-
-
-    /* Allow only receiving of full element message if in expect IBF or in PHASE_FULL_RECEIVING state */
-  if ((PHASE_FULL_RECEIVING != op->phase) &&
-       (PHASE_FULL_SENDING != op->phase))
+  /**
+  * Check that the message is received only in supported phase
+  */
+  uint8_t allowed_phases[] = {PHASE_FULL_RECEIVING, PHASE_FULL_SENDING};
+  if (GNUNET_OK !=
+      check_valid_phase (allowed_phases,sizeof(allowed_phases),op))
   {
-      GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-               "Handle full element phase is %u\n",
-               (unsigned) op->phase);
-      GNUNET_break_op (0);
-      fail_union_operation (op);
-      return;
+    GNUNET_break (0);
+    fail_union_operation (op);
+    return;
   }
-
-
 
   element_size = ntohs (emsg->header.size)
                  - sizeof(struct GNUNET_SETU_ElementMessage);
 
-  perf_rtt.element_full.received += 1;
-  perf_rtt.element_full.received_var_bytes += element_size;
+#if MEASURE_PERFORMANCE
+  perf_store.element_full.received += 1;
+  perf_store.element_full.received_var_bytes += element_size;
+#endif
 
   ee = GNUNET_malloc (sizeof(struct ElementEntry) + element_size);
   GNUNET_memcpy (&ee[1], &emsg[1], element_size);
@@ -2268,17 +3496,15 @@ handle_union_p2p_full_element (void *cls,
                             GNUNET_NO);
 
   op->received_total++;
-
   ke = op_get_element (op,
                        &ee->element_hash);
   if (NULL != ke)
   {
-    /* Got repeated element.  Should not happen since
-     * we track demands. */
     GNUNET_STATISTICS_update (_GSS_statistics,
                               "# repeated elements",
                               1,
                               GNUNET_NO);
+    full_sync_plausibility_check (op);
     ke->received = GNUNET_YES;
     GNUNET_free (ee);
   }
@@ -2294,15 +3520,15 @@ handle_union_p2p_full_element (void *cls,
                          GNUNET_SETU_STATUS_ADD_LOCAL);
   }
 
+
   if ((GNUNET_YES == op->byzantine) &&
-      (op->received_total > 384 + op->received_fresh * 4) &&
-      (op->received_fresh < op->received_total / 6))
+      (op->received_total > op->remote_element_count) )
   {
     /* The other peer gave us lots of old elements, there's something wrong. */
     LOG (GNUNET_ERROR_TYPE_ERROR,
-         "Other peer sent only %llu/%llu fresh elements, failing operation\n",
-         (unsigned long long) op->received_fresh,
-         (unsigned long long) op->received_total);
+         "Other peer sent %llu elements while pretending to have %llu elements, failing operation\n",
+         (unsigned long long) op->received_total,
+         (unsigned long long) op->remote_element_count);
     GNUNET_break_op (0);
     fail_union_operation (op);
     return;
@@ -2356,18 +3582,50 @@ handle_union_p2p_inquiry (void *cls,
   const struct IBF_Key *ibf_key;
   unsigned int num_keys;
 
-  perf_rtt.inquery.received += 1;
-  perf_rtt.inquery.received_var_bytes += (ntohs (msg->header.size) - sizeof(struct InquiryMessage));
+  /**
+  * Check that the message is received only in supported phase
+  */
+  uint8_t allowed_phases[] = {PHASE_ACTIVE_DECODING, PHASE_PASSIVE_DECODING};
+  if (GNUNET_OK !=
+      check_valid_phase (allowed_phases,sizeof(allowed_phases),op))
+  {
+    GNUNET_break (0);
+    fail_union_operation (op);
+    return;
+  }
+
+#if MEASURE_PERFORMANCE
+  perf_store.inquery.received += 1;
+  perf_store.inquery.received_var_bytes += (ntohs (msg->header.size)
+                                            - sizeof(struct InquiryMessage));
+#endif
 
   LOG (GNUNET_ERROR_TYPE_DEBUG,
        "Received union inquiry\n");
   num_keys = (ntohs (msg->header.size) - sizeof(struct InquiryMessage))
              / sizeof(struct IBF_Key);
   ibf_key = (const struct IBF_Key *) &msg[1];
+
+  /** Add received inquiries to hashmap for flow control **/
+  struct GNUNET_HashContext *hashed_key_context =
+    GNUNET_CRYPTO_hash_context_start ();
+  struct GNUNET_HashCode *hashed_key = (struct GNUNET_HashCode*) GNUNET_malloc (
+    sizeof(struct GNUNET_HashCode));;
+  enum MESSAGE_CONTROL_FLOW_STATE mcfs = MSG_CFS_RECEIVED;
+  GNUNET_CRYPTO_hash_context_read (hashed_key_context,
+                                   &ibf_key,
+                                   sizeof(struct IBF_Key));
+  GNUNET_CRYPTO_hash_context_finish (hashed_key_context,
+                                     hashed_key);
+  GNUNET_CONTAINER_multihashmap_put (op->inquiries_sent,
+                                     hashed_key,
+                                     &mcfs,
+                                     GNUNET_CONTAINER_MULTIHASHMAPOPTION_REPLACE
+                                     );
+
   while (0 != num_keys--)
   {
     struct IBF_Key unsalted_key;
-
     unsalt_key (ibf_key,
                 ntohl (msg->salt),
                 &unsalted_key);
@@ -2402,7 +3660,9 @@ send_missing_full_elements_iter (void *cls,
 
   if (GNUNET_YES == ke->received)
     return GNUNET_YES;
-  perf_rtt.element_full.received += 1;
+#if MEASURE_PERFORMANCE
+  perf_store.element_full.received += 1;
+#endif
   ev = GNUNET_MQ_msg_extra (emsg,
                             ee->element.size,
                             GNUNET_MESSAGE_TYPE_SETU_P2P_FULL_ELEMENT);
@@ -2422,18 +3682,84 @@ send_missing_full_elements_iter (void *cls,
  * @param cls closure, a set union operation
  * @param mh the demand message
  */
+static int
+check_union_p2p_request_full (void *cls,
+                              const struct TransmitFullMessage *mh)
+{
+  return GNUNET_OK;
+}
+
+
 static void
 handle_union_p2p_request_full (void *cls,
-                               const struct GNUNET_MessageHeader *mh)
+                               const struct TransmitFullMessage *msg)
 {
   struct Operation *op = cls;
 
-  perf_rtt.request_full.received += 1;
-
-    LOG (GNUNET_ERROR_TYPE_DEBUG,
-       "Received request for full set transmission\n");
-  if (PHASE_EXPECT_IBF != op->phase)
+  /**
+  * Check that the message is received only in supported phase
+  */
+  uint8_t allowed_phases[] = {PHASE_EXPECT_IBF};
+  if (GNUNET_OK !=
+      check_valid_phase (allowed_phases,sizeof(allowed_phases),op))
   {
+    GNUNET_break (0);
+    fail_union_operation (op);
+    return;
+  }
+
+  op->remote_element_count = ntohl (msg->remote_set_size);
+  op->remote_set_diff = ntohl (msg->remote_set_difference);
+  op->local_set_diff = ntohl (msg->local_set_difference);
+
+
+  if (check_byzantine_bounds (op) != GNUNET_OK)
+  {
+    LOG (GNUNET_ERROR_TYPE_ERROR,
+         "PROTOCOL VIOLATION: Parameters transmitted from other peer do not satisfie byzantine "
+         "criteria\n");
+    GNUNET_break_op (0);
+    fail_union_operation (op);
+    return;
+  }
+
+#if MEASURE_PERFORMANCE
+  perf_store.request_full.received += 1;
+#endif
+
+  LOG (GNUNET_ERROR_TYPE_DEBUG,
+       "Received request for full set transmission\n");
+
+  /** Calculate avg element size if not initial sync **/
+  op->local_element_count = GNUNET_CONTAINER_multihashmap_size (
+    op->set->content->elements);
+  uint64_t avg_element_size = 0;
+  if (0 < op->local_element_count)
+  {
+    op->total_elements_size_local = 0;
+    GNUNET_CONTAINER_multihashmap_iterate (op->set->content->elements,
+                                           &
+                                           determinate_avg_element_size_iterator,
+                                           op);
+    avg_element_size = op->total_elements_size_local / op->local_element_count;
+  }
+
+  int mode_of_operation = estimate_best_mode_of_operation (avg_element_size,
+                                                           op->
+                                                           remote_element_count,
+                                                           op->
+                                                           local_element_count,
+                                                           op->local_set_diff,
+                                                           op->remote_set_diff,
+                                                           op->
+                                                           rtt_bandwidth_tradeoff,
+                                                           op->
+                                                           ibf_bucket_number_factor);
+  if (FULL_SYNC_REMOTE_SENDING_FIRST != mode_of_operation)
+  {
+    LOG (GNUNET_ERROR_TYPE_ERROR,
+         "PROTOCOL VIOLATION: Remote peer choose to request the full set first but correct mode would have been"
+         " : %d\n", mode_of_operation);
     GNUNET_break_op (0);
     fail_union_operation (op);
     return;
@@ -2458,13 +3784,40 @@ handle_union_p2p_full_done (void *cls,
 {
   struct Operation *op = cls;
 
-  perf_rtt.full_done.received += 1;
+  /**
+  * Check that the message is received only in supported phase
+  */
+  uint8_t allowed_phases[] = {PHASE_FULL_SENDING, PHASE_FULL_RECEIVING};
+  if (GNUNET_OK !=
+      check_valid_phase (allowed_phases,sizeof(allowed_phases),op))
+  {
+    GNUNET_break (0);
+    fail_union_operation (op);
+    return;
+  }
+
+#if MEASURE_PERFORMANCE
+  perf_store.full_done.received += 1;
+#endif
 
   switch (op->phase)
   {
   case PHASE_FULL_RECEIVING:
     {
       struct GNUNET_MQ_Envelope *ev;
+
+      if ((GNUNET_YES == op->byzantine) &&
+          (op->received_total != op->remote_element_count) )
+      {
+        /* The other peer gave not enough elements before sending full done, there's something wrong. */
+        LOG (GNUNET_ERROR_TYPE_ERROR,
+             "Other peer sent only %llu/%llu fresh elements, failing operation\n",
+             (unsigned long long) op->received_total,
+             (unsigned long long) op->remote_element_count);
+        GNUNET_break_op (0);
+        fail_union_operation (op);
+        return;
+      }
 
       LOG (GNUNET_ERROR_TYPE_DEBUG,
            "got FULL DONE, sending elements that other peer is missing\n");
@@ -2473,7 +3826,9 @@ handle_union_p2p_full_done (void *cls,
       GNUNET_CONTAINER_multihashmap32_iterate (op->key_to_element,
                                                &send_missing_full_elements_iter,
                                                op);
-      perf_rtt.full_done.sent += 1;
+#if MEASURE_PERFORMANCE
+      perf_store.full_done.sent += 1;
+#endif
       ev = GNUNET_MQ_msg_header (GNUNET_MESSAGE_TYPE_SETU_P2P_FULL_DONE);
       GNUNET_MQ_send (op->mq,
                       ev);
@@ -2552,8 +3907,23 @@ handle_union_p2p_demand (void *cls,
   unsigned int num_hashes;
   struct GNUNET_MQ_Envelope *ev;
 
-  perf_rtt.demand.received += 1;
-  perf_rtt.demand.received_var_bytes += (ntohs (mh->size) - sizeof(struct GNUNET_MessageHeader));
+  /**
+  * Check that the message is received only in supported phase
+  */
+  uint8_t allowed_phases[] = {PHASE_ACTIVE_DECODING, PHASE_PASSIVE_DECODING,
+                              PHASE_FINISH_WAITING};
+  if (GNUNET_OK !=
+      check_valid_phase (allowed_phases,sizeof(allowed_phases),op))
+  {
+    GNUNET_break (0);
+    fail_union_operation (op);
+    return;
+  }
+#if MEASURE_PERFORMANCE
+  perf_store.demand.received += 1;
+  perf_store.demand.received_var_bytes += (ntohs (mh->size) - sizeof(struct
+                                                                     GNUNET_MessageHeader));
+#endif
 
   num_hashes = (ntohs (mh->size) - sizeof(struct GNUNET_MessageHeader))
                / sizeof(struct GNUNET_HashCode);
@@ -2570,6 +3940,39 @@ handle_union_p2p_demand (void *cls,
       fail_union_operation (op);
       return;
     }
+
+    /* Save send demand message for message control */
+    if (GNUNET_YES !=
+        update_message_control_flow (
+          op->message_control_flow,
+          MSG_CFS_RECEIVED,
+          &ee->element_hash,
+          DEMAND_MESSAGE)
+        )
+    {
+      LOG (GNUNET_ERROR_TYPE_ERROR,
+           "Double demand message received found!\n");
+      GNUNET_break (0);
+      fail_union_operation (op);
+      return;
+    }
+    ;
+
+    /* Mark element to be expected to received */
+    if (GNUNET_YES !=
+        update_message_control_flow (
+          op->message_control_flow,
+          MSG_CFS_SENT,
+          &ee->element_hash,
+          ELEMENT_MESSAGE)
+        )
+    {
+      LOG (GNUNET_ERROR_TYPE_ERROR,
+           "Double element message sent found!\n");
+      GNUNET_break (0);
+      fail_union_operation (op);
+      return;
+    }
     if (GNUNET_NO == _GSS_is_element_of_operation (ee, op))
     {
       /* Probably confused lazily copied sets. */
@@ -2577,8 +3980,10 @@ handle_union_p2p_demand (void *cls,
       fail_union_operation (op);
       return;
     }
-    perf_rtt.element.sent += 1;
-    perf_rtt.element.sent_var_bytes += ee->element.size;
+#if MEASURE_PERFORMANCE
+    perf_store.element.sent += 1;
+    perf_store.element.sent_var_bytes += ee->element.size;
+#endif
     ev = GNUNET_MQ_msg_extra (emsg,
                               ee->element.size,
                               GNUNET_MESSAGE_TYPE_SETU_P2P_ELEMENTS);
@@ -2600,9 +4005,10 @@ handle_union_p2p_demand (void *cls,
     if (op->symmetric)
       send_client_element (op,
                            &ee->element,
-                           GNUNET_SET_STATUS_ADD_REMOTE);
+                           GNUNET_SETU_STATUS_ADD_REMOTE);
   }
   GNUNET_CADET_receive_done (op->channel);
+  maybe_finish (op);
 }
 
 
@@ -2653,9 +4059,23 @@ handle_union_p2p_offer (void *cls,
   struct Operation *op = cls;
   const struct GNUNET_HashCode *hash;
   unsigned int num_hashes;
+  /**
+  * Check that the message is received only in supported phase
+  */
+  uint8_t allowed_phases[] = {PHASE_ACTIVE_DECODING, PHASE_PASSIVE_DECODING};
+  if (GNUNET_OK !=
+      check_valid_phase (allowed_phases,sizeof(allowed_phases),op))
+  {
+    GNUNET_break (0);
+    fail_union_operation (op);
+    return;
+  }
 
-  perf_rtt.offer.received += 1;
-  perf_rtt.offer.received_var_bytes += (ntohs (mh->size) - sizeof(struct GNUNET_MessageHeader));
+#if MEASURE_PERFORMANCE
+  perf_store.offer.received += 1;
+  perf_store.offer.received_var_bytes += (ntohs (mh->size) - sizeof(struct
+                                                                    GNUNET_MessageHeader));
+#endif
 
   num_hashes = (ntohs (mh->size) - sizeof(struct GNUNET_MessageHeader))
                / sizeof(struct GNUNET_HashCode);
@@ -2693,8 +4113,53 @@ handle_union_p2p_offer (void *cls,
          "[OP %p] Requesting element (hash %s)\n",
          op, GNUNET_h2s (hash));
 
-    perf_rtt.demand.sent += 1;
-    perf_rtt.demand.sent_var_bytes += sizeof(struct GNUNET_HashCode);
+#if MEASURE_PERFORMANCE
+    perf_store.demand.sent += 1;
+    perf_store.demand.sent_var_bytes += sizeof(struct GNUNET_HashCode);
+#endif
+    /* Save send demand message for message control */
+    if (GNUNET_YES !=
+        update_message_control_flow (
+          op->message_control_flow,
+          MSG_CFS_SENT,
+          hash,
+          DEMAND_MESSAGE))
+    {
+      LOG (GNUNET_ERROR_TYPE_ERROR,
+           "Double demand message sent found!\n");
+      GNUNET_break (0);
+      fail_union_operation (op);
+      return;
+    }
+
+    /* Mark offer as received received */
+    if (GNUNET_YES !=
+        update_message_control_flow (
+          op->message_control_flow,
+          MSG_CFS_RECEIVED,
+          hash,
+          OFFER_MESSAGE))
+    {
+      LOG (GNUNET_ERROR_TYPE_ERROR,
+           "Double offer message received found!\n");
+      GNUNET_break (0);
+      fail_union_operation (op);
+      return;
+    }
+    /* Mark element to be expected to received */
+    if (GNUNET_YES !=
+        update_message_control_flow (
+          op->message_control_flow,
+          MSG_CFS_EXPECTED,
+          hash,
+          ELEMENT_MESSAGE))
+    {
+      LOG (GNUNET_ERROR_TYPE_ERROR,
+           "Element already expected!\n");
+      GNUNET_break (0);
+      fail_union_operation (op);
+      return;
+    }
     ev = GNUNET_MQ_msg_header_extra (demands,
                                      sizeof(struct GNUNET_HashCode),
                                      GNUNET_MESSAGE_TYPE_SETU_P2P_DEMAND);
@@ -2719,7 +4184,30 @@ handle_union_p2p_done (void *cls,
 {
   struct Operation *op = cls;
 
-  perf_rtt.done.received += 1;
+  /**
+  * Check that the message is received only in supported phase
+  */
+  uint8_t allowed_phases[] = {PHASE_ACTIVE_DECODING, PHASE_PASSIVE_DECODING};
+  if (GNUNET_OK !=
+      check_valid_phase (allowed_phases,sizeof(allowed_phases),op))
+  {
+    GNUNET_break (0);
+    fail_union_operation (op);
+    return;
+  }
+
+  if (op->active_passive_switch_required)
+  {
+    LOG (GNUNET_ERROR_TYPE_ERROR,
+         "PROTOCOL VIOLATION: Received done but role change is necessary\n");
+    GNUNET_break (0);
+    fail_union_operation (op);
+    return;
+  }
+
+#if MEASURE_PERFORMANCE
+  perf_store.done.received += 1;
+#endif
   switch (op->phase)
   {
   case PHASE_PASSIVE_DECODING:
@@ -2728,26 +4216,26 @@ handle_union_p2p_done (void *cls,
     LOG (GNUNET_ERROR_TYPE_DEBUG,
          "got DONE (as passive partner), waiting for our demands to be satisfied\n");
     /* The active peer is done sending offers
-     * and inquiries.  This means that all
-     * our responses to that (demands and offers)
-     * must be in flight (queued or in mesh).
-     *
-     * We should notify the active peer once
-     * all our demands are satisfied, so that the active
-     * peer can quit if we gave it everything.
-     */GNUNET_CADET_receive_done (op->channel);
+         * and inquiries.  This means that all
+         * our responses to that (demands and offers)
+         * must be in flight (queued or in mesh).
+         *
+         * We should notify the active peer once
+         * all our demands are satisfied, so that the active
+         * peer can quit if we gave it everything.
+         */GNUNET_CADET_receive_done (op->channel);
     maybe_finish (op);
     return;
   case PHASE_ACTIVE_DECODING:
     LOG (GNUNET_ERROR_TYPE_DEBUG,
          "got DONE (as active partner), waiting to finish\n");
     /* All demands of the other peer are satisfied,
-     * and we processed all offers, thus we know
-     * exactly what our demands must be.
-     *
-     * We'll close the channel
-     * to the other peer once our demands are met.
-     */op->phase = PHASE_FINISH_CLOSING;
+         * and we processed all offers, thus we know
+         * exactly what our demands must be.
+         *
+         * We'll close the channel
+         * to the other peer once our demands are met.
+         */op->phase = PHASE_FINISH_CLOSING;
     GNUNET_CADET_receive_done (op->channel);
     maybe_finish (op);
     return;
@@ -2769,7 +4257,9 @@ static void
 handle_union_p2p_over (void *cls,
                        const struct GNUNET_MessageHeader *mh)
 {
-  perf_rtt.over.received += 1;
+#if MEASURE_PERFORMANCE
+  perf_store.over.received += 1;
+#endif
   send_client_done (cls);
 }
 
@@ -2943,7 +4433,7 @@ check_incoming_msg (void *cls,
   struct Listener *listener = op->listener;
   const struct GNUNET_MessageHeader *nested_context;
 
-    /* double operation request */
+  /* double operation request */
   if (0 != op->suggest_id)
   {
     GNUNET_break_op (0);
@@ -3053,10 +4543,10 @@ handle_client_create_set (void *cls,
   }
   set = GNUNET_new (struct Set);
   {
-    struct StrataEstimator *se;
+    struct MultiStrataEstimator *se;
 
     se = strata_estimator_create (SE_STRATA_COUNT,
-                                  SE_IBF_SIZE,
+                                  SE_IBFS_TOTAL_SIZE,
                                   SE_IBF_HASH_NUM);
     if (NULL == se)
     {
@@ -3198,6 +4688,7 @@ channel_window_cb (void *cls,
  * @param cls client that sent the message
  * @param msg message sent by the client
  */
+
 static void
 handle_client_listen (void *cls,
                       const struct GNUNET_SETU_ListenMessage *msg)
@@ -3240,10 +4731,10 @@ handle_client_listen (void *cls,
                              GNUNET_MESSAGE_TYPE_SETU_P2P_FULL_DONE,
                              struct GNUNET_MessageHeader,
                              NULL),
-    GNUNET_MQ_hd_fixed_size (union_p2p_request_full,
-                             GNUNET_MESSAGE_TYPE_SETU_P2P_REQUEST_FULL,
-                             struct GNUNET_MessageHeader,
-                             NULL),
+    GNUNET_MQ_hd_var_size (union_p2p_request_full,
+                           GNUNET_MESSAGE_TYPE_SETU_P2P_REQUEST_FULL,
+                           struct TransmitFullMessage,
+                           NULL),
     GNUNET_MQ_hd_var_size (union_p2p_strata_estimator,
                            GNUNET_MESSAGE_TYPE_SETU_P2P_SE,
                            struct StrataEstimatorMessage,
@@ -3255,6 +4746,10 @@ handle_client_listen (void *cls,
     GNUNET_MQ_hd_var_size (union_p2p_full_element,
                            GNUNET_MESSAGE_TYPE_SETU_P2P_FULL_ELEMENT,
                            struct GNUNET_SETU_ElementMessage,
+                           NULL),
+    GNUNET_MQ_hd_var_size (union_p2p_send_full,
+                           GNUNET_MESSAGE_TYPE_SETU_P2P_SEND_FULL,
+                           struct TransmitFullMessage,
                            NULL),
     GNUNET_MQ_handler_end ()
   };
@@ -3451,6 +4946,7 @@ handle_client_evaluate (void *cls,
 {
   struct ClientState *cs = cls;
   struct Operation *op = GNUNET_new (struct Operation);
+
   const struct GNUNET_MQ_MessageHandler cadet_handlers[] = {
     GNUNET_MQ_hd_var_size (incoming_msg,
                            GNUNET_MESSAGE_TYPE_SETU_P2P_OPERATION_REQUEST,
@@ -3488,10 +4984,10 @@ handle_client_evaluate (void *cls,
                              GNUNET_MESSAGE_TYPE_SETU_P2P_FULL_DONE,
                              struct GNUNET_MessageHeader,
                              op),
-    GNUNET_MQ_hd_fixed_size (union_p2p_request_full,
-                             GNUNET_MESSAGE_TYPE_SETU_P2P_REQUEST_FULL,
-                             struct GNUNET_MessageHeader,
-                             op),
+    GNUNET_MQ_hd_var_size (union_p2p_request_full,
+                           GNUNET_MESSAGE_TYPE_SETU_P2P_REQUEST_FULL,
+                           struct TransmitFullMessage,
+                           op),
     GNUNET_MQ_hd_var_size (union_p2p_strata_estimator,
                            GNUNET_MESSAGE_TYPE_SETU_P2P_SE,
                            struct StrataEstimatorMessage,
@@ -3504,6 +5000,10 @@ handle_client_evaluate (void *cls,
                            GNUNET_MESSAGE_TYPE_SETU_P2P_FULL_ELEMENT,
                            struct GNUNET_SETU_ElementMessage,
                            op),
+    GNUNET_MQ_hd_var_size (union_p2p_send_full,
+                           GNUNET_MESSAGE_TYPE_SETU_P2P_SEND_FULL,
+                           struct TransmitFullMessage,
+                           NULL),
     GNUNET_MQ_handler_end ()
   };
   struct Set *set;
@@ -3525,7 +5025,22 @@ handle_client_evaluate (void *cls,
   op->force_full = msg->force_full;
   op->force_delta = msg->force_delta;
   op->symmetric = msg->symmetric;
+  op->rtt_bandwidth_tradeoff = msg->bandwidth_latency_tradeoff;
+  op->ibf_bucket_number_factor = msg->ibf_bucket_number_factor;
+  op->ibf_number_buckets_per_element = msg->ibf_number_of_buckets_per_element;
+  op->byzantine_upper_bound = msg->byzantine_upper_bond;
+  op->active_passive_switch_required = false;
   context = GNUNET_MQ_extract_nested_mh (msg);
+
+  /* create hashmap for message control */
+  op->message_control_flow = GNUNET_CONTAINER_multihashmap_create (32,
+                                                                   GNUNET_NO);
+  op->inquiries_sent = GNUNET_CONTAINER_multihashmap_create (32,GNUNET_NO);
+
+#if MEASURE_PERFORMANCE
+  /* load config */
+  load_config (op);
+#endif
 
   /* Advance generation values, so that
      mutations won't interfer with the running operation. */
@@ -3550,7 +5065,9 @@ handle_client_evaluate (void *cls,
     struct GNUNET_MQ_Envelope *ev;
     struct OperationRequestMessage *msg;
 
-    perf_rtt.operation_request.sent += 1;
+#if MEASURE_PERFORMANCE
+    perf_store.operation_request.sent += 1;
+#endif
     ev = GNUNET_MQ_msg_nested_mh (msg,
                                   GNUNET_MESSAGE_TYPE_SETU_P2P_OPERATION_REQUEST,
                                   context);
@@ -3567,7 +5084,11 @@ handle_client_evaluate (void *cls,
     op->se = strata_estimator_dup (op->set->se);
     /* we started the operation, thus we have to send the operation request */
     op->phase = PHASE_EXPECT_SE;
-    op->salt_receive = op->salt_send = 42; // FIXME?????
+
+    op->salt_receive = (op->peer_site + 1) % 2;
+    op->salt_send = op->peer_site;     // FIXME?????
+
+
     LOG (GNUNET_ERROR_TYPE_DEBUG,
          "Initiating union operation evaluation\n");
     GNUNET_STATISTICS_update (_GSS_statistics,
@@ -3711,6 +5232,20 @@ handle_client_accept (void *cls,
   op->force_full = msg->force_full;
   op->force_delta = msg->force_delta;
   op->symmetric = msg->symmetric;
+  op->rtt_bandwidth_tradeoff = msg->bandwidth_latency_tradeoff;
+  op->ibf_bucket_number_factor = msg->ibf_bucket_number_factor;
+  op->ibf_number_buckets_per_element = msg->ibf_number_of_buckets_per_element;
+  op->byzantine_upper_bound = msg->byzantine_upper_bond;
+  op->active_passive_switch_required = false;
+  /* create hashmap for message control */
+  op->message_control_flow = GNUNET_CONTAINER_multihashmap_create (32,
+                                                                   GNUNET_NO);
+  op->inquiries_sent = GNUNET_CONTAINER_multihashmap_create (32,GNUNET_NO);
+
+#if MEASURE_PERFORMANCE
+  /* load config */
+  load_config (op);
+#endif
 
   /* Advance generation values, so that future mutations do not
      interfer with the running operation. */
@@ -3729,7 +5264,7 @@ handle_client_accept (void *cls,
                             1,
                             GNUNET_NO);
   {
-    const struct StrataEstimator *se;
+    struct MultiStrataEstimator *se;
     struct GNUNET_MQ_Envelope *ev;
     struct StrataEstimatorMessage *strata_msg;
     char *buf;
@@ -3739,20 +5274,40 @@ handle_client_accept (void *cls,
     op->se = strata_estimator_dup (op->set->se);
     op->demanded_hashes = GNUNET_CONTAINER_multihashmap_create (32,
                                                                 GNUNET_NO);
-    op->salt_receive = op->salt_send = 42; // FIXME?????
+    op->salt_receive = (op->peer_site + 1) % 2;
+    op->salt_send = op->peer_site;     // FIXME?????
     initialize_key_to_element (op);
     op->initial_size = GNUNET_CONTAINER_multihashmap32_size (
       op->key_to_element);
 
     /* kick off the operation */
     se = op->se;
-    buf = GNUNET_malloc (se->strata_count * IBF_BUCKET_SIZE * se->ibf_size);
-    len = strata_estimator_write (se,
-                                  buf);
-    perf_rtt.se.sent += 1;
-    perf_rtt.se.sent_var_bytes += len;
 
-    if (len < se->strata_count * IBF_BUCKET_SIZE * se->ibf_size)
+    uint8_t se_count = 1;
+    if (op->initial_size > 0)
+    {
+      op->total_elements_size_local = 0;
+      GNUNET_CONTAINER_multihashmap_iterate (op->set->content->elements,
+                                             &
+                                             determinate_avg_element_size_iterator,
+                                             op);
+      se_count = determine_strata_count (
+        op->total_elements_size_local / op->initial_size,
+        op->initial_size);
+    }
+    buf = GNUNET_malloc (se->stratas[0]->strata_count * IBF_BUCKET_SIZE
+                         * ((SE_IBFS_TOTAL_SIZE / 8) * se_count));
+    len = strata_estimator_write (se,
+                                  SE_IBFS_TOTAL_SIZE,
+                                  se_count,
+                                  buf);
+#if MEASURE_PERFORMANCE
+    perf_store.se.sent += 1;
+    perf_store.se.sent_var_bytes += len;
+#endif
+
+    if (len < se->stratas[0]->strata_count * IBF_BUCKET_SIZE
+        * SE_IBFS_TOTAL_SIZE)
       type = GNUNET_MESSAGE_TYPE_SETU_P2P_SEC;
     else
       type = GNUNET_MESSAGE_TYPE_SETU_P2P_SE;
@@ -3766,6 +5321,7 @@ handle_client_accept (void *cls,
     strata_msg->set_size
       = GNUNET_htonll (GNUNET_CONTAINER_multihashmap_size (
                          op->set->content->elements));
+    strata_msg->se_count = se_count;
     GNUNET_MQ_send (op->mq,
                     ev);
     op->phase = PHASE_EXPECT_IBF;
@@ -3800,8 +5356,9 @@ shutdown_task (void *cls)
                              GNUNET_YES);
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "handled shutdown request\n");
-    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                "RTT:%f\n", calculate_perf_rtt());
+#if MEASURE_PERFORMANCE
+  calculate_perf_store ();
+#endif
 }
 
 

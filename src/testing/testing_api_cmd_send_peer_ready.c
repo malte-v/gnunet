@@ -26,18 +26,33 @@
 #include "platform.h"
 #include "gnunet_util_lib.h"
 #include "gnunet_testing_ng_lib.h"
-#include "testbed_api.h"
-#include "testbed_helper.h"
+#include "testing_cmds.h"
 
 
+/**
+ * Struct to hold information for callbacks.
+ *
+ */
 struct SendPeerReadyState
 {
-  TESTBED_CMD_HELPER_write_cb write_message;
+  /**
+   * Callback to write messages to the master loop.
+   *
+   */
+  TESTING_CMD_HELPER_write_cb write_message;
 
+  /**
+   * The message send back to the master loop.
+   *
+   */
   struct GNUNET_CMDS_PEER_STARTED *reply;
 };
 
 
+/**
+ * Trait function of this cmd does nothing.
+ *
+ */
 static int
 send_peer_ready_traits (void *cls,
                         const void **ret,
@@ -48,6 +63,10 @@ send_peer_ready_traits (void *cls,
 }
 
 
+/**
+ * The cleanup function of this cmd frees resources the cmd allocated.
+ *
+ */
 static void
 send_peer_ready_cleanup (void *cls,
                          const struct GNUNET_TESTING_Command *cmd)
@@ -59,6 +78,10 @@ send_peer_ready_cleanup (void *cls,
 }
 
 
+/**
+ * This function sends a GNUNET_MESSAGE_TYPE_CMDS_HELPER_PEER_STARTED message to the master loop.
+ *
+ */
 static void
 send_peer_ready_run (void *cls,
                      const struct GNUNET_TESTING_Command *cmd,
@@ -68,7 +91,7 @@ send_peer_ready_run (void *cls,
   struct GNUNET_CMDS_PEER_STARTED *reply;
   size_t msg_length;
 
-  msg_length = sizeof(struct GNUNET_CMDS_HelperInit);// GNUNET_CMDS_PEER_STARTED);
+  msg_length = sizeof(struct GNUNET_CMDS_PEER_STARTED);
   reply = GNUNET_new (struct GNUNET_CMDS_PEER_STARTED);
   reply->header.type = htons (GNUNET_MESSAGE_TYPE_CMDS_HELPER_PEER_STARTED);
   reply->header.size = htons ((uint16_t) msg_length);
@@ -81,11 +104,12 @@ send_peer_ready_run (void *cls,
  * Create command.
  *
  * @param label name for command.
+ * @param write_message Callback to write messages to the master loop.
  * @return command.
  */
 struct GNUNET_TESTING_Command
 GNUNET_TESTING_cmd_send_peer_ready (const char *label,
-                                    TESTBED_CMD_HELPER_write_cb write_message)
+                                    TESTING_CMD_HELPER_write_cb write_message)
 {
   struct SendPeerReadyState *sprs;
 

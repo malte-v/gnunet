@@ -759,6 +759,15 @@ GNUNET_CURL_download_get_result_ (struct GNUNET_CURL_DownloadBuffer *db,
               "Downloaded body: %.*s\n",
               (int) db->buf_size,
               (char *) db->buf);
+  if (CURLE_OK !=
+      curl_easy_getinfo (eh,
+                         CURLINFO_RESPONSE_CODE,
+                         response_code))
+  {
+    /* unexpected error... */
+    GNUNET_break (0);
+    *response_code = 0;
+  }
   if ((CURLE_OK !=
        curl_easy_getinfo (eh,
                           CURLINFO_CONTENT_TYPE,
@@ -768,15 +777,6 @@ GNUNET_CURL_download_get_result_ (struct GNUNET_CURL_DownloadBuffer *db,
   {
     /* No content type or explicitly not JSON, refuse to parse
        (but keep response code) */
-    if (CURLE_OK !=
-        curl_easy_getinfo (eh,
-                           CURLINFO_RESPONSE_CODE,
-                           response_code))
-    {
-      /* unexpected error... */
-      GNUNET_break (0);
-      *response_code = 0;
-    }
     if (0 != db->buf_size)
       GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
                   "Did NOT detect response `%.*s' as JSON\n",
@@ -786,6 +786,20 @@ GNUNET_CURL_download_get_result_ (struct GNUNET_CURL_DownloadBuffer *db,
   }
   if (MHD_HTTP_NO_CONTENT == *response_code)
     return NULL;
+  if (0 == *response_code)
+  {
+    char *url;
+
+    if (CURLE_OK !=
+        curl_easy_getinfo (eh,
+                           CURLINFO_EFFECTIVE_URL,
+                           &url))
+      url = "<unknown URL>";
+    GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
+                "Failed to download response from `%s': \n",
+                url);
+    return NULL;
+  }
   json = NULL;
   if (0 == db->eno)
   {
@@ -802,18 +816,6 @@ GNUNET_CURL_download_get_result_ (struct GNUNET_CURL_DownloadBuffer *db,
   GNUNET_free (db->buf);
   db->buf = NULL;
   db->buf_size = 0;
-  if (NULL != json)
-  {
-    if (CURLE_OK !=
-        curl_easy_getinfo (eh,
-                           CURLINFO_RESPONSE_CODE,
-                           response_code))
-    {
-      /* unexpected error... */
-      GNUNET_break (0);
-      *response_code = 0;
-    }
-  }
   return json;
 }
 
@@ -825,8 +827,9 @@ GNUNET_CURL_download_get_result_ (struct GNUNET_CURL_DownloadBuffer *db,
  * @param header header string; will be given to the context AS IS.
  * @return #GNUNET_OK if no errors occurred, #GNUNET_SYSERR otherwise.
  */
-int
-GNUNET_CURL_append_header (struct GNUNET_CURL_Context *ctx, const char *header)
+enum GNUNET_GenericReturnValue
+GNUNET_CURL_append_header (struct GNUNET_CURL_Context *ctx,
+                           const char *header)
 {
   ctx->common_headers = curl_slist_append (ctx->common_headers, header);
   if (NULL == ctx->common_headers)
@@ -892,7 +895,7 @@ do_benchmark (CURLMsg *cmsg)
      curl -w "foo%{size_request} -XPOST --data "ABC" $URL
      the CURLINFO_REQUEST_SIZE should be the whole size of the request
      including headers and body.
-  *///
+  */
   GNUNET_break (size_curl <= size_long);
 
   urd = get_url_benchmark_data (url, (unsigned int) response_code);

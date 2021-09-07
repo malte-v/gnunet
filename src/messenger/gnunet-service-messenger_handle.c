@@ -474,6 +474,28 @@ get_next_member_session_contect(const struct GNUNET_MESSENGER_MemberSession *ses
     return get_member_session_context(session);
 }
 
+static const struct GNUNET_MESSENGER_MemberSession*
+get_handle_member_session (struct GNUNET_MESSENGER_SrvHandle *handle, const struct GNUNET_HashCode *key)
+{
+  GNUNET_assert((handle) && (key) && (handle->service));
+
+  const struct GNUNET_ShortHashCode *id = get_handle_member_id(handle, key);
+  struct GNUNET_MESSENGER_SrvRoom *room = get_service_room(handle->service, key);
+
+  if ((!id) || (!room))
+    return NULL;
+
+  struct GNUNET_MESSENGER_MemberStore *store = get_room_member_store(room);
+  struct GNUNET_MESSENGER_Member *member = get_store_member(store, id);
+
+  const struct GNUNET_MESSENGER_Ego *ego = get_handle_ego(handle);
+
+  if (!ego)
+    return NULL;
+
+  return get_member_session(member, &(ego->pub));
+}
+
 void
 notify_handle_message (struct GNUNET_MESSENGER_SrvHandle *handle, const struct GNUNET_HashCode *key,
                        const struct GNUNET_MESSENGER_MemberSession *session,
@@ -523,9 +545,13 @@ notify_handle_message (struct GNUNET_MESSENGER_SrvHandle *handle, const struct G
   GNUNET_memcpy(&(msg->context), context, sizeof(msg->context));
   GNUNET_memcpy(&(msg->hash), hash, sizeof(msg->hash));
 
-  msg->flags = (uint32_t) (
-      private_message? GNUNET_MESSENGER_FLAG_PRIVATE : GNUNET_MESSENGER_FLAG_NONE
-  );
+  msg->flags = (uint32_t) GNUNET_MESSENGER_FLAG_NONE;
+
+  if (get_handle_member_session(handle, key) == session)
+    msg->flags |= (uint32_t) GNUNET_MESSENGER_FLAG_SENT;
+
+  if (private_message)
+    msg->flags |= (uint32_t) GNUNET_MESSENGER_FLAG_PRIVATE;
 
   char *buffer = ((char*) msg) + sizeof(*msg);
   encode_message (message, length, buffer, GNUNET_YES);

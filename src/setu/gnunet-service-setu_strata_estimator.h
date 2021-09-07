@@ -22,6 +22,7 @@
  * @file set/gnunet-service-setu_strata_estimator.h
  * @brief estimator of set difference
  * @author Florian Dold
+ * @author Elias Summermatter
  */
 
 #ifndef GNUNET_SERVICE_SETU_STRATA_ESTIMATOR_H
@@ -61,6 +62,31 @@ struct StrataEstimator
   unsigned int ibf_size;
 };
 
+struct MultiStrataEstimator
+{
+  /**
+   * Array of strata estimators
+   */
+  struct StrataEstimator **stratas;
+
+  /**
+   * Number of strata estimators in struct
+   */
+  uint8_t size;
+
+};
+
+/**
+ * Deteminate how many strata estimators in the message are necessary
+ * @param avg_element_size
+ * @param element_count
+ * @return number of strata's
+ */
+
+uint8_t
+determine_strata_count (uint64_t avg_element_size,
+                        uint64_t element_count);
+
 
 /**
  * Write the given strata estimator to the buffer.
@@ -70,7 +96,9 @@ struct StrataEstimator
  * @return number of bytes written to @a buf
  */
 size_t
-strata_estimator_write (const struct StrataEstimator *se,
+strata_estimator_write (struct MultiStrataEstimator *se,
+                        uint16_t se_ibf_total_size,
+                        uint8_t number_se_send,
                         void *buf);
 
 
@@ -88,7 +116,9 @@ int
 strata_estimator_read (const void *buf,
                        size_t buf_len,
                        int is_compressed,
-                       struct StrataEstimator *se);
+                       uint8_t number_se_received,
+                       uint16_t se_ibf_total_size,
+                       struct MultiStrataEstimator *se);
 
 
 /**
@@ -99,7 +129,7 @@ strata_estimator_read (const void *buf,
  * @param ibf_hashnum hashnum parameter of each ibf
  * @return a freshly allocated, empty strata estimator, NULL on error
  */
-struct StrataEstimator *
+struct MultiStrataEstimator *
 strata_estimator_create (unsigned int strata_count,
                          uint32_t ibf_size,
                          uint8_t ibf_hashnum);
@@ -111,11 +141,11 @@ strata_estimator_create (unsigned int strata_count,
  *
  * @param se1 first strata estimator
  * @param se2 second strata estimator
- * @return abs(|se1| - |se2|)
+ * @return nothing
  */
-unsigned int
-strata_estimator_difference (const struct StrataEstimator *se1,
-                             const struct StrataEstimator *se2);
+void
+strata_estimator_difference (const struct MultiStrataEstimator *se1,
+                             const struct MultiStrataEstimator *se2);
 
 
 /**
@@ -125,7 +155,7 @@ strata_estimator_difference (const struct StrataEstimator *se1,
  * @param key key to add
  */
 void
-strata_estimator_insert (struct StrataEstimator *se,
+strata_estimator_insert (struct MultiStrataEstimator *se,
                          struct IBF_Key key);
 
 
@@ -136,7 +166,7 @@ strata_estimator_insert (struct StrataEstimator *se,
  * @param key key to remove
  */
 void
-strata_estimator_remove (struct StrataEstimator *se,
+strata_estimator_remove (struct MultiStrataEstimator *se,
                          struct IBF_Key key);
 
 
@@ -146,7 +176,7 @@ strata_estimator_remove (struct StrataEstimator *se,
  * @param se strata estimator to destroy.
  */
 void
-strata_estimator_destroy (struct StrataEstimator *se);
+strata_estimator_destroy (struct MultiStrataEstimator *se);
 
 
 /**
@@ -155,8 +185,8 @@ strata_estimator_destroy (struct StrataEstimator *se);
  * @param se the strata estimator to copy
  * @return the copy
  */
-struct StrataEstimator *
-strata_estimator_dup (struct StrataEstimator *se);
+struct MultiStrataEstimator *
+strata_estimator_dup (struct MultiStrataEstimator *se);
 
 
 #if 0                           /* keep Emacsens' auto-indent happy */

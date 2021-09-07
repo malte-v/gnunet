@@ -61,14 +61,6 @@ libgnunet_plugin_rest_reclaim_la_LIBADD = \
   $(top_builddir)/src/namestore/libgnunetnamestore.la \
   $(top_builddir)/src/util/libgnunetutil.la $(XLIBS) \
   $(LTLIBINTL) -ljansson $(MHD_LIBS)
-libgnunet_plugin_rest_reclaim_la_DEPENDENCIES = \
-  $(top_builddir)/src/identity/libgnunetidentity.la \
-  libgnunetreclaim.la \
-  $(top_builddir)/src/json/libgnunetjson.la \
-  $(top_builddir)/src/gnsrecord/libgnunetgnsrecord.la \
-  $(top_builddir)/src/rest/libgnunetrest.la \
-  $(top_builddir)/src/namestore/libgnunetnamestore.la \
-  $(top_builddir)/src/util/libgnunetutil.la
 libgnunet_plugin_rest_reclaim_la_LDFLAGS = \
   $(GN_PLUGIN_LDFLAGS)
 libgnunet_plugin_rest_reclaim_la_CFLAGS = $(MHD_CFLAGS) $(AM_CFLAGS)
@@ -102,11 +94,6 @@ libgnunet_plugin_rest_pabc_la_LIBADD = \
   $(top_builddir)/src/rest/libgnunetrest.la \
   $(top_builddir)/src/util/libgnunetutil.la $(XLIBS) \
   $(LTLIBINTL) -ljansson -lpabc $(MHD_LIBS)
-libgnunet_plugin_rest_pabc_la_DEPENDENCIES = \
-  libgnunetreclaim.la \
-  $(top_builddir)/src/json/libgnunetjson.la \
-  $(top_builddir)/src/rest/libgnunetrest.la \
-  $(top_builddir)/src/util/libgnunetutil.la
 libgnunet_plugin_rest_pabc_la_LDFLAGS = \
   $(GN_PLUGIN_LDFLAGS)
 libgnunet_plugin_rest_pabc_la_CFLAGS = $(MHD_CFLAGS) $(AM_CFLAGS)

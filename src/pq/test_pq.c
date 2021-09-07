@@ -25,6 +25,26 @@
 #include "platform.h"
 #include "pq.h"
 
+/**
+ * Database handle.
+ */
+static struct GNUNET_PQ_Context *db;
+
+/**
+ * Global return value, 0 on success.
+ */
+static int ret;
+
+/**
+ * An event handler.
+ */
+static struct GNUNET_DB_EventHandler *eh;
+
+/**
+ * Timeout task.
+ */
+static struct GNUNET_SCHEDULER_Task *tt;
+
 
 /**
  * Setup prepared statements.
@@ -109,7 +129,7 @@ run_queries (struct GNUNET_PQ_Context *db)
   uint64_t u64;
   uint64_t u642;
   uint64_t uzzz = 42;
-  
+
   priv = GNUNET_CRYPTO_rsa_private_key_create (1024);
   pub = GNUNET_CRYPTO_rsa_private_key_get_public (priv);
   memset (&hmsg, 42, sizeof(hmsg));
@@ -220,6 +240,91 @@ run_queries (struct GNUNET_PQ_Context *db)
 }
 
 
+/**
+ * Task called on shutdown.
+ *
+ * @param cls NULL
+ */
+static void
+event_end (void *cls)
+{
+  GNUNET_PQ_event_listen_cancel (eh);
+  eh = NULL;
+  if (NULL != tt)
+  {
+    GNUNET_SCHEDULER_cancel (tt);
+    tt = NULL;
+  }
+}
+
+
+/**
+ * Task called on timeout. Should not happen, means
+ * we did not get the expected event.
+ *
+ * @param cls NULL
+ */
+static void
+timeout_cb (void *cls)
+{
+  ret = 2;
+  GNUNET_break (0);
+  tt = NULL;
+  GNUNET_SCHEDULER_shutdown ();
+}
+
+
+/**
+ * Task called on expected event
+ *
+ * @param cls NULL
+ */
+static void
+event_sched_cb (void *cls,
+                const void *extra,
+                size_t extra_size)
+{
+  GNUNET_assert (5 == extra_size);
+  GNUNET_assert (0 ==
+                 memcmp ("hello",
+                         extra,
+                         5));
+  GNUNET_SCHEDULER_shutdown ();
+}
+
+
+/**
+ * Run tests that need a scheduler.
+ *
+ * @param cls NULL
+ */
+static void
+sched_tests (void *cls)
+{
+  struct GNUNET_DB_EventHeaderP es = {
+    .size = htons (sizeof (es)),
+    .type = htons (42)
+  };
+
+
+  tt = GNUNET_SCHEDULER_add_delayed (GNUNET_TIME_UNIT_SECONDS,
+                                     &timeout_cb,
+                                     NULL);
+  eh = GNUNET_PQ_event_listen (db,
+                               &es,
+                               GNUNET_TIME_UNIT_FOREVER_REL,
+                               &event_sched_cb,
+                               NULL);
+  GNUNET_PQ_reconnect (db);
+  GNUNET_SCHEDULER_add_shutdown (&event_end,
+                                 NULL);
+  GNUNET_PQ_event_notify (db,
+                          &es,
+                          "hello",
+                          5);
+}
+
+
 int
 main (int argc,
       const char *const argv[])
@@ -239,11 +344,9 @@ main (int argc,
                             ")"),
     GNUNET_PQ_EXECUTE_STATEMENT_END
   };
-  struct GNUNET_PQ_Context *db;
-  int ret;
 
   GNUNET_log_setup ("test-pq",
-                    "WARNING",
+                    "INFO",
                     NULL);
   db = GNUNET_PQ_connect ("postgres:///gnunetcheck",
                           NULL,
@@ -272,12 +375,26 @@ main (int argc,
     return 1;
   }
   ret = run_queries (db);
+  if (0 != ret)
+  {
+    GNUNET_break (0);
+    GNUNET_PQ_disconnect (db);
+    return ret;
+  }
+  GNUNET_SCHEDULER_run (&sched_tests,
+                        NULL);
+  if (0 != ret)
+  {
+    GNUNET_break (0);
+    GNUNET_PQ_disconnect (db);
+    return ret;
+  }
 #if TEST_RESTART
   fprintf (stderr, "Please restart Postgres database now!\n");
   sleep (60);
-  ret = run_queries (db);
+  ret |= run_queries (db);
   fprintf (stderr, "Result: %d (expect: 1 -- if you restarted the DB)\n", ret);
-  ret = run_queries (db);
+  ret |= run_queries (db);
   fprintf (stderr, "Result: %d (expect: 0)\n", ret);
 #endif
   {

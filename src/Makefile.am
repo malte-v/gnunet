@@ -3,7 +3,6 @@
 if HAVE_TESTING
  TESTING = testing
  TESTBED = testbed-logger testbed
- ATS_TESTS = ats-tests
 endif
 
 if HAVE_EXPERIMENTAL
@@ -72,7 +71,6 @@ SUBDIRS = \
   ats-tool \
   core \
   $(TESTBED) \
-  $(ATS_TESTS) \
   nse \
   dhtu \
   dht \

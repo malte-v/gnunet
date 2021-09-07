@@ -140,7 +140,6 @@ GNUNET_PROGRAM_run2 (int argc,
   char *loglev;
   char *logfile;
   char *cfg_fn;
-  const char *xdg;
   enum GNUNET_GenericReturnValue ret;
   int iret;
   unsigned int cnt;
@@ -149,12 +148,13 @@ GNUNET_PROGRAM_run2 (int argc,
   long long clock_offset;
   struct GNUNET_CONFIGURATION_Handle *cfg;
   const struct GNUNET_OS_ProjectData *pd = GNUNET_OS_project_data_get ();
-  struct GNUNET_GETOPT_CommandLineOption defoptions[] =
-  { GNUNET_GETOPT_option_cfgfile (&cc.cfgfile),
+  struct GNUNET_GETOPT_CommandLineOption defoptions[] = {
+    GNUNET_GETOPT_option_cfgfile (&cc.cfgfile),
     GNUNET_GETOPT_option_help (binaryHelp),
     GNUNET_GETOPT_option_loglevel (&loglev),
     GNUNET_GETOPT_option_logfile (&logfile),
-    GNUNET_GETOPT_option_version (pd->version) };
+    GNUNET_GETOPT_option_version (pd->version)
+  };
   struct GNUNET_GETOPT_CommandLineOption *allopts;
   const char *gargs;
   char *lpfx;
@@ -219,17 +219,7 @@ GNUNET_PROGRAM_run2 (int argc,
          &cmd_sorter);
   loglev = NULL;
   if ((NULL != pd->config_file) && (NULL != pd->user_config_file))
-  {
-    xdg = getenv ("XDG_CONFIG_HOME");
-    if (NULL != xdg)
-      GNUNET_asprintf (&cfg_fn,
-                       "%s%s%s",
-                       xdg,
-                       DIR_SEPARATOR_STR,
-                       pd->config_file);
-    else
-      cfg_fn = GNUNET_strdup (pd->user_config_file);
-  }
+    cfg_fn = GNUNET_CONFIGURATION_default_filename ();
   else
     cfg_fn = NULL;
   lpfx = GNUNET_strdup (binaryName);
@@ -251,12 +241,26 @@ GNUNET_PROGRAM_run2 (int argc,
   }
   if (NULL != cc.cfgfile)
   {
-    if ((GNUNET_YES != GNUNET_DISK_file_test (cc.cfgfile)) ||
-        (GNUNET_SYSERR == GNUNET_CONFIGURATION_load (cfg, cc.cfgfile)))
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "Loading configuration from entry point specified as option (%s)\n",
+                cc.cfgfile);
+    if (GNUNET_YES !=
+        GNUNET_DISK_file_test (cc.cfgfile))
     {
       GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                  _ (
-                    "Unreadable or malformed configuration file `%s', exit ...\n"),
+                  _ ("Unreadable configuration file `%s', exiting ...\n"),
+                  cc.cfgfile);
+      ret = GNUNET_SYSERR;
+      GNUNET_free (allopts);
+      GNUNET_free (lpfx);
+      goto cleanup;
+    }
+    if (GNUNET_SYSERR ==
+        GNUNET_CONFIGURATION_load (cfg,
+                                   cc.cfgfile))
+    {
+      GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                  _ ("Malformed configuration file `%s', exiting ...\n"),
                   cc.cfgfile);
       ret = GNUNET_SYSERR;
       GNUNET_free (allopts);
@@ -266,34 +270,31 @@ GNUNET_PROGRAM_run2 (int argc,
   }
   else
   {
-    if ((NULL != cfg_fn) && (GNUNET_YES == GNUNET_DISK_file_test (cfg_fn)))
+    if ( (NULL != cfg_fn) &&
+         (GNUNET_YES !=
+          GNUNET_DISK_file_test (cfg_fn)) )
     {
-      if (GNUNET_SYSERR == GNUNET_CONFIGURATION_load (cfg, cfg_fn))
-      {
-        GNUNET_log (
-          GNUNET_ERROR_TYPE_ERROR,
-          _ (
-            "Unreadable or malformed default configuration file `%s', exit ...\n"),
-          cfg_fn);
-        ret = GNUNET_SYSERR;
-        GNUNET_free (allopts);
-        GNUNET_free (lpfx);
-        goto cleanup;
-      }
+      GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                  _ ("Unreadable configuration file `%s'. Exiting ...\n"),
+                  cfg_fn);
+      ret = GNUNET_SYSERR;
+      GNUNET_free (allopts);
+      GNUNET_free (lpfx);
+      goto cleanup;
     }
-    else if (NULL != cfg_fn)
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "Loading configuration from entry point `%s'\n",
+                cc.cfgfile);
+    if (GNUNET_SYSERR ==
+        GNUNET_CONFIGURATION_load (cfg,
+                                   cfg_fn))
     {
-      GNUNET_free (cfg_fn);
-      cfg_fn = NULL;
-      if (GNUNET_OK != GNUNET_CONFIGURATION_load (cfg, NULL))
-      {
-        GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                    _ ("Unreadable or malformed configuration, exit ...\n"));
-        ret = GNUNET_SYSERR;
-        GNUNET_free (allopts);
-        GNUNET_free (lpfx);
-        goto cleanup;
-      }
+      GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                  _ ("Malformed configuration. Exiting ...\n"));
+      ret = GNUNET_SYSERR;
+      GNUNET_free (allopts);
+      GNUNET_free (lpfx);
+      goto cleanup;
     }
   }
   GNUNET_free (allopts);

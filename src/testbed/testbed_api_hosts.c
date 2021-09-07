@@ -964,10 +964,22 @@ gen_rsh_suffix_args (const char *const *append_args)
 }
 
 
-void
-GNUNET_TESTBED_extract_cfg (struct GNUNET_TESTBED_Host *host, const struct
-                            GNUNET_MessageHeader *message)
+/**
+ * Functions with this signature are called whenever a
+ * complete message is received by the tokenizer.
+ *
+ * Do not call GNUNET_SERVER_mst_destroy in callback
+ *
+ * @param cls closure
+ * @param client identification of the client
+ * @param message the actual message
+ *
+ * @return #GNUNET_OK on success, #GNUNET_SYSERR to stop further processing
+ */
+static int
+helper_mst (void *cls, const struct GNUNET_MessageHeader *message)
 {
+  struct GNUNET_TESTBED_ControllerProc *cp = cls;
   const struct GNUNET_TESTBED_HelperReply *msg;
   const char *hostname;
   char *config;
@@ -989,43 +1001,22 @@ GNUNET_TESTBED_extract_cfg (struct GNUNET_TESTBED_Host *host, const struct
                                      xconfig_size));
   /* Replace the configuration template present in the host with the
      controller's running configuration */
-  GNUNET_CONFIGURATION_destroy (host->cfg);
-  host->cfg = GNUNET_CONFIGURATION_create ();
-  GNUNET_assert (GNUNET_CONFIGURATION_deserialize (host->cfg,
+  GNUNET_CONFIGURATION_destroy (cp->host->cfg);
+  cp->host->cfg = GNUNET_CONFIGURATION_create ();
+  GNUNET_assert (GNUNET_CONFIGURATION_deserialize (cp->host->cfg,
                                                    config,
                                                    config_size,
                                                    NULL));
   GNUNET_free (config);
-  if (NULL == (hostname = GNUNET_TESTBED_host_get_hostname (host)))
+  if (NULL == (hostname = GNUNET_TESTBED_host_get_hostname (cp->host)))
     hostname = "localhost";
   /* Change the hostname so that we can connect to it */
-  GNUNET_CONFIGURATION_set_value_string (host->cfg,
+  GNUNET_CONFIGURATION_set_value_string (cp->host->cfg,
                                          "testbed",
                                          "hostname",
                                          hostname);
-  host->locked = GNUNET_NO;
-}
-
-/**
- * Functions with this signature are called whenever a
- * complete message is received by the tokenizer.
- *
- * Do not call GNUNET_SERVER_mst_destroy in callback
- *
- * @param cls closure
- * @param client identification of the client
- * @param message the actual message
- *
- * @return #GNUNET_OK on success, #GNUNET_SYSERR to stop further processing
- */
-static int
-helper_mst (void *cls, const struct GNUNET_MessageHeader *message)
-{
-  struct GNUNET_TESTBED_ControllerProc *cp = cls;
-  struct GNUNET_TESTBED_Host *host = cp->host;
-
-  GNUNET_TESTBED_extract_cfg (host, message);
-
+  cp->host->locked = GNUNET_NO;
+  cp->host->controller_started = GNUNET_YES;
   cp->cb (cp->cls, cp->host->cfg, GNUNET_OK);
   return GNUNET_OK;
 }

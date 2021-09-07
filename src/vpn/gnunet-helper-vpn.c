@@ -246,7 +246,8 @@ set_address6 (const char *dev,
   if (0 != close (fd))
   {
     fprintf (stderr,
-             "close failed: %s\n",
+             "close failed at line %d: %s\n",
+             __LINE__,
              strerror (errno));
     exit (1);
   }
@@ -367,9 +368,9 @@ set_address4 (const char *dev,
   if (0 != close (fd))
   {
     fprintf (stderr,
-             "close failed: %s\n",
+             "close failed at line %d: %s\n",
+             __LINE__,
              strerror (errno));
-    (void) close (fd);
     exit (1);
   }
 }
@@ -653,7 +654,7 @@ main (int argc, char **argv)
     {
       fprintf (stderr,
                "Fatal: prefix_len out of range\n");
-      close (fd_tun);
+      (void) close (fd_tun);
       return 1;
     }
 
@@ -701,6 +702,6 @@ main (int argc, char **argv)
   run (fd_tun);
   global_ret = 0;
 cleanup:
-  close (fd_tun);
+  (void) close (fd_tun);
   return global_ret;
 }

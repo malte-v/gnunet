@@ -499,6 +499,7 @@ struct GNUNET_MESSENGER_Message
 
 /**
  * Enum for the different supported flags used by message handling
+ * Compatible flags can be OR'ed together.
  */
 enum GNUNET_MESSENGER_MessageFlags
 {
@@ -508,9 +509,14 @@ enum GNUNET_MESSENGER_MessageFlags
   GNUNET_MESSENGER_FLAG_NONE = 0,
 
   /**
+   * The sent flag. The flag indicates that the message was sent by the client.
+   */
+  GNUNET_MESSENGER_FLAG_SENT = 1,
+
+  /**
    * The private flag. The flag indicates that the message was privately encrypted.
    */
-  GNUNET_MESSENGER_FLAG_PRIVATE = 1,
+  GNUNET_MESSENGER_FLAG_PRIVATE = 2,
 };
 
 /**
@@ -526,8 +532,8 @@ typedef void
 /**
  * Method called whenever a message is sent or received from a <i>room</i>.
  *
- * The flag <i>private_message</i> will be #GNUNET_YES if a message was
- * received privately, otherwise #GNUNET_NO.
+ * The <i>flags</i> will indicate with a bitmask if a message was
+ * received privately or if the message was sent by the client.
  *
  * @param[in/out] cls Closure from #GNUNET_MESSENGER_connect
  * @param[in] room Room handle
