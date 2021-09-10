@@ -61,6 +61,14 @@
 #include <byteswap.h>
 #endif
 
+
+/* This is also included in platform.h, but over there a couple of
+   GNUnet-specific gettext-related macros are defined in addition to including
+   the header file.  Because this header file uses gettext, this include
+   statement makes sure gettext macros are defined even when platform.h is
+   unavailable. */
+#include "gettext.h"
+
 #ifdef __cplusplus
 extern "C" {
 #if 0 /* keep Emacsens' auto-indent happy */
