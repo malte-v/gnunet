@@ -31,7 +31,7 @@
 #define NETJAIL_STOP_SCRIPT "./../testing/netjail_stop_v2.sh"
 
 // Child Wait handle
-struct GNUNET_ChildWaitHandle *cwh;
+static struct GNUNET_ChildWaitHandle *cwh;
 
 /**
  * Struct to hold information for callbacks.
