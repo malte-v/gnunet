@@ -45,9 +45,13 @@ libgnunettesting_la_SOURCES = \
   testing_api_cmd_send_peer_ready.c \
   testing_api_cmd_block_until_all_peers_started.c \
   testing_api_cmd_netjail_start.c \
+  testing_api_cmd_netjail_start_v2.c \
   testing_api_cmd_netjail_start_testsystem.c \
+  testing_api_cmd_netjail_start_testsystem_v2.c \
   testing_api_cmd_netjail_stop_testsystem.c \
+  testing_api_cmd_netjail_stop_testsystem_v2.c \
   testing_api_cmd_netjail_stop.c \
+  testing_api_cmd_netjail_stop_v2.c \
   testing.c testing.h \
   testing_api_cmd_system_create.c \
   testing_api_cmd_system_destroy.c \
@@ -87,6 +91,7 @@ list_keys_LDADD = \
 
 
 check_PROGRAMS = \
+ test_testing_topology \
  test_testing_api_cmd_netjail \
  test_testing_hello_world \
  test_testing_portreservation \
@@ -98,6 +103,7 @@ check_PROGRAMS = \
 if ENABLE_TEST_RUN
 AM_TESTS_ENVIRONMENT=export GNUNET_PREFIX=$${GNUNET_PREFIX:-@libdir@};export PATH=$${GNUNET_PREFIX:-@prefix@}/bin:$$PATH;unset XDG_DATA_HOME;unset XDG_CONFIG_HOME;
 TESTS = \
+ test_testing_topology \
  test_testing_api_cmd_netjail \
  test_testing_hello_world \
  test_testing_portreservation \
@@ -105,6 +111,12 @@ TESTS = \
  test_testing_peerstartup2 \
  test_testing_servicestartup
 endif
+
+test_testing_topology_SOURCES = \
+ test_testing_topology.c
+test_testing_topology_LDADD = \
+ libgnunettesting.la \
+ $(top_builddir)/src/util/libgnunetutil.la
 
 test_testing_api_cmd_netjail_SOURCES = \
  test_testing_api_cmd_netjail.c

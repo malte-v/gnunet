@@ -50,7 +50,7 @@ hello_iter_cb (void *cb_cls,
                const struct GNUNET_PEERSTORE_Record *record,
                const char *emsg)
 {
-  struct StartPeerState *sps = cb_cls;
+  struct StartPeerState_v2 *sps = cb_cls;
   if (NULL == record)
   {
     sps->pic = NULL;
@@ -77,7 +77,7 @@ hello_iter_cb (void *cb_cls,
 static void
 retrieve_hello (void *cls)
 {
-  struct StartPeerState *sps = cls;
+  struct StartPeerState_v2 *sps = cls;
   sps->rh_task = NULL;
   sps->pic = GNUNET_PEERSTORE_iterate (sps->ph,
                                        "transport",
@@ -90,7 +90,7 @@ retrieve_hello (void *cls)
 
 
 /**
- * This function checks StartPeerState#finished, which is set when the hello was retrieved.
+ * This function checks StartPeerState_v2#finished, which is set when the hello was retrieved.
  *
  */
 static int
@@ -98,7 +98,7 @@ start_peer_finish (void *cls,
                    GNUNET_SCHEDULER_TaskCallback cont,
                    void *cont_cls)
 {
-  struct StartPeerState *sps = cls;
+  struct StartPeerState_v2 *sps = cls;
 
   if (GNUNET_YES == sps->finished)
   {
@@ -118,7 +118,7 @@ notify_disconnect (void *cls,
                    const struct GNUNET_PeerIdentity *peer,
                    void *handler_cls)
 {
-  struct StartPeerState *sps = cls;
+  struct StartPeerState_v2 *sps = cls;
 
   LOG (GNUNET_ERROR_TYPE_DEBUG,
        "Peer %s disconnected from peer %u (`%s')\n",
@@ -138,7 +138,7 @@ notify_connect (void *cls,
                 const struct GNUNET_PeerIdentity *peer,
                 struct GNUNET_MQ_Handle *mq)
 {
-  struct StartPeerState *sps = cls;
+  struct StartPeerState_v2 *sps = cls;
   struct GNUNET_ShortHashCode *key = GNUNET_new (struct GNUNET_ShortHashCode);
   struct GNUNET_HashCode hc;
   int node_number;
@@ -180,7 +180,7 @@ start_peer_run (void *cls,
                 const struct GNUNET_TESTING_Command *cmd,
                 struct GNUNET_TESTING_Interpreter *is)
 {
-  struct StartPeerState *sps = cls;
+  struct StartPeerState_v2 *sps = cls;
   char *emsg = NULL;
   struct GNUNET_PeerIdentity dummy;
   const struct GNUNET_TESTING_Command *system_cmd;
@@ -351,7 +351,7 @@ static void
 start_peer_cleanup (void *cls,
                     const struct GNUNET_TESTING_Command *cmd)
 {
-  struct StartPeerState *sps = cls;
+  struct StartPeerState_v2 *sps = cls;
 
   if (NULL != sps->handlers)
   {
@@ -379,7 +379,7 @@ start_peer_traits (void *cls,
                    const char *trait,
                    unsigned int index)
 {
-  struct StartPeerState *sps = cls;
+  struct StartPeerState_v2 *sps = cls;
   struct GNUNET_TRANSPORT_ApplicationHandle *ah = sps->ah;
   struct GNUNET_PeerIdentity *id = &sps->id;
   struct GNUNET_CONTAINER_MultiShortmap *connected_peers_map =
@@ -430,17 +430,17 @@ start_peer_traits (void *cls,
 
 
 /**
- * Function to get the trait with the struct StartPeerState.
+ * Function to get the trait with the struct StartPeerState_v2.
  *
- * @param[out] sps struct StartPeerState.
+ * @param[out] sps struct StartPeerState_v2.
  * @return #GNUNET_OK if no error occurred, #GNUNET_SYSERR otherwise.
  *
  */
 int
-GNUNET_TRANSPORT_get_trait_state (const struct
-                                  GNUNET_TESTING_Command
-                                  *cmd,
-                                  struct StartPeerState **sps)
+GNUNET_TRANSPORT_get_trait_state_v2 (const struct
+                                     GNUNET_TESTING_Command
+                                     *cmd,
+                                     struct StartPeerState_v2 **sps)
 {
   return cmd->traits (cmd->cls,
                       (const void **) sps,
@@ -457,10 +457,10 @@ GNUNET_TRANSPORT_get_trait_state (const struct
  *
  */
 int
-GNUNET_TRANSPORT_get_trait_hello_size (const struct
-                                       GNUNET_TESTING_Command
-                                       *cmd,
-                                       size_t **hello_size)
+GNUNET_TRANSPORT_get_trait_hello_size_v2 (const struct
+                                          GNUNET_TESTING_Command
+                                          *cmd,
+                                          size_t **hello_size)
 {
   return cmd->traits (cmd->cls,
                       (const void **) hello_size,
@@ -477,10 +477,10 @@ GNUNET_TRANSPORT_get_trait_hello_size (const struct
  *
  */
 int
-GNUNET_TRANSPORT_get_trait_hello (const struct
-                                  GNUNET_TESTING_Command
-                                  *cmd,
-                                  char **hello)
+GNUNET_TRANSPORT_get_trait_hello_v2 (const struct
+                                     GNUNET_TESTING_Command
+                                     *cmd,
+                                     char **hello)
 {
   return cmd->traits (cmd->cls,
                       (const void **) hello,
@@ -497,13 +497,14 @@ GNUNET_TRANSPORT_get_trait_hello (const struct
  *
  */
 int
-GNUNET_TRANSPORT_get_trait_connected_peers_map (const struct
-                                                GNUNET_TESTING_Command
-                                                *cmd,
-                                                struct
-                                                GNUNET_CONTAINER_MultiShortmap *
-                                                *
-                                                connected_peers_map)
+GNUNET_TRANSPORT_get_trait_connected_peers_map_v2 (const struct
+                                                   GNUNET_TESTING_Command
+                                                   *cmd,
+                                                   struct
+                                                   GNUNET_CONTAINER_MultiShortmap
+                                                   *
+                                                   *
+                                                   connected_peers_map)
 {
   return cmd->traits (cmd->cls,
                       (const void **) connected_peers_map,
@@ -519,11 +520,11 @@ GNUNET_TRANSPORT_get_trait_connected_peers_map (const struct
  * @return #GNUNET_OK if no error occurred, #GNUNET_SYSERR otherwise.
  */
 int
-GNUNET_TRANSPORT_get_trait_application_handle (const struct
-                                               GNUNET_TESTING_Command *cmd,
-                                               struct
-                                               GNUNET_TRANSPORT_ApplicationHandle
-                                               **ah)
+GNUNET_TRANSPORT_get_trait_application_handle_v2 (const struct
+                                                  GNUNET_TESTING_Command *cmd,
+                                                  struct
+                                                  GNUNET_TRANSPORT_ApplicationHandle
+                                                  **ah)
 {
   return cmd->traits (cmd->cls,
                       (const void **) ah,
@@ -539,9 +540,9 @@ GNUNET_TRANSPORT_get_trait_application_handle (const struct
  * @return #GNUNET_OK if no error occurred, #GNUNET_SYSERR otherwise.
  */
 int
-GNUNET_TRANSPORT_get_trait_peer_id (const struct
-                                    GNUNET_TESTING_Command *cmd,
-                                    struct GNUNET_PeerIdentity **id)
+GNUNET_TRANSPORT_get_trait_peer_id_v2 (const struct
+                                       GNUNET_TESTING_Command *cmd,
+                                       struct GNUNET_PeerIdentity **id)
 {
   return cmd->traits (cmd->cls,
                       (const void **) id,
@@ -563,25 +564,20 @@ GNUNET_TRANSPORT_get_trait_peer_id (const struct
  * @return command.
  */
 struct GNUNET_TESTING_Command
-GNUNET_TRANSPORT_cmd_start_peer (const char *label,
-                                 const char *system_label,
-                                 char *m,
-                                 char *n,
-                                 char *local_m,
-                                 char *node_ip,
-                                 struct GNUNET_MQ_MessageHandler *handlers,
-                                 const char *cfgname)
+GNUNET_TRANSPORT_cmd_start_peer_v2 (const char *label,
+                                    const char *system_label,
+                                    uint32_t no,
+                                    char *node_ip,
+                                    struct GNUNET_MQ_MessageHandler *handlers,
+                                    const char *cfgname)
 {
-  struct StartPeerState *sps;
+  struct StartPeerState_v2 *sps;
   struct GNUNET_CONTAINER_MultiShortmap *connected_peers_map =
     GNUNET_CONTAINER_multishortmap_create (1,GNUNET_NO);
   unsigned int i;
 
-  sps = GNUNET_new (struct StartPeerState);
-  sps->m = m;
-  sps->n = n;
-  sps->local_m = local_m;
-  sps->no = (atoi (n) - 1) * atoi (sps->local_m) + atoi (m);
+  sps = GNUNET_new (struct StartPeerState_v2);
+  sps->no = no;
   sps->system_label = system_label;
   sps->connected_peers_map = connected_peers_map;
   sps->cfgname = cfgname;

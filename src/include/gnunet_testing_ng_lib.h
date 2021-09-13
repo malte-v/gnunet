@@ -47,6 +47,109 @@
   } while (0)
 
 
+/**
+ * Router of a network namespace.
+ */
+struct GNUNET_TESTING_NetjailRouter
+{
+  /**
+   * Will tcp be forwarded?
+   */
+  unsigned int tcp_port;
+
+  /**
+   * Will udp be forwarded?
+   */
+  unsigned int udp_port;
+};
+
+
+/**
+ * Node in the netjail topology.
+ */
+struct GNUNET_TESTING_NetjailNode
+{
+  /**
+   * Plugin for the test case to be run on this node.
+   */
+  char *plugin;
+
+  /**
+   * Flag indicating if this node is a global known node.
+   */
+  unsigned int is_global;
+
+  /**
+   * The number of the namespace this node is running in.
+   */
+  unsigned int namespace_n;
+
+  /**
+   * The number of this node in the namespace.
+   */
+  unsigned int node_n;
+};
+
+
+/**
+ * Namespace in a topology.
+ */
+struct GNUNET_TESTING_NetjailNamespace
+{
+  /**
+   * The number of the namespace.
+   */
+  unsigned int namespace_n;
+
+  /**
+   * Router of the namespace.
+   */
+  struct GNUNET_TESTING_NetjailRouter *router;
+
+  /**
+   * Hash map containing the nodes in this namespace.
+   */
+  struct GNUNET_CONTAINER_MultiShortmap *nodes;
+};
+
+/**
+ * Toplogy of our netjail setup.
+ */
+struct GNUNET_TESTING_NetjailTopology
+{
+
+  /**
+   * Default plugin for the test case to be run on nodes.
+   */
+  char *plugin;
+
+  /**
+   * Number of namespaces.
+   */
+  unsigned int namespaces_n;
+
+  /**
+   * Number of nodes per namespace.
+   */
+  unsigned int nodes_m;
+
+  /**
+   * Number of global known nodes per namespace.
+   */
+  unsigned int nodes_x;
+
+  /**
+   * Hash map containing the namespaces (for natted nodes) of the topology.
+   */
+  struct GNUNET_CONTAINER_MultiShortmap *map_namespaces;
+
+  /**
+   * Hash map containing the global known nodes which are not natted.
+   */
+  struct GNUNET_CONTAINER_MultiShortmap *map_globals;
+};
+
+
 /* ******************* Generic interpreter logic ************ */
 
 /**
@@ -456,6 +559,16 @@ struct GNUNET_TESTING_Timer
 
 
 /**
+ * Getting the topology from file.
+ *
+ * @param filename The name of the topology file.
+ * @return The GNUNET_TESTING_NetjailTopology
+ */
+struct GNUNET_TESTING_NetjailTopology *
+GNUNET_TESTING_get_topo_from_file (const char *filename);
+
+
+/**
  * Obtain performance data from the interpreter.
  *
  * @param timers what commands (by label) to obtain runtimes for
@@ -853,13 +966,25 @@ GNUNET_TESTING_cmd_system_destroy (const char *label,
  * Create command.
  *
  * @param label name for command.
- * @param binaryname to start.
+ * @param local_m Number of local nodes in each namespace.
+ * @param global_n The number of namespaces.
  * @return command.
  */
 struct GNUNET_TESTING_Command
 GNUNET_TESTING_cmd_netjail_start (const char *label,
                                   char *local_m,
                                   char *global_n);
+
+/**
+ * Create command.
+ *
+ * @param label name for command.
+ * @param topology_config Configuration file for the test topology.
+ * @return command.
+ */
+struct GNUNET_TESTING_Command
+GNUNET_TESTING_cmd_netjail_start_v2 (const char *label,
+                                     char *topology_config);
 
 
 /**
@@ -880,6 +1005,20 @@ GNUNET_TESTING_cmd_netjail_start_testing_system (const char *label,
 /**
  * Create command.
  *
+ * @param label Name for the command.
+ * @param topology_config Configuration file for the test topology.
+ * @param rv Pointer to the return value of the test.
+ * @return command.
+ */
+struct GNUNET_TESTING_Command
+GNUNET_TESTING_cmd_netjail_start_testing_system_v2 (const char *label,
+                                                    const char *topology_config,
+                                                    unsigned int *rv);
+
+
+/**
+ * Create command.
+ *
  * @param label name for command.
  * @param binaryname to stop.
  * @return command.
@@ -890,17 +1029,55 @@ GNUNET_TESTING_cmd_netjail_stop (const char *label,
                                  char *global_n);
 
 
+/**
+ * Create command.
+ *
+ * @param label name for command.
+ * @param topology_config Configuration file for the test topology.
+ * @return command.
+ */
+struct GNUNET_TESTING_Command
+GNUNET_TESTING_cmd_netjail_stop_v2 (const char *label,
+                                    char *topology_config);
+
+
 struct GNUNET_TESTING_Command
 GNUNET_TESTING_cmd_stop_testing_system (const char *label,
                                         const char *helper_start_label,
                                         char *local_m,
                                         char *global_n);
 
+/**
+ * Create command.
+ *
+ * @param label name for command.
+ * @param topology_config Configuration file for the test topology.
+ * @return command.
+ */
+struct GNUNET_TESTING_Command
+GNUNET_TESTING_cmd_stop_testing_system_v2 (const char *label,
+                                           const char *helper_start_label,
+                                           const char *topology_config);
+
 
 int
 GNUNET_TESTING_get_trait_helper_handles (const struct
                                          GNUNET_TESTING_Command *cmd,
                                          struct GNUNET_HELPER_Handle ***helper);
+
+
+/**
+ * Offer handles to testing cmd helper from trait
+ *
+ * @param cmd command to extract the message from.
+ * @param pt pointer to message.
+ * @return #GNUNET_OK on success.
+ */
+int
+GNUNET_TESTING_get_trait_helper_handles_v2 (const struct
+                                            GNUNET_TESTING_Command *cmd,
+                                            struct GNUNET_HELPER_Handle ***
+                                            helper);
 
 
 struct GNUNET_TESTING_Command

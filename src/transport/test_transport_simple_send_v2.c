@@ -19,14 +19,17 @@
  */
 
 /**
- * @file testing/test_testbed_api_cmd_netjail.c
- * @brief Test case executing a script in a network name space.
+ * @file transport/test_transport_api_cmd_simple_send.c
+ * @brief Test case executing a script which sends a test message between two peers.
  * @author t3sserakt
  */
 #include "platform.h"
 #include "gnunet_testing_ng_lib.h"
 #include "gnunet_util_lib.h"
 
+#define TIMEOUT GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_SECONDS, 120)
+
+#define TOPOLOGY_CONFIG "test_transport_simple_send_topo.conf"
 
 /**
   * Return value of the test.
@@ -45,27 +48,22 @@ static void
 run (void *cls)
 {
   struct GNUNET_TESTING_Command commands[] = {
-    GNUNET_TESTING_cmd_netjail_start ("netjail-start-1",
-                                      "2",
-                                      "2"),
-    GNUNET_TESTING_cmd_netjail_start_testing_system ("netjail-start-testbed-1",
-                                                     "2",
-                                                     "2",
-                                                     "libgnunet_plugin_testcmd",
-                                                     &rv),
-    GNUNET_TESTING_cmd_stop_testing_system ("stop-testbed",
-                                            "netjail-start-testbed-1",
-                                            "2",
-                                            "2"),
-    GNUNET_TESTING_cmd_netjail_stop ("netjail-stop-1",
-                                     "2",
-                                     "2"),
+    GNUNET_TESTING_cmd_netjail_start_v2 ("netjail-start",
+                                         TOPOLOGY_CONFIG),
+    GNUNET_TESTING_cmd_netjail_start_testing_system_v2 ("netjail-start-testbed",
+                                                        TOPOLOGY_CONFIG,
+                                                        &rv),
+    GNUNET_TESTING_cmd_stop_testing_system_v2 ("stop-testbed",
+                                               "netjail-start-testbed",
+                                               TOPOLOGY_CONFIG),
+    GNUNET_TESTING_cmd_netjail_stop_v2 ("netjail-stop",
+                                        TOPOLOGY_CONFIG),
     GNUNET_TESTING_cmd_end ()
   };
 
   GNUNET_TESTING_run (NULL,
                       commands,
-                      GNUNET_TIME_UNIT_FOREVER_REL);
+                      TIMEOUT);
 }
 
 
@@ -73,8 +71,6 @@ int
 main (int argc,
       char *const *argv)
 {
-  int rv = 0;
-
   GNUNET_log_setup ("test-netjail",
                     "DEBUG",
                     NULL);

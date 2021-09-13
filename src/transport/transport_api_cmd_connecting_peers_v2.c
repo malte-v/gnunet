@@ -36,6 +36,8 @@
  */
 #define LOG(kind, ...) GNUNET_log (kind, __VA_ARGS__)
 
+#define CONNECT_ADDRESS_TEMPLATE "tcp-192.168.15.%u:60002"
+
 /**
  * Struct to store information needed in callbacks.
  *
@@ -81,54 +83,36 @@ connect_peers_run (void *cls,
                                                                GNUNET_CRYPTO_EddsaPrivateKey);
   struct GNUNET_CRYPTO_EddsaPublicKey *pub_key = GNUNET_new (struct
                                                              GNUNET_CRYPTO_EddsaPublicKey);
-  ;
   const struct GNUNET_TESTING_Command *peer1_cmd;
-  // const struct GNUNET_TESTING_Command *peer2_cmd;
   struct GNUNET_TRANSPORT_ApplicationHandle *ah;
   struct GNUNET_PeerIdentity *peer = GNUNET_new (struct GNUNET_PeerIdentity);
   char *addr;
-  // struct GNUNET_TIME_Absolute t;
-  char *hello;
-  // size_t *hello_size;
   enum GNUNET_NetworkType nt = 0;
-  char *peer_id;
-  struct GNUNET_PeerIdentity *id;
   struct GNUNET_PeerIdentity *other = GNUNET_new (struct GNUNET_PeerIdentity);
   uint32_t num;
 
   peer1_cmd = GNUNET_TESTING_interpreter_lookup_command (cps->start_peer_label);
-  GNUNET_TRANSPORT_get_trait_application_handle (peer1_cmd,
-                                                 &ah);
-
-  GNUNET_TRANSPORT_get_trait_hello (peer1_cmd,
-                                    &hello);
-
-  GNUNET_TRANSPORT_get_trait_peer_id (peer1_cmd,
-                                      &id);
+  GNUNET_TRANSPORT_get_trait_application_handle_v2 (peer1_cmd,
+                                                    &ah);
 
   system_cmd = GNUNET_TESTING_interpreter_lookup_command (cps->create_label);
   GNUNET_TESTING_get_trait_test_system (system_cmd,
                                         &tl_system);
 
-  if (2 == cps->num)
-    num = 1;
-  else
+  if (1 == cps->num)
+  {
     num = 2;
-
-
-
-
-  // if (strstr (hello, "60002") != NULL)
-  if (2 == num)
-  {
-    addr = "tcp-192.168.15.2:60002";
-    peer_id = "F2F3X9G1YNCTXKK7A4J6M4ZM4BBSKC9DEXZVHCWQ475M0C7PNWCG";
+    // addr = "tcp-192.168.15.2:60002";
   }
   else
   {
-    addr = "tcp-192.168.15.1:60002";
-    peer_id = "4TTC9WBSVP9RJT6DVEZ7E0TDW7TQXC11NR1EMR2F8ARS87WZ2730";
+    num = 1;
+    // addr = "tcp-192.168.15.1:60002";
   }
+
+  GNUNET_asprintf (&addr,
+                   CONNECT_ADDRESS_TEMPLATE,
+                   num);
 
   priv_key = GNUNET_TESTING_hostkey_get (tl_system,
                                          num,
@@ -137,38 +121,15 @@ connect_peers_run (void *cls,
   GNUNET_CRYPTO_eddsa_key_get_public (priv_key,
                                       pub_key);
 
-  GNUNET_CRYPTO_eddsa_public_key_from_string (peer_id,
-                                              strlen (peer_id),
-                                              &peer->public_key);
 
   peer->public_key = *pub_key;
 
   LOG (GNUNET_ERROR_TYPE_ERROR,
-       "\nnum: %u\n peer_id: %s\n pub_key %s\n",
+       "num: %u pub_key %s\n",
        num,
-       peer_id,
        GNUNET_CRYPTO_eddsa_public_key_to_string (pub_key));
 
   cps->id = peer;
-
-  // TODO This does not work, because the other peer is running in another local loop. We need to message between different local loops. For now we will create the hello manually with the known information about the other local peers.
-  // ---------------------------------------------
-  /*peer2_cmd = GNUNET_TESTING_interpreter_lookup_command (cps->peer2_label);
-  GNUNET_TRANSPORT_get_trait_peer_id (peer2_cmd,
-                                    &id);
-  GNUNET_TRANSPORT_get_trait_hello (peer2_cmd,
-                                  &hello);
-  GNUNET_TRANSPORT_get_trait_hello_size (peer2_cmd,
-                                       &hello_size);
-
-  addr = GNUNET_HELLO_extract_address (hello,
-                                       *hello_size,
-                                       id,
-                                       &nt,
-                                       &t);*/
-
-  // ----------------------------------------------
-
 
   GNUNET_TRANSPORT_application_validate (ah,
                                          peer,
@@ -195,8 +156,8 @@ connect_peers_finish (void *cls,
   int node_number;
 
   peer1_cmd = GNUNET_TESTING_interpreter_lookup_command (cps->start_peer_label);
-  GNUNET_TRANSPORT_get_trait_connected_peers_map (peer1_cmd,
-                                                  &connected_peers_map);
+  GNUNET_TRANSPORT_get_trait_connected_peers_map_v2 (peer1_cmd,
+                                                     &connected_peers_map);
 
   node_number = 1;
   GNUNET_CRYPTO_hash (&node_number, sizeof(node_number), &hc);
@@ -255,10 +216,10 @@ connect_peers_cleanup (void *cls,
  * @return command.
  */
 struct GNUNET_TESTING_Command
-GNUNET_TRANSPORT_cmd_connect_peers (const char *label,
-                                    const char *start_peer_label,
-                                    const char *create_label,
-                                    uint32_t num)
+GNUNET_TRANSPORT_cmd_connect_peers_v2 (const char *label,
+                                       const char *start_peer_label,
+                                       const char *create_label,
+                                       uint32_t num)
 {
   struct ConnectPeersState *cps;
 

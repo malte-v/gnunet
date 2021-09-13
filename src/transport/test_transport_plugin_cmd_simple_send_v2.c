@@ -37,6 +37,8 @@
 
 #define BASE_DIR "testdir"
 
+#define TOPOLOGY_CONFIG "test_transport_simple_send_topo.conf"
+
 /**
  * The name for a specific test environment directory.
  *
@@ -142,9 +144,23 @@ start_testcase (TESTING_CMD_HELPER_write_cb write_message, char *router_ip,
                 char *local_m)
 {
 
+  unsigned int n_int, m_int, local_m_int, num;
+
+  struct GNUNET_TESTING_NetjailTopology *topology =
+    GNUNET_TESTING_get_topo_from_file (TOPOLOGY_CONFIG);
+
+  sscanf (m, "%u", &m_int);
+  sscanf (n, "%u", &n_int);
+  sscanf (local_m, "%u", &local_m_int);
+
+
+  if (0 == m_int)
+    num = n_int;
+  else
+    num = (n_int - 1) * local_m_int + m_int + topology->nodes_x;
+
   GNUNET_asprintf (&cfgname,
-                   "test_transport_api2_tcp_node%s.conf",
-                   "1");
+                   "test_transport_api2_tcp_node1.conf");
 
   LOG (GNUNET_ERROR_TYPE_ERROR,
        "plugin cfgname: %s\n",
@@ -153,11 +169,6 @@ start_testcase (TESTING_CMD_HELPER_write_cb write_message, char *router_ip,
   LOG (GNUNET_ERROR_TYPE_ERROR,
        "node ip: %s\n",
        node_ip);
-
-  LOG (GNUNET_ERROR_TYPE_ERROR,
-       "m: %s n: %s\n",
-       m,
-       n);
 
   GNUNET_asprintf (&testdir,
                    "%s%s%s",
@@ -180,29 +191,23 @@ start_testcase (TESTING_CMD_HELPER_write_cb write_message, char *router_ip,
   struct GNUNET_TESTING_Command commands[] = {
     GNUNET_TESTING_cmd_system_create ("system-create",
                                       testdir),
-    GNUNET_TRANSPORT_cmd_start_peer ("start-peer",
-                                     "system-create",
-                                     m,
-                                     n,
-                                     local_m,
-                                     node_ip,
-                                     handlers,
-                                     cfgname),
+    GNUNET_TRANSPORT_cmd_start_peer_v2 ("start-peer",
+                                        "system-create",
+                                        num,
+                                        node_ip,
+                                        handlers,
+                                        cfgname),
     GNUNET_TESTING_cmd_send_peer_ready ("send-peer-ready",
                                         write_message),
     GNUNET_TESTING_cmd_block_until_all_peers_started ("block",
                                                       &are_all_peers_started),
-    GNUNET_TRANSPORT_cmd_connect_peers ("connect-peers",
-                                        "start-peer",
-                                        "system-create",
-                                        (atoi (n) - 1) * atoi (local_m) + atoi (
-                                          m)),
-    GNUNET_TRANSPORT_cmd_send_simple ("send-simple",
-                                      m,
-                                      n,
-                                      (atoi (n) - 1) * atoi (local_m) + atoi (
-                                        m),
-                                      "start-peer"),
+    GNUNET_TRANSPORT_cmd_connect_peers_v2 ("connect-peers",
+                                           "start-peer",
+                                           "system-create",
+                                           num),
+    GNUNET_TRANSPORT_cmd_send_simple_v2 ("send-simple",
+                                         "start-peer",
+                                         num),
     GNUNET_TRANSPORT_cmd_stop_peer ("stop-peer",
                                     "start-peer"),
     GNUNET_TESTING_cmd_system_destroy ("system-destroy",

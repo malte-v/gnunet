@@ -29,7 +29,7 @@
 #include "gnunet_peerstore_service.h"
 #include "gnunet_transport_core_service.h"
 #include "gnunet_transport_application_service.h"
-#include "transport-testing-ng.h"
+#include "transport-testing-cmds.h"
 
 /**
  * Generic logging shortcut

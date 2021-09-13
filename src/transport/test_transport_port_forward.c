@@ -19,14 +19,17 @@
  */
 
 /**
- * @file testing/test_testbed_api_cmd_netjail.c
- * @brief Test case executing a script in a network name space.
+ * @file transport/test_transport_port_forward.c
+ * @brief Test case executing a script which sends a test UDP message from a nated peer
+ *        to a gloabl known peer. There is a tcp port forwarding in place towards the
+ *        natted peer to test the backchannel functionality of the TNG service.
  * @author t3sserakt
  */
 #include "platform.h"
 #include "gnunet_testing_ng_lib.h"
 #include "gnunet_util_lib.h"
 
+#define TIMEOUT GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_SECONDS, 120)
 
 /**
   * Return value of the test.
@@ -44,28 +47,25 @@ static unsigned int rv = 0;
 static void
 run (void *cls)
 {
+  const char *topology_config = "test_topology_port_forward.conf";
+
   struct GNUNET_TESTING_Command commands[] = {
-    GNUNET_TESTING_cmd_netjail_start ("netjail-start-1",
-                                      "2",
-                                      "2"),
-    GNUNET_TESTING_cmd_netjail_start_testing_system ("netjail-start-testbed-1",
-                                                     "2",
-                                                     "2",
-                                                     "libgnunet_plugin_testcmd",
-                                                     &rv),
-    GNUNET_TESTING_cmd_stop_testing_system ("stop-testbed",
-                                            "netjail-start-testbed-1",
-                                            "2",
-                                            "2"),
-    GNUNET_TESTING_cmd_netjail_stop ("netjail-stop-1",
-                                     "2",
-                                     "2"),
+    GNUNET_TESTING_cmd_netjail_start_v2 ("netjail-start",
+                                         topology_config),
+    GNUNET_TESTING_cmd_netjail_start_testing_system_v2 ("netjail-start-testbed",
+                                                        topology_config,
+                                                        &rv),
+    GNUNET_TESTING_cmd_stop_testing_system_v2 ("stop-testbed",
+                                               "netjail-start-testbed",
+                                               topology_config),
+    GNUNET_TESTING_cmd_netjail_stop_v2 ("netjail-stop",
+                                        topology_config),
     GNUNET_TESTING_cmd_end ()
   };
 
   GNUNET_TESTING_run (NULL,
                       commands,
-                      GNUNET_TIME_UNIT_FOREVER_REL);
+                      TIMEOUT);
 }
 
 
@@ -73,8 +73,6 @@ int
 main (int argc,
       char *const *argv)
 {
-  int rv = 0;
-
   GNUNET_log_setup ("test-netjail",
                     "DEBUG",
                     NULL);

@@ -116,13 +116,6 @@ GNUNET_TRANSPORT_application_validate (
   enum GNUNET_NetworkType nt,
   const char *addr);
 
-int
-GNUNET_TRANSPORT_get_trait_application_handle (const struct
-                                               GNUNET_TESTING_Command *cmd,
-                                               struct
-                                               GNUNET_TRANSPORT_ApplicationHandle
-                                               **ah);
-
 /** @} */ /* end of group */
 
 #endif

@@ -163,12 +163,15 @@ struct WriteContext
   size_t pos;
 };
 
-struct Plugin *plugin;
-
 /**
  * The process handle to the testbed service
 
 static struct GNUNET_OS_Process *cmd_binary_process;*/
+
+/**
+ * Plugin to dynamically load a test case.
+ */
+struct Plugin *plugin;
 
 /**
  * Handle to the testing system
@@ -329,6 +332,7 @@ write_message (struct GNUNET_MessageHeader *message, size_t msg_length)
 static int
 tokenizer_cb (void *cls, const struct GNUNET_MessageHeader *message)
 {
+
   struct NodeIdentifier *ni = cls;
   const struct GNUNET_CMDS_HelperInit *msg;
   struct GNUNET_CMDS_HelperReply *reply;
@@ -369,14 +373,14 @@ tokenizer_cb (void *cls, const struct GNUNET_MessageHeader *message)
     plugin->n = ni->n;
     plugin->m = ni->m;
 
-    router_ip = GNUNET_malloc (strlen (ROUTER_BASE_IP) + strlen (plugin->m)
+    router_ip = GNUNET_malloc (strlen (ROUTER_BASE_IP) + strlen (plugin->n)
                                + 1);
     strcpy (router_ip, ROUTER_BASE_IP);
-    strcat (router_ip, plugin->m);
+    strcat (router_ip, plugin->n);
 
-    node_ip = GNUNET_malloc (strlen (NODE_BASE_IP) + strlen (plugin->n) + 1);
+    node_ip = GNUNET_malloc (strlen (NODE_BASE_IP) + strlen (plugin->m) + 1);
     strcat (node_ip, NODE_BASE_IP);
-    strcat (node_ip, plugin->n);
+    strcat (node_ip, plugin->m);
 
     plugin->api->start_testcase (&write_message, router_ip, node_ip, plugin->m,
                                  plugin->n, plugin->local_m);
@@ -533,8 +537,8 @@ main (int argc, char **argv)
   ni = GNUNET_new (struct NodeIdentifier);
   ni->global_n = argv[1];
   ni->local_m = argv[2];
-  ni->n = argv[3];
-  ni->m = argv[4];
+  ni->m = argv[3];
+  ni->n = argv[4];
 
   status = GNUNET_OK;
   if (NULL ==

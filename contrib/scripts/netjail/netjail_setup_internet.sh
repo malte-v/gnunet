@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 . "./netjail_core.sh"
 

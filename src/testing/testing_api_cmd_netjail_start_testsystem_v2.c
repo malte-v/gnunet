@@ -27,7 +27,7 @@
 #include "gnunet_testing_ng_lib.h"
 #include "testing_cmds.h"
 
-#define NETJAIL_EXEC_SCRIPT "./../testing/netjail_exec.sh"
+#define NETJAIL_EXEC_SCRIPT "./../testing/netjail_exec_v2.sh"
 
 /**
  * Struct to store messages send/received by the helper into a DLL
@@ -62,6 +62,11 @@ struct HelperMessage
 struct NetJailState
 {
   /**
+   * The complete topology infomation.
+   */
+  struct GNUNET_TESTING_NetjailTopology *topology;
+
+  /**
    * Pointer to the return value of the test.
    *
    */
@@ -91,16 +96,22 @@ struct NetJailState
   unsigned int n_helper;
 
   /**
-   * Number of nodes in a network namespace. //TODO make this a unsigned int
+   * Number of nodes in a natted subnet.
    *
    */
-  char *local_m;
+  unsigned int local_m;
 
   /**
-   * Number of network namespaces. //TODO make this a unsigned int
+   * Number of natted subnets.
    *
    */
-  char *global_n;
+  unsigned int global_n;
+
+  /**
+   * Number of global known nodes.
+   *
+   */
+  unsigned int known;
 
   /**
    * The send handle for the helper
@@ -266,9 +277,10 @@ netjail_exec_traits (void *cls,
  * @return #GNUNET_OK on success.
  */
 int
-GNUNET_TESTING_get_trait_helper_handles (const struct
-                                         GNUNET_TESTING_Command *cmd,
-                                         struct GNUNET_HELPER_Handle ***helper)
+GNUNET_TESTING_get_trait_helper_handles_v2 (const struct
+                                            GNUNET_TESTING_Command *cmd,
+                                            struct GNUNET_HELPER_Handle ***
+                                            helper)
 {
   return cmd->traits (cmd->cls,
                       (const void **) helper,
@@ -366,9 +378,7 @@ exp_cb (void *cls)
  *
  */
 static struct GNUNET_CMDS_HelperInit *
-create_helper_init_msg_ (char *m_char,
-                         char *n_char,
-                         const char *plugin_name)
+create_helper_init_msg_ (const char *plugin_name)
 {
   struct GNUNET_CMDS_HelperInit *msg;
   uint16_t plugin_name_len;
@@ -395,22 +405,49 @@ create_helper_init_msg_ (char *m_char,
 static void
 start_helper (struct NetJailState *ns, struct
               GNUNET_CONFIGURATION_Handle *config,
-              char *m_char,
-              char *n_char)
+              unsigned int m,
+              unsigned int n)
 {
   struct GNUNET_HELPER_Handle *helper;
   struct GNUNET_CMDS_HelperInit *msg;
   struct TestingSystemCount *tbc;
+  char *m_char, *n_char, *global_n_char, *local_m_char, *known_char, *node_id,
+       *plugin;
+  pid_t pid;
+  unsigned int script_num;
+  struct GNUNET_ShortHashCode *hkey;
+  struct GNUNET_HashCode hc;
+  struct GNUNET_TESTING_NetjailTopology *topology = ns->topology;
+  struct GNUNET_TESTING_NetjailNode *node;
+  struct GNUNET_TESTING_NetjailNamespace *namespace;
+
+
+  if (0 == m)
+    script_num = n - 1;
+  else
+    script_num = n - 1 + (n - 1) * ns->local_m + m + ns->known;
+  pid = getpid ();
+
+  GNUNET_asprintf (&m_char, "%u", m);
+  GNUNET_asprintf (&n_char, "%u", n);
+  GNUNET_asprintf (&local_m_char, "%u", ns->local_m);
+  GNUNET_asprintf (&global_n_char, "%u",ns->global_n);
+  GNUNET_asprintf (&known_char, "%u",ns->known);
+  GNUNET_asprintf (&node_id, "%06x-%08x\n",
+                   pid,
+                   script_num);
+
+
   char *const script_argv[] = {NETJAIL_EXEC_SCRIPT,
                                m_char,
                                n_char,
                                GNUNET_OS_get_libexec_binary_path (
                                  HELPER_CMDS_BINARY),
-                               ns->global_n,
-                               ns->local_m,
+                               global_n_char,
+                               local_m_char,
+                               node_id,
                                NULL};
-  unsigned int m = atoi (m_char);
-  unsigned int n = atoi (n_char);
+
   unsigned int helper_check = GNUNET_OS_check_helper_binary (
     NETJAIL_EXEC_SCRIPT,
     GNUNET_YES,
@@ -418,7 +455,10 @@ start_helper (struct NetJailState *ns, struct
 
   tbc = GNUNET_new (struct TestingSystemCount);
   tbc->ns = ns;
-  tbc->count = (n - 1) * atoi (ns->local_m) + m;
+  if (0 == m)
+    tbc->count = n;
+  else
+    tbc->count = (n - 1) * ns->local_m + m + ns->known;
 
   GNUNET_CONTAINER_DLL_insert (ns->tbcs_head, ns->tbcs_tail,
                                tbc);
@@ -449,9 +489,55 @@ start_helper (struct NetJailState *ns, struct
 
   helper = ns->helper[tbc->count - 1];
 
-  msg = create_helper_init_msg_ (m_char,
-                                 n_char,
-                                 ns->plugin_name);
+  hkey = GNUNET_new (struct GNUNET_ShortHashCode);
+
+  plugin = ns->plugin_name;
+
+  if (0 == m)
+  {
+
+    GNUNET_CRYPTO_hash (&n, sizeof(n), &hc);
+    memcpy (hkey,
+            &hc,
+            sizeof (*hkey));
+    if (1 == GNUNET_CONTAINER_multishortmap_contains (topology->map_globals,
+                                                      hkey))
+    {
+      node = GNUNET_CONTAINER_multishortmap_get (topology->map_globals,
+                                                 hkey);
+      plugin = node->plugin;
+    }
+
+  }
+  else
+  {
+    GNUNET_CRYPTO_hash (&m, sizeof(m), &hc);
+    memcpy (hkey,
+            &hc,
+            sizeof (*hkey));
+    if (1 == GNUNET_CONTAINER_multishortmap_contains (topology->map_namespaces,
+                                                      hkey))
+    {
+      namespace = GNUNET_CONTAINER_multishortmap_get (topology->map_namespaces,
+                                                      hkey);
+      GNUNET_CRYPTO_hash (&n, sizeof(n), &hc);
+      memcpy (hkey,
+              &hc,
+              sizeof (*hkey));
+      if (1 == GNUNET_CONTAINER_multishortmap_contains (namespace->nodes,
+                                                        hkey))
+      {
+        node = GNUNET_CONTAINER_multishortmap_get (namespace->nodes,
+                                                   hkey);
+        plugin = node->plugin;
+      }
+    }
+
+
+  }
+
+  msg = create_helper_init_msg_ (plugin);
+
   GNUNET_array_append (ns->msg, ns->n_msg, &msg->header);
 
   GNUNET_array_append (ns->shandle, ns->n_shandle, GNUNET_HELPER_send (
@@ -483,23 +569,63 @@ netjail_exec_run (void *cls,
                   const struct GNUNET_TESTING_Command *cmd,
                   struct GNUNET_TESTING_Interpreter *is)
 {
-  char str_m[12];
-  char str_n[12];
   struct NetJailState *ns = cls;
   struct GNUNET_CONFIGURATION_Handle *config =
     GNUNET_CONFIGURATION_create ();
 
-  for (int i = 1; i <= atoi (ns->global_n); i++)
+  for (int i = 1; i <= ns->known; i++)
   {
-    for (int j = 1; j <= atoi (ns->local_m); j++)
+    start_helper (ns, config,
+                  i,
+                  0);
+  }
+
+  for (int i = 1; i <= ns->global_n; i++)
+  {
+    for (int j = 1; j <= ns->local_m; j++)
     {
-      sprintf (str_n, "%d", i);
-      sprintf (str_m, "%d", j);
       start_helper (ns, config,
-                    str_m,
-                    str_n);
+                    j,
+                    i);
     }
   }
+}
+
+
+static void
+send_all_peers_started (unsigned int i, unsigned int j, struct NetJailState *ns)
+{
+  unsigned int total_number = ns->local_m * ns->global_n + ns->known;
+  struct GNUNET_CMDS_ALL_PEERS_STARTED *reply;
+  size_t msg_length;
+  struct GNUNET_HELPER_Handle *helper;
+  struct TestingSystemCount *tbc;
+
+  tbc = GNUNET_new (struct TestingSystemCount);
+  tbc->ns = ns;
+  // TODO This needs to be more generic. As we send more messages back and forth, we can not grow the arrays again and again, because this is to error prone.
+  if (0 == i)
+    tbc->count = j + total_number;
+  else
+    tbc->count = (i - 1) * ns->local_m + j + total_number + ns->known;
+
+  helper = ns->helper[tbc->count - 1 - total_number];
+  msg_length = sizeof(struct GNUNET_CMDS_ALL_PEERS_STARTED);
+  reply = GNUNET_new (struct GNUNET_CMDS_ALL_PEERS_STARTED);
+  reply->header.type = htons (
+    GNUNET_MESSAGE_TYPE_CMDS_HELPER_ALL_PEERS_STARTED);
+  reply->header.size = htons ((uint16_t) msg_length);
+
+  GNUNET_array_append (ns->msg, ns->n_msg, &reply->header);
+
+  struct GNUNET_HELPER_SendHandle *sh = GNUNET_HELPER_send (
+    helper,
+    &reply->header,
+    GNUNET_NO,
+    &clear_msg,
+    tbc);
+
+  GNUNET_array_append (ns->shandle, ns->n_shandle, sh);
 }
 
 
@@ -519,11 +645,8 @@ netjail_start_finish (void *cls,
 {
   unsigned int ret = GNUNET_NO;
   struct NetJailState *ns = cls;
-  unsigned int total_number = atoi (ns->local_m) * atoi (ns->global_n);
-  struct GNUNET_CMDS_ALL_PEERS_STARTED *reply;
-  size_t msg_length;
-  struct GNUNET_HELPER_Handle *helper;
-  struct TestingSystemCount *tbc;
+  unsigned int total_number = ns->local_m * ns->global_n + ns->known;
+
 
   if (ns->number_of_local_test_finished == total_number)
   {
@@ -538,32 +661,16 @@ netjail_start_finish (void *cls,
 
   if (ns->number_of_peers_started == total_number)
   {
-    for (int i = 1; i <= atoi (ns->global_n); i++)
+    for (int i = 1; i <= ns->known; i++)
     {
-      for (int j = 1; j <= atoi (ns->local_m); j++)
+      send_all_peers_started (0,i, ns);
+    }
+
+    for (int i = 1; i <= ns->global_n; i++)
+    {
+      for (int j = 1; j <= ns->local_m; j++)
       {
-        tbc = GNUNET_new (struct TestingSystemCount);
-        tbc->ns = ns;
-        // TODO This needs to be more generic. As we send more messages back and forth, we can not grow the arrays again and again, because this is to error prone.
-        tbc->count = (i - 1) * atoi (ns->local_m) + j + total_number;
-
-        helper = ns->helper[tbc->count - 1 - total_number];
-        msg_length = sizeof(struct GNUNET_CMDS_ALL_PEERS_STARTED);
-        reply = GNUNET_new (struct GNUNET_CMDS_ALL_PEERS_STARTED);
-        reply->header.type = htons (
-          GNUNET_MESSAGE_TYPE_CMDS_HELPER_ALL_PEERS_STARTED);
-        reply->header.size = htons ((uint16_t) msg_length);
-
-        GNUNET_array_append (ns->msg, ns->n_msg, &reply->header);
-
-        struct GNUNET_HELPER_SendHandle *sh = GNUNET_HELPER_send (
-          helper,
-          &reply->header,
-          GNUNET_NO,
-          &clear_msg,
-          tbc);
-
-        GNUNET_array_append (ns->shandle, ns->n_shandle, sh);
+        send_all_peers_started (i,j, ns);
       }
     }
     ns->number_of_peers_started = 0;
@@ -576,26 +683,27 @@ netjail_start_finish (void *cls,
  * Create command.
  *
  * @param label Name for the command.
- * @param local_m Number of nodes in a network namespace. //TODO make this a unsigned int
- * @param global_n Number of network namespaces. //TODO make this a unsigned int
- * @param plugin_name Name of the test case plugin the helper will load.
+ * @param topology_config Configuration file for the test topology.
  * @param rv Pointer to the return value of the test.
  * @return command.
  */
 struct GNUNET_TESTING_Command
-GNUNET_TESTING_cmd_netjail_start_testing_system (const char *label,
-                                                 char *local_m,
-                                                 char *global_n,
-                                                 char *plugin_name,
-                                                 unsigned int *rv)
+GNUNET_TESTING_cmd_netjail_start_testing_system_v2 (const char *label,
+                                                    const char *topology_config,
+                                                    unsigned int *rv)
 {
   struct NetJailState *ns;
 
+  struct GNUNET_TESTING_NetjailTopology *topology =
+    GNUNET_TESTING_get_topo_from_file (topology_config);
+
   ns = GNUNET_new (struct NetJailState);
-  ns->local_m = local_m;
-  ns->global_n = global_n;
-  ns->plugin_name = plugin_name;
   ns->rv = rv;
+  ns->local_m = topology->nodes_m;
+  ns->global_n = topology->namespaces_n;
+  ns->known = topology->nodes_x;
+  ns->plugin_name = topology->plugin;
+  ns->topology = topology;
 
   struct GNUNET_TESTING_Command cmd = {
     .cls = ns,

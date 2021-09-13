@@ -28,12 +28,195 @@
 #define TRANSPORT_TESTING_CMDS_H
 #include "gnunet_testing_lib.h"
 
+
+struct StartPeerState_v2
+{
+  /**
+   * The ip of a node.
+   */
+  char *node_ip;
+
+  /**
+   * Receive callback
+   */
+  struct GNUNET_MQ_MessageHandler *handlers;
+
+  const char *cfgname;
+
+  /**
+   * Peer's configuration
+   */
+  struct GNUNET_CONFIGURATION_Handle *cfg;
+
+  struct GNUNET_TESTING_Peer *peer;
+
+  /**
+   * Peer identity
+   */
+  struct GNUNET_PeerIdentity id;
+
+  /**
+   * Peer's transport service handle
+   */
+  struct GNUNET_TRANSPORT_CoreHandle *th;
+
+  /**
+   * Application handle
+   */
+  struct GNUNET_TRANSPORT_ApplicationHandle *ah;
+
+  /**
+   * Peer's PEERSTORE Handle
+   */
+  struct GNUNET_PEERSTORE_Handle *ph;
+
+  /**
+   * Hello get task
+   */
+  struct GNUNET_SCHEDULER_Task *rh_task;
+
+  /**
+   * Peer's transport get hello handle to retrieve peer's HELLO message
+   */
+  struct GNUNET_PEERSTORE_IterateContext *pic;
+
+  /**
+   * Hello
+   */
+  char *hello;
+
+  /**
+   * Hello size
+   */
+  size_t hello_size;
+
+  char *m;
+
+  char *n;
+
+  char *local_m;
+
+  unsigned int finished;
+
+  const char *system_label;
+
+  /**
+   * An unique number to identify the peer
+   */
+  unsigned int no;
+
+  struct GNUNET_CONTAINER_MultiShortmap *connected_peers_map;
+
+  struct GNUNET_TESTING_System *tl_system;
+
+};
+
+
+struct StartPeerState
+{
+  /**
+   * The ip of a node.
+   */
+  char *node_ip;
+
+  /**
+   * Receive callback
+   */
+  struct GNUNET_MQ_MessageHandler *handlers;
+
+  const char *cfgname;
+
+  /**
+   * Peer's configuration
+   */
+  struct GNUNET_CONFIGURATION_Handle *cfg;
+
+  struct GNUNET_TESTING_Peer *peer;
+
+  /**
+   * Peer identity
+   */
+  struct GNUNET_PeerIdentity id;
+
+  /**
+   * Peer's transport service handle
+   */
+  struct GNUNET_TRANSPORT_CoreHandle *th;
+
+  /**
+   * Application handle
+   */
+  struct GNUNET_TRANSPORT_ApplicationHandle *ah;
+
+  /**
+   * Peer's PEERSTORE Handle
+   */
+  struct GNUNET_PEERSTORE_Handle *ph;
+
+  /**
+   * Hello get task
+   */
+  struct GNUNET_SCHEDULER_Task *rh_task;
+
+  /**
+   * Peer's transport get hello handle to retrieve peer's HELLO message
+   */
+  struct GNUNET_PEERSTORE_IterateContext *pic;
+
+  /**
+   * Hello
+   */
+  char *hello;
+
+  /**
+   * Hello size
+   */
+  size_t hello_size;
+
+  char *m;
+
+  char *n;
+
+  char *local_m;
+
+  unsigned int finished;
+
+  const char *system_label;
+
+  /**
+   * An unique number to identify the peer
+   */
+  unsigned int no;
+
+  struct GNUNET_CONTAINER_MultiShortmap *connected_peers_map;
+
+  struct GNUNET_TESTING_System *tl_system;
+
+};
+
+
+int
+GNUNET_TRANSPORT_get_trait_state (const struct
+                                  GNUNET_TESTING_Command
+                                  *cmd,
+                                  struct StartPeerState **sps);
+
+
+struct GNUNET_TESTING_Command
+GNUNET_TRANSPORT_cmd_start_peer_v2 (const char *label,
+                                    const char *system_label,
+                                    uint32_t no,
+                                    char *node_ip,
+                                    struct GNUNET_MQ_MessageHandler *handlers,
+                                    const char *cfgname);
+
 struct GNUNET_TESTING_Command
 GNUNET_TRANSPORT_cmd_start_peer (const char *label,
                                  const char *system_label,
                                  char *m,
                                  char *n,
                                  char *local_m,
+                                 char *node_ip,
                                  struct GNUNET_MQ_MessageHandler *handlers,
                                  const char *cfgname);
 
@@ -43,7 +226,15 @@ GNUNET_TRANSPORT_cmd_stop_peer (const char *label,
 
 struct GNUNET_TESTING_Command
 GNUNET_TRANSPORT_cmd_connect_peers (const char *label,
-                                    const char *start_peer_label);
+                                    const char *start_peer_label,
+                                    const char *create_label,
+                                    uint32_t num);
+
+struct GNUNET_TESTING_Command
+GNUNET_TRANSPORT_cmd_connect_peers_v2 (const char *label,
+                                       const char *start_peer_label,
+                                       const char *create_label,
+                                       uint32_t num);
 
 struct GNUNET_TESTING_Command
 GNUNET_TRANSPORT_cmd_send_simple (const char *label,
@@ -51,6 +242,21 @@ GNUNET_TRANSPORT_cmd_send_simple (const char *label,
                                   char *n,
                                   uint32_t num,
                                   const char *start_peer_label);
+
+/**
+ * Create command.
+ *
+ * @param label name for command.
+ * @param m The number of the local node of the actual network namespace.
+ * @param n The number of the actual namespace.
+ * @param num Number globally identifying the node.
+ * @param start_peer_label Label of the cmd to start a peer.
+ * @return command.
+ */
+struct GNUNET_TESTING_Command
+GNUNET_TRANSPORT_cmd_send_simple_v2 (const char *label,
+                                     const char *start_peer_label,
+                                     uint32_t num);
 
 int
 GNUNET_TRANSPORT_get_trait_peer_id (const struct
@@ -65,6 +271,16 @@ GNUNET_TRANSPORT_get_trait_connected_peers_map (const struct
                                                 GNUNET_CONTAINER_MultiShortmap *
                                                 *
                                                 connected_peers_map);
+
+int
+GNUNET_TRANSPORT_get_trait_connected_peers_map_v2 (const struct
+                                                   GNUNET_TESTING_Command
+                                                   *cmd,
+                                                   struct
+                                                   GNUNET_CONTAINER_MultiShortmap
+                                                   *
+                                                   *
+                                                   connected_peers_map);
 int
 GNUNET_TRANSPORT_get_trait_hello_size (const struct
                                        GNUNET_TESTING_Command
@@ -76,6 +292,21 @@ GNUNET_TRANSPORT_get_trait_hello (const struct
                                   GNUNET_TESTING_Command
                                   *cmd,
                                   char **hello);
+
+
+int
+GNUNET_TRANSPORT_get_trait_application_handle (const struct
+                                               GNUNET_TESTING_Command *cmd,
+                                               struct
+                                               GNUNET_TRANSPORT_ApplicationHandle
+                                               **ah);
+
+int
+GNUNET_TRANSPORT_get_trait_application_handle_v2 (const struct
+                                                  GNUNET_TESTING_Command *cmd,
+                                                  struct
+                                                  GNUNET_TRANSPORT_ApplicationHandle
+                                                  **ah);
 
 #endif
 /* end of transport_testing.h */
