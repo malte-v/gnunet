@@ -1085,6 +1085,12 @@ GNUNET_TESTING_cmd_block_until_all_peers_started (const char *label,
                                                   unsigned int *
                                                   all_peers_started);
 
+
+struct GNUNET_TESTING_Command
+GNUNET_TESTING_cmd_block_until_external_trigger (const char *label,
+                                                 unsigned int *
+                                                 stop_blocking);
+
 struct GNUNET_TESTING_Command
 GNUNET_TESTING_cmd_send_peer_ready (const char *label,
                                     TESTING_CMD_HELPER_write_cb write_message);

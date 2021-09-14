@@ -401,7 +401,7 @@ libgnunet_test_transport_plugin_cmd_simple_send_la_SOURCES = \
 libgnunet_test_transport_plugin_cmd_simple_send_la_LIBADD = \
   libgnunettransporttesting2.la \
   libgnunettransportapplication.la \
-  libgnunettransport.la \
+  libgnunettransportcore.la \
   $(top_builddir)/src/testing/libgnunettesting.la \
   $(top_builddir)/src/peerstore/libgnunetpeerstore.la \
   $(top_builddir)/src/statistics/libgnunetstatistics.la \
@@ -418,7 +418,7 @@ libgnunet_test_transport_plugin_cmd_simple_send_v2_la_SOURCES = \
 libgnunet_test_transport_plugin_cmd_simple_send_v2_la_LIBADD = \
   libgnunettransporttesting2.la \
   libgnunettransportapplication.la \
-  libgnunettransport.la \
+  libgnunettransportcore.la \
   $(top_builddir)/src/testing/libgnunettesting.la \
   $(top_builddir)/src/peerstore/libgnunetpeerstore.la \
   $(top_builddir)/src/statistics/libgnunetstatistics.la \
@@ -756,8 +756,8 @@ test_transport_simple_send_LDADD = \
  $(top_builddir)/src/util/libgnunetutil.la \
  $(top_builddir)/src/testbed/libgnunettestbed.la \
  $(top_builddir)/src/hello/libgnunethello.la \
- libgnunettransport.la \
- libgnunettransporttesting.la
+ libgnunettransportcore.la \
+ libgnunettransporttesting2.la
 
 test_transport_simple_send_v2_SOURCES = \
  test_transport_simple_send_v2.c
@@ -766,8 +766,8 @@ test_transport_simple_send_v2_LDADD = \
  $(top_builddir)/src/util/libgnunetutil.la \
  $(top_builddir)/src/testbed/libgnunettestbed.la \
  $(top_builddir)/src/hello/libgnunethello.la \
- libgnunettransport.la \
- libgnunettransporttesting.la
+ libgnunettransportcore.la \
+ libgnunettransporttesting2.la
 
 test_transport_testing_startstop_SOURCES = \
  test_transport_testing_startstop.c

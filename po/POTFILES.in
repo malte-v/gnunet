@@ -429,8 +429,12 @@ src/testing/testing_api_cmd_hello_world_birth.c
 src/testing/testing_api_cmd_local_test_finished.c
 src/testing/testing_api_cmd_netjail_start.c
 src/testing/testing_api_cmd_netjail_start_testsystem.c
+src/testing/testing_api_cmd_netjail_start_testsystem_v2.c
+src/testing/testing_api_cmd_netjail_start_v2.c
 src/testing/testing_api_cmd_netjail_stop.c
 src/testing/testing_api_cmd_netjail_stop_testsystem.c
+src/testing/testing_api_cmd_netjail_stop_testsystem_v2.c
+src/testing/testing_api_cmd_netjail_stop_v2.c
 src/testing/testing_api_cmd_send_peer_ready.c
 src/testing/testing_api_cmd_system_create.c
 src/testing/testing_api_cmd_system_destroy.c
@@ -491,8 +495,11 @@ src/transport/transport_api2_monitor.c
 src/transport/transport_api_address_to_string.c
 src/transport/transport_api_blacklist.c
 src/transport/transport_api_cmd_connecting_peers.c
+src/transport/transport_api_cmd_connecting_peers_v2.c
 src/transport/transport_api_cmd_send_simple.c
+src/transport/transport_api_cmd_send_simple_v2.c
 src/transport/transport_api_cmd_start_peer.c
+src/transport/transport_api_cmd_start_peer_v2.c
 src/transport/transport_api_cmd_stop_peer.c
 src/transport/transport_api_core.c
 src/transport/transport_api_hello_get.c
@@ -510,6 +517,7 @@ src/util/common_allocation.c
 src/util/common_endian.c
 src/util/common_logging.c
 src/util/configuration.c
+src/util/configuration_helper.c
 src/util/consttime_memcmp.c
 src/util/container_bloomfilter.c
 src/util/container_heap.c

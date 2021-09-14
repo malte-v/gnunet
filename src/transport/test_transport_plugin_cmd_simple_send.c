@@ -55,6 +55,11 @@ char *cfgname;
  */
 unsigned int are_all_peers_started;
 
+/**
+ * Flag indicating a received message.
+ */
+unsigned int message_received;
+
 
 /**
  * Function called to check a message of type GNUNET_TRANSPORT_TESTING_SIMPLE_MTYPE being
@@ -80,6 +85,7 @@ handle_test (void *cls,
 {
   LOG (GNUNET_ERROR_TYPE_ERROR,
        "message received\n");
+  message_received = GNUNET_YES;
 }
 
 
@@ -203,6 +209,8 @@ start_testcase (TESTING_CMD_HELPER_write_cb write_message, char *router_ip,
                                       (atoi (n) - 1) * atoi (local_m) + atoi (
                                         m),
                                       "start-peer"),
+    GNUNET_TESTING_cmd_block_until_external_trigger ("block-receive",
+                                                     &message_received),
     GNUNET_TRANSPORT_cmd_stop_peer ("stop-peer",
                                     "start-peer"),
     GNUNET_TESTING_cmd_system_destroy ("system-destroy",
