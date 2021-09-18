@@ -62,7 +62,7 @@ struct HelperMessage
 struct NetJailState
 {
   /**
-   * The complete topology infomation.
+   * The complete topology information.
    */
   struct GNUNET_TESTING_NetjailTopology *topology;
 
